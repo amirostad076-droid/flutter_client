@@ -21,6 +21,10 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get gatewayConnectedToast => '已连接';
 
   @override
+  String get sessionExpiredToast =>
+      'Your session has expired. Please sign in again.';
+
+  @override
   String splashStartupFailed(String error) {
     return '启动失败：$error';
   }

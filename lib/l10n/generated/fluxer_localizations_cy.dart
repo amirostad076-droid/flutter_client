@@ -22,6 +22,10 @@ class FluxerLocalizationsCy extends FluxerLocalizations {
   String get gatewayConnectedToast => 'Wedi\'i gysylltu';
 
   @override
+  String get sessionExpiredToast =>
+      'Your session has expired. Please sign in again.';
+
+  @override
   String splashStartupFailed(String error) {
     return 'Methu dechrau: $error';
   }

@@ -22,6 +22,10 @@ class FluxerLocalizationsPl extends FluxerLocalizations {
   String get gatewayConnectedToast => 'Połączono';
 
   @override
+  String get sessionExpiredToast =>
+      'Your session has expired. Please sign in again.';
+
+  @override
   String splashStartupFailed(String error) {
     return 'Nie udało się uruchomić: $error';
   }

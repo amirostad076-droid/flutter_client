@@ -16,6 +16,10 @@
   "@gatewayConnectedToast": {
     "description": "Toast shown when the gateway connection is restored."
   },
+  "sessionExpiredToast": "Your session has expired. Please sign in again.",
+  "@sessionExpiredToast": {
+    "description": "Toast shown when the stored session is rejected by the server and the user is signed out to the login screen."
+  },
   "splashStartupFailed": "Failed to start: {error}",
   "@splashStartupFailed": {
     "description": "Error message on the splash screen when app startup fails.",

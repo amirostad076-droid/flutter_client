@@ -193,6 +193,12 @@ abstract class FluxerLocalizations {
   /// **'Connected'**
   String get gatewayConnectedToast;
 
+  /// Toast shown when the stored session is rejected by the server and the user is signed out to the login screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has expired. Please sign in again.'**
+  String get sessionExpiredToast;
+
   /// Error message on the splash screen when app startup fails.
   ///
   /// In en, this message translates to:

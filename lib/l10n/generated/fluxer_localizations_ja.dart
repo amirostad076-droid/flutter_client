@@ -21,6 +21,10 @@ class FluxerLocalizationsJa extends FluxerLocalizations {
   String get gatewayConnectedToast => '接続済み';
 
   @override
+  String get sessionExpiredToast =>
+      'Your session has expired. Please sign in again.';
+
+  @override
   String splashStartupFailed(String error) {
     return '起動に失敗しました: $error';
   }
