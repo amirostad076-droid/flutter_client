@@ -95,10 +95,7 @@ class FluxerApp extends ConsumerWidget {
           );
         }
         // TODO(Any): Remove this once enough strings are added for RTL languages.
-        return Directionality(
-          textDirection: TextDirection.ltr,
-          child: content,
-        );
+        return Directionality(textDirection: TextDirection.ltr, child: content);
       },
     );
   }
