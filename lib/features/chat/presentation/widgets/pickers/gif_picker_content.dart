@@ -30,6 +30,8 @@ const _kMasonryMinColumnWidth = 227.0;
 const _kMasonryHorizontalPadding = 10.0;
 const _kMasonryCacheExtent = 700.0;
 const double _kCategoryTileAspectRatio = 200 / 96;
+const double _kCompactCategoryTileAspectRatio = 16 / 10;
+const double _kCompactCategoryTileBreakpoint = 600;
 const _kSkeletonTileCount = 12;
 
 enum _GifPickerView { landing, trending }
@@ -668,7 +670,7 @@ class _CategoryGridState extends State<_CategoryGrid> {
                 (_kMasonryHorizontalPadding * 2) -
                 gap * (columnCount - 1)) /
             columnCount;
-        final tileHeight = tileWidth / _kCategoryTileAspectRatio;
+        final tileHeight = tileWidth / _categoryTileAspectRatioFor(context);
         final viewportHeight = constraints.maxHeight.isFinite
             ? constraints.maxHeight
             : MediaQuery.sizeOf(context).height;
@@ -1086,6 +1088,14 @@ int _masonryColumnCountForWidth(double width) {
   final availableWidth = width - (_kMasonryHorizontalPadding * 2);
   final count = (availableWidth / _kMasonryMinColumnWidth).floor();
   return count.clamp(2, 4);
+}
+
+double _categoryTileAspectRatioFor(BuildContext context) {
+  final screenSize = MediaQuery.sizeOf(context);
+  if (screenSize.shortestSide < _kCompactCategoryTileBreakpoint) {
+    return _kCompactCategoryTileAspectRatio;
+  }
+  return _kCategoryTileAspectRatio;
 }
 
 class _MasonryPosition {
