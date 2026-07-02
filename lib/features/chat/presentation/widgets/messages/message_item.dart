@@ -41,6 +41,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/pickers/expression
 import 'package:fluxer_app/features/chat/providers/channel/channel_details_providers.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_providers.dart';
 import 'package:fluxer_app/features/chat/providers/messages/spoiler_reveal_provider.dart';
+import 'package:fluxer_app/features/chat/utils/embed_gallery_utils.dart';
 import 'package:fluxer_app/features/chat/utils/message_link.dart';
 import 'package:fluxer_app/features/chat/utils/message_timestamp_format.dart';
 import 'package:fluxer_app/features/chat/utils/spoiler_utils.dart';
@@ -821,23 +822,32 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         ),
       ),
       if (renderEmbeds && !msg.suppressEmbeds)
-        ...msg.embeds.indexed.map((entry) {
-          final int embedIndex = entry.$1;
-          final embed = entry.$2;
-          final spoilerSyncKeys = spoilerSyncKeysForEmbed(embed, spoileredUrls);
-          return wrapPart(
-            _buildEmbed(
-              embed,
-              isSpoiler: spoilerSyncKeys.isNotEmpty,
-              spoilerSyncKeys: spoilerSyncKeys,
-              revealSpoilers: revealSpoilers,
-              dimensionSize: chatPreferences.embedMediaDimensionSize,
-              channelId: msg.channelId,
-              messageId: msg.id,
-              embedIndex: embedIndex,
-            ),
-          );
-        }),
+        ...() {
+          final EmbedGalleryIndex galleryIndex = EmbedGalleryIndex(msg.embeds);
+          return msg.embeds.indexed
+              .where((entry) => !galleryIndex.isDuplicateAt(entry.$1))
+              .map((entry) {
+                final int embedIndex = entry.$1;
+                final embed = entry.$2;
+                final spoilerSyncKeys = spoilerSyncKeysForEmbed(
+                  embed,
+                  spoileredUrls,
+                );
+                return wrapPart(
+                  _buildEmbed(
+                    embed,
+                    galleryIndex: galleryIndex,
+                    isSpoiler: spoilerSyncKeys.isNotEmpty,
+                    spoilerSyncKeys: spoilerSyncKeys,
+                    revealSpoilers: revealSpoilers,
+                    dimensionSize: chatPreferences.embedMediaDimensionSize,
+                    channelId: msg.channelId,
+                    messageId: msg.id,
+                    embedIndex: embedIndex,
+                  ),
+                );
+              });
+        }(),
       if (msg.attachments.isNotEmpty)
         AttachmentListRenderer(
           attachments: msg.attachments,
@@ -1327,6 +1337,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
 
   Widget _buildEmbed(
     Embed embed, {
+    required EmbedGalleryIndex galleryIndex,
     required bool isSpoiler,
     required List<String> spoilerSyncKeys,
     required bool revealSpoilers,
@@ -1338,9 +1349,13 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     final child = switch (embed.type) {
       EmbedType.rich => EmbedRich(
         embed: embed,
+        galleryIndex: galleryIndex,
+        embedIndex: embedIndex ?? 0,
         dimensionSize: dimensionSize,
         revealSpoilers: revealSpoilers,
         spoilerSyncController: _spoilerSyncController,
+        channelId: channelId,
+        messageId: messageId,
       ),
       EmbedType.image || EmbedType.gifv => EmbedImage(
         embed: embed,
@@ -1355,9 +1370,13 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       ),
       EmbedType.link => EmbedLink(
         embed: embed,
+        galleryIndex: galleryIndex,
+        embedIndex: embedIndex ?? 0,
         dimensionSize: dimensionSize,
         revealSpoilers: revealSpoilers,
         spoilerSyncController: _spoilerSyncController,
+        channelId: channelId,
+        messageId: messageId,
       ),
       EmbedType.video => EmbedVideo(
         embed: embed,
