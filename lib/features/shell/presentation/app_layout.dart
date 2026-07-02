@@ -77,7 +77,12 @@ class _AppLayoutState extends ConsumerState<AppLayout>
         String next,
       ) {
         _swipeController.value = 0;
-        ref.read(currentRevealSideProvider.notifier).syncForRoute(next);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) {
+            return;
+          }
+          ref.read(currentRevealSideProvider.notifier).syncForRoute(next);
+        });
       })
       ..watch(pushNotificationsCoordinatorProvider)
       ..watch(appIconBadgeCoordinatorProvider);

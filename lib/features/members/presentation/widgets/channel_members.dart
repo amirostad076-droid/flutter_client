@@ -32,9 +32,12 @@ class _ChannelMembersState extends ConsumerState<ChannelMembers> {
   @override
   void initState() {
     super.initState();
-    ref.read(memberListPanelActiveProvider.notifier).active = true;
     _scrollController.addListener(_handleScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      ref.read(memberListPanelActiveProvider.notifier).active = true;
       final String? guildId = ref.read(activeGuildIdProvider);
       if (guildId != null) {
         prefetchGuildRolesIfMissing(
@@ -49,7 +52,12 @@ class _ChannelMembersState extends ConsumerState<ChannelMembers> {
 
   @override
   void deactivate() {
-    ref.read(memberListPanelActiveProvider.notifier).active = false;
+    final MemberListPanelActive notifier = ref.read(
+      memberListPanelActiveProvider.notifier,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifier.active = false;
+    });
     super.deactivate();
   }
 
