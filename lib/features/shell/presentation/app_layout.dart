@@ -16,6 +16,8 @@ import 'package:fluxer_app/features/channels/presentation/widgets/guild_sidebar.
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/dm_list.dart';
+import 'package:fluxer_app/features/discovery/presentation/discovery_mobile_shell.dart';
+import 'package:fluxer_app/features/discovery/presentation/widgets/discovery_sidebar_column.dart';
 import 'package:fluxer_app/features/favorites/presentation/favorites_sidebar.dart';
 import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
 import 'package:fluxer_app/features/guilds/presentation/widgets/guild_navbar.dart';
@@ -147,6 +149,9 @@ class _AppLayoutState extends ConsumerState<AppLayout>
     if (location.startsWith('/channels/@favorites')) {
       return const FavoritesSidebar();
     }
+    if (isDiscoverRoute(location)) {
+      return const DiscoverySidebarColumn();
+    }
     return const GuildSidebar();
   }
 
@@ -183,6 +188,9 @@ class _AppLayoutState extends ConsumerState<AppLayout>
   }
 
   Widget _buildMobileBody(String location) {
+    if (classifyRoute(location) == RouteKind.discover) {
+      return const DiscoveryMobileShell();
+    }
     if (_isChannelsRoute(location)) {
       return _buildMobileChannelBody(location);
     }

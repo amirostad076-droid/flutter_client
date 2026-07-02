@@ -15,6 +15,7 @@ import 'package:fluxer_app/features/auth/presentation/login_screen.dart';
 import 'package:fluxer_app/features/auth/providers/account_manager_provider.dart';
 import 'package:fluxer_app/features/auth/providers/add_account_instance_guard_provider.dart';
 import 'package:fluxer_app/features/chat/presentation/channel_layout.dart';
+import 'package:fluxer_app/features/discovery/presentation/discovery_layout.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/chat_loading_spinner.dart';
 import 'package:fluxer_app/features/chat/utils/chat_spinner_debug.dart';
 import 'package:fluxer_app/features/dm/presentation/dm_layout.dart';
@@ -525,6 +526,15 @@ GoRouter fluxerRouter(Ref ref) {
                     ],
                   ),
                 ],
+              ),
+              // /channels/@discover
+              GoRoute(
+                path: '/channels/@discover',
+                name: RouteNames.discover,
+                pageBuilder: (context, state) => _fadeTransitionPage(
+                  key: state.pageKey,
+                  child: const DiscoveryLayout(),
+                ),
               ),
               // /channels/:guildId
               GoRoute(

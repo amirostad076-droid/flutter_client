@@ -5394,6 +5394,137 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
       'Explore Discoverable Communities';
 
   @override
+  String get discoveryExplore => 'Explore';
+
+  @override
+  String get discoveryExplorePublicCommunities => 'Explore public communities';
+
+  @override
+  String get discoveryListingSubheading =>
+      'Want to list your community on here? Apply if you meet the requirements in your community\'s settings > Discovery.';
+
+  @override
+  String get discoverySearchCommunities => 'Search communities';
+
+  @override
+  String get discoveryFilterByLanguage => 'Filter by language';
+
+  @override
+  String get discoveryAllLanguages => 'All languages';
+
+  @override
+  String get discoveryAllCategories => 'All';
+
+  @override
+  String get discoveryCategoryGaming => 'Gaming';
+
+  @override
+  String get discoveryCategoryMusic => 'Music';
+
+  @override
+  String get discoveryCategoryEntertainment => 'Entertainment';
+
+  @override
+  String get discoveryCategoryEducation => 'Education';
+
+  @override
+  String get discoveryCategoryScienceAndTechnology => 'Science & Technology';
+
+  @override
+  String get discoveryCategoryContentCreator => 'Content Creator';
+
+  @override
+  String get discoveryCategoryAnimeAndManga => 'Anime & Manga';
+
+  @override
+  String get discoveryCategoryMoviesAndTv => 'Movies & TV';
+
+  @override
+  String get discoveryCategoryOther => 'Other';
+
+  @override
+  String get discoveryNoCommunitiesMatch => 'No communities match.';
+
+  @override
+  String get discoveryJoinCommunity => 'Join community';
+
+  @override
+  String get discoveryJoined => 'Joined';
+
+  @override
+  String discoveryOnlineCount(String count) {
+    return '$count online';
+  }
+
+  @override
+  String discoveryMemberCount(num count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString members',
+      one: '1 member',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get discoveryNoDescription => 'No description.';
+
+  @override
+  String get discoveryCommunities => 'Communities';
+
+  @override
+  String get discoveryApps => 'Apps';
+
+  @override
+  String get discoveryJoinErrorGenericTitle => 'Couldn\'t join this community';
+
+  @override
+  String get discoveryJoinErrorGenericMessage =>
+      'Something went wrong. Please try again in a moment.';
+
+  @override
+  String get discoveryJoinErrorFullTitle => 'This community is full';
+
+  @override
+  String get discoveryJoinErrorFullMessage =>
+      'This community has reached its member limit, so you can\'t join right now.';
+
+  @override
+  String get discoveryJoinErrorMaxGuildsTitle =>
+      'You\'ve reached the community limit';
+
+  @override
+  String get discoveryJoinErrorMaxGuildsMessage =>
+      'You\'re in the maximum number of communities. Leave one and try again.';
+
+  @override
+  String get discoveryJoinErrorBannedTitle => 'You can\'t join this community';
+
+  @override
+  String get discoveryJoinErrorBannedMessage =>
+      'You have been banned from this community.';
+
+  @override
+  String get discoveryJoinErrorNotAvailableTitle =>
+      'This community is no longer available';
+
+  @override
+  String get discoveryJoinErrorNotAvailableMessage =>
+      'It may have left discovery or turned off new joins. Refresh the page and you won\'t see it again.';
+
+  @override
+  String get discoveryJoinErrorRateLimitTitle => 'You\'re going too fast';
+
+  @override
+  String get discoveryJoinErrorRateLimitMessage =>
+      'Please wait a moment and try again.';
+
+  @override
   String get guildNavbarAddCommunity => 'Add a Community';
 
   @override

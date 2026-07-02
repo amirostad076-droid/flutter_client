@@ -446,14 +446,16 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
                   as GlobalKey<_GuildListItemState>,
         );
       case _NavbarListEntryKind.exploreCommunities:
+        final bool isDiscover = ref.watch(
+          currentLocationProvider.select(
+            (String l) => l == RoutePaths.discover,
+          ),
+        );
         return _DashedGuildIcon(
           label: l10n.guildNavbarExploreDiscoverableCommunities,
           icon: PhosphorIconsRegular.compass,
-          onTap: () {
-            ref
-                .read(toastProvider.notifier)
-                .show(FluxerToast(message: l10n.comingSoon));
-          },
+          isSelected: isDiscover,
+          onTap: () => context.go(RoutePaths.discover),
         );
       case _NavbarListEntryKind.addCommunity:
         return _DashedGuildIcon(
@@ -4242,11 +4244,13 @@ class _DashedGuildIcon extends StatefulWidget {
   final String label;
   final IconData icon;
   final VoidCallback onTap;
+  final bool isSelected;
 
   const _DashedGuildIcon({
     required this.label,
     required this.icon,
     required this.onTap,
+    this.isSelected = false,
   });
 
   @override
@@ -4306,33 +4310,37 @@ class _DashedGuildIconState extends State<_DashedGuildIcon>
               onTap: widget.onTap,
               child: AnimatedBuilder(
                 animation: _controller,
-                builder: (context, _) => SizedBox(
-                  width: 48,
-                  height: 48,
-                  child: Center(
-                    child: SizedBox(
-                      width: 44,
-                      height: 44,
-                      child: CustomPaint(
-                        painter: _DashedBorderPainter(
-                          borderRadius: _radiusAnim.value,
-                          color:
-                              _colorAnim.value ??
-                              context.colors.interactiveMuted,
-                        ),
-                        child: Center(
-                          child: PhosphorIcon(
-                            widget.icon,
-                            color:
-                                _colorAnim.value ??
-                                context.colors.interactiveMuted,
-                            size: 20,
+                builder: (context, _) {
+                  final Color activeColor = widget.isSelected
+                      ? context.colors.brandPrimary
+                      : (_colorAnim.value ?? context.colors.interactiveMuted);
+                  return SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Center(
+                      child: SizedBox(
+                        width: 44,
+                        height: 44,
+                        child: CustomPaint(
+                          painter: _DashedBorderPainter(
+                            borderRadius: widget.isSelected
+                                ? 13
+                                : _radiusAnim.value,
+                            color: activeColor,
+                            isSolid: widget.isSelected,
+                          ),
+                          child: Center(
+                            child: PhosphorIcon(
+                              widget.icon,
+                              color: activeColor,
+                              size: 20,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ),
           ),
@@ -4345,8 +4353,13 @@ class _DashedGuildIconState extends State<_DashedGuildIcon>
 class _DashedBorderPainter extends CustomPainter {
   final double borderRadius;
   final Color color;
+  final bool isSolid;
 
-  _DashedBorderPainter({required this.borderRadius, required this.color});
+  _DashedBorderPainter({
+    required this.borderRadius,
+    required this.color,
+    this.isSolid = false,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -4360,6 +4373,11 @@ class _DashedBorderPainter extends CustomPainter {
       Radius.circular(borderRadius),
     );
     final path = Path()..addRRect(rrect);
+
+    if (isSolid) {
+      canvas.drawPath(path, paint);
+      return;
+    }
 
     const dashLength = 6.0;
     const gapLength = 4.0;
@@ -4377,7 +4395,9 @@ class _DashedBorderPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_DashedBorderPainter oldDelegate) =>
-      oldDelegate.borderRadius != borderRadius || oldDelegate.color != color;
+      oldDelegate.borderRadius != borderRadius ||
+      oldDelegate.color != color ||
+      oldDelegate.isSolid != isSolid;
 }
 
 class _RightTooltip extends StatefulWidget {

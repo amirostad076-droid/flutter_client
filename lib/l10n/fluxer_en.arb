@@ -6884,6 +6884,161 @@
   "@guildNavbarExploreDiscoverableCommunities": {
     "description": "Label for the explore communities button in the guild navbar."
   },
+  "discoveryExplore": "Explore",
+  "@discoveryExplore": {
+    "description": "Short label in the discovery page header."
+  },
+  "discoveryExplorePublicCommunities": "Explore public communities",
+  "@discoveryExplorePublicCommunities": {
+    "description": "Main heading on the Discovery page."
+  },
+  "discoveryListingSubheading": "Want to list your community on here? Apply if you meet the requirements in your community's settings > Discovery.",
+  "@discoveryListingSubheading": {
+    "description": "Subheading on the Discovery page explaining how to apply for listing."
+  },
+  "discoverySearchCommunities": "Search communities",
+  "@discoverySearchCommunities": {
+    "description": "Accessible label and placeholder for the community search field."
+  },
+  "discoveryFilterByLanguage": "Filter by language",
+  "@discoveryFilterByLanguage": {
+    "description": "Label for the language filter on the discovery page."
+  },
+  "discoveryAllLanguages": "All languages",
+  "@discoveryAllLanguages": {
+    "description": "Option label for showing communities in all languages."
+  },
+  "discoveryAllCategories": "All",
+  "@discoveryAllCategories": {
+    "description": "Label for the all-categories tab on the discovery page."
+  },
+  "discoveryCategoryGaming": "Gaming",
+  "@discoveryCategoryGaming": {
+    "description": "Discovery category label for gaming communities."
+  },
+  "discoveryCategoryMusic": "Music",
+  "@discoveryCategoryMusic": {
+    "description": "Discovery category label for music communities."
+  },
+  "discoveryCategoryEntertainment": "Entertainment",
+  "@discoveryCategoryEntertainment": {
+    "description": "Discovery category label for entertainment communities."
+  },
+  "discoveryCategoryEducation": "Education",
+  "@discoveryCategoryEducation": {
+    "description": "Discovery category label for education communities."
+  },
+  "discoveryCategoryScienceAndTechnology": "Science & Technology",
+  "@discoveryCategoryScienceAndTechnology": {
+    "description": "Discovery category label for science and technology communities."
+  },
+  "discoveryCategoryContentCreator": "Content Creator",
+  "@discoveryCategoryContentCreator": {
+    "description": "Discovery category label for content creator communities."
+  },
+  "discoveryCategoryAnimeAndManga": "Anime & Manga",
+  "@discoveryCategoryAnimeAndManga": {
+    "description": "Discovery category label for anime and manga communities."
+  },
+  "discoveryCategoryMoviesAndTv": "Movies & TV",
+  "@discoveryCategoryMoviesAndTv": {
+    "description": "Discovery category label for movies and TV communities."
+  },
+  "discoveryCategoryOther": "Other",
+  "@discoveryCategoryOther": {
+    "description": "Discovery category label for communities that do not fit other categories."
+  },
+  "discoveryNoCommunitiesMatch": "No communities match.",
+  "@discoveryNoCommunitiesMatch": {
+    "description": "Empty-state text when no discovery communities match the filters."
+  },
+  "discoveryJoinCommunity": "Join community",
+  "@discoveryJoinCommunity": {
+    "description": "Button label to join a discovery community."
+  },
+  "discoveryJoined": "Joined",
+  "@discoveryJoined": {
+    "description": "Button label when the user is already in a discovery community."
+  },
+  "discoveryOnlineCount": "{count} online",
+  "@discoveryOnlineCount": {
+    "description": "Online member count on a discovery guild card.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "discoveryMemberCount": "{count, plural, one{1 member} other{{count} members}}",
+  "@discoveryMemberCount": {
+    "description": "Member count on a discovery guild card.",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "decimalPattern"
+      }
+    }
+  },
+  "discoveryNoDescription": "No description.",
+  "@discoveryNoDescription": {
+    "description": "Fallback text when a discovery guild has no description."
+  },
+  "discoveryCommunities": "Communities",
+  "@discoveryCommunities": {
+    "description": "Discovery sidebar section label for communities."
+  },
+  "discoveryApps": "Apps",
+  "@discoveryApps": {
+    "description": "Discovery sidebar section label for apps."
+  },
+  "discoveryJoinErrorGenericTitle": "Couldn't join this community",
+  "@discoveryJoinErrorGenericTitle": {
+    "description": "Title of the generic join error dialog on the discovery page."
+  },
+  "discoveryJoinErrorGenericMessage": "Something went wrong. Please try again in a moment.",
+  "@discoveryJoinErrorGenericMessage": {
+    "description": "Body of the generic join error dialog on the discovery page."
+  },
+  "discoveryJoinErrorFullTitle": "This community is full",
+  "@discoveryJoinErrorFullTitle": {
+    "description": "Title when a discovery community has reached its member limit."
+  },
+  "discoveryJoinErrorFullMessage": "This community has reached its member limit, so you can't join right now.",
+  "@discoveryJoinErrorFullMessage": {
+    "description": "Body when a discovery community has reached its member limit."
+  },
+  "discoveryJoinErrorMaxGuildsTitle": "You've reached the community limit",
+  "@discoveryJoinErrorMaxGuildsTitle": {
+    "description": "Title when the user is in the maximum number of communities."
+  },
+  "discoveryJoinErrorMaxGuildsMessage": "You're in the maximum number of communities. Leave one and try again.",
+  "@discoveryJoinErrorMaxGuildsMessage": {
+    "description": "Body when the user is in the maximum number of communities."
+  },
+  "discoveryJoinErrorBannedTitle": "You can't join this community",
+  "@discoveryJoinErrorBannedTitle": {
+    "description": "Title when the user is banned from a discovery community."
+  },
+  "discoveryJoinErrorBannedMessage": "You have been banned from this community.",
+  "@discoveryJoinErrorBannedMessage": {
+    "description": "Body when the user is banned from a discovery community."
+  },
+  "discoveryJoinErrorNotAvailableTitle": "This community is no longer available",
+  "@discoveryJoinErrorNotAvailableTitle": {
+    "description": "Title when a discovery community is no longer joinable."
+  },
+  "discoveryJoinErrorNotAvailableMessage": "It may have left discovery or turned off new joins. Refresh the page and you won't see it again.",
+  "@discoveryJoinErrorNotAvailableMessage": {
+    "description": "Body when a discovery community is no longer joinable."
+  },
+  "discoveryJoinErrorRateLimitTitle": "You're going too fast",
+  "@discoveryJoinErrorRateLimitTitle": {
+    "description": "Title when joining a discovery community is rate limited."
+  },
+  "discoveryJoinErrorRateLimitMessage": "Please wait a moment and try again.",
+  "@discoveryJoinErrorRateLimitMessage": {
+    "description": "Body when joining a discovery community is rate limited."
+  },
   "guildNavbarAddCommunity": "Add a Community",
   "@guildNavbarAddCommunity": {
     "description": "Label for the add community button in the guild navbar."

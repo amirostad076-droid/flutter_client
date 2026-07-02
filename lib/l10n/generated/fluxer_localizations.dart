@@ -9327,6 +9327,222 @@ abstract class FluxerLocalizations {
   /// **'Explore Discoverable Communities'**
   String get guildNavbarExploreDiscoverableCommunities;
 
+  /// Short label in the discovery page header.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore'**
+  String get discoveryExplore;
+
+  /// Main heading on the Discovery page.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore public communities'**
+  String get discoveryExplorePublicCommunities;
+
+  /// Subheading on the Discovery page explaining how to apply for listing.
+  ///
+  /// In en, this message translates to:
+  /// **'Want to list your community on here? Apply if you meet the requirements in your community\'s settings > Discovery.'**
+  String get discoveryListingSubheading;
+
+  /// Accessible label and placeholder for the community search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Search communities'**
+  String get discoverySearchCommunities;
+
+  /// Label for the language filter on the discovery page.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by language'**
+  String get discoveryFilterByLanguage;
+
+  /// Option label for showing communities in all languages.
+  ///
+  /// In en, this message translates to:
+  /// **'All languages'**
+  String get discoveryAllLanguages;
+
+  /// Label for the all-categories tab on the discovery page.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get discoveryAllCategories;
+
+  /// Discovery category label for gaming communities.
+  ///
+  /// In en, this message translates to:
+  /// **'Gaming'**
+  String get discoveryCategoryGaming;
+
+  /// Discovery category label for music communities.
+  ///
+  /// In en, this message translates to:
+  /// **'Music'**
+  String get discoveryCategoryMusic;
+
+  /// Discovery category label for entertainment communities.
+  ///
+  /// In en, this message translates to:
+  /// **'Entertainment'**
+  String get discoveryCategoryEntertainment;
+
+  /// Discovery category label for education communities.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get discoveryCategoryEducation;
+
+  /// Discovery category label for science and technology communities.
+  ///
+  /// In en, this message translates to:
+  /// **'Science & Technology'**
+  String get discoveryCategoryScienceAndTechnology;
+
+  /// Discovery category label for content creator communities.
+  ///
+  /// In en, this message translates to:
+  /// **'Content Creator'**
+  String get discoveryCategoryContentCreator;
+
+  /// Discovery category label for anime and manga communities.
+  ///
+  /// In en, this message translates to:
+  /// **'Anime & Manga'**
+  String get discoveryCategoryAnimeAndManga;
+
+  /// Discovery category label for movies and TV communities.
+  ///
+  /// In en, this message translates to:
+  /// **'Movies & TV'**
+  String get discoveryCategoryMoviesAndTv;
+
+  /// Discovery category label for communities that do not fit other categories.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get discoveryCategoryOther;
+
+  /// Empty-state text when no discovery communities match the filters.
+  ///
+  /// In en, this message translates to:
+  /// **'No communities match.'**
+  String get discoveryNoCommunitiesMatch;
+
+  /// Button label to join a discovery community.
+  ///
+  /// In en, this message translates to:
+  /// **'Join community'**
+  String get discoveryJoinCommunity;
+
+  /// Button label when the user is already in a discovery community.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined'**
+  String get discoveryJoined;
+
+  /// Online member count on a discovery guild card.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} online'**
+  String discoveryOnlineCount(String count);
+
+  /// Member count on a discovery guild card.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{1 member} other{{count} members}}'**
+  String discoveryMemberCount(num count);
+
+  /// Fallback text when a discovery guild has no description.
+  ///
+  /// In en, this message translates to:
+  /// **'No description.'**
+  String get discoveryNoDescription;
+
+  /// Discovery sidebar section label for communities.
+  ///
+  /// In en, this message translates to:
+  /// **'Communities'**
+  String get discoveryCommunities;
+
+  /// Discovery sidebar section label for apps.
+  ///
+  /// In en, this message translates to:
+  /// **'Apps'**
+  String get discoveryApps;
+
+  /// Title of the generic join error dialog on the discovery page.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t join this community'**
+  String get discoveryJoinErrorGenericTitle;
+
+  /// Body of the generic join error dialog on the discovery page.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again in a moment.'**
+  String get discoveryJoinErrorGenericMessage;
+
+  /// Title when a discovery community has reached its member limit.
+  ///
+  /// In en, this message translates to:
+  /// **'This community is full'**
+  String get discoveryJoinErrorFullTitle;
+
+  /// Body when a discovery community has reached its member limit.
+  ///
+  /// In en, this message translates to:
+  /// **'This community has reached its member limit, so you can\'t join right now.'**
+  String get discoveryJoinErrorFullMessage;
+
+  /// Title when the user is in the maximum number of communities.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve reached the community limit'**
+  String get discoveryJoinErrorMaxGuildsTitle;
+
+  /// Body when the user is in the maximum number of communities.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re in the maximum number of communities. Leave one and try again.'**
+  String get discoveryJoinErrorMaxGuildsMessage;
+
+  /// Title when the user is banned from a discovery community.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t join this community'**
+  String get discoveryJoinErrorBannedTitle;
+
+  /// Body when the user is banned from a discovery community.
+  ///
+  /// In en, this message translates to:
+  /// **'You have been banned from this community.'**
+  String get discoveryJoinErrorBannedMessage;
+
+  /// Title when a discovery community is no longer joinable.
+  ///
+  /// In en, this message translates to:
+  /// **'This community is no longer available'**
+  String get discoveryJoinErrorNotAvailableTitle;
+
+  /// Body when a discovery community is no longer joinable.
+  ///
+  /// In en, this message translates to:
+  /// **'It may have left discovery or turned off new joins. Refresh the page and you won\'t see it again.'**
+  String get discoveryJoinErrorNotAvailableMessage;
+
+  /// Title when joining a discovery community is rate limited.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re going too fast'**
+  String get discoveryJoinErrorRateLimitTitle;
+
+  /// Body when joining a discovery community is rate limited.
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait a moment and try again.'**
+  String get discoveryJoinErrorRateLimitMessage;
+
   /// Label for the add community button in the guild navbar.
   ///
   /// In en, this message translates to:

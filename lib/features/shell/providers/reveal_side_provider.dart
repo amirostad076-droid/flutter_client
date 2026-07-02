@@ -114,6 +114,7 @@ RevealSide? syncedRevealSideFor(String location) {
     RouteKind.chat => RevealSide.main,
     RouteKind.guildMembers => null,
     RouteKind.dmCall => null,
+    RouteKind.discover => null,
     RouteKind.nonChannel => null,
   };
 }
