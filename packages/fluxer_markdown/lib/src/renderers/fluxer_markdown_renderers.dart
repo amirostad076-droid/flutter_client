@@ -665,14 +665,38 @@ class _MarkdownInlineRenderer {
       return TextSpan(text: '[$text]($href)', style: style);
     }
     final linkColor = config.linkColor ?? Theme.of(context).colorScheme.primary;
+    final linkStyle = style.copyWith(color: linkColor);
+    final children = _attachLinkRecognizers(
+      build(element.children ?? [md.Text(text)], style: linkStyle),
+      href,
+    );
+    return TextSpan(style: linkStyle, children: children);
+  }
 
+  List<InlineSpan> _attachLinkRecognizers(List<InlineSpan> spans, String href) {
+    return spans
+        .map((InlineSpan span) => _attachLinkRecognizerToSpan(span, href))
+        .toList();
+  }
+
+  InlineSpan _attachLinkRecognizerToSpan(InlineSpan span, String href) {
+    if (span is! TextSpan) {
+      return span;
+    }
+    final List<InlineSpan>? children = span.children;
+    if (children == null || children.isEmpty) {
+      return TextSpan(
+        text: span.text,
+        style: span.style,
+        recognizer: TapGestureRecognizer()
+          ..onTap = () {
+            unawaited(_handleLinkTap(href));
+          },
+      );
+    }
     return TextSpan(
-      text: text,
-      style: style.copyWith(color: linkColor, decoration: TextDecoration.none),
-      recognizer: TapGestureRecognizer()
-        ..onTap = () {
-          unawaited(_handleLinkTap(href));
-        },
+      style: span.style,
+      children: _attachLinkRecognizers(children, href),
     );
   }
 

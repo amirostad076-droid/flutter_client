@@ -264,6 +264,150 @@ void main() {
       expect(tappedHref, url);
     });
 
+    testWidgets('renders bold inside masked link labels', (tester) async {
+      const String url = 'https://fluxer.app';
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: FluxerMarkdown(
+              data: '[**bold**]($url)',
+              config: _testMarkdownConfig,
+            ),
+          ),
+        ),
+      );
+      final RichText richText = tester.widget<RichText>(find.byType(RichText));
+      expect(richText.text.toPlainText(), 'bold');
+      expect(
+        _leafTextHasStyle(richText.text, 'bold', fontWeight: FontWeight.w700),
+        isTrue,
+      );
+    });
+
+    testWidgets('renders underline inside masked link labels', (tester) async {
+      const String url = 'https://fluxer.app';
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: FluxerMarkdown(
+              data: '[__underline__]($url)',
+              config: _testMarkdownConfig,
+            ),
+          ),
+        ),
+      );
+      final RichText richText = tester.widget<RichText>(find.byType(RichText));
+      expect(richText.text.toPlainText(), 'underline');
+      expect(
+        _leafTextHasStyle(
+          richText.text,
+          'underline',
+          decoration: TextDecoration.underline,
+        ),
+        isTrue,
+      );
+    });
+
+    testWidgets('renders strikethrough inside masked link labels', (
+      tester,
+    ) async {
+      const String url = 'https://fluxer.app';
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: FluxerMarkdown(
+              data: '[~~strike~~]($url)',
+              config: _testMarkdownConfig,
+            ),
+          ),
+        ),
+      );
+      final RichText richText = tester.widget<RichText>(find.byType(RichText));
+      expect(richText.text.toPlainText(), 'strike');
+      expect(
+        _leafTextHasStyle(
+          richText.text,
+          'strike',
+          decoration: TextDecoration.lineThrough,
+        ),
+        isTrue,
+      );
+    });
+
+    testWidgets('renders mixed modifiers inside masked link labels', (
+      tester,
+    ) async {
+      const String url = 'https://fluxer.app';
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: FluxerMarkdown(
+              data: '[**bold** and ~~strike~~]($url)',
+              config: _testMarkdownConfig,
+            ),
+          ),
+        ),
+      );
+      final RichText richText = tester.widget<RichText>(find.byType(RichText));
+      expect(richText.text.toPlainText(), 'bold and strike');
+      expect(
+        _leafTextHasStyle(richText.text, 'bold', fontWeight: FontWeight.w700),
+        isTrue,
+      );
+      expect(
+        _leafTextHasStyle(
+          richText.text,
+          'strike',
+          decoration: TextDecoration.lineThrough,
+        ),
+        isTrue,
+      );
+    });
+
+    testWidgets('formatted masked links remain tappable', (tester) async {
+      const String url = 'https://fluxer.app';
+      String? tappedHref;
+      final FluxerMarkdownConfig config = FluxerMarkdownConfig(
+        resolveEmojiShortcode: _noopEmojiShortcode,
+        unicodeEmojiUrlBuilder: _noopUnicodeEmojiUrl,
+        customEmojiUrlBuilder: _noopCustomEmojiUrl,
+        onTapLink: (_, href) async {
+          tappedHref = href;
+        },
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FluxerMarkdown(data: '[**bold**]($url)', config: config),
+          ),
+        ),
+      );
+      await tester.tapOnText(find.textRange.ofSubstring('bold'));
+      expect(tappedHref, url);
+    });
+
+    testWidgets('bold wrapping entire masked link still renders bold', (
+      tester,
+    ) async {
+      const String url = 'https://fluxer.app';
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: FluxerMarkdown(
+              data: '**[link]($url)**',
+              config: _testMarkdownConfig,
+            ),
+          ),
+        ),
+      );
+      final RichText richText = tester.widget<RichText>(find.byType(RichText));
+      expect(richText.text.toPlainText(), 'link');
+      expect(
+        _leafTextHasStyle(richText.text, 'link', fontWeight: FontWeight.w700),
+        isTrue,
+      );
+    });
+
     testWidgets('labeled message links keep their markdown label', (
       tester,
     ) async {
@@ -553,6 +697,45 @@ bool _hasMultiLineStrikethrough(InlineSpan span) {
   }
   for (final InlineSpan child in span.children ?? const <InlineSpan>[]) {
     if (_hasMultiLineStrikethrough(child)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool _leafTextHasStyle(
+  InlineSpan span,
+  String leafText, {
+  FontWeight? fontWeight,
+  TextDecoration? decoration,
+  FontStyle? fontStyle,
+}) {
+  if (span is! TextSpan) {
+    return false;
+  }
+  final String? text = span.text;
+  if (text != null && text.contains(leafText)) {
+    final TextStyle? style = span.style;
+    if (fontWeight != null && style?.fontWeight != fontWeight) {
+      return false;
+    }
+    if (decoration != null &&
+        !(style?.decoration?.contains(decoration) ?? false)) {
+      return false;
+    }
+    if (fontStyle != null && style?.fontStyle != fontStyle) {
+      return false;
+    }
+    return true;
+  }
+  for (final InlineSpan child in span.children ?? const <InlineSpan>[]) {
+    if (_leafTextHasStyle(
+      child,
+      leafText,
+      fontWeight: fontWeight,
+      decoration: decoration,
+      fontStyle: fontStyle,
+    )) {
       return true;
     }
   }
