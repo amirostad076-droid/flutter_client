@@ -79,18 +79,24 @@ class FluxerApp extends ConsumerWidget {
         final Widget layered = AppUiLifecycleObserver(
           child: BetaWarningLayer(child: IncomingVoiceCallLayer(child: child!)),
         );
+        final Widget content;
         if (!_isDesktopPlatform) {
-          return BetaBanner(child: FluxerToastOverlay(child: layered));
-        }
-        return FluxerToastOverlay(
-          child: DragToResizeArea(
-            child: Column(
-              children: [
-                const NativeTitlebar(),
-                Expanded(child: layered),
-              ],
+          content = BetaBanner(child: FluxerToastOverlay(child: layered));
+        } else {
+          content = FluxerToastOverlay(
+            child: DragToResizeArea(
+              child: Column(
+                children: [
+                  const NativeTitlebar(),
+                  Expanded(child: layered),
+                ],
+              ),
             ),
-          ),
+          );
+        }
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: content,
         );
       },
     );
