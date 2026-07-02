@@ -6,6 +6,7 @@ import 'package:fluxer_app/core/deep_links/deep_link_path_policy.dart';
 import 'package:fluxer_app/core/deep_links/user_settings_deep_link.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_reconnect_provider.dart';
+import 'package:fluxer_app/core/providers/well_known_provider.dart';
 import 'package:fluxer_app/core/push/pending_push_notification_path_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
@@ -13,9 +14,10 @@ import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/utils/channel_jump_link.dart';
 import 'package:fluxer_app/features/auth/providers/login_view_model.dart';
 import 'package:fluxer_app/features/auth/providers/pending_invite_code_provider.dart';
-import 'package:fluxer_app/features/guilds/utils/invite_link_parser.dart';
 import 'package:fluxer_app/features/chat/utils/channel_jump_navigator.dart';
+import 'package:fluxer_app/features/guilds/utils/invite_link_parser.dart';
 import 'package:fluxer_app/features/settings/presentation/user_settings_modal.dart';
+import 'package:fluxer_app/shared/external_links/external_url_launcher.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -58,6 +60,10 @@ class DeepLinkHandler extends _$DeepLinkHandler {
     final Uri normalizedUri = normalizeIncomingDeepLinkUri(uri);
     talker.info('[DeepLink] Received: $uri');
 
+    if (_tryDeferOAuthDeepLinkToBrowser(uri)) {
+      return;
+    }
+
     // Password reset links work without authentication.
     if (_tryHandleResetLink(normalizedUri)) {
       return;
@@ -79,6 +85,19 @@ class DeepLinkHandler extends _$DeepLinkHandler {
     }
 
     _processDeepLink(normalizedUri);
+  }
+
+  bool _tryDeferOAuthDeepLinkToBrowser(Uri uri) {
+    final String instanceWebAppBase = ref.read(instanceWebAppBaseUrlProvider);
+    if (!isFluxerOAuthDeepLinkUri(
+      uri,
+      instanceWebAppBase: instanceWebAppBase,
+    )) {
+      return false;
+    }
+    talker.info('[DeepLink] Deferring OAuth URL to browser: $uri');
+    unawaited(openExternalUrl(uri));
+    return true;
   }
 
   void _extractInviteCode(Uri uri) {

@@ -1,9 +1,19 @@
+import 'package:fluxer_app/core/instance/instance_endpoints.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
+import 'package:fluxer_app/core/utils/channel_jump_link.dart';
 import 'package:fluxer_app/features/guilds/utils/invite_link_parser.dart';
 
 const String appProtocolScheme = 'fluxer';
 
 const Set<String> kInviteShortLinkHosts = <String>{'fluxer.gg'};
+
+const Set<String> kOfficialAppLinkHosts = <String>{
+  'web.fluxer.app',
+  'web.canary.fluxer.app',
+  'web.fluxer.com',
+  'web.canary.fluxer.com',
+  'fluxer.gg',
+};
 
 final RegExp _inviteShortLinkCodePattern = RegExp(r'^[a-zA-Z0-9\-]{2,32}$');
 
@@ -99,7 +109,41 @@ bool hasBlocklistedDeepLinkPathCharacters(String path) {
   return _routePathBlocklist.hasMatch(path);
 }
 
+Set<String> fluxerOAuthDeepLinkHosts({String? instanceWebAppBase}) {
+  final Set<String> hosts = <String>{
+    ...kOfficialAppLinkHosts,
+    ...kOfficialChannelJumpHosts,
+    ...kInviteShortLinkHosts,
+  };
+  final String? instanceHost = channelJumpHostFromBaseUrl(
+    instanceWebAppBase ?? InstanceEndpoints.webApp,
+  );
+  if (instanceHost != null && instanceHost.isNotEmpty) {
+    hosts.add(instanceHost);
+  }
+  return hosts;
+}
+
+bool isFluxerOAuthDeepLinkPath(String path) {
+  return normalizeDeepLinkPath(path).startsWith('/oauth2/');
+}
+
+bool isFluxerOAuthDeepLinkUri(Uri uri, {String? instanceWebAppBase}) {
+  if (uri.scheme != 'http' && uri.scheme != 'https') {
+    return false;
+  }
+  if (!isFluxerOAuthDeepLinkPath(uri.path)) {
+    return false;
+  }
+  return fluxerOAuthDeepLinkHosts(
+    instanceWebAppBase: instanceWebAppBase,
+  ).contains(uri.host.toLowerCase());
+}
+
 bool isAllowedDeepLinkPath(Uri uri) {
+  if (isFluxerOAuthDeepLinkUri(uri)) {
+    return false;
+  }
   final String path = normalizeIncomingDeepLinkUri(uri).path;
   if (_routePathBlocklist.hasMatch(path)) {
     return false;
