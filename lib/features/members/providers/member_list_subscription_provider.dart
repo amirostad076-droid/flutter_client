@@ -20,7 +20,7 @@ void _scheduleMemberListSync(Ref ref, void Function() sync) {
   });
 }
 
-@Riverpod(keepAlive: true)
+@riverpod
 void memberListDetailsSubscription(
   Ref ref,
   String guildId,
