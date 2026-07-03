@@ -117,6 +117,7 @@ void main() {
     test('fcm manifest replaces plugin messaging service and receiver', () {
       final String content = manifest.readAsStringSync();
       expect(content, contains('com.fluxer.FluxerFirebaseMessagingService'));
+      expect(content, contains('com.fluxer.FluxerFirebaseMessagingReceiver'));
       expect(
         content,
         contains(
@@ -131,6 +132,7 @@ void main() {
       );
       expect(content, contains('tools:node="remove"'));
       expect(content, contains('com.google.firebase.MESSAGING_EVENT'));
+      expect(content, contains('com.google.android.c2dm.intent.RECEIVE'));
       expect(
         content,
         isNot(
@@ -148,9 +150,25 @@ void main() {
           content,
           contains('FcmMessageForwarder.enrichNotificationIntoData'),
         );
-        expect(content, contains('FcmMessageForwarder.forwardMessage'));
+        expect(content, isNot(contains('forwardMessage')));
         expect(content, contains('-> handleRemoteMessageIntent(intent)'));
         expect(content, contains('else -> super.handleIntent(intent)'));
+      },
+    );
+
+    test(
+      'native receiver enriches and forwards to flutter background service',
+      () {
+        final File receiver = File(
+          '${projectRoot.path}/android/app/src/fcm/kotlin/com/fluxer/FluxerFirebaseMessagingReceiver.kt',
+        );
+        final String content = receiver.readAsStringSync();
+        expect(
+          content,
+          contains('FcmMessageForwarder.enrichNotificationIntoData'),
+        );
+        expect(content, contains('FlutterFirebaseMessagingBackgroundService'));
+        expect(content, contains('FcmMessagingBridge.EXTRA_REMOTE_MESSAGE'));
       },
     );
 
@@ -158,7 +176,6 @@ void main() {
       final String content = messageForwarder.readAsStringSync();
       expect(content, contains('gcm.notification.title'));
       expect(content, contains('gcm.notification.body'));
-      expect(content, contains('FlutterFirebaseMessagingBackgroundService'));
     });
 
     test('fcm entrypoint configures background isolate bootstrap', () {

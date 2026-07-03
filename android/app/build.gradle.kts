@@ -127,4 +127,7 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.14.1")
+    add("fcmImplementation", platform("com.google.firebase:firebase-bom:33.9.0"))
+    add("fcmImplementation", "com.google.firebase:firebase-messaging")
+    add("fcmImplementation", "com.google.android.gms:play-services-cloud-messaging")
 }

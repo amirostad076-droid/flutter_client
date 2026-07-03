@@ -55,7 +55,9 @@ void main() {
       );
       final String content = manifest.readAsStringSync();
       expect(content, contains('FluxerFirebaseMessagingService'));
+      expect(content, contains('FluxerFirebaseMessagingReceiver'));
       expect(content, contains('com.google.firebase.MESSAGING_EVENT'));
+      expect(content, contains('com.google.android.c2dm.intent.RECEIVE'));
       expect(content, contains('tools:node="remove"'));
       expect(
         content,

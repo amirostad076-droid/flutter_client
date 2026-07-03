@@ -5,7 +5,6 @@ import android.os.Bundle
 import com.google.android.gms.cloudmessaging.CloudMessage
 import com.google.android.gms.cloudmessaging.Rpc
 import com.google.firebase.messaging.FirebaseMessagingService
-import com.google.firebase.messaging.RemoteMessage
 
 class FluxerFirebaseMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
@@ -28,8 +27,6 @@ class FluxerFirebaseMessagingService : FirebaseMessagingService() {
         val data = Bundle(extras)
         data.remove("androidx.content.wakelockid")
         FcmMessageForwarder.enrichNotificationIntoData(data)
-        val remoteMessage = RemoteMessage(data)
-        FcmMessageForwarder.forwardMessage(applicationContext, remoteMessage)
         Rpc(applicationContext).messageHandled(CloudMessage(intent))
     }
 
