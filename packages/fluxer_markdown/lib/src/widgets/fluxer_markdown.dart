@@ -81,12 +81,13 @@ class FluxerMarkdown extends StatelessWidget {
           context: context,
           text: text,
           style: style.copyWith(
-            fontSize: (style.fontSize ?? 16) * 0.75,
+            fontSize: (style.fontSize ?? 16) * 0.8125,
             color: theme.colorScheme.onSurfaceVariant,
-            height: 1.35,
+            height: 1.375,
           ),
           isDark: isDark,
           features: features,
+          allowJumboEmoji: false,
         ),
         FluxerAlertSegment(:final type, :final body) =>
           (config.alertBuilder ?? defaultFluxerAlertBuilder)(
@@ -124,6 +125,7 @@ class FluxerMarkdown extends StatelessWidget {
     required bool isDark,
     required FluxerMarkdownFeatures features,
     Widget? trailingInlineWidget,
+    bool allowJumboEmoji = true,
   }) {
     if (usesMessageLineParsing(this.context)) {
       return _buildMessageLineMarkdown(
@@ -133,6 +135,7 @@ class FluxerMarkdown extends StatelessWidget {
         isDark: isDark,
         features: features,
         trailingInlineWidget: trailingInlineWidget,
+        allowJumboEmoji: allowJumboEmoji,
       );
     }
     return _buildBlockMarkdown(
@@ -151,6 +154,7 @@ class FluxerMarkdown extends StatelessWidget {
     required bool isDark,
     required FluxerMarkdownFeatures features,
     Widget? trailingInlineWidget,
+    bool allowJumboEmoji = true,
   }) {
     final contentSegments = parseMessageContentStructure(text, features);
     if (contentSegments.isEmpty) {
@@ -177,6 +181,7 @@ class FluxerMarkdown extends StatelessWidget {
         maxLines: maxLines,
         overflow: overflow,
         trailingInlineWidget: trailingInlineWidget,
+        allowJumboEmoji: allowJumboEmoji,
       );
     }
     final children = <Widget>[];
@@ -200,6 +205,7 @@ class FluxerMarkdown extends StatelessWidget {
           maxLines: maxLines,
           overflow: overflow,
           trailingInlineWidget: segmentTrailing,
+          allowJumboEmoji: allowJumboEmoji,
         ),
         MessageBlockMarkdownSegment(:final text) => _buildBlockMarkdown(
           context: context,

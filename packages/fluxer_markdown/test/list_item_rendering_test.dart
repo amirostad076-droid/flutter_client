@@ -111,7 +111,10 @@ void main() {
         expect(_richTextCountInListItemBody(tester, '1.'), 1);
         final Size emojiSize = tester.getSize(find.byType(FluxerEmojiWidget));
         expect(emojiSize.height, lessThan(kFluxerMarkdownEmojiSizeJumbo));
-        expect(emojiSize.height, closeTo(16 * 1.375, 1));
+        expect(
+          emojiSize.height,
+          closeTo(16 * kFluxerMarkdownEmojiSizeMultiplier, 1),
+        );
       },
     );
 

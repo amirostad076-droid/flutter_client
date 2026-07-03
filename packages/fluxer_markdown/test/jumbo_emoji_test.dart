@@ -50,7 +50,7 @@ void _expectAllEmojisNormal(WidgetTester tester) {
   for (var i = 0; i < count; i++) {
     final Size size = tester.getSize(emojiFinder.at(i));
     expect(size.height, lessThan(kFluxerMarkdownEmojiSizeJumbo));
-    expect(size.height, closeTo(16 * 1.375, 1));
+    expect(size.height, closeTo(16 * kFluxerMarkdownEmojiSizeMultiplier, 1));
   }
 }
 

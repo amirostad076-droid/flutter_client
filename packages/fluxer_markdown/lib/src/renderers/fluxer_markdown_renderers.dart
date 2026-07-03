@@ -125,6 +125,7 @@ Widget buildFluxerMarkdownTextFlow({
   int? maxLines,
   TextOverflow? overflow,
   Widget? trailingInlineWidget,
+  bool allowJumboEmoji = true,
 }) {
   if (text.isEmpty) {
     return const SizedBox.shrink();
@@ -139,8 +140,10 @@ Widget buildFluxerMarkdownTextFlow({
       ), () => inlineDocument.parseInline(chunk)),
     );
   }
-  final allowJumbo =
-      features.allowJumboEmoji && _textFlowAllowsJumboEmoji(chunkNodesList);
+  final useJumbo =
+      allowJumboEmoji &&
+      features.allowJumboEmoji &&
+      _textFlowAllowsJumboEmoji(chunkNodesList);
   final spans = <InlineSpan>[];
   for (var i = 0; i < chunks.length; i++) {
     if (i > 0) {
@@ -156,7 +159,7 @@ Widget buildFluxerMarkdownTextFlow({
       config: config,
       features: features,
       isDark: isDark,
-      jumbo: allowJumbo,
+      jumbo: useJumbo,
     ).build(chunkNodes);
     spans.addAll(chunkSpans);
   }
@@ -244,7 +247,7 @@ class _MarkdownBlockRenderer {
       case 'h1':
         return _buildParagraph(
           node.children ?? const [],
-          style: baseStyle.copyWith(fontSize: 24, fontWeight: FontWeight.w700),
+          style: baseStyle.copyWith(fontSize: 22, fontWeight: FontWeight.w700),
         );
       case 'h2':
         return _buildParagraph(
@@ -255,6 +258,11 @@ class _MarkdownBlockRenderer {
         return _buildParagraph(
           node.children ?? const [],
           style: baseStyle.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
+        );
+      case 'h4':
+        return _buildParagraph(
+          node.children ?? const [],
+          style: baseStyle.copyWith(fontSize: 16, fontWeight: FontWeight.w600),
         );
       case 'blockquote':
         return _buildBlockquote(node);
@@ -287,7 +295,8 @@ class _MarkdownBlockRenderer {
       config: config,
       features: features,
       isDark: isDark,
-      jumbo: features.allowJumboEmoji && _allNodesAreEmoji(nodes),
+      jumbo:
+          style == null && features.allowJumboEmoji && _allNodesAreEmoji(nodes),
     ).build(nodes);
 
     if (spans.isEmpty) {
@@ -1323,7 +1332,7 @@ class FluxerEmojiWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = jumbo
         ? kFluxerMarkdownEmojiSizeJumbo
-        : (baseStyle.fontSize ?? 16) * 1.375;
+        : (baseStyle.fontSize ?? 16) * kFluxerMarkdownEmojiSizeMultiplier;
     if (element.tag == FluxerCustomEmojiSyntax.tag) {
       return _buildCustom(size);
     }
