@@ -135,6 +135,7 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
     if (guildId == null) {
       _restoredGuildId = null;
     } else if (guildId != _restoredGuildId) {
+      _channelKeys.clear();
       _restoredGuildId = guildId;
       _restoring = true;
       final double saved =
@@ -413,9 +414,11 @@ class _ChannelTile extends ConsumerWidget {
     final int? connectPermissionBits = ref
         .watch(channelSidebarIconConnectBitsProvider(channel.id))
         .value;
-    final int? effectivePermissionBits = ref
-        .watch(effectiveGuildChannelPermissionBitsProvider(channel.id))
-        .value;
+    final int? effectivePermissionBits = ref.watch(
+      channelPermissionCacheProvider.select(
+        (Map<String, int> map) => map[channel.id],
+      ),
+    );
 
     final bool isVoice = channel.type == ChannelType.guildVoice;
     final String? connectedVoiceGuildId = isVoice
@@ -581,10 +584,8 @@ class _ChannelTile extends ConsumerWidget {
         channel.type == ChannelType.guildLink &&
         (channel.url?.isNotEmpty ?? false);
     final int? permissionBits =
-        ref
-            .read(effectiveGuildChannelPermissionBitsProvider(channel.id))
-            .value ??
-        ref.read(channelPermissionCacheProvider)[channel.id];
+        ref.read(channelPermissionCacheProvider)[channel.id] ??
+        ref.read(effectiveGuildChannelPermissionBitsProvider(channel.id)).value;
     final bool canManageChannel =
         permissionBits != null &&
         hasPermission(permissionBits, Permission.manageChannels);
