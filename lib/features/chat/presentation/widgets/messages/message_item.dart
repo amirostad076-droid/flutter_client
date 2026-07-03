@@ -1112,18 +1112,20 @@ class _MessageItemState extends ConsumerState<MessageItem> {
             padding: const EdgeInsets.only(top: kMessageAvatarTopPadding),
             child: FluxerAvatar.user(
               key: ValueKey<String>(
-                messageAuthorAvatarKey(
+                messageAuthorAvatarKeyFromDisplay(
                   authorId: msg.authorId,
-                  avatarHash: msg.authorAvatar,
+                  displayAvatarHash: authorDisplay.avatarHash,
+                  messageAvatarHash: msg.authorAvatar,
                 ),
               ),
               fallbackText: authorDisplay.displayName,
               userId: msg.authorId,
               imageUrl: authorDisplay.avatarUrl,
               avatarColor: authorDisplay.avatarColor,
-              cacheKey: messageAuthorAvatarKey(
+              cacheKey: messageAuthorAvatarKeyFromDisplay(
                 authorId: msg.authorId,
-                avatarHash: msg.authorAvatar,
+                displayAvatarHash: authorDisplay.avatarHash,
+                messageAvatarHash: msg.authorAvatar,
               ),
             ),
           ),
