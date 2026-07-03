@@ -12,6 +12,7 @@ import 'package:fluxer_app/core/push/fcm/fcm_mobile_device_registration.dart';
 import 'package:fluxer_app/core/push/fcm/fcm_notification_tap_binding.dart';
 import 'package:fluxer_app/core/push/local_push_notifications.dart';
 import 'package:fluxer_app/core/push/push_message.dart';
+import 'package:fluxer_app/core/push/push_notification_display_config.dart';
 import 'package:fluxer_app/core/push/push_notification_permission.dart';
 import 'package:fluxer_app/core/push/push_notification_tap_handler.dart';
 import 'package:fluxer_app/core/push/push_service.dart';
@@ -97,6 +98,9 @@ class PushNotificationsCoordinator extends _$PushNotificationsCoordinator {
           }
           // APNs + NotificationService extension already show rich notifications.
           if (PushProviderGuard.isApple) {
+            return;
+          }
+          if (!PushNotificationDisplayConfig.foregroundNotificationsEnabled) {
             return;
           }
           unawaited(_localPush.showPushMessage(message));
