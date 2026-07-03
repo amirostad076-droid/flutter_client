@@ -18,6 +18,7 @@ import 'package:fluxer_app/core/push/apns/apns_mobile_device_registration.dart';
 import 'package:fluxer_app/core/push/fcm/fcm_entrypoint.dart';
 import 'package:fluxer_app/core/push/fcm/fcm_mobile_device_registration.dart';
 import 'package:fluxer_app/core/push/fcm/fcm_notification_tap_binding.dart';
+import 'package:fluxer_app/core/push/fcm/fcm_pending_notification_tap.dart';
 import 'package:fluxer_app/core/push/local_push_notifications.dart';
 import 'package:fluxer_app/core/push/pending_push_notification_path_provider.dart';
 import 'package:fluxer_app/core/push/push_notification_tap_handler.dart';
@@ -175,6 +176,9 @@ class AppStartup extends _$AppStartup {
         onNotificationTap: ref
             .read(pushNotificationTapHandlerProvider.notifier)
             .handlePayloadJson,
+      );
+      await FcmPendingNotificationTap.flushToHandler(
+        ref.read(pushNotificationTapHandlerProvider.notifier).handlePayloadJson,
       );
       unawaited(FirebaseMessagingPushService.bootstrapAfterAuth());
     }

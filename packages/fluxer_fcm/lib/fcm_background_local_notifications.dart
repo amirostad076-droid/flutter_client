@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:fluxer_fcm/fcm_android_system_notification_cancel.dart';
+import 'package:fluxer_fcm/fcm_background_notification_tap_hooks.dart';
 import 'package:fluxer_fcm/fcm_push_message.dart';
 import 'package:fluxer_fcm/fcm_push_notification_ids.dart';
 
@@ -64,6 +66,7 @@ void _onBackgroundNotificationResponse(NotificationResponse response) {
   if (kDebugMode) {
     debugPrint('[FcmBackgroundNotifications] tap payload=${response.payload}');
   }
+  FcmBackgroundNotificationTapHooks.handleTap(response.payload);
 }
 
 Future<void> showFcmBackgroundNotification(FcmPushMessage message) async {
@@ -104,6 +107,7 @@ Future<void> showFcmBackgroundNotification(FcmPushMessage message) async {
       ),
       payload: jsonEncode(payloadWithMessageId),
     );
+    await cancelFcmSystemNotificationDuplicates(plugin, messageId: message.id);
   } on Object catch (error, stackTrace) {
     if (kDebugMode) {
       debugPrint(
