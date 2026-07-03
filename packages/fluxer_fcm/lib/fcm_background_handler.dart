@@ -32,7 +32,7 @@ Future<void> fcmBackgroundMessageHandler(RemoteMessage message) async {
         gcmMessageId: message.messageId,
       );
     }
-    if (shouldDisplayFcmBackgroundLocalNotification(message)) {
+    if (shouldDisplayFcmBackgroundLocalNotification(message, mapped)) {
       await showFcmBackgroundNotification(mapped);
     }
   } on Object catch (error, stackTrace) {

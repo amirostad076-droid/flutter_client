@@ -2,6 +2,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fluxer_fcm/fcm_background_handler.dart';
+import 'package:fluxer_fcm/fcm_push_message.dart';
+import 'package:fluxer_fcm/fcm_background_display_hooks.dart';
 import 'package:fluxer_fcm/fcm_background_notification_tap_hooks.dart';
 import 'package:fluxer_fcm/fcm_system_notification_cancel_hooks.dart';
 import 'package:fluxer_fcm/firebase_options.dart';
@@ -27,6 +29,8 @@ typedef FcmTapPayloadCachePredicate =
 typedef FcmBackgroundNotificationTapHandler =
     void Function(String? payloadJson);
 
+typedef FcmBackgroundDisplayPredicate = bool Function(FcmPushMessage message);
+
 class FluxerFcmBootstrap {
   FluxerFcmBootstrap._();
 
@@ -36,12 +40,15 @@ class FluxerFcmBootstrap {
     required FcmTapPayloadCacheSaver saveTapPayloadCache,
     FcmBackgroundNotificationTapHandler? onBackgroundNotificationTap,
     FcmNativeSystemNotificationCancelHandler? cancelFcmSystemDuplicates,
+    FcmBackgroundDisplayPredicate? shouldDisplayBackgroundLocalNotification,
   }) {
     FcmTapPayloadCacheHooks.shouldSave = shouldSaveTapPayloadCache;
     FcmTapPayloadCacheHooks.save = saveTapPayloadCache;
     FcmBackgroundNotificationTapHooks.onTap = onBackgroundNotificationTap;
     FcmSystemNotificationCancelHooks.cancelDuplicates =
         cancelFcmSystemDuplicates;
+    FcmBackgroundDisplayHooks.shouldDisplay =
+        shouldDisplayBackgroundLocalNotification;
     FluxerFcmPushService.instance.tapPayloadEnricher =
         (RemoteMessage message, Map<String, String> mappedPayload) {
           return enrichTapPayload(
@@ -69,9 +76,11 @@ class FluxerFcmBootstrap {
     );
   }
 
-  static Future<void> bootstrapIfNeeded() async {
+  static Future<void> bootstrapIfNeeded({
+    required Future<void> Function(RemoteMessage message) onBackgroundMessage,
+  }) async {
     try {
-      FirebaseMessaging.onBackgroundMessage(fcmBackgroundMessageHandler);
+      FirebaseMessaging.onBackgroundMessage(onBackgroundMessage);
     } on Object catch (error, stackTrace) {
       if (kDebugMode) {
         debugPrint(

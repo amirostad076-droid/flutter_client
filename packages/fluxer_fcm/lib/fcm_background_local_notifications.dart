@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:fluxer_fcm/fcm_android_system_notification_cancel.dart';
 import 'package:fluxer_fcm/fcm_background_notification_tap_hooks.dart';
+import 'package:fluxer_fcm/fcm_background_notification_display.dart';
 import 'package:fluxer_fcm/fcm_push_message.dart';
 import 'package:fluxer_fcm/fcm_push_notification_ids.dart';
 
@@ -81,15 +82,11 @@ Future<void> showFcmBackgroundNotification(FcmPushMessage message) async {
     }
     return;
   }
-  final String title = message.title ?? kFcmBackgroundNotificationChannelName;
-  final String body = (message.body != null && message.body!.isNotEmpty)
-      ? message.body!
-      : 'New message';
+  final String title = resolveFcmBackgroundNotificationTitle(message);
+  final String body = resolveFcmBackgroundNotificationBody(message);
   final int id = fcmPushMessageNotificationId(message.id);
-  final Map<String, String> payloadWithMessageId = Map<String, String>.from(
-    message.payload,
-  );
-  payloadWithMessageId[kFcmLocalNotificationMessageIdKey] = message.id;
+  final Map<String, String> payloadWithMessageId =
+      buildFcmBackgroundTapPayload(message);
   final Iterable<String> messageIds = collectFcmCandidateMessageIds(
     messageId: message.id,
     payload: message.payload,

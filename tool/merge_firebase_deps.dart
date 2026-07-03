@@ -105,8 +105,10 @@ void _verifyFcmManifest(Directory root) {
     throw StateError('Missing $_fcmManifestPath');
   }
   final String content = manifest.readAsStringSync();
-  if (!content.contains('FirebaseMessagingService')) {
-    throw StateError('$_fcmManifestPath must declare FirebaseMessagingService');
+  if (!content.contains('FluxerFirebaseMessagingService')) {
+    throw StateError(
+      '$_fcmManifestPath must declare FluxerFirebaseMessagingService',
+    );
   }
   if (!content.contains('com.google.firebase.MESSAGING_EVENT')) {
     throw StateError(

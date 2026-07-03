@@ -54,7 +54,13 @@ void main() {
         '${projectRoot.path}/android/app/src/fcm/AndroidManifest.xml',
       );
       final String content = manifest.readAsStringSync();
-      expect(content, contains('FirebaseMessagingService'));
+      expect(content, contains('FluxerFirebaseMessagingService'));
+      expect(content, contains('com.google.firebase.MESSAGING_EVENT'));
+      expect(content, contains('tools:node="remove"'));
+      expect(
+        content,
+        contains('io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingReceiver'),
+      );
       expect(
         content,
         contains('com.google.firebase.messaging.default_notification_icon'),

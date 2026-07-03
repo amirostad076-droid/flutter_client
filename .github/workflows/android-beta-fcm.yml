@@ -89,6 +89,9 @@ jobs:
       - name: Run build_runner
         run: dart run build_runner build
 
+      - name: Run FCM Android unit tests
+        run: cd android && ./gradlew :app:testBetaFcmDebugUnitTest --no-daemon
+
       - name: Create Android signing files
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
