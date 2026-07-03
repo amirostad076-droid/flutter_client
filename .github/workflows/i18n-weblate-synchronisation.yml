@@ -84,6 +84,7 @@ jobs:
           fi
 
           flutter gen-l10n
+          dart format lib/l10n/generated
           if ! git diff --quiet -- lib/l10n/generated; then
             git add lib/l10n/generated
             git commit -m "i18n: regenerate localizations"
