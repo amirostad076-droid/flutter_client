@@ -130,15 +130,23 @@ Widget buildFluxerMarkdownTextFlow({
     return const SizedBox.shrink();
   }
   final chunks = splitIntoInlineParseChunks(text);
+  final chunkNodesList = <List<md.Node>>[];
+  for (final chunk in chunks) {
+    chunkNodesList.add(
+      _inlineNodeCache.resolve((
+        markdownParseCacheKey(chunk, parseCacheKey),
+        features,
+      ), () => inlineDocument.parseInline(chunk)),
+    );
+  }
+  final allowJumbo =
+      features.allowJumboEmoji && _textFlowAllowsJumboEmoji(chunkNodesList);
   final spans = <InlineSpan>[];
   for (var i = 0; i < chunks.length; i++) {
     if (i > 0) {
       spans.add(TextSpan(text: '\n', style: baseStyle));
     }
-    final chunkNodes = _inlineNodeCache.resolve((
-      markdownParseCacheKey(chunks[i], parseCacheKey),
-      features,
-    ), () => inlineDocument.parseInline(chunks[i]));
+    final chunkNodes = chunkNodesList[i];
     if (chunkNodes.isEmpty) {
       continue;
     }
@@ -148,7 +156,7 @@ Widget buildFluxerMarkdownTextFlow({
       config: config,
       features: features,
       isDark: isDark,
-      jumbo: features.allowJumboEmoji && _allNodesAreEmoji(chunkNodes),
+      jumbo: allowJumbo,
     ).build(chunkNodes);
     spans.addAll(chunkSpans);
   }
@@ -802,33 +810,59 @@ class _MarkdownInlineRenderer {
   }
 }
 
-bool _allNodesAreEmoji(List<md.Node> nodes) {
-  var hasEmoji = false;
-  var emojiCount = 0;
+class _EmojiOnlyAnalysis {
+  const _EmojiOnlyAnalysis({
+    required this.isEmojiOnly,
+    required this.emojiCount,
+  });
 
+  final bool isEmojiOnly;
+  final int emojiCount;
+}
+
+_EmojiOnlyAnalysis _analyzeEmojiOnlyNodes(List<md.Node> nodes) {
+  var emojiCount = 0;
   for (final node in nodes) {
     if (node is md.Text) {
       if (node.text.trim().isNotEmpty) {
-        return false;
+        return const _EmojiOnlyAnalysis(isEmojiOnly: false, emojiCount: 0);
       }
       continue;
     }
-
     if (node is! md.Element) {
-      return false;
+      return const _EmojiOnlyAnalysis(isEmojiOnly: false, emojiCount: 0);
     }
-
     if (node.tag == FluxerUnicodeEmojiToneSyntax.tag ||
         node.tag == FluxerCustomEmojiSyntax.tag) {
-      hasEmoji = true;
       emojiCount++;
       continue;
     }
-
-    return false;
+    return const _EmojiOnlyAnalysis(isEmojiOnly: false, emojiCount: 0);
   }
+  return _EmojiOnlyAnalysis(isEmojiOnly: true, emojiCount: emojiCount);
+}
 
-  return hasEmoji && emojiCount <= kFluxerMarkdownJumboMaxCount;
+bool _allNodesAreEmoji(List<md.Node> nodes) {
+  final _EmojiOnlyAnalysis analysis = _analyzeEmojiOnlyNodes(nodes);
+  return analysis.isEmojiOnly &&
+      analysis.emojiCount > 0 &&
+      analysis.emojiCount <= kFluxerMarkdownJumboMaxCount;
+}
+
+bool _textFlowAllowsJumboEmoji(List<List<md.Node>> chunkNodes) {
+  var totalEmojiCount = 0;
+  for (final List<md.Node> nodes in chunkNodes) {
+    if (nodes.isEmpty) {
+      continue;
+    }
+    final _EmojiOnlyAnalysis analysis = _analyzeEmojiOnlyNodes(nodes);
+    if (!analysis.isEmojiOnly) {
+      return false;
+    }
+    totalEmojiCount += analysis.emojiCount;
+  }
+  return totalEmojiCount >= 1 &&
+      totalEmojiCount <= kFluxerMarkdownJumboMaxCount;
 }
 
 bool _isInlineListNode(md.Node node) {
