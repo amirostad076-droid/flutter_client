@@ -29,8 +29,9 @@ import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.da
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
+import 'package:fluxer_app/features/shell/navigation/drawer_navigation_coordinator.dart';
+import 'package:fluxer_app/features/shell/navigation/shell_back_resolver.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
-import 'package:fluxer_app/features/shell/providers/drawer_reveal_sync_trigger_provider.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
@@ -150,13 +151,27 @@ class ChannelHeader extends ConsumerWidget {
             unreadCount: backButtonUnreadCount,
             onPressed: () {
               FocusManager.instance.primaryFocus?.unfocus();
-              final String location = ref.read(currentLocationProvider);
-              if (isFavoritesChannelRoute(location)) {
-                returnToFavoritesList(ref);
-                return;
+              final String shellLocation = ref.read(shellLocationProvider);
+              final ShellBackAction action = resolveShellBackAction(
+                hasPopupOverlay: false,
+                hasManualGestureBlock: false,
+                hasExpressionPanelOpen: false,
+                revealSide: ref.read(currentRevealSideProvider),
+                shellLocation: shellLocation,
+              );
+              switch (action) {
+                case ShellBackAction.returnToFavorites:
+                  returnToFavoritesList(ref);
+                case ShellBackAction.revealDrawer:
+                  DrawerNavigationCoordinator.revealDrawer(ref.container);
+                case ShellBackAction.closeDrawer:
+                  DrawerNavigationCoordinator.closeDrawer(ref.container);
+                case ShellBackAction.popOverlay:
+                case ShellBackAction.closePanel:
+                case ShellBackAction.blockManualGesture:
+                case ShellBackAction.noop:
+                  break;
               }
-              ref.read(currentRevealSideProvider.notifier).set(RevealSide.left);
-              ref.read(drawerRevealSyncTriggerProvider.notifier).nudge();
             },
           ),
           Expanded(

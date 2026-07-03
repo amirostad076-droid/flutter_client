@@ -6,15 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
-import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/router/navigate_to_content.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_providers.dart';
 import 'package:fluxer_app/features/guilds/providers/invite_accept_provider.dart';
 import 'package:fluxer_app/features/guilds/services/join_community_service.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
-import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart'
-    show currentRevealSideProvider, eagerRevealSideFor;
 import 'package:fluxer_app/features/ui/badge/fluxer_guild_badge.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
@@ -164,11 +162,7 @@ class _InviteAcceptModalBodyState extends ConsumerState<InviteAcceptModalBody> {
 
   void _navigateToGuild({required String guildId, required String channelId}) {
     final String path = RoutePaths.guildChannel(guildId, channelId);
-    final eager = eagerRevealSideFor(path);
-    if (eager != null) {
-      ref.read(currentRevealSideProvider.notifier).set(eager);
-    }
-    ref.read(fluxerRouterProvider).go(path);
+    navigateToContentVia(ref, path);
     _close();
   }
 

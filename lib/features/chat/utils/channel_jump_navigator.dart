@@ -16,8 +16,7 @@ import 'package:fluxer_app/features/channels/utils/link_channel_navigator.dart';
 import 'package:fluxer_app/features/chat/presentation/sheets/channel_access_denied_sheet.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/mature_content/utils/channel_gate_navigator.dart';
-import 'package:fluxer_app/features/shell/providers/drawer_reveal_sync_trigger_provider.dart';
-import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
+import 'package:fluxer_app/core/router/navigate_to_content.dart';
 
 /// Builds the in-app route for a resolved channel jump target.
 String buildChannelJumpRoutePath({
@@ -254,12 +253,7 @@ Future<void> _applyChannelJumpResolution({
 }
 
 void _navigateToPathViaContainer(ProviderContainer container, String path) {
-  final RevealSide? eager = eagerRevealSideFor(path);
-  if (eager != null) {
-    container.read(currentRevealSideProvider.notifier).set(eager);
-    container.read(drawerRevealSyncTriggerProvider.notifier).nudge();
-  }
-  container.read(fluxerRouterProvider).go(path);
+  navigateToContentViaContainer(container, path);
 }
 
 Future<void> navigateToChannelJumpLink({

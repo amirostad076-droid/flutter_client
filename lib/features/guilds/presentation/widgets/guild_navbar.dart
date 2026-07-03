@@ -20,8 +20,7 @@ import 'package:fluxer_app/core/providers/well_known_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
-import 'package:fluxer_app/features/shell/providers/drawer_reveal_sync_trigger_provider.dart';
-import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
+import 'package:fluxer_app/features/shell/navigation/root_overlay_navigation.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
@@ -461,16 +460,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
             if (ref.read(currentLocationProvider) == RoutePaths.discover) {
               return;
             }
-            if (isMobileLayout(context)) {
-              final RevealSide? eager = eagerRevealSideFor(RoutePaths.discover);
-              if (eager != null) {
-                ref.read(currentRevealSideProvider.notifier).set(eager);
-                ref.read(drawerRevealSyncTriggerProvider.notifier).nudge();
-              }
-              unawaited(context.push(RoutePaths.discover));
-            } else {
-              context.go(RoutePaths.discover);
-            }
+            openDiscover(context, ref);
           },
         );
       case _NavbarListEntryKind.addCommunity:

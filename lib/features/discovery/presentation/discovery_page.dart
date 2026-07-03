@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
@@ -12,9 +11,9 @@ import 'package:fluxer_app/features/discovery/presentation/widgets/discovery_fil
 import 'package:fluxer_app/features/discovery/presentation/widgets/discovery_guild_grid_slivers.dart';
 import 'package:fluxer_app/features/discovery/presentation/widgets/discovery_language_select.dart';
 import 'package:fluxer_app/features/discovery/providers/discovery_controller.dart';
+import 'package:fluxer_app/features/shell/navigation/root_overlay_navigation.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
-import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class DiscoveryPage extends ConsumerStatefulWidget {
@@ -89,12 +88,8 @@ class _DiscoveryPageState extends ConsumerState<DiscoveryPage> {
     });
   }
 
-  void _popDiscovery(BuildContext context) {
-    if (context.canPop()) {
-      context.pop();
-    } else {
-      context.go(RoutePaths.me);
-    }
+  void _leaveDiscovery(BuildContext context) {
+    popRootOverlay(context, ref);
   }
 
   @override
@@ -165,19 +160,7 @@ class _DiscoveryPageState extends ConsumerState<DiscoveryPage> {
               ],
       ),
     );
-    if (!isMobile) {
-      return content;
-    }
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (bool didPop, _) {
-        if (didPop) {
-          return;
-        }
-        _popDiscovery(context);
-      },
-      child: content,
-    );
+    return content;
   }
 
   Widget _buildDesktopHero({
@@ -235,7 +218,7 @@ class _DiscoveryPageState extends ConsumerState<DiscoveryPage> {
                 PhosphorIconsBold.caretLeft,
                 color: Colors.white,
               ),
-              onPressed: () => _popDiscovery(context),
+              onPressed: () => _leaveDiscovery(context),
             )
           : null,
       title: AnimatedOpacity(
