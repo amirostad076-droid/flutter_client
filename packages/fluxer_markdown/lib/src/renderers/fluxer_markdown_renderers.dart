@@ -16,6 +16,7 @@ import 'package:fluxer_markdown/src/contexts/fluxer_markdown_features.dart';
 import 'package:fluxer_markdown/src/parsing/inline_parse_chunks.dart';
 import 'package:fluxer_markdown/src/parsing/markdown_parse_cache.dart';
 import 'package:fluxer_markdown/src/syntaxes/fluxer_markdown_syntaxes.dart';
+import 'package:fluxer_markdown/src/utils/code_block_highlight_theme.dart';
 import 'package:fluxer_markdown/src/utils/highlight_languages.dart';
 import 'package:fluxer_markdown/src/utils/jumbo_emoji.dart';
 import 'package:intl/intl.dart';
@@ -1145,7 +1146,9 @@ class FluxerCodeBlockWidget extends StatelessWidget {
       codeBody = HighlightView(
         code,
         language: knownLang,
-        theme: isDark ? vs2015Theme : githubTheme,
+        theme: isDark
+            ? kVs2015CodeBlockHighlightTheme
+            : kGithubCodeBlockHighlightTheme,
         padding: _kPadding,
         textStyle: baseStyle.copyWith(
           fontFamily: 'monospace',
