@@ -15,7 +15,10 @@ void main() {
         data: <String, String>{'channel_id': '2', 'url': '/channels/@me/2/1'},
       );
       final FcmPushMessage mapped = mapRemoteMessage(input);
-      expect(shouldDisplayFcmBackgroundLocalNotification(input, mapped), isTrue);
+      expect(
+        shouldDisplayFcmBackgroundLocalNotification(input, mapped),
+        isTrue,
+      );
     });
 
     test('skips hybrid messages when display hook is unset', () {
@@ -25,20 +28,29 @@ void main() {
         notification: const RemoteNotification(title: 'alice', body: 'hello'),
       );
       final FcmPushMessage mapped = mapRemoteMessage(input);
-      expect(shouldDisplayFcmBackgroundLocalNotification(input, mapped), isFalse);
+      expect(
+        shouldDisplayFcmBackgroundLocalNotification(input, mapped),
+        isFalse,
+      );
     });
 
-    test('displays hybrid messages when display hook allows navigable payload', () {
-      FcmBackgroundDisplayHooks.shouldDisplay = (FcmPushMessage message) {
-        return message.payload['url']?.isNotEmpty == true;
-      };
-      final RemoteMessage input = RemoteMessage(
-        messageId: 'msg-hybrid',
-        data: <String, String>{'channel_id': '2', 'url': '/channels/@me/2/1'},
-        notification: const RemoteNotification(title: 'alice', body: 'hello'),
-      );
-      final FcmPushMessage mapped = mapRemoteMessage(input);
-      expect(shouldDisplayFcmBackgroundLocalNotification(input, mapped), isTrue);
-    });
+    test(
+      'displays hybrid messages when display hook allows navigable payload',
+      () {
+        FcmBackgroundDisplayHooks.shouldDisplay = (FcmPushMessage message) {
+          return message.payload['url']?.isNotEmpty == true;
+        };
+        final RemoteMessage input = RemoteMessage(
+          messageId: 'msg-hybrid',
+          data: <String, String>{'channel_id': '2', 'url': '/channels/@me/2/1'},
+          notification: const RemoteNotification(title: 'alice', body: 'hello'),
+        );
+        final FcmPushMessage mapped = mapRemoteMessage(input);
+        expect(
+          shouldDisplayFcmBackgroundLocalNotification(input, mapped),
+          isTrue,
+        );
+      },
+    );
   });
 }

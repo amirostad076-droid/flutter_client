@@ -85,8 +85,9 @@ Future<void> showFcmBackgroundNotification(FcmPushMessage message) async {
   final String title = resolveFcmBackgroundNotificationTitle(message);
   final String body = resolveFcmBackgroundNotificationBody(message);
   final int id = fcmPushMessageNotificationId(message.id);
-  final Map<String, String> payloadWithMessageId =
-      buildFcmBackgroundTapPayload(message);
+  final Map<String, String> payloadWithMessageId = buildFcmBackgroundTapPayload(
+    message,
+  );
   final Iterable<String> messageIds = collectFcmCandidateMessageIds(
     messageId: message.id,
     payload: message.payload,

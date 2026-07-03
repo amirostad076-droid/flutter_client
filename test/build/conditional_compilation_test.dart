@@ -59,7 +59,9 @@ void main() {
       expect(content, contains('tools:node="remove"'));
       expect(
         content,
-        contains('io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingReceiver'),
+        contains(
+          'io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingReceiver',
+        ),
       );
       expect(
         content,

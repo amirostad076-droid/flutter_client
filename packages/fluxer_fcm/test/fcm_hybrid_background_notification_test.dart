@@ -20,7 +20,10 @@ void main() {
         },
       );
       final FcmPushMessage mapped = mapRemoteMessage(input);
-      expect(shouldDisplayFcmBackgroundLocalNotification(input, mapped), isTrue);
+      expect(
+        shouldDisplayFcmBackgroundLocalNotification(input, mapped),
+        isTrue,
+      );
       expect(resolveFcmBackgroundNotificationTitle(mapped), 'Fluxer');
       expect(resolveFcmBackgroundNotificationBody(mapped), 'New message');
     });
@@ -40,7 +43,10 @@ void main() {
       FcmBackgroundDisplayHooks.shouldDisplay = (FcmPushMessage message) {
         return message.payload['url']?.isNotEmpty == true;
       };
-      expect(shouldDisplayFcmBackgroundLocalNotification(input, mapped), isTrue);
+      expect(
+        shouldDisplayFcmBackgroundLocalNotification(input, mapped),
+        isTrue,
+      );
       expect(
         resolveFcmBackgroundNotificationTitle(mapped),
         'Emptiest (#asdfqwer, a s d f)',
@@ -60,7 +66,9 @@ void main() {
         },
       );
       final FcmPushMessage mapped = mapRemoteMessage(input);
-      final Map<String, String> tapPayload = buildFcmBackgroundTapPayload(mapped);
+      final Map<String, String> tapPayload = buildFcmBackgroundTapPayload(
+        mapped,
+      );
       expect(tapPayload['url'], '/channels/@me/asdfqwer/msg-1');
       expect(tapPayload['channel_id'], 'asdfqwer');
       expect(tapPayload['message_id'], 'msg-1');

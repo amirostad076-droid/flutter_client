@@ -32,14 +32,13 @@ void main() {
 
   group('enrichGcmNotificationData', () {
     test('copies gcm notification title and body into data fields', () {
-      final Map<String, String> enriched = enrichGcmNotificationData(
-        <String, String>{
-          kGcmNotificationTitleKey: 'Emptiest (#asdfqwer)',
-          kGcmNotificationBodyKey: 'Pong!',
-          'channel_id': 'dm-1',
-          'url': '/channels/@me/dm-1/msg-9',
-        },
-      );
+      final Map<String, String> enriched =
+          enrichGcmNotificationData(<String, String>{
+            kGcmNotificationTitleKey: 'Emptiest (#asdfqwer)',
+            kGcmNotificationBodyKey: 'Pong!',
+            'channel_id': 'dm-1',
+            'url': '/channels/@me/dm-1/msg-9',
+          });
       expect(enriched['title'], 'Emptiest (#asdfqwer)');
       expect(enriched['body'], 'Pong!');
       expect(enriched['channel_id'], 'dm-1');
@@ -47,14 +46,13 @@ void main() {
     });
 
     test('does not overwrite existing title and body in data', () {
-      final Map<String, String> enriched = enrichGcmNotificationData(
-        <String, String>{
-          kGcmNotificationTitleKey: 'from-gcm',
-          kGcmNotificationBodyKey: 'from-gcm-body',
-          'title': 'from-data',
-          'body': 'from-data-body',
-        },
-      );
+      final Map<String, String> enriched =
+          enrichGcmNotificationData(<String, String>{
+            kGcmNotificationTitleKey: 'from-gcm',
+            kGcmNotificationBodyKey: 'from-gcm-body',
+            'title': 'from-data',
+            'body': 'from-data-body',
+          });
       expect(enriched['title'], 'from-data');
       expect(enriched['body'], 'from-data-body');
     });
@@ -85,30 +83,28 @@ void main() {
     });
 
     test('enriched navigable data keeps rich display text', () {
-      final Map<String, String> enriched = enrichGcmNotificationData(
-        <String, String>{
-          kGcmNotificationTitleKey: 'Emptiest (#asdfqwer)',
-          kGcmNotificationBodyKey: 'Pong!',
-          'channel_id': 'dm-1',
-          'message_id': 'msg-9',
-          'url': '/channels/@me/dm-1/msg-9',
-        },
-      );
+      final Map<String, String> enriched =
+          enrichGcmNotificationData(<String, String>{
+            kGcmNotificationTitleKey: 'Emptiest (#asdfqwer)',
+            kGcmNotificationBodyKey: 'Pong!',
+            'channel_id': 'dm-1',
+            'message_id': 'msg-9',
+            'url': '/channels/@me/dm-1/msg-9',
+          });
       expect(enriched['title'], isNot('Fluxer'));
       expect(enriched['body'], isNot('New message'));
       expect(enriched['url'], '/channels/@me/dm-1/msg-9');
     });
 
     test('enriched tap payload json is navigable', () {
-      final Map<String, String> enriched = enrichGcmNotificationData(
-        <String, String>{
-          kGcmNotificationTitleKey: 'Emptiest (#asdfqwer)',
-          kGcmNotificationBodyKey: 'Pong!',
-          'channel_id': 'dm-1',
-          'message_id': 'msg-9',
-          'url': '/channels/@me/dm-1/msg-9',
-        },
-      );
+      final Map<String, String> enriched =
+          enrichGcmNotificationData(<String, String>{
+            kGcmNotificationTitleKey: 'Emptiest (#asdfqwer)',
+            kGcmNotificationBodyKey: 'Pong!',
+            'channel_id': 'dm-1',
+            'message_id': 'msg-9',
+            'url': '/channels/@me/dm-1/msg-9',
+          });
       final String payloadJson = jsonEncode(enriched);
       final Map<String, dynamic> decoded =
           jsonDecode(payloadJson) as Map<String, dynamic>;
@@ -123,28 +119,40 @@ void main() {
       expect(content, contains('com.fluxer.FluxerFirebaseMessagingService'));
       expect(
         content,
-        contains('io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingService'),
+        contains(
+          'io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingService',
+        ),
       );
       expect(
         content,
-        contains('io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingReceiver'),
+        contains(
+          'io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingReceiver',
+        ),
       );
       expect(content, contains('tools:node="remove"'));
       expect(content, contains('com.google.firebase.MESSAGING_EVENT'));
       expect(
         content,
-        isNot(contains('com.google.firebase.messaging.FirebaseMessagingService')),
+        isNot(
+          contains('com.google.firebase.messaging.FirebaseMessagingService'),
+        ),
       );
     });
 
-    test('native messaging service suppresses default notification dispatch', () {
-      final String content = messagingService.readAsStringSync();
-      expect(content, contains('handleRemoteMessageIntent'));
-      expect(content, contains('FcmMessageForwarder.enrichNotificationIntoData'));
-      expect(content, contains('FcmMessageForwarder.forwardMessage'));
-      expect(content, contains('-> handleRemoteMessageIntent(intent)'));
-      expect(content, contains('else -> super.handleIntent(intent)'));
-    });
+    test(
+      'native messaging service suppresses default notification dispatch',
+      () {
+        final String content = messagingService.readAsStringSync();
+        expect(content, contains('handleRemoteMessageIntent'));
+        expect(
+          content,
+          contains('FcmMessageForwarder.enrichNotificationIntoData'),
+        );
+        expect(content, contains('FcmMessageForwarder.forwardMessage'));
+        expect(content, contains('-> handleRemoteMessageIntent(intent)'));
+        expect(content, contains('else -> super.handleIntent(intent)'));
+      },
+    );
 
     test('native forwarder enriches gcm notification keys', () {
       final String content = messageForwarder.readAsStringSync();
@@ -159,7 +167,10 @@ void main() {
       expect(content, contains('_configureFcmBootstrap'));
       expect(content, contains('shouldDisplayBackgroundLocalNotification'));
       expect(content, contains('cancelFcmSystemDuplicates'));
-      expect(content, contains('onBackgroundMessage: fcmBackgroundMessageHandlerEntry'));
+      expect(
+        content,
+        contains('onBackgroundMessage: fcmBackgroundMessageHandlerEntry'),
+      );
     });
   });
 }

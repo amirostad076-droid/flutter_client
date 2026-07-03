@@ -21,7 +21,10 @@ void main() {
         },
       );
       final FcmPushMessage mapped = mapRemoteMessage(input);
-      expect(shouldDisplayFcmBackgroundLocalNotification(input, mapped), isTrue);
+      expect(
+        shouldDisplayFcmBackgroundLocalNotification(input, mapped),
+        isTrue,
+      );
       expect(mapped.payload['url'], '/channels/@me/dm-1/msg-9');
       expect(mapped.payload['channel_id'], 'dm-1');
     });
@@ -40,7 +43,10 @@ void main() {
         notification: const RemoteNotification(title: 'alice', body: 'hello'),
       );
       final FcmPushMessage mapped = mapRemoteMessage(input);
-      expect(shouldDisplayFcmBackgroundLocalNotification(input, mapped), isTrue);
+      expect(
+        shouldDisplayFcmBackgroundLocalNotification(input, mapped),
+        isTrue,
+      );
       expect(mapped.payload['url'], '/channels/@me/dm-1/msg-9');
     });
   });
