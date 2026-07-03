@@ -11,16 +11,39 @@ void main() {
     });
   });
 
+  group('collectFcmCandidateMessageIds', () {
+    test('collects gcm id and payload message_id', () {
+      final Iterable<String> ids = collectFcmCandidateMessageIds(
+        messageId: 'gcm-1',
+        payload: <String, String>{'message_id': 'msg-9'},
+      );
+      expect(ids, containsAll(<String>['gcm-1', 'msg-9']));
+    });
+  });
+
   group('fcmSystemNotificationCancelIds', () {
-    test('includes dart and java hash ids', () {
+    test('includes only java hash ids', () {
       const String messageId = 'msg-1';
-      final Iterable<int> ids = fcmSystemNotificationCancelIds(messageId);
-      expect(ids, contains(fcmPushMessageNotificationId(messageId)));
+      final Iterable<int> ids = fcmSystemNotificationCancelIds(<String>[
+        messageId,
+      ]);
+      expect(ids, isNot(contains(fcmPushMessageNotificationId(messageId))));
       expect(ids, contains(fcmJavaStringHashCode(messageId)));
     });
 
-    test('returns empty for blank message id', () {
-      expect(fcmSystemNotificationCancelIds(''), isEmpty);
+    test('merges java hash ids from multiple candidates', () {
+      const String gcmId = '0:123';
+      const String dataId = 'msg-9';
+      final Iterable<int> ids = fcmSystemNotificationCancelIds(<String>[
+        gcmId,
+        dataId,
+      ]);
+      expect(ids, contains(fcmJavaStringHashCode(gcmId)));
+      expect(ids, contains(fcmJavaStringHashCode(dataId)));
+    });
+
+    test('returns empty for empty message ids', () {
+      expect(fcmSystemNotificationCancelIds(<String>['']), isEmpty);
     });
   });
 }

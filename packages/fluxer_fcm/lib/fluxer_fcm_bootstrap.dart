@@ -3,6 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fluxer_fcm/fcm_background_handler.dart';
 import 'package:fluxer_fcm/fcm_background_notification_tap_hooks.dart';
+import 'package:fluxer_fcm/fcm_system_notification_cancel_hooks.dart';
 import 'package:fluxer_fcm/firebase_options.dart';
 import 'package:fluxer_fcm/fcm_tap_payload_cache_hooks.dart';
 import 'package:fluxer_fcm/fluxer_fcm_push_service.dart';
@@ -34,10 +35,13 @@ class FluxerFcmBootstrap {
     required FcmTapPayloadCachePredicate shouldSaveTapPayloadCache,
     required FcmTapPayloadCacheSaver saveTapPayloadCache,
     FcmBackgroundNotificationTapHandler? onBackgroundNotificationTap,
+    FcmNativeSystemNotificationCancelHandler? cancelFcmSystemDuplicates,
   }) {
     FcmTapPayloadCacheHooks.shouldSave = shouldSaveTapPayloadCache;
     FcmTapPayloadCacheHooks.save = saveTapPayloadCache;
     FcmBackgroundNotificationTapHooks.onTap = onBackgroundNotificationTap;
+    FcmSystemNotificationCancelHooks.cancelDuplicates =
+        cancelFcmSystemDuplicates;
     FluxerFcmPushService.instance.tapPayloadEnricher =
         (RemoteMessage message, Map<String, String> mappedPayload) {
           return enrichTapPayload(

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
+import 'package:fluxer_app/core/push/fcm/fcm_android_system_notification_cancel_bridge.dart';
 import 'package:fluxer_app/core/push/fcm/fcm_background_handler_policy.dart';
 import 'package:fluxer_app/core/push/fcm/fcm_pending_notification_tap.dart';
 import 'package:fluxer_app/core/push/fcm/fcm_tap_payload_cache.dart';
@@ -17,6 +18,8 @@ Future<void> bootstrapFcmIfNeeded() async {
       shouldSaveTapPayloadCache: shouldSaveFcmTapPayloadCache,
       saveTapPayloadCache: FcmTapPayloadCache.save,
       onBackgroundNotificationTap: FcmPendingNotificationTap.save,
+      cancelFcmSystemDuplicates:
+          FcmAndroidSystemNotificationCancelBridge.cancelFcmSystemDuplicates,
     );
     await FluxerFcmBootstrap.bootstrapIfNeeded();
   } on Object catch (error, stackTrace) {

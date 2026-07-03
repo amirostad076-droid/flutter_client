@@ -90,24 +90,34 @@ Future<void> showFcmBackgroundNotification(FcmPushMessage message) async {
     message.payload,
   );
   payloadWithMessageId[kFcmLocalNotificationMessageIdKey] = message.id;
+  final Iterable<String> messageIds = collectFcmCandidateMessageIds(
+    messageId: message.id,
+    payload: message.payload,
+  );
   try {
-    await plugin.show(
-      id: id,
-      title: title,
-      body: body,
-      notificationDetails: const NotificationDetails(
-        android: AndroidNotificationDetails(
-          kFcmBackgroundNotificationChannelId,
-          kFcmBackgroundNotificationChannelName,
-          channelDescription: kFcmBackgroundNotificationChannelDescription,
-          importance: Importance.high,
-          priority: Priority.high,
-          icon: kFcmBackgroundNotificationIcon,
-        ),
-      ),
-      payload: jsonEncode(payloadWithMessageId),
+    await deduplicateFcmSystemNotifications(
+      plugin: plugin,
+      messageIds: messageIds,
+      excludeNotificationId: id,
+      showLocalNotification: () async {
+        await plugin.show(
+          id: id,
+          title: title,
+          body: body,
+          notificationDetails: const NotificationDetails(
+            android: AndroidNotificationDetails(
+              kFcmBackgroundNotificationChannelId,
+              kFcmBackgroundNotificationChannelName,
+              channelDescription: kFcmBackgroundNotificationChannelDescription,
+              importance: Importance.high,
+              priority: Priority.high,
+              icon: kFcmBackgroundNotificationIcon,
+            ),
+          ),
+          payload: jsonEncode(payloadWithMessageId),
+        );
+      },
     );
-    await cancelFcmSystemNotificationDuplicates(plugin, messageId: message.id);
   } on Object catch (error, stackTrace) {
     if (kDebugMode) {
       debugPrint(
