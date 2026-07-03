@@ -17,7 +17,10 @@ void openDiscover(BuildContext context, WidgetRef ref) {
   ref
       .read(rootOverlayReturnLocationProvider.notifier)
       .remember(ref.read(shellLocationProvider));
-  DrawerNavigationCoordinator.navigateToContent(ref.container, RoutePaths.discover);
+  DrawerNavigationCoordinator.navigateToContent(
+    ref.container,
+    RoutePaths.discover,
+  );
 }
 
 void popRootOverlay(BuildContext context, WidgetRef ref) {
@@ -25,5 +28,7 @@ void popRootOverlay(BuildContext context, WidgetRef ref) {
     context.pop();
     return;
   }
-  context.go(ref.read(rootOverlayReturnLocationProvider.notifier).takeOrDefault());
+  context.go(
+    ref.read(rootOverlayReturnLocationProvider.notifier).takeOrDefault(),
+  );
 }

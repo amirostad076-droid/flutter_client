@@ -132,12 +132,12 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
       ..listen<bool>(shellHasPopupOverlayProvider, (_, _) {
         _scheduleSyncChannelIfNeeded();
       })
-      ..listen<bool>(
-        channelChatShouldLoadMessagesProvider(widget.channelId),
-        (_, _) {
-          _scheduleSyncChannelIfNeeded();
-        },
-      );
+      ..listen<bool>(channelChatShouldLoadMessagesProvider(widget.channelId), (
+        _,
+        _,
+      ) {
+        _scheduleSyncChannelIfNeeded();
+      });
     if (_lastMobileLayout != isMobile) {
       _lastMobileLayout = isMobile;
       _scheduleSyncChannelIfNeeded();

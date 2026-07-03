@@ -2,12 +2,7 @@ import 'package:fluxer_app/core/router/route_kind.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/shell_location_resolver.dart';
 
-enum ShellLayoutMode {
-  channelDrawer,
-  channelsRoot,
-  mainTab,
-  homeUtility,
-}
+enum ShellLayoutMode { channelDrawer, channelsRoot, mainTab, homeUtility }
 
 ShellLayoutMode shellLayoutModeForLocation(String location) {
   final RouteKind kind = classifyRoute(location);
@@ -34,8 +29,7 @@ ShellLayoutMode resolveMobileShellLayoutMode({
   required String activeBranchLocation,
   required String topLocation,
 }) {
-  final int effectiveBranchIndex =
-      navigationShellIndex != activeBranchIndex
+  final int effectiveBranchIndex = navigationShellIndex != activeBranchIndex
       ? navigationShellIndex
       : activeBranchIndex;
   if (effectiveBranchIndex == shellNotificationsBranchIndex ||

@@ -101,10 +101,7 @@ void main() {
       router.go('/channels/@me');
       await tester.pumpAndSettle();
 
-      expect(
-        container.read(currentRevealSideProvider),
-        RevealSide.main,
-      );
+      expect(container.read(currentRevealSideProvider), RevealSide.main);
 
       router.go('/channels/guild/channel');
       await tester.pumpAndSettle();

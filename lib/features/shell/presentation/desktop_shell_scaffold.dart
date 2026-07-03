@@ -41,7 +41,9 @@ Widget desktopShellScaffold({
               child: Row(
                 children: <Widget>[
                   const GuildNavbar(),
-                  Expanded(child: desktopSidebarForLocation(context, shellLocation)),
+                  Expanded(
+                    child: desktopSidebarForLocation(context, shellLocation),
+                  ),
                 ],
               ),
             ),

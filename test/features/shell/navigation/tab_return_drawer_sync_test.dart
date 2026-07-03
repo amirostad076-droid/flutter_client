@@ -12,9 +12,9 @@ void main() {
     test('resets drawer and navigates to @me root', () {
       final ProviderContainer container = _bareContainer();
 
-      container.read(currentRevealSideProvider.notifier).syncForRoute(
-        '/channels/@me/dm',
-      );
+      container
+          .read(currentRevealSideProvider.notifier)
+          .syncForRoute('/channels/@me/dm');
       expect(container.read(currentRevealSideProvider), RevealSide.main);
 
       container.read(currentRevealSideProvider.notifier).set(RevealSide.left);
@@ -22,7 +22,11 @@ void main() {
 
       expect(container.read(currentRevealSideProvider), RevealSide.main);
       expect(
-        container.read(fluxerRouterProvider).routeInformationProvider.value.uri
+        container
+            .read(fluxerRouterProvider)
+            .routeInformationProvider
+            .value
+            .uri
             .path,
         RoutePaths.me,
       );

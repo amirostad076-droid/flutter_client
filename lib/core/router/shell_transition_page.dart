@@ -15,14 +15,15 @@ CustomTransitionPage<void> shellFadeTransitionPage({
     child: child,
     transitionDuration: duration,
     reverseTransitionDuration: duration,
-    transitionsBuilder: (
-      BuildContext context,
-      Animation<double> animation,
-      Animation<double> secondaryAnimation,
-      Widget child,
-    ) {
-      return FadeTransition(opacity: animation, child: child);
-    },
+    transitionsBuilder:
+        (
+          BuildContext context,
+          Animation<double> animation,
+          Animation<double> secondaryAnimation,
+          Widget child,
+        ) {
+          return FadeTransition(opacity: animation, child: child);
+        },
   );
 }
 
@@ -36,31 +37,44 @@ CustomTransitionPage<void> shellSlideTransitionPage({
     child: child,
     transitionDuration: ShellTransitionPolicy.channelSlideDuration,
     reverseTransitionDuration: ShellTransitionPolicy.channelSlideDuration,
-    transitionsBuilder: (
-      BuildContext context,
-      Animation<double> animation,
-      Animation<double> secondaryAnimation,
-      Widget child,
-    ) {
-      final Animation<Offset> incoming = Tween<Offset>(
-        begin: const Offset(1, 0),
-        end: Offset.zero,
-      ).animate(CurvedAnimation(parent: animation, curve: kHorizontalSwipeCurve));
-      if (!parallaxOutgoing) {
-        return SlideTransition(position: incoming, child: child);
-      }
-      final Animation<Offset> outgoing = Tween<Offset>(
-        begin: Offset.zero,
-        end: Offset(
-          -ShellTransitionPolicy.channelOutgoingParallaxFactor,
-          0,
-        ),
-      ).animate(CurvedAnimation(parent: secondaryAnimation, curve: kHorizontalSwipeCurve));
-      return SlideTransition(
-        position: incoming,
-        child: SlideTransition(position: outgoing, child: child),
-      );
-    },
+    transitionsBuilder:
+        (
+          BuildContext context,
+          Animation<double> animation,
+          Animation<double> secondaryAnimation,
+          Widget child,
+        ) {
+          final Animation<Offset> incoming =
+              Tween<Offset>(
+                begin: const Offset(1, 0),
+                end: Offset.zero,
+              ).animate(
+                CurvedAnimation(
+                  parent: animation,
+                  curve: kHorizontalSwipeCurve,
+                ),
+              );
+          if (!parallaxOutgoing) {
+            return SlideTransition(position: incoming, child: child);
+          }
+          final Animation<Offset> outgoing =
+              Tween<Offset>(
+                begin: Offset.zero,
+                end: Offset(
+                  -ShellTransitionPolicy.channelOutgoingParallaxFactor,
+                  0,
+                ),
+              ).animate(
+                CurvedAnimation(
+                  parent: secondaryAnimation,
+                  curve: kHorizontalSwipeCurve,
+                ),
+              );
+          return SlideTransition(
+            position: incoming,
+            child: SlideTransition(position: outgoing, child: child),
+          );
+        },
   );
 }
 
@@ -73,19 +87,20 @@ CustomTransitionPage<void> shellCupertinoSlideTransitionPage({
     child: child,
     transitionDuration: ShellTransitionPolicy.channelSlideDuration,
     reverseTransitionDuration: ShellTransitionPolicy.channelSlideDuration,
-    transitionsBuilder: (
-      BuildContext context,
-      Animation<double> animation,
-      Animation<double> secondaryAnimation,
-      Widget child,
-    ) {
-      return CupertinoPageTransition(
-        primaryRouteAnimation: animation,
-        secondaryRouteAnimation: secondaryAnimation,
-        linearTransition: false,
-        child: child,
-      );
-    },
+    transitionsBuilder:
+        (
+          BuildContext context,
+          Animation<double> animation,
+          Animation<double> secondaryAnimation,
+          Widget child,
+        ) {
+          return CupertinoPageTransition(
+            primaryRouteAnimation: animation,
+            secondaryRouteAnimation: secondaryAnimation,
+            linearTransition: false,
+            child: child,
+          );
+        },
   );
 }
 

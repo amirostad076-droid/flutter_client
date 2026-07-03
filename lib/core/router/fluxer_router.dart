@@ -430,39 +430,42 @@ GoRouter fluxerRouter(Ref ref) {
                               context: context,
                               key: state.pageKey,
                               child: FutureBuilder<void>(
-                            future: dm_voice_call.loadLibrary(),
-                            builder:
-                                (
-                                  BuildContext context,
-                                  AsyncSnapshot<void> snapshot,
-                                ) {
-                                  if (snapshot.connectionState !=
-                                      ConnectionState.done) {
-                                    return const Scaffold(
-                                      body: Center(
-                                        child: FluxerLoadingSpinner(),
-                                      ),
-                                    );
-                                  }
-                                  return dm_voice_call.DmVoiceCallFullscreenPage(
-                                    channelId:
-                                        state.pathParameters['channelId'] ?? '',
-                                  );
-                                },
-                          ),
-                        ),
+                                future: dm_voice_call.loadLibrary(),
+                                builder:
+                                    (
+                                      BuildContext context,
+                                      AsyncSnapshot<void> snapshot,
+                                    ) {
+                                      if (snapshot.connectionState !=
+                                          ConnectionState.done) {
+                                        return const Scaffold(
+                                          body: Center(
+                                            child: FluxerLoadingSpinner(),
+                                          ),
+                                        );
+                                      }
+                                      return dm_voice_call.DmVoiceCallFullscreenPage(
+                                        channelId:
+                                            state.pathParameters['channelId'] ??
+                                            '',
+                                      );
+                                    },
+                              ),
+                            ),
                       ),
                       GoRoute(
                         path: ':messageId',
                         name: RouteNames.dmMessage,
-                        pageBuilder: (context, state) => shellSlideTransitionPage(
-                          key: state.pageKey,
-                          parallaxOutgoing: true,
-                          child: DMLayout(
-                            channelId: state.pathParameters['channelId'],
-                            targetMessageId: state.pathParameters['messageId'],
-                          ),
-                        ),
+                        pageBuilder: (context, state) =>
+                            shellSlideTransitionPage(
+                              key: state.pageKey,
+                              parallaxOutgoing: true,
+                              child: DMLayout(
+                                channelId: state.pathParameters['channelId'],
+                                targetMessageId:
+                                    state.pathParameters['messageId'],
+                              ),
+                            ),
                       ),
                     ],
                   ),
@@ -514,14 +517,15 @@ GoRouter fluxerRouter(Ref ref) {
                       GoRoute(
                         path: ':messageId',
                         name: RouteNames.favoritesMessage,
-                        pageBuilder: (context, state) => shellSlideTransitionPage(
-                          key: state.pageKey,
-                          parallaxOutgoing: true,
-                          child: FavoritesLayout(
-                            channelId: state.pathParameters['channelId'],
-                            messageId: state.pathParameters['messageId'],
-                          ),
-                        ),
+                        pageBuilder: (context, state) =>
+                            shellSlideTransitionPage(
+                              key: state.pageKey,
+                              parallaxOutgoing: true,
+                              child: FavoritesLayout(
+                                channelId: state.pathParameters['channelId'],
+                                messageId: state.pathParameters['messageId'],
+                              ),
+                            ),
                       ),
                     ],
                   ),

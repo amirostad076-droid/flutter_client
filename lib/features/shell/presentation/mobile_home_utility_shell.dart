@@ -88,46 +88,46 @@ class _MobileHomeUtilityShellState extends ConsumerState<MobileHomeUtilityShell>
     return PopScope(
       canPop: context.canPop(),
       child: Scaffold(
-      backgroundColor: context.colors.backgroundPrimary,
-      body: Stack(
-        fit: StackFit.passthrough,
-        children: <Widget>[
-          mainContent,
-          PositionedDirectional(
-            start: 0,
-            top: 0,
-            bottom: 0,
-            width: leadingEdgeHorizontalSwipeReserveWidth(context),
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onHorizontalDragUpdate: (DragUpdateDetails details) {
-                final double primaryDelta = details.primaryDelta ?? 0;
-                final double logical =
-                    (isRtl ? -primaryDelta : primaryDelta) / screenWidth;
-                _swipeController.value = (_swipeController.value + logical)
-                    .clamp(0.0, 1.0);
-              },
-              onHorizontalDragEnd: (DragEndDetails details) {
-                _onBackSwipeEnd(
-                  context,
-                  isRtl: isRtl,
-                  screenWidth: screenWidth,
-                  endDetails: details,
-                );
-              },
-              onHorizontalDragCancel: () {
-                unawaited(
-                  _swipeController.animateBack(
-                    0,
-                    duration: kHorizontalSwipeSnapBackDuration,
-                    curve: kHorizontalSwipeCurve,
-                  ),
-                );
-              },
+        backgroundColor: context.colors.backgroundPrimary,
+        body: Stack(
+          fit: StackFit.passthrough,
+          children: <Widget>[
+            mainContent,
+            PositionedDirectional(
+              start: 0,
+              top: 0,
+              bottom: 0,
+              width: leadingEdgeHorizontalSwipeReserveWidth(context),
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onHorizontalDragUpdate: (DragUpdateDetails details) {
+                  final double primaryDelta = details.primaryDelta ?? 0;
+                  final double logical =
+                      (isRtl ? -primaryDelta : primaryDelta) / screenWidth;
+                  _swipeController.value = (_swipeController.value + logical)
+                      .clamp(0.0, 1.0);
+                },
+                onHorizontalDragEnd: (DragEndDetails details) {
+                  _onBackSwipeEnd(
+                    context,
+                    isRtl: isRtl,
+                    screenWidth: screenWidth,
+                    endDetails: details,
+                  );
+                },
+                onHorizontalDragCancel: () {
+                  unawaited(
+                    _swipeController.animateBack(
+                      0,
+                      duration: kHorizontalSwipeSnapBackDuration,
+                      curve: kHorizontalSwipeCurve,
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }
@@ -148,8 +148,7 @@ class _MobileHomeUtilityShellState extends ConsumerState<MobileHomeUtilityShell>
     if (logicalWidthPerSec.abs() >= kHorizontalSwipeFlingVelocity) {
       shouldComplete = logicalWidthPerSec > 0;
     } else {
-      shouldComplete =
-          _swipeController.value > _backSwipeProgressThreshold();
+      shouldComplete = _swipeController.value > _backSwipeProgressThreshold();
     }
     if (shouldComplete) {
       unawaited(

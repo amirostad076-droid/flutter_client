@@ -14,7 +14,10 @@ abstract final class DrawerNavigationCoordinator {
     }
   }
 
-  static void syncForShellLocation(ProviderContainer container, String location) {
+  static void syncForShellLocation(
+    ProviderContainer container,
+    String location,
+  ) {
     container.read(currentRevealSideProvider.notifier).syncForRoute(location);
   }
 

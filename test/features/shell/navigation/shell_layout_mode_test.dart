@@ -20,17 +20,20 @@ void main() {
   });
 
   group('resolveMobileShellLayoutMode', () {
-    test('notifications branch uses mainTab regardless of stale home location', () {
-      expect(
-        resolveMobileShellLayoutMode(
-          navigationShellIndex: shellNotificationsBranchIndex,
-          activeBranchIndex: shellHomeBranchIndex,
-          activeBranchLocation: '/channels/@me/dm',
-          topLocation: '/notifications',
-        ),
-        ShellLayoutMode.mainTab,
-      );
-    });
+    test(
+      'notifications branch uses mainTab regardless of stale home location',
+      () {
+        expect(
+          resolveMobileShellLayoutMode(
+            navigationShellIndex: shellNotificationsBranchIndex,
+            activeBranchIndex: shellHomeBranchIndex,
+            activeBranchLocation: '/channels/@me/dm',
+            topLocation: '/notifications',
+          ),
+          ShellLayoutMode.mainTab,
+        );
+      },
+    );
 
     test('home branch with stale top location uses channelsRoot', () {
       expect(

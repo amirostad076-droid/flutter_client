@@ -23,10 +23,11 @@ class MobileChannelDrawerShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final bool isOnChatRoute = _isChatRoute(shellLocation);
     final bool isPanelOpen = ref.watch(expressionPanelProvider);
-    final bool shouldResizeForKeyboard = mobileChannelScaffoldShouldResizeForKeyboard(
-      isChatRoute: isOnChatRoute,
-      isExpressionPanelOpen: isPanelOpen,
-    );
+    final bool shouldResizeForKeyboard =
+        mobileChannelScaffoldShouldResizeForKeyboard(
+          isChatRoute: isOnChatRoute,
+          isExpressionPanelOpen: isPanelOpen,
+        );
     final Widget sidebar = mobileSidebarForLocation(context, shellLocation);
     return _MobileChannelScaffold(
       backgroundColor: isOnChatRoute

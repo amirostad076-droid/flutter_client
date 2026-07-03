@@ -81,8 +81,7 @@ class RouteStateNotifier extends _$RouteStateNotifier {
         state = RouteState.fromRouter(router);
       }
 
-      final SchedulerPhase phase =
-          SchedulerBinding.instance.schedulerPhase;
+      final SchedulerPhase phase = SchedulerBinding.instance.schedulerPhase;
       if (phase == SchedulerPhase.idle ||
           phase == SchedulerPhase.postFrameCallbacks) {
         applyRouteState();

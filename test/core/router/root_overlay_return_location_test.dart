@@ -12,11 +12,15 @@ void main() {
         .read(rootOverlayReturnLocationProvider.notifier)
         .remember('/channels/guild/channel');
     expect(
-      container.read(rootOverlayReturnLocationProvider.notifier).takeOrDefault(),
+      container
+          .read(rootOverlayReturnLocationProvider.notifier)
+          .takeOrDefault(),
       '/channels/guild/channel',
     );
     expect(
-      container.read(rootOverlayReturnLocationProvider.notifier).takeOrDefault(),
+      container
+          .read(rootOverlayReturnLocationProvider.notifier)
+          .takeOrDefault(),
       RoutePaths.me,
     );
   });

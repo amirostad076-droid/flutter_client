@@ -14,10 +14,7 @@ import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:go_router/go_router.dart';
 
 class MobileShellScaffold extends ConsumerWidget {
-  const MobileShellScaffold({
-    required this.navigationShell,
-    super.key,
-  });
+  const MobileShellScaffold({required this.navigationShell, super.key});
 
   final StatefulNavigationShell navigationShell;
 
