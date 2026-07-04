@@ -8889,6 +8889,60 @@ abstract class FluxerLocalizations {
   /// **'Language & Time'**
   String get userSettingsNavLanguageAndTime;
 
+  /// Settings section title for time format preference.
+  ///
+  /// In en, this message translates to:
+  /// **'Time format'**
+  String get languageAndTimeTimeFormatSectionTitle;
+
+  /// Accessibility label for the time format radio group.
+  ///
+  /// In en, this message translates to:
+  /// **'Time format selection'**
+  String get languageAndTimeTimeFormatSelectionLabel;
+
+  /// Time format option that detects format from locale.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get languageAndTimeTimeFormatAuto;
+
+  /// Time format option for 12-hour AM/PM display.
+  ///
+  /// In en, this message translates to:
+  /// **'12-hour'**
+  String get languageAndTimeTimeFormat12Hour;
+
+  /// Time format option for 24-hour display.
+  ///
+  /// In en, this message translates to:
+  /// **'24-hour'**
+  String get languageAndTimeTimeFormat24Hour;
+
+  /// Auto time format description using the app interface language.
+  ///
+  /// In en, this message translates to:
+  /// **'App language: {format}'**
+  String languageAndTimeTimeFormatAppLanguage(String format);
+
+  /// Auto time format description using the device system locale.
+  ///
+  /// In en, this message translates to:
+  /// **'System locale: {format}'**
+  String languageAndTimeTimeFormatSystemLocale(String format);
+
+  /// Toggle to use device system locale when auto-detecting time format.
+  ///
+  /// In en, this message translates to:
+  /// **'Use system locale for time format'**
+  String get languageAndTimeUseSystemLocaleForTimeFormat;
+
+  /// Toast shown when saving the time format preference fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update time format'**
+  String get languageAndTimeTimeFormatSyncFailed;
+
   /// User settings navigation item for advanced settings.
   ///
   /// In en, this message translates to:

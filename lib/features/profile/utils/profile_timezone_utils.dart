@@ -1,5 +1,5 @@
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
-import 'package:intl/intl.dart';
+import 'package:fluxer_app/shared/utils/user_date_formatting.dart';
 
 int getViewerOffsetMinutes() {
   return DateTime.now().timeZoneOffset.inMinutes;
@@ -16,6 +16,7 @@ String formatProfileLocalTime({
   required DateTime now,
   required int offsetMinutes,
   required String locale,
+  required bool use12Hour,
 }) {
   final DateTime utcAdjusted = dateTimeAtOffset(now, offsetMinutes);
   final DateTime wallClock = DateTime(
@@ -25,7 +26,7 @@ String formatProfileLocalTime({
     utcAdjusted.hour,
     utcAdjusted.minute,
   );
-  return DateFormat.jm(locale).format(wallClock);
+  return formatUserTime(wallClock, locale, use12Hour: use12Hour);
 }
 
 String formatOffsetDifferenceDuration(FluxerLocalizations l10n, int minutes) {

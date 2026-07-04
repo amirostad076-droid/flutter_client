@@ -27,6 +27,8 @@ import 'package:fluxer_app/features/chat/presentation/'
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/system_message_actions_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/chat_loading_spinner.dart';
+import 'package:fluxer_app/features/settings/providers/use_12_hour_time_format_provider.dart';
+import 'package:fluxer_app/shared/utils/user_date_formatting.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/channel_welcome_section.dart';
 import 'package:fluxer_app/features/chat/presentation/'
@@ -1317,9 +1319,11 @@ class _MessageListState extends ConsumerState<MessageList> {
     final String messageLabel = count == 1 && !isEstimated
         ? '1 new message'
         : '$displayCount new';
+    final bool use12Hour = ref.watch(use12HourTimeFormatProvider);
+    final String locale = Localizations.localeOf(context).toString();
     final String sinceLabel = since == null
         ? ''
-        : ' since ${_formatTime(since)}';
+        : ' since ${_formatTime(since, locale: locale, use12Hour: use12Hour)}';
     return Material(
       color: context.colors.brandPrimary,
       elevation: 3,
@@ -1376,16 +1380,12 @@ class _MessageListState extends ConsumerState<MessageList> {
     );
   }
 
-  String _formatTime(DateTime date) {
-    final DateTime local = date.toLocal();
-    final int hour = local.hour == 0
-        ? 12
-        : local.hour > 12
-        ? local.hour - 12
-        : local.hour;
-    final String minute = local.minute.toString().padLeft(2, '0');
-    final String period = local.hour >= 12 ? 'PM' : 'AM';
-    return '$hour:$minute $period';
+  String _formatTime(
+    DateTime date, {
+    required String locale,
+    required bool use12Hour,
+  }) {
+    return formatUserTime(date.toLocal(), locale, use12Hour: use12Hour);
   }
 
   Widget _buildDateSeparator(BuildContext context, DateTime date) {

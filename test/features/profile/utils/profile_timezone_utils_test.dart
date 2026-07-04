@@ -24,6 +24,7 @@ void main() {
         now: now,
         offsetMinutes: -300,
         locale: 'en',
+        use12Hour: true,
       );
       expect(formatted.replaceAll('\u202f', ' '), '1:00 PM');
     });

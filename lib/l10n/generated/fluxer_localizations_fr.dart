@@ -5293,6 +5293,39 @@ class FluxerLocalizationsFr extends FluxerLocalizations {
   String get userSettingsNavLanguageAndTime => 'Langue et heure';
 
   @override
+  String get languageAndTimeTimeFormatSectionTitle => 'Time format';
+
+  @override
+  String get languageAndTimeTimeFormatSelectionLabel => 'Time format selection';
+
+  @override
+  String get languageAndTimeTimeFormatAuto => 'Auto';
+
+  @override
+  String get languageAndTimeTimeFormat12Hour => '12-hour';
+
+  @override
+  String get languageAndTimeTimeFormat24Hour => '24-hour';
+
+  @override
+  String languageAndTimeTimeFormatAppLanguage(String format) {
+    return 'App language: $format';
+  }
+
+  @override
+  String languageAndTimeTimeFormatSystemLocale(String format) {
+    return 'System locale: $format';
+  }
+
+  @override
+  String get languageAndTimeUseSystemLocaleForTimeFormat =>
+      'Use system locale for time format';
+
+  @override
+  String get languageAndTimeTimeFormatSyncFailed =>
+      'Failed to update time format';
+
+  @override
   String get userSettingsNavAdvanced => 'Avancé';
 
   @override
