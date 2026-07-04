@@ -149,6 +149,53 @@ class TextMention extends StatelessWidget {
   }
 }
 
+class CommandMention extends StatelessWidget {
+  const CommandMention({
+    required this.command,
+    required this.applicationId,
+    this.baseStyle,
+    super.key,
+  });
+
+  final String command;
+  final String applicationId;
+  final TextStyle? baseStyle;
+
+  @override
+  Widget build(BuildContext context) {
+    final List<String> segments = command.split(' ');
+    final String label = '/${segments.join(' ')}';
+    return TextMention(label: label, baseStyle: baseStyle);
+  }
+}
+
+class GuildNavigationMention extends StatelessWidget {
+  const GuildNavigationMention({
+    required this.type,
+    this.navigationId,
+    this.baseStyle,
+    super.key,
+  });
+
+  final FluxerGuildNavigationType type;
+  final String? navigationId;
+  final TextStyle? baseStyle;
+
+  @override
+  Widget build(BuildContext context) {
+    final String label = switch (type) {
+      FluxerGuildNavigationType.customize => '<id:customize>',
+      FluxerGuildNavigationType.browse => '<id:browse>',
+      FluxerGuildNavigationType.guide => '<id:guide>',
+      FluxerGuildNavigationType.linkedRoles =>
+        navigationId == null
+            ? '<id:linked-roles>'
+            : '<id:linked-roles:$navigationId>',
+    };
+    return TextMention(label: label, baseStyle: baseStyle);
+  }
+}
+
 /// Mention pill metrics scale with [TextStyle.fontSize] (baseline 14px).
 double _mentionPillHorizontalPadding(TextStyle style) =>
     (style.fontSize ?? 14) * (3.2 / 14);
