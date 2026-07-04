@@ -3950,6 +3950,9 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get voiceControlVideo => '视频';
 
   @override
+  String get voiceControlFlipCamera => 'Flip camera';
+
+  @override
   String get voiceControlScreenShare => '屏幕共享';
 
   @override
@@ -4901,6 +4904,174 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
 
   @override
   String get userSettingsNavAudioAndVideo => '音频与视频';
+
+  @override
+  String get audioAndVideoAudioSectionTitle => 'Audio';
+
+  @override
+  String get audioAndVideoAudioSectionDescription =>
+      'Configure your microphone, speakers, and voice processing.';
+
+  @override
+  String get audioAndVideoVideoSectionTitle => 'Video';
+
+  @override
+  String get audioAndVideoVideoSectionDescription =>
+      'Configure your camera and screen sharing quality.';
+
+  @override
+  String get audioAndVideoInCallBehaviorSectionTitle => 'In-call behavior';
+
+  @override
+  String get audioAndVideoInCallBehaviorSectionDescription =>
+      'Control confirmation prompts during voice and video calls.';
+
+  @override
+  String get audioAndVideoInputDeviceLabel => 'Input device';
+
+  @override
+  String get audioAndVideoOutputDeviceLabel => 'Output device';
+
+  @override
+  String get audioAndVideoDefaultDeviceLabel => 'Default';
+
+  @override
+  String get audioAndVideoUseSpeakerLabel => 'Use speaker';
+
+  @override
+  String get audioAndVideoUseSpeakerDescription =>
+      'When off, audio plays through the earpiece or connected headphones.';
+
+  @override
+  String get audioAndVideoInputVolumeLabel => 'Input volume';
+
+  @override
+  String get audioAndVideoOutputVolumeLabel => 'Output volume';
+
+  @override
+  String get audioAndVideoVoiceProcessingSectionTitle => 'Voice processing';
+
+  @override
+  String get audioAndVideoFocusedVoiceLabel => 'Focused voice';
+
+  @override
+  String get audioAndVideoFocusedVoiceDescription =>
+      'Recommended. Cleans up your mic for clear speech.';
+
+  @override
+  String get audioAndVideoDirectInputLabel => 'Direct input';
+
+  @override
+  String get audioAndVideoDirectInputDescription =>
+      'Sends your audio untouched. Best if you\'re using external audio software.';
+
+  @override
+  String get audioAndVideoCustomProfileLabel => 'Custom';
+
+  @override
+  String get audioAndVideoCustomProfileDescription =>
+      'Adjust each setting yourself: noise suppression, echo cancellation, and gain.';
+
+  @override
+  String get audioAndVideoNoiseSuppressionSectionTitle => 'Noise suppression';
+
+  @override
+  String get audioAndVideoNoiseSuppressionEnhancedLabel => 'Enhanced';
+
+  @override
+  String get audioAndVideoNoiseSuppressionStandardLabel => 'Standard';
+
+  @override
+  String get audioAndVideoNoiseSuppressionNoneLabel => 'None';
+
+  @override
+  String get audioAndVideoEchoCancellationLabel => 'Echo cancellation';
+
+  @override
+  String get audioAndVideoAutomaticGainControlLabel => 'Automatic gain control';
+
+  @override
+  String get audioAndVideoAutomaticGainControlDescription =>
+      'Evens out your mic volume. Off when enhanced suppression is on.';
+
+  @override
+  String get audioAndVideoMicTestSectionTitle => 'Mic test';
+
+  @override
+  String get audioAndVideoMicTestSectionDescription =>
+      'Listen to how you sound with your current settings.';
+
+  @override
+  String get audioAndVideoMicTestStartLabel => 'Start mic test';
+
+  @override
+  String get audioAndVideoMicTestStopLabel => 'Stop mic test';
+
+  @override
+  String audioAndVideoMicTestPermissionRequired(String productName) {
+    return '$productName needs microphone access to test your input.';
+  }
+
+  @override
+  String get audioAndVideoCameraLabel => 'Camera';
+
+  @override
+  String get audioAndVideoMirrorCameraLabel => 'Mirror camera';
+
+  @override
+  String get audioAndVideoCameraQualitySectionTitle => 'Camera quality';
+
+  @override
+  String get audioAndVideoCameraQuality480pLabel => '480p';
+
+  @override
+  String get audioAndVideoCameraQuality720pLabel => '720p';
+
+  @override
+  String get audioAndVideoCameraQuality1080pLabel => '1080p';
+
+  @override
+  String get audioAndVideoScreenShareQualitySectionTitle =>
+      'Screen share quality';
+
+  @override
+  String get audioAndVideoFrameRateSectionTitle => 'Frame rate';
+
+  @override
+  String get audioAndVideoFrameRate15Label => '15 FPS';
+
+  @override
+  String get audioAndVideoFrameRate30Label => '30 FPS';
+
+  @override
+  String get audioAndVideoFrameRate60Label => '60 FPS';
+
+  @override
+  String audioAndVideoHigherQualityRequiresPremium(String premiumProductName) {
+    return '1080p and 60 FPS require $premiumProductName.';
+  }
+
+  @override
+  String get audioAndVideoInstanceVideoQualityLimit =>
+      'This instance currently allows screen share up to 720p at 30 FPS.';
+
+  @override
+  String audioAndVideoMicrophonePermissionRequired(String productName) {
+    return '$productName needs microphone access to list your devices.';
+  }
+
+  @override
+  String audioAndVideoCameraPermissionRequired(String productName) {
+    return '$productName needs camera access to list your devices.';
+  }
+
+  @override
+  String get audioAndVideoSkipHideOwnCameraConfirmLabel =>
+      'Don\'t ask when hiding my camera';
+
+  @override
+  String get audioAndVideoSkipHideOwnScreenshareConfirmLabel =>
+      'Don\'t ask when hiding my screen share';
 
   @override
   String get userSettingsNavSoundsAndAlerts => '声音与提醒';

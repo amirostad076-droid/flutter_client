@@ -14,14 +14,19 @@ import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxer_app/features/settings/providers/voice_settings_provider.dart';
+import 'package:fluxer_app/features/voice/domain/voice_settings_state.dart';
 import 'package:fluxer_app/features/voice/providers/screen_share_capability_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_call_layout_provider.dart';
+import 'package:fluxer_app/features/voice/providers/voice_noise_filter_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_screen_share_watch_tile_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
+import 'package:fluxer_app/features/voice/services/voice_settings_applicator.dart';
 import 'package:fluxer_app/features/voice/utils/android_screen_share_background.dart';
 import 'package:fluxer_app/features/voice/utils/camera_permission.dart';
 import 'package:fluxer_app/features/voice/utils/channel_e2ee_status.dart';
 import 'package:fluxer_app/features/voice/utils/microphone_permission.dart';
+import 'package:fluxer_app/features/voice/utils/voice_camera_platform.dart';
 import 'package:fluxer_app/features/voice/utils/voice_channel_join_guard.dart';
 import 'package:fluxer_app/features/voice/utils/voice_connection_voice_state.dart';
 import 'package:fluxer_app/features/voice/utils/voice_effective_audio_state.dart';
@@ -108,7 +113,17 @@ class VoiceSession extends _$VoiceSession {
         Map<String, int> _,
       ) {
         unawaited(_onChannelPermissionsChanged());
+      })
+      ..listen<VoiceSettingsState>(voiceSettingsProvider, (
+        VoiceSettingsState? previous,
+        VoiceSettingsState next,
+      ) {
+        if (previous == next) {
+          return;
+        }
+        unawaited(_onVoiceSettingsChanged(previous, next));
       });
+    ref.read(voiceNoiseFilterProvider);
     return const VoiceSessionState();
   }
 
@@ -871,20 +886,23 @@ class VoiceSession extends _$VoiceSession {
         return;
       }
     }
+    final VoiceSettingsState voiceSettings = ref.read(voiceSettingsProvider);
+    final VoiceSettingsApplicator applicator = ref.read(
+      voiceSettingsApplicatorProvider,
+    );
+    final RoomOptions baseRoomOptions = applicator.buildRoomOptions(
+      voiceSettings,
+    );
     final RoomOptions roomOptions = RoomOptions(
-      adaptiveStream: true,
-      dynacast: true,
+      adaptiveStream: baseRoomOptions.adaptiveStream,
+      dynacast: baseRoomOptions.dynacast,
       encryption: keyProvider != null
           ? E2EEOptions(keyProvider: keyProvider)
           : null,
-      defaultCameraCaptureOptions: const CameraCaptureOptions(
-        params: VideoParametersPresets.h1080_169,
-      ),
-      defaultScreenShareCaptureOptions: const ScreenShareCaptureOptions(
-        useiOSBroadcastExtension: true,
-        captureScreenAudio: true,
-        params: VideoParametersPresets.screenShareH1080FPS30,
-      ),
+      defaultAudioCaptureOptions: baseRoomOptions.defaultAudioCaptureOptions,
+      defaultCameraCaptureOptions: baseRoomOptions.defaultCameraCaptureOptions,
+      defaultScreenShareCaptureOptions:
+          baseRoomOptions.defaultScreenShareCaptureOptions,
     );
     final Room room = Room(roomOptions: roomOptions);
     final String? resolvedGuildId =
@@ -1041,7 +1059,10 @@ class VoiceSession extends _$VoiceSession {
     _togglingVideo = true;
     try {
       try {
-        await lp.setCameraEnabled(true);
+        await lp.setCameraEnabled(
+          true,
+          cameraCaptureOptions: _cameraCaptureOptions(),
+        );
       } on Object catch (e) {
         talker.error('[Voice] setCameraEnabled on connect: $e');
         return;
@@ -1278,7 +1299,10 @@ class VoiceSession extends _$VoiceSession {
     _togglingVideo = true;
     try {
       try {
-        await lp.setCameraEnabled(nextVideo);
+        await lp.setCameraEnabled(
+          nextVideo,
+          cameraCaptureOptions: _cameraCaptureOptions(),
+        );
       } on Object catch (e) {
         talker.error('[Voice] setCameraEnabled: $e');
         return;
@@ -1298,6 +1322,26 @@ class VoiceSession extends _$VoiceSession {
     } finally {
       _togglingVideo = false;
     }
+  }
+
+  Future<void> flipCamera() async {
+    if (!isMobileVoiceCameraPlatform()) {
+      return;
+    }
+    final VoiceSessionState s = state;
+    if (!s.isInVoice || s.channelId == null || !s.isConnected) {
+      return;
+    }
+    final VoiceState? vs = _selfConnectionVoiceState();
+    if (!(vs?.selfVideo ?? false)) {
+      return;
+    }
+    if (_togglingVideo) {
+      return;
+    }
+    final VoiceSettingsState settings = ref.read(voiceSettingsProvider);
+    final VoiceCameraFacing nextFacing = settings.cameraFacing.switched();
+    await ref.read(voiceSettingsProvider.notifier).setCameraFacing(nextFacing);
   }
 
   Future<void> toggleSelfStream({
@@ -1725,9 +1769,63 @@ class VoiceSession extends _$VoiceSession {
       _pendingRingSilently = false;
     }
     await _reconcileRemoteAudioForSelfConnection(reason: 'room_connected');
+    await ref
+        .read(voiceSettingsApplicatorProvider)
+        .applySpeakerOutput(settings: ref.read(voiceSettingsProvider));
     unawaited(
       _ensureLocalMicrophone(reason: 'room_connected', attempt: attempt),
     );
+  }
+
+  Future<void> _onVoiceSettingsChanged(
+    VoiceSettingsState? previous,
+    VoiceSettingsState next,
+  ) async {
+    final VoiceSettingsApplicator applicator = ref.read(
+      voiceSettingsApplicatorProvider,
+    );
+    await applicator.applySpeakerOutput(settings: next);
+    final Room? room = state.liveKitRoom;
+    if (room == null || !state.isConnected) {
+      return;
+    }
+    final bool audioChanged =
+        previous == null ||
+        previous.inputDeviceId != next.inputDeviceId ||
+        previous.voiceProcessingMode != next.voiceProcessingMode ||
+        previous.noiseSuppressionTier != next.noiseSuppressionTier ||
+        previous.echoCancellation != next.echoCancellation ||
+        previous.noiseSuppression != next.noiseSuppression ||
+        previous.autoGainControl != next.autoGainControl;
+    final bool cameraChanged =
+        previous == null ||
+        previous.videoDeviceId != next.videoDeviceId ||
+        previous.cameraFacing != next.cameraFacing ||
+        previous.cameraResolution != next.cameraResolution;
+    if (audioChanged) {
+      final VoiceState? vs = _selfConnectionVoiceState();
+      final bool micEnabled =
+          !(vs?.selfMute ?? false) && !(vs?.selfDeaf ?? false);
+      await applicator.refreshMicrophone(
+        room: room,
+        settings: next,
+        microphoneEnabled: micEnabled,
+      );
+    }
+    if (cameraChanged) {
+      final VoiceState? vs = _selfConnectionVoiceState();
+      await applicator.refreshCamera(
+        room: room,
+        settings: next,
+        cameraEnabled: vs?.selfVideo ?? false,
+      );
+    }
+  }
+
+  CameraCaptureOptions _cameraCaptureOptions() {
+    return ref
+        .read(voiceSettingsApplicatorProvider)
+        .buildCameraCaptureOptions(ref.read(voiceSettingsProvider));
   }
 
   Future<void> _subscribeRemotePublicationIfNeeded(

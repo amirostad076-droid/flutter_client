@@ -25,6 +25,7 @@ import 'package:fluxer_app/features/settings/presentation/widgets/settings_sideb
 import 'package:fluxer_app/features/settings/presentation/widgets/user_accessibility.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_advanced_settings.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_appearance.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/user_audio_and_video.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_authorized_apps.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_blocked_users.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_connections.dart';
@@ -567,8 +568,11 @@ Widget _buildUserSettingsSectionContent({
           : UserLanguageAndTime(scrollController: scrollController);
     // case UserSettingsSection.fluxerPlutonium:
     // case UserSettingsSection.giftsAndCodes:
-    case UserSettingsSection.expressionPacks:
     case UserSettingsSection.audioAndVideo:
+      return scrollController == null
+          ? const UserAudioAndVideo()
+          : UserAudioAndVideo(scrollController: scrollController);
+    case UserSettingsSection.expressionPacks:
     case UserSettingsSection.keybinds:
     case UserSettingsSection.soundsAndAlerts:
     case UserSettingsSection.applications:

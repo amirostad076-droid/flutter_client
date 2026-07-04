@@ -33,6 +33,7 @@ class VoiceParticipantMediaTile extends StatelessWidget {
     required this.authToken,
     this.isFilmstrip = false,
     this.user,
+    this.mirrorCamera = false,
     super.key,
   });
 
@@ -49,6 +50,7 @@ class VoiceParticipantMediaTile extends StatelessWidget {
   final String? streamPreviewUrl;
   final String? authToken;
   final database.User? user;
+  final bool mirrorCamera;
 
   @override
   Widget build(BuildContext context) {
@@ -117,14 +119,23 @@ class VoiceParticipantMediaTile extends StatelessWidget {
               : null;
         }
         if (track != null) {
+          final bool isOwnCameraTile =
+              tileSource == VoiceParticipantTileSource.camera &&
+              currentUserId != null &&
+              userId == currentUserId;
+          Widget videoChild = VideoTrackRenderer(track);
+          if (mirrorCamera && isOwnCameraTile) {
+            videoChild = Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.identity()..scale(-1.0, 1.0, 1.0),
+              child: videoChild,
+            );
+          }
           final Widget videoWidget = ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: ColoredBox(
               color: backgroundColor,
-              child: AspectRatio(
-                aspectRatio: _kAreaAspect,
-                child: VideoTrackRenderer(track),
-              ),
+              child: AspectRatio(aspectRatio: _kAreaAspect, child: videoChild),
             ),
           );
           if (isScreenShareTile && !isActiveScreenShare) {

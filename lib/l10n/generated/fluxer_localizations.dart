@@ -7099,6 +7099,12 @@ abstract class FluxerLocalizations {
   /// **'Video'**
   String get voiceControlVideo;
 
+  /// Tooltip: switch between front and back camera while video is on.
+  ///
+  /// In en, this message translates to:
+  /// **'Flip camera'**
+  String get voiceControlFlipCamera;
+
   /// Tooltip: share screen in the voice call control bar (when supported).
   ///
   /// In en, this message translates to:
@@ -8876,6 +8882,300 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Audio & Video'**
   String get userSettingsNavAudioAndVideo;
+
+  /// Settings section title for audio settings in the voice and video tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio'**
+  String get audioAndVideoAudioSectionTitle;
+
+  /// Settings section description for audio settings in the voice and video tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure your microphone, speakers, and voice processing.'**
+  String get audioAndVideoAudioSectionDescription;
+
+  /// Settings section title for video settings in the voice and video tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get audioAndVideoVideoSectionTitle;
+
+  /// Settings section description for video settings in the voice and video tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure your camera and screen sharing quality.'**
+  String get audioAndVideoVideoSectionDescription;
+
+  /// Settings section title for in-call behavior prompts.
+  ///
+  /// In en, this message translates to:
+  /// **'In-call behavior'**
+  String get audioAndVideoInCallBehaviorSectionTitle;
+
+  /// Settings section description for in-call behavior prompts.
+  ///
+  /// In en, this message translates to:
+  /// **'Control confirmation prompts during voice and video calls.'**
+  String get audioAndVideoInCallBehaviorSectionDescription;
+
+  /// Label for microphone input device selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Input device'**
+  String get audioAndVideoInputDeviceLabel;
+
+  /// Label for speaker output device selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Output device'**
+  String get audioAndVideoOutputDeviceLabel;
+
+  /// Label for the system default audio or video device.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get audioAndVideoDefaultDeviceLabel;
+
+  /// Switch label to route voice call audio through the device speaker.
+  ///
+  /// In en, this message translates to:
+  /// **'Use speaker'**
+  String get audioAndVideoUseSpeakerLabel;
+
+  /// Description for the speaker output toggle on mobile.
+  ///
+  /// In en, this message translates to:
+  /// **'When off, audio plays through the earpiece or connected headphones.'**
+  String get audioAndVideoUseSpeakerDescription;
+
+  /// Label for microphone input volume slider.
+  ///
+  /// In en, this message translates to:
+  /// **'Input volume'**
+  String get audioAndVideoInputVolumeLabel;
+
+  /// Label for speaker output volume slider.
+  ///
+  /// In en, this message translates to:
+  /// **'Output volume'**
+  String get audioAndVideoOutputVolumeLabel;
+
+  /// Subsection title for voice processing profile selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice processing'**
+  String get audioAndVideoVoiceProcessingSectionTitle;
+
+  /// Voice processing profile optimized for speech.
+  ///
+  /// In en, this message translates to:
+  /// **'Focused voice'**
+  String get audioAndVideoFocusedVoiceLabel;
+
+  /// Description for the focused voice processing profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended. Cleans up your mic for clear speech.'**
+  String get audioAndVideoFocusedVoiceDescription;
+
+  /// Voice processing profile that sends unprocessed audio.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct input'**
+  String get audioAndVideoDirectInputLabel;
+
+  /// Description for the direct input voice processing profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Sends your audio untouched. Best if you\'re using external audio software.'**
+  String get audioAndVideoDirectInputDescription;
+
+  /// Voice processing profile with manual controls.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get audioAndVideoCustomProfileLabel;
+
+  /// Description for the custom voice processing profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust each setting yourself: noise suppression, echo cancellation, and gain.'**
+  String get audioAndVideoCustomProfileDescription;
+
+  /// Subsection title for noise suppression tier selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Noise suppression'**
+  String get audioAndVideoNoiseSuppressionSectionTitle;
+
+  /// Enhanced noise suppression option using AI filtering.
+  ///
+  /// In en, this message translates to:
+  /// **'Enhanced'**
+  String get audioAndVideoNoiseSuppressionEnhancedLabel;
+
+  /// Standard browser or platform noise suppression option.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get audioAndVideoNoiseSuppressionStandardLabel;
+
+  /// No noise suppression option.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get audioAndVideoNoiseSuppressionNoneLabel;
+
+  /// Toggle label for echo cancellation.
+  ///
+  /// In en, this message translates to:
+  /// **'Echo cancellation'**
+  String get audioAndVideoEchoCancellationLabel;
+
+  /// Toggle label for automatic gain control.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic gain control'**
+  String get audioAndVideoAutomaticGainControlLabel;
+
+  /// Description for automatic gain control toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Evens out your mic volume. Off when enhanced suppression is on.'**
+  String get audioAndVideoAutomaticGainControlDescription;
+
+  /// Subsection title for microphone test controls.
+  ///
+  /// In en, this message translates to:
+  /// **'Mic test'**
+  String get audioAndVideoMicTestSectionTitle;
+
+  /// Subsection description for microphone test controls.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen to how you sound with your current settings.'**
+  String get audioAndVideoMicTestSectionDescription;
+
+  /// Button label to start the microphone test.
+  ///
+  /// In en, this message translates to:
+  /// **'Start mic test'**
+  String get audioAndVideoMicTestStartLabel;
+
+  /// Button label to stop the microphone test.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop mic test'**
+  String get audioAndVideoMicTestStopLabel;
+
+  /// Shown when microphone permission is required for the mic test.
+  ///
+  /// In en, this message translates to:
+  /// **'{productName} needs microphone access to test your input.'**
+  String audioAndVideoMicTestPermissionRequired(String productName);
+
+  /// Label for camera device selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get audioAndVideoCameraLabel;
+
+  /// Switch label for flipping the local camera preview horizontally.
+  ///
+  /// In en, this message translates to:
+  /// **'Mirror camera'**
+  String get audioAndVideoMirrorCameraLabel;
+
+  /// Subsection title for camera resolution selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera quality'**
+  String get audioAndVideoCameraQualitySectionTitle;
+
+  /// Camera quality option for 480p resolution.
+  ///
+  /// In en, this message translates to:
+  /// **'480p'**
+  String get audioAndVideoCameraQuality480pLabel;
+
+  /// Camera quality option for 720p resolution.
+  ///
+  /// In en, this message translates to:
+  /// **'720p'**
+  String get audioAndVideoCameraQuality720pLabel;
+
+  /// Camera quality option for 1080p resolution.
+  ///
+  /// In en, this message translates to:
+  /// **'1080p'**
+  String get audioAndVideoCameraQuality1080pLabel;
+
+  /// Subsection title for screen share resolution selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen share quality'**
+  String get audioAndVideoScreenShareQualitySectionTitle;
+
+  /// Subsection title for screen share frame rate selection.
+  ///
+  /// In en, this message translates to:
+  /// **'Frame rate'**
+  String get audioAndVideoFrameRateSectionTitle;
+
+  /// Screen share frame rate option for 15 FPS.
+  ///
+  /// In en, this message translates to:
+  /// **'15 FPS'**
+  String get audioAndVideoFrameRate15Label;
+
+  /// Screen share frame rate option for 30 FPS.
+  ///
+  /// In en, this message translates to:
+  /// **'30 FPS'**
+  String get audioAndVideoFrameRate30Label;
+
+  /// Screen share frame rate option for 60 FPS.
+  ///
+  /// In en, this message translates to:
+  /// **'60 FPS'**
+  String get audioAndVideoFrameRate60Label;
+
+  /// Note shown when higher video quality options require premium.
+  ///
+  /// In en, this message translates to:
+  /// **'1080p and 60 FPS require {premiumProductName}.'**
+  String audioAndVideoHigherQualityRequiresPremium(String premiumProductName);
+
+  /// Note shown when instance limits block higher screen share quality.
+  ///
+  /// In en, this message translates to:
+  /// **'This instance currently allows screen share up to 720p at 30 FPS.'**
+  String get audioAndVideoInstanceVideoQualityLimit;
+
+  /// Shown when microphone permission is required to enumerate audio input devices.
+  ///
+  /// In en, this message translates to:
+  /// **'{productName} needs microphone access to list your devices.'**
+  String audioAndVideoMicrophonePermissionRequired(String productName);
+
+  /// Shown when camera permission is required to enumerate video devices.
+  ///
+  /// In en, this message translates to:
+  /// **'{productName} needs camera access to list your devices.'**
+  String audioAndVideoCameraPermissionRequired(String productName);
+
+  /// Toggle to skip confirmation when hiding own camera during a call.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t ask when hiding my camera'**
+  String get audioAndVideoSkipHideOwnCameraConfirmLabel;
+
+  /// Toggle to skip confirmation when hiding own screen share during a call.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t ask when hiding my screen share'**
+  String get audioAndVideoSkipHideOwnScreenshareConfirmLabel;
 
   /// User settings navigation item for sounds and alert settings.
   ///

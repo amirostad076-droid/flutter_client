@@ -5304,6 +5304,10 @@
   "@voiceControlVideo": {
     "description": "Tooltip: camera in the voice call control bar (when supported)."
   },
+  "voiceControlFlipCamera": "Flip camera",
+  "@voiceControlFlipCamera": {
+    "description": "Tooltip: switch between front and back camera while video is on."
+  },
   "voiceControlScreenShare": "Screen share",
   "@voiceControlScreenShare": {
     "description": "Tooltip: share screen in the voice call control bar (when supported)."
@@ -6596,6 +6600,226 @@
   "userSettingsNavAudioAndVideo": "Audio & Video",
   "@userSettingsNavAudioAndVideo": {
     "description": "User settings navigation item for audio and video settings."
+  },
+  "audioAndVideoAudioSectionTitle": "Audio",
+  "@audioAndVideoAudioSectionTitle": {
+    "description": "Settings section title for audio settings in the voice and video tab."
+  },
+  "audioAndVideoAudioSectionDescription": "Configure your microphone, speakers, and voice processing.",
+  "@audioAndVideoAudioSectionDescription": {
+    "description": "Settings section description for audio settings in the voice and video tab."
+  },
+  "audioAndVideoVideoSectionTitle": "Video",
+  "@audioAndVideoVideoSectionTitle": {
+    "description": "Settings section title for video settings in the voice and video tab."
+  },
+  "audioAndVideoVideoSectionDescription": "Configure your camera and screen sharing quality.",
+  "@audioAndVideoVideoSectionDescription": {
+    "description": "Settings section description for video settings in the voice and video tab."
+  },
+  "audioAndVideoInCallBehaviorSectionTitle": "In-call behavior",
+  "@audioAndVideoInCallBehaviorSectionTitle": {
+    "description": "Settings section title for in-call behavior prompts."
+  },
+  "audioAndVideoInCallBehaviorSectionDescription": "Control confirmation prompts during voice and video calls.",
+  "@audioAndVideoInCallBehaviorSectionDescription": {
+    "description": "Settings section description for in-call behavior prompts."
+  },
+  "audioAndVideoInputDeviceLabel": "Input device",
+  "@audioAndVideoInputDeviceLabel": {
+    "description": "Label for microphone input device selection."
+  },
+  "audioAndVideoOutputDeviceLabel": "Output device",
+  "@audioAndVideoOutputDeviceLabel": {
+    "description": "Label for speaker output device selection."
+  },
+  "audioAndVideoDefaultDeviceLabel": "Default",
+  "@audioAndVideoDefaultDeviceLabel": {
+    "description": "Label for the system default audio or video device."
+  },
+  "audioAndVideoUseSpeakerLabel": "Use speaker",
+  "@audioAndVideoUseSpeakerLabel": {
+    "description": "Switch label to route voice call audio through the device speaker."
+  },
+  "audioAndVideoUseSpeakerDescription": "When off, audio plays through the earpiece or connected headphones.",
+  "@audioAndVideoUseSpeakerDescription": {
+    "description": "Description for the speaker output toggle on mobile."
+  },
+  "audioAndVideoInputVolumeLabel": "Input volume",
+  "@audioAndVideoInputVolumeLabel": {
+    "description": "Label for microphone input volume slider."
+  },
+  "audioAndVideoOutputVolumeLabel": "Output volume",
+  "@audioAndVideoOutputVolumeLabel": {
+    "description": "Label for speaker output volume slider."
+  },
+  "audioAndVideoVoiceProcessingSectionTitle": "Voice processing",
+  "@audioAndVideoVoiceProcessingSectionTitle": {
+    "description": "Subsection title for voice processing profile selection."
+  },
+  "audioAndVideoFocusedVoiceLabel": "Focused voice",
+  "@audioAndVideoFocusedVoiceLabel": {
+    "description": "Voice processing profile optimized for speech."
+  },
+  "audioAndVideoFocusedVoiceDescription": "Recommended. Cleans up your mic for clear speech.",
+  "@audioAndVideoFocusedVoiceDescription": {
+    "description": "Description for the focused voice processing profile."
+  },
+  "audioAndVideoDirectInputLabel": "Direct input",
+  "@audioAndVideoDirectInputLabel": {
+    "description": "Voice processing profile that sends unprocessed audio."
+  },
+  "audioAndVideoDirectInputDescription": "Sends your audio untouched. Best if you're using external audio software.",
+  "@audioAndVideoDirectInputDescription": {
+    "description": "Description for the direct input voice processing profile."
+  },
+  "audioAndVideoCustomProfileLabel": "Custom",
+  "@audioAndVideoCustomProfileLabel": {
+    "description": "Voice processing profile with manual controls."
+  },
+  "audioAndVideoCustomProfileDescription": "Adjust each setting yourself: noise suppression, echo cancellation, and gain.",
+  "@audioAndVideoCustomProfileDescription": {
+    "description": "Description for the custom voice processing profile."
+  },
+  "audioAndVideoNoiseSuppressionSectionTitle": "Noise suppression",
+  "@audioAndVideoNoiseSuppressionSectionTitle": {
+    "description": "Subsection title for noise suppression tier selection."
+  },
+  "audioAndVideoNoiseSuppressionEnhancedLabel": "Enhanced",
+  "@audioAndVideoNoiseSuppressionEnhancedLabel": {
+    "description": "Enhanced noise suppression option using AI filtering."
+  },
+  "audioAndVideoNoiseSuppressionStandardLabel": "Standard",
+  "@audioAndVideoNoiseSuppressionStandardLabel": {
+    "description": "Standard browser or platform noise suppression option."
+  },
+  "audioAndVideoNoiseSuppressionNoneLabel": "None",
+  "@audioAndVideoNoiseSuppressionNoneLabel": {
+    "description": "No noise suppression option."
+  },
+  "audioAndVideoEchoCancellationLabel": "Echo cancellation",
+  "@audioAndVideoEchoCancellationLabel": {
+    "description": "Toggle label for echo cancellation."
+  },
+  "audioAndVideoAutomaticGainControlLabel": "Automatic gain control",
+  "@audioAndVideoAutomaticGainControlLabel": {
+    "description": "Toggle label for automatic gain control."
+  },
+  "audioAndVideoAutomaticGainControlDescription": "Evens out your mic volume. Off when enhanced suppression is on.",
+  "@audioAndVideoAutomaticGainControlDescription": {
+    "description": "Description for automatic gain control toggle."
+  },
+  "audioAndVideoMicTestSectionTitle": "Mic test",
+  "@audioAndVideoMicTestSectionTitle": {
+    "description": "Subsection title for microphone test controls."
+  },
+  "audioAndVideoMicTestSectionDescription": "Listen to how you sound with your current settings.",
+  "@audioAndVideoMicTestSectionDescription": {
+    "description": "Subsection description for microphone test controls."
+  },
+  "audioAndVideoMicTestStartLabel": "Start mic test",
+  "@audioAndVideoMicTestStartLabel": {
+    "description": "Button label to start the microphone test."
+  },
+  "audioAndVideoMicTestStopLabel": "Stop mic test",
+  "@audioAndVideoMicTestStopLabel": {
+    "description": "Button label to stop the microphone test."
+  },
+  "audioAndVideoMicTestPermissionRequired": "{productName} needs microphone access to test your input.",
+  "@audioAndVideoMicTestPermissionRequired": {
+    "description": "Shown when microphone permission is required for the mic test.",
+    "placeholders": {
+      "productName": {
+        "type": "String",
+        "example": "Fluxer"
+      }
+    }
+  },
+  "audioAndVideoCameraLabel": "Camera",
+  "@audioAndVideoCameraLabel": {
+    "description": "Label for camera device selection."
+  },
+  "audioAndVideoMirrorCameraLabel": "Mirror camera",
+  "@audioAndVideoMirrorCameraLabel": {
+    "description": "Switch label for flipping the local camera preview horizontally."
+  },
+  "audioAndVideoCameraQualitySectionTitle": "Camera quality",
+  "@audioAndVideoCameraQualitySectionTitle": {
+    "description": "Subsection title for camera resolution selection."
+  },
+  "audioAndVideoCameraQuality480pLabel": "480p",
+  "@audioAndVideoCameraQuality480pLabel": {
+    "description": "Camera quality option for 480p resolution."
+  },
+  "audioAndVideoCameraQuality720pLabel": "720p",
+  "@audioAndVideoCameraQuality720pLabel": {
+    "description": "Camera quality option for 720p resolution."
+  },
+  "audioAndVideoCameraQuality1080pLabel": "1080p",
+  "@audioAndVideoCameraQuality1080pLabel": {
+    "description": "Camera quality option for 1080p resolution."
+  },
+  "audioAndVideoScreenShareQualitySectionTitle": "Screen share quality",
+  "@audioAndVideoScreenShareQualitySectionTitle": {
+    "description": "Subsection title for screen share resolution selection."
+  },
+  "audioAndVideoFrameRateSectionTitle": "Frame rate",
+  "@audioAndVideoFrameRateSectionTitle": {
+    "description": "Subsection title for screen share frame rate selection."
+  },
+  "audioAndVideoFrameRate15Label": "15 FPS",
+  "@audioAndVideoFrameRate15Label": {
+    "description": "Screen share frame rate option for 15 FPS."
+  },
+  "audioAndVideoFrameRate30Label": "30 FPS",
+  "@audioAndVideoFrameRate30Label": {
+    "description": "Screen share frame rate option for 30 FPS."
+  },
+  "audioAndVideoFrameRate60Label": "60 FPS",
+  "@audioAndVideoFrameRate60Label": {
+    "description": "Screen share frame rate option for 60 FPS."
+  },
+  "audioAndVideoHigherQualityRequiresPremium": "1080p and 60 FPS require {premiumProductName}.",
+  "@audioAndVideoHigherQualityRequiresPremium": {
+    "description": "Note shown when higher video quality options require premium.",
+    "placeholders": {
+      "premiumProductName": {
+        "type": "String",
+        "example": "Plutonium"
+      }
+    }
+  },
+  "audioAndVideoInstanceVideoQualityLimit": "This instance currently allows screen share up to 720p at 30 FPS.",
+  "@audioAndVideoInstanceVideoQualityLimit": {
+    "description": "Note shown when instance limits block higher screen share quality."
+  },
+  "audioAndVideoMicrophonePermissionRequired": "{productName} needs microphone access to list your devices.",
+  "@audioAndVideoMicrophonePermissionRequired": {
+    "description": "Shown when microphone permission is required to enumerate audio input devices.",
+    "placeholders": {
+      "productName": {
+        "type": "String",
+        "example": "Fluxer"
+      }
+    }
+  },
+  "audioAndVideoCameraPermissionRequired": "{productName} needs camera access to list your devices.",
+  "@audioAndVideoCameraPermissionRequired": {
+    "description": "Shown when camera permission is required to enumerate video devices.",
+    "placeholders": {
+      "productName": {
+        "type": "String",
+        "example": "Fluxer"
+      }
+    }
+  },
+  "audioAndVideoSkipHideOwnCameraConfirmLabel": "Don't ask when hiding my camera",
+  "@audioAndVideoSkipHideOwnCameraConfirmLabel": {
+    "description": "Toggle to skip confirmation when hiding own camera during a call."
+  },
+  "audioAndVideoSkipHideOwnScreenshareConfirmLabel": "Don't ask when hiding my screen share",
+  "@audioAndVideoSkipHideOwnScreenshareConfirmLabel": {
+    "description": "Toggle to skip confirmation when hiding own screen share during a call."
   },
   "userSettingsNavSoundsAndAlerts": "Sounds & Alerts",
   "@userSettingsNavSoundsAndAlerts": {
