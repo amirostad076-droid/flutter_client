@@ -1342,6 +1342,16 @@ class VoiceSession extends _$VoiceSession {
     final VoiceSettingsState settings = ref.read(voiceSettingsProvider);
     final VoiceCameraFacing nextFacing = settings.cameraFacing.switched();
     await ref.read(voiceSettingsProvider.notifier).setCameraFacing(nextFacing);
+    final Room? room = s.liveKitRoom;
+    if (room != null) {
+      await ref
+          .read(voiceSettingsApplicatorProvider)
+          .refreshCamera(
+            room: room,
+            settings: ref.read(voiceSettingsProvider),
+            cameraEnabled: true,
+          );
+    }
   }
 
   Future<void> toggleSelfStream({

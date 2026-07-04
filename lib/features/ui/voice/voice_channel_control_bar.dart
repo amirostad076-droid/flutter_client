@@ -16,7 +16,6 @@ import 'package:fluxer_app/features/voice/providers/screen_share_capability_prov
 import 'package:fluxer_app/features/voice/providers/voice_channel_text_chat_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
-import 'package:fluxer_app/features/voice/utils/voice_camera_platform.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -62,9 +61,6 @@ class VoiceChannelControlBar extends ConsumerWidget {
     final bool canScreenShare = ref
         .watch(screenShareCapabilityProvider)
         .maybeWhen(data: (bool value) => value, orElse: () => false);
-    final bool showFlipCamera =
-        isMobileVoiceCameraPlatform() && isVideoOn && isConnected;
-
     return SafeArea(
       top: false,
       child: Padding(
@@ -153,20 +149,6 @@ class VoiceChannelControlBar extends ConsumerWidget {
                             }
                           : null,
                     ),
-                    if (showFlipCamera)
-                      _VoiceControlCircle(
-                        size: _kControlSize,
-                        color: context.colors.backgroundTertiary,
-                        tooltip: l10n.voiceControlFlipCamera,
-                        icon: PhosphorIconsFill.cameraRotate,
-                        onPressed: () {
-                          unawaited(
-                            ref
-                                .read(voiceSessionProvider.notifier)
-                                .flipCamera(),
-                          );
-                        },
-                      ),
                     if (canScreenShare)
                       _VoiceControlCircle(
                         size: _kControlSize,

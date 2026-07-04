@@ -2,6 +2,7 @@ import 'package:fluxer_app/features/voice/domain/voice_settings_state.dart';
 import 'package:fluxer_app/features/voice/providers/voice_noise_filter_provider.dart';
 import 'package:fluxer_app/features/voice/utils/camera_resolution_presets.dart';
 import 'package:fluxer_app/features/voice/utils/screen_share_presets.dart';
+import 'package:fluxer_app/features/voice/utils/voice_camera_platform.dart';
 import 'package:fluxer_app/features/voice/utils/voice_processing_profile.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_noise_filter/livekit_noise_filter.dart';
@@ -117,11 +118,29 @@ class VoiceSettingsApplicator {
     required bool cameraEnabled,
   }) async {
     final LocalParticipant? participant = room.localParticipant;
-    if (participant == null || !cameraEnabled) {
+    if (participant == null) {
       return;
     }
     final CameraCaptureOptions options = buildCameraCaptureOptions(settings);
-    await participant.setCameraEnabled(false, cameraCaptureOptions: options);
+    if (!cameraEnabled) {
+      await participant.setCameraEnabled(false, cameraCaptureOptions: options);
+      return;
+    }
+    final LocalTrackPublication? publication = participant
+        .getTrackPublicationBySource(TrackSource.camera);
+    final LocalVideoTrack? track = publication?.track is LocalVideoTrack
+        ? publication!.track! as LocalVideoTrack
+        : null;
+    if (track != null) {
+      if (isMobileVoiceCameraPlatform()) {
+        await track.setCameraPosition(
+          liveKitCameraPosition(settings.cameraFacing),
+        );
+        return;
+      }
+      await track.restartTrack(options);
+      return;
+    }
     await participant.setCameraEnabled(true, cameraCaptureOptions: options);
   }
 

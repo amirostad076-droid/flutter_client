@@ -37,6 +37,7 @@ import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/utils/call_actions.dart';
+import 'package:fluxer_app/features/voice/utils/voice_camera_platform.dart';
 import 'package:fluxer_app/features/voice/utils/voice_e2ee_display.dart';
 import 'package:fluxer_app/features/voice/voice_session_errors.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -293,6 +294,12 @@ class ChannelHeader extends ConsumerWidget {
               iconSize: 20,
               onPressed: () => _openSearch(context, channel: channel),
             ),
+          if (channel != null &&
+              channel.type == ChannelType.guildVoice &&
+              isMobileVoiceCameraPlatform()) ...<Widget>[
+            const SizedBox(width: 8),
+            const FlipCameraButton(),
+          ],
         ],
       ),
     );
