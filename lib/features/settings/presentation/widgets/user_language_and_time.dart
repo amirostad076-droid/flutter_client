@@ -100,6 +100,7 @@ class UserLanguageAndTime extends ConsumerWidget {
         children: [
           FluxerSettingsSection(
             title: l10n.languageAndTimeTimeFormatSectionTitle,
+            description: l10n.languageAndTimeTimeFormatSectionDescription,
             isFirst: true,
             children: [
               Semantics(

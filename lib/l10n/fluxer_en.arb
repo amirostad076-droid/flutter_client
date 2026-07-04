@@ -6609,6 +6609,10 @@
   "@languageAndTimeTimeFormatSectionTitle": {
     "description": "Settings section title for time format preference."
   },
+  "languageAndTimeTimeFormatSectionDescription": "Choose how times are displayed throughout the app",
+  "@languageAndTimeTimeFormatSectionDescription": {
+    "description": "Settings section description for time format preference."
+  },
   "languageAndTimeTimeFormatSelectionLabel": "Time format selection",
   "@languageAndTimeTimeFormatSelectionLabel": {
     "description": "Accessibility label for the time format radio group."

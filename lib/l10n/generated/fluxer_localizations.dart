@@ -8895,6 +8895,12 @@ abstract class FluxerLocalizations {
   /// **'Time format'**
   String get languageAndTimeTimeFormatSectionTitle;
 
+  /// Settings section description for time format preference.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how times are displayed throughout the app'**
+  String get languageAndTimeTimeFormatSectionDescription;
+
   /// Accessibility label for the time format radio group.
   ///
   /// In en, this message translates to:

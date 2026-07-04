@@ -103,6 +103,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Time format'), findsOneWidget);
+    expect(
+      find.text('Choose how times are displayed throughout the app'),
+      findsOneWidget,
+    );
     expect(find.text('Auto'), findsOneWidget);
     expect(find.text('12-hour'), findsOneWidget);
     expect(find.text('24-hour'), findsOneWidget);

@@ -5258,6 +5258,10 @@ class FluxerLocalizationsPl extends FluxerLocalizations {
   String get languageAndTimeTimeFormatSectionTitle => 'Time format';
 
   @override
+  String get languageAndTimeTimeFormatSectionDescription =>
+      'Choose how times are displayed throughout the app';
+
+  @override
   String get languageAndTimeTimeFormatSelectionLabel => 'Time format selection';
 
   @override
