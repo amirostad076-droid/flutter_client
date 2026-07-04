@@ -67,7 +67,7 @@ Widget _wrap(Widget child) {
       userSettingsSyncProvider.overrideWith(_NoopUserSettingsSyncService.new),
       userSettingsStatusProvider.overrideWithValue(_settingsResponse()),
       appearancePreferencesProvider.overrideWith(
-        () => _TestAppearancePreferences(),
+        _TestAppearancePreferences.new,
       ),
     ],
   );
@@ -88,8 +88,7 @@ Widget _wrap(Widget child) {
 
 class _TestAppearancePreferences extends AppearancePreferences {
   @override
-  AppearancePreferencesState build() =>
-      const AppearancePreferencesState(useSystemLocaleForTimeFormat: false);
+  AppearancePreferencesState build() => const AppearancePreferencesState();
 
   @override
   Future<void> setUseSystemLocaleForTimeFormat({required bool value}) async {

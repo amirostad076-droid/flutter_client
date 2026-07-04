@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -86,7 +85,7 @@ void main() {
           fluxerDatabaseProvider.overrideWithValue(db),
           guildListViewModelProvider.overrideWith(
             () => _GuildListViewModelWithGuilds(<Guild>[
-              Guild(id: guildId, name: 'Guild A'),
+              const Guild(id: guildId, name: 'Guild A'),
             ]),
           ),
           userSettingsViewModelProvider.overrideWith(
@@ -142,8 +141,8 @@ void main() {
           fluxerDatabaseProvider.overrideWithValue(db),
           guildListViewModelProvider.overrideWith(
             () => _GuildListViewModelWithGuilds(<Guild>[
-              Guild(id: guildA, name: 'Guild A'),
-              Guild(id: guildB, name: 'Guild B'),
+              const Guild(id: guildA, name: 'Guild A'),
+              const Guild(id: guildB, name: 'Guild B'),
             ]),
           ),
           userSettingsViewModelProvider.overrideWith(
@@ -191,7 +190,7 @@ void main() {
           fluxerDatabaseProvider.overrideWithValue(db),
           guildListViewModelProvider.overrideWith(
             () => _GuildListViewModelWithGuilds(<Guild>[
-              Guild(id: guildId, name: 'Guild A'),
+              const Guild(id: guildId, name: 'Guild A'),
             ]),
           ),
           userSettingsViewModelProvider.overrideWith(

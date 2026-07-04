@@ -29,12 +29,10 @@ Widget _wrap(Widget child) {
           noiseFilterSupported: false,
         ),
       ),
-      voiceMediaDevicesProvider.overrideWith(() => _FakeVoiceMediaDevices()),
-      voiceSettingsProvider.overrideWith(() => VoiceSettings()),
-      voicePromptsPreferencesProvider.overrideWith(
-        () => VoicePromptsPreferences(),
-      ),
-      voiceSessionProvider.overrideWith(() => _FakeVoiceSession()),
+      voiceMediaDevicesProvider.overrideWith(_FakeVoiceMediaDevices.new),
+      voiceSettingsProvider.overrideWith(VoiceSettings.new),
+      voicePromptsPreferencesProvider.overrideWith(VoicePromptsPreferences.new),
+      voiceSessionProvider.overrideWith(_FakeVoiceSession.new),
     ],
     child: MaterialApp(
       localizationsDelegates: FluxerLocalizations.localizationsDelegates,

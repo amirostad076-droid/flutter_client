@@ -10,21 +10,21 @@ VideoParameters screenShareVideoParameters({
   final int clampedFrameRate = _clampFrameRate(frameRate);
   return switch (resolution) {
     ScreenshareResolution.high => VideoParameters(
-      dimensions: VideoDimensions(1920, 1080),
+      dimensions: const VideoDimensions(1920, 1080),
       encoding: VideoEncoding(
         maxBitrate: 3 * 1000 * 1000,
         maxFramerate: clampedFrameRate,
       ),
     ),
     ScreenshareResolution.medium => VideoParameters(
-      dimensions: VideoDimensions(1280, 720),
+      dimensions: const VideoDimensions(1280, 720),
       encoding: VideoEncoding(
         maxBitrate: 2 * 1000 * 1000,
         maxFramerate: clampedFrameRate,
       ),
     ),
     ScreenshareResolution.low480p => VideoParameters(
-      dimensions: VideoDimensions(854, 480),
+      dimensions: const VideoDimensions(854, 480),
       encoding: VideoEncoding(
         maxBitrate: 1 * 1000 * 1000,
         maxFramerate: clampedFrameRate,

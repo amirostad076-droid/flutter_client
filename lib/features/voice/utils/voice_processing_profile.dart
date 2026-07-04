@@ -49,7 +49,7 @@ ResolvedVoiceProcessing _resolveCustomProfile(
       tier == NoiseSuppressionTier.enhanced && noiseFilterSupported;
   final bool useStandardNs =
       tier == NoiseSuppressionTier.standard && !useEnhanced;
-  final bool autoGain = useEnhanced ? false : settings.autoGainControl;
+  final bool autoGain = !useEnhanced && settings.autoGainControl;
   return ResolvedVoiceProcessing(
     useNoiseFilter: useEnhanced,
     echoCancellation: settings.echoCancellation,

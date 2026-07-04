@@ -139,11 +139,7 @@ void main() {
         final _MutableVoiceSession session = _MutableVoiceSession();
         await _pumpPage(tester, voiceSession: session);
         session.setSession(
-          const VoiceSessionState(
-            isConnecting: true,
-            guildId: null,
-            channelId: _channelId,
-          ),
+          const VoiceSessionState(isConnecting: true, channelId: _channelId),
         );
         await tester.pump();
 

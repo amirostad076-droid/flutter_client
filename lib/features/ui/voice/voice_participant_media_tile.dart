@@ -127,7 +127,7 @@ class VoiceParticipantMediaTile extends StatelessWidget {
           if (mirrorCamera && isOwnCameraTile) {
             videoChild = Transform(
               alignment: Alignment.center,
-              transform: Matrix4.identity()..scale(-1.0, 1.0, 1.0),
+              transform: Matrix4.identity()..scale(-1.0, 1, 1),
               child: videoChild,
             );
           }

@@ -6,9 +6,7 @@ void main() {
   group('resolveVoiceProcessing', () {
     test('focused voice enables noise filter when supported', () {
       final ResolvedVoiceProcessing result = resolveVoiceProcessing(
-        settings: const VoiceSettingsState(
-          voiceProcessingMode: VoiceProcessingMode.voice,
-        ),
+        settings: const VoiceSettingsState(),
         noiseFilterSupported: true,
       );
       expect(result.useNoiseFilter, isTrue);
@@ -34,9 +32,6 @@ void main() {
       final ResolvedVoiceProcessing result = resolveVoiceProcessing(
         settings: const VoiceSettingsState(
           voiceProcessingMode: VoiceProcessingMode.custom,
-          noiseSuppressionTier: NoiseSuppressionTier.enhanced,
-          echoCancellation: true,
-          autoGainControl: true,
         ),
         noiseFilterSupported: true,
       );

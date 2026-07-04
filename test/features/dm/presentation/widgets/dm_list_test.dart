@@ -12,12 +12,11 @@ import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_markdown.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_markdown.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
-import 'package:fluxer_app/features/dm/domain/dm_list_message_preview.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/dm_list.dart';
 import 'package:fluxer_app/features/dm/providers/dm_list_presence_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
@@ -286,7 +285,6 @@ void main() {
       await tester.pumpWidget(
         _buildTestApp(
           overrides: _buildOverrides(
-            dmMessagePreviewMode: DmMessagePreviewMode.all,
             conversations: [
               DmConversation(
                 id: '100',
@@ -386,7 +384,6 @@ void main() {
       await tester.pumpWidget(
         _buildTestApp(
           overrides: _buildOverrides(
-            dmMessagePreviewMode: DmMessagePreviewMode.all,
             conversations: [
               DmConversation(
                 id: '100',
@@ -414,7 +411,6 @@ void main() {
       await tester.pumpWidget(
         _buildTestApp(
           overrides: _buildOverrides(
-            dmMessagePreviewMode: DmMessagePreviewMode.all,
             conversations: [
               DmConversation(
                 id: '100',
