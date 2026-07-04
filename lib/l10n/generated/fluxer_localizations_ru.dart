@@ -2384,6 +2384,61 @@ class FluxerLocalizationsRu extends FluxerLocalizations {
   String get userProfileAboutMe => 'О себе';
 
   @override
+  String get userProfileLocalTime => 'Local time';
+
+  @override
+  String get userProfileSameTimeAsYou => 'Same time as you';
+
+  @override
+  String userProfileTimeAheadOfYou(String duration) {
+    return '$duration ahead of you';
+  }
+
+  @override
+  String userProfileTimeBehindYou(String duration) {
+    return '$duration behind you';
+  }
+
+  @override
+  String userProfileTimezoneDurationHoursMinutes(int hours, int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: '$hours hours',
+      one: '1 hour',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes minutes',
+      one: '1 minute',
+    );
+    return '$_temp0 $_temp1';
+  }
+
+  @override
+  String userProfileTimezoneDurationHours(int hours) {
+    String _temp0 = intl.Intl.pluralLogic(
+      hours,
+      locale: localeName,
+      other: '$hours hours',
+      one: '1 hour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String userProfileTimezoneDurationMinutes(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get userProfileCopyUsername => 'Копировать имя пользователя';
 
   @override

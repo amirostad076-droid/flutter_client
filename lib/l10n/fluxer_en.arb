@@ -3024,6 +3024,62 @@
   "@userProfileAboutMe": {
     "description": "Header of the bio section in the bio card."
   },
+  "userProfileLocalTime": "Local time",
+  "@userProfileLocalTime": {
+    "description": "Profile section title for a user's local time."
+  },
+  "userProfileSameTimeAsYou": "Same time as you",
+  "@userProfileSameTimeAsYou": {
+    "description": "Profile timezone difference when the target matches the viewer."
+  },
+  "userProfileTimeAheadOfYou": "{duration} ahead of you",
+  "@userProfileTimeAheadOfYou": {
+    "description": "Profile timezone difference when the target is ahead of the viewer.",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "userProfileTimeBehindYou": "{duration} behind you",
+  "@userProfileTimeBehindYou": {
+    "description": "Profile timezone difference when the target is behind the viewer.",
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "userProfileTimezoneDurationHoursMinutes": "{hours, plural, =1{1 hour} other{{hours} hours}} {minutes, plural, =1{1 minute} other{{minutes} minutes}}",
+  "@userProfileTimezoneDurationHoursMinutes": {
+    "description": "Duration phrase in the profile timezone section.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "userProfileTimezoneDurationHours": "{hours, plural, =1{1 hour} other{{hours} hours}}",
+  "@userProfileTimezoneDurationHours": {
+    "description": "Hours-only duration phrase in the profile timezone section.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "userProfileTimezoneDurationMinutes": "{minutes, plural, =1{1 minute} other{{minutes} minutes}}",
+  "@userProfileTimezoneDurationMinutes": {
+    "description": "Minutes-only duration phrase in the profile timezone section.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "userProfileCopyUsername": "Copy Username",
   "@userProfileCopyUsername": {
     "description": "Three-dot menu item: copy username#discriminator to clipboard."

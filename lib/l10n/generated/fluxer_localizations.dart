@@ -4249,6 +4249,48 @@ abstract class FluxerLocalizations {
   /// **'About Me'**
   String get userProfileAboutMe;
 
+  /// Profile section title for a user's local time.
+  ///
+  /// In en, this message translates to:
+  /// **'Local time'**
+  String get userProfileLocalTime;
+
+  /// Profile timezone difference when the target matches the viewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Same time as you'**
+  String get userProfileSameTimeAsYou;
+
+  /// Profile timezone difference when the target is ahead of the viewer.
+  ///
+  /// In en, this message translates to:
+  /// **'{duration} ahead of you'**
+  String userProfileTimeAheadOfYou(String duration);
+
+  /// Profile timezone difference when the target is behind the viewer.
+  ///
+  /// In en, this message translates to:
+  /// **'{duration} behind you'**
+  String userProfileTimeBehindYou(String duration);
+
+  /// Duration phrase in the profile timezone section.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours, plural, =1{1 hour} other{{hours} hours}} {minutes, plural, =1{1 minute} other{{minutes} minutes}}'**
+  String userProfileTimezoneDurationHoursMinutes(int hours, int minutes);
+
+  /// Hours-only duration phrase in the profile timezone section.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours, plural, =1{1 hour} other{{hours} hours}}'**
+  String userProfileTimezoneDurationHours(int hours);
+
+  /// Minutes-only duration phrase in the profile timezone section.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, =1{1 minute} other{{minutes} minutes}}'**
+  String userProfileTimezoneDurationMinutes(int minutes);
+
   /// Three-dot menu item: copy username#discriminator to clipboard.
   ///
   /// In en, this message translates to:
