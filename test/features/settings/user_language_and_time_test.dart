@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -111,4 +113,20 @@ void main() {
     expect(find.text('24-hour'), findsOneWidget);
     expect(find.text('Use system locale for time format'), findsOneWidget);
   });
+
+  testWidgets(
+    'renders language section on mobile',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(_wrap(const UserLanguageAndTime()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Interface language'), findsOneWidget);
+      expect(
+        find.text('Choose the language used throughout the app'),
+        findsOneWidget,
+      );
+      expect(find.text('Open language settings'), findsOneWidget);
+    },
+    skip: !Platform.isIOS && !Platform.isAndroid,
+  );
 }

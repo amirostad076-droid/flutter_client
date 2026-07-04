@@ -5403,6 +5403,16 @@ class FluxerLocalizationsLv extends FluxerLocalizations {
   String get userSettingsNavLanguageAndTime => 'Valoda un laiks';
 
   @override
+  String get languageAndTimeLanguageSectionTitle => 'Interface language';
+
+  @override
+  String get languageAndTimeLanguageSectionDescription =>
+      'Choose the language used throughout the app';
+
+  @override
+  String get languageAndTimeOpenLanguageSettings => 'Open language settings';
+
+  @override
   String get languageAndTimeTimeFormatSectionTitle => 'Time format';
 
   @override

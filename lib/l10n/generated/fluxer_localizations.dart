@@ -9189,6 +9189,24 @@ abstract class FluxerLocalizations {
   /// **'Language & Time'**
   String get userSettingsNavLanguageAndTime;
 
+  /// Settings section title for interface language preference.
+  ///
+  /// In en, this message translates to:
+  /// **'Interface language'**
+  String get languageAndTimeLanguageSectionTitle;
+
+  /// Settings section description for interface language preference.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the language used throughout the app'**
+  String get languageAndTimeLanguageSectionDescription;
+
+  /// Button that opens the system per-app language settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open language settings'**
+  String get languageAndTimeOpenLanguageSettings;
+
   /// Settings section title for time format preference.
   ///
   /// In en, this message translates to:

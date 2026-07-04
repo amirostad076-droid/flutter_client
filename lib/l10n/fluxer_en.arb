@@ -6829,6 +6829,18 @@
   "@userSettingsNavLanguageAndTime": {
     "description": "User settings navigation item for language and time settings."
   },
+  "languageAndTimeLanguageSectionTitle": "Interface language",
+  "@languageAndTimeLanguageSectionTitle": {
+    "description": "Settings section title for interface language preference."
+  },
+  "languageAndTimeLanguageSectionDescription": "Choose the language used throughout the app",
+  "@languageAndTimeLanguageSectionDescription": {
+    "description": "Settings section description for interface language preference."
+  },
+  "languageAndTimeOpenLanguageSettings": "Open language settings",
+  "@languageAndTimeOpenLanguageSettings": {
+    "description": "Button that opens the system per-app language settings."
+  },
   "languageAndTimeTimeFormatSectionTitle": "Time format",
   "@languageAndTimeTimeFormatSectionTitle": {
     "description": "Settings section title for time format preference."
