@@ -13,6 +13,7 @@ import 'package:fluxer_app/core/synced_preferences/fields/guild_folders_synced_f
 import 'package:fluxer_app/core/synced_preferences/fields/member_list_synced_field.dart';
 import 'package:fluxer_app/core/synced_preferences/fields/privacy_synced_field.dart';
 import 'package:fluxer_app/core/synced_preferences/fields/sidebar_synced_field.dart';
+import 'package:fluxer_app/core/synced_preferences/fields/sound_synced_field.dart';
 import 'package:fluxer_app/core/synced_preferences/fields/unread_channels_synced_field.dart';
 import 'package:fluxer_app/core/synced_preferences/fields/voice_prompts_synced_field.dart';
 import 'package:fluxer_app/core/synced_preferences/generated/fluxer/user/preferences/v1/preferences.pb.dart'
@@ -64,6 +65,7 @@ class SyncedPreferencesStore {
     registerAdapter(MemberListSyncedField(_ref));
     registerAdapter(UnreadChannelsSyncedField(_ref));
     registerAdapter(VoicePromptsSyncedField(_ref));
+    registerAdapter(SoundSyncedField(_ref));
     registerAdapter(GuildFoldersSyncedField(_ref));
   }
 
