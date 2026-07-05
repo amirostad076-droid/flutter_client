@@ -121,6 +121,9 @@ class VoiceSettingsState {
   final ScreenshareResolution screenshareResolution;
   final int videoFrameRate;
 
+  bool get shouldMirrorOwnCamera =>
+      mirrorCamera && cameraFacing == VoiceCameraFacing.front;
+
   VoiceSettingsState copyWith({
     String? inputDeviceId,
     String? outputDeviceId,

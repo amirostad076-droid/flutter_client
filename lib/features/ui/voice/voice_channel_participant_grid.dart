@@ -835,7 +835,8 @@ class _VoiceParticipantCard extends ConsumerWidget {
                 isFilmstrip: isFilmstrip,
                 streamPreviewUrl: streamPreviewUrl,
                 authToken: authToken,
-                mirrorCamera: ref.watch(voiceSettingsProvider).mirrorCamera,
+                mirrorCamera:
+                    ref.watch(voiceSettingsProvider).shouldMirrorOwnCamera,
               ),
               if (tileSource == VoiceParticipantTileSource.screenShare &&
                   !isOwnScreenShareTile &&
