@@ -32,6 +32,10 @@ import 'package:fluxer_app/features/chat/presentation/'
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/message_item.dart';
 import 'package:fluxer_app/features/chat/presentation/'
+    'widgets/messages/message_list_body.dart';
+import 'package:fluxer_app/features/chat/presentation/'
+    'widgets/messages/message_list_overlay.dart';
+import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/message_list_pagination.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/message_list_unread_review.dart';
@@ -54,13 +58,11 @@ import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_simple_report_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
-import 'package:fluxer_app/features/settings/providers/use_12_hour_time_format_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
-import 'package:fluxer_app/shared/utils/user_date_formatting.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:scrollview_observer/scrollview_observer.dart';
@@ -1126,28 +1128,16 @@ class _MessageListState extends ConsumerState<MessageList> {
             final double scaleRatio = chatFontSize / 16.0;
             final bool showUnreadBar =
                 !isLoading && messages.isNotEmpty && showUnreadBarEligible;
-            final Widget scaledBody = Stack(
-              fit: StackFit.expand,
-              children: [
-                body,
-                if (showUnreadBar)
-                  Positioned(
-                    top: 8,
-                    left: 12,
-                    right: 12,
-                    child: _buildNewMessagesBar(
-                      context,
-                      count: unreadCount,
-                      isEstimated: unreadSummary.isEstimated,
-                      since: unreadSince,
-                      onJumpToUnread: _onUnreadBarJump,
-                      onMarkRead: _onUnreadBarMarkRead,
-                    ),
-                  ),
-              ],
+            return MessageListOverlay(
+              body: MessageListBody(child: body),
+              showUnreadBar: showUnreadBar,
+              unreadCount: unreadCount,
+              isEstimated: unreadSummary.isEstimated,
+              unreadSince: unreadSince,
+              onJumpToUnread: _onUnreadBarJump,
+              onMarkRead: _onUnreadBarMarkRead,
+              scaleRatio: scaleRatio,
             );
-
-            return _ChatTextScale(scaleRatio: scaleRatio, child: scaledBody);
           },
     );
   }
@@ -1304,90 +1294,6 @@ class _MessageListState extends ConsumerState<MessageList> {
     );
   }
 
-  Widget _buildNewMessagesBar(
-    BuildContext context, {
-    required int count,
-    required bool isEstimated,
-    required DateTime? since,
-    required VoidCallback onJumpToUnread,
-    required VoidCallback onMarkRead,
-  }) {
-    final String displayCount = unreadCountLabel(
-      count,
-      isEstimated: isEstimated,
-    );
-    final String messageLabel = count == 1 && !isEstimated
-        ? '1 new message'
-        : '$displayCount new';
-    final bool use12Hour = ref.watch(use12HourTimeFormatProvider);
-    final String locale = Localizations.localeOf(context).toString();
-    final String sinceLabel = since == null
-        ? ''
-        : ' since ${_formatTime(since, locale: locale, use12Hour: use12Hour)}';
-    return Material(
-      color: context.colors.brandPrimary,
-      elevation: 3,
-      shadowColor: Colors.black.withValues(alpha: 0.22),
-      borderRadius: BorderRadius.circular(8),
-      clipBehavior: Clip.antiAlias,
-      child: Row(
-        children: [
-          Expanded(
-            child: InkWell(
-              onTap: onJumpToUnread,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 9, 8, 9),
-                child: Row(
-                  children: [
-                    PhosphorIcon(
-                      PhosphorIconsRegular.envelopeOpen,
-                      color: context.colors.textOnBrandPrimary,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        '$messageLabel$sinceLabel',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: context.textStyles.smallText.copyWith(
-                          color: context.colors.textOnBrandPrimary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          InkWell(
-            onTap: onMarkRead,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(8, 9, 12, 9),
-              child: Text(
-                'Mark Read',
-                maxLines: 1,
-                style: context.textStyles.smallText.copyWith(
-                  color: context.colors.textOnBrandPrimary,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatTime(
-    DateTime date, {
-    required String locale,
-    required bool use12Hour,
-  }) {
-    return formatUserTime(date.toLocal(), locale, use12Hour: use12Hour);
-  }
-
   Widget _buildDateSeparator(BuildContext context, DateTime date) {
     final DateTime local = date.toLocal();
     final String formatted =
@@ -1493,26 +1399,5 @@ class _MessageListSettingsLayer extends ConsumerWidget {
         channelPermissionBits: channelPermissionBits,
       ),
     ));
-  }
-}
-
-/// Applies the chat font-size text scaler without forcing the heavy message
-/// list build to depend on [MediaQuery]. The captured [child] element is
-/// reused across keyboard-driven rebuilds, so only this wrapper re-resolves.
-class _ChatTextScale extends StatelessWidget {
-  const _ChatTextScale({required this.scaleRatio, required this.child});
-
-  final double scaleRatio;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final MediaQueryData data = MediaQuery.of(context);
-    return MediaQuery(
-      data: data.copyWith(
-        textScaler: TextScaler.linear(data.textScaler.scale(1) * scaleRatio),
-      ),
-      child: child,
-    );
   }
 }

@@ -75,22 +75,37 @@ class NotificationDao extends DatabaseAccessor<FluxerDatabase>
   Future<void> prependMentionRow({
     required String messageId,
     required String channelId,
+  }) => prependMentionRowsBatch(
+    messageIds: <String>[messageId],
+    channelIds: <String>[channelId],
+  );
+
+  Future<void> prependMentionRowsBatch({
+    required List<String> messageIds,
+    required List<String> channelIds,
   }) => transaction(() async {
+    if (messageIds.isEmpty) {
+      return;
+    }
+    assert(messageIds.length == channelIds.length);
+    final int shiftBy = messageIds.length;
     final rows = await getMentionFeedOrdered();
     for (final row in rows.reversed) {
       await (update(
         notificationMentionFeed,
       )..where((t) => t.messageId.equals(row.messageId))).write(
-        NotificationMentionFeedCompanion(ordinal: Value(row.ordinal + 1)),
+        NotificationMentionFeedCompanion(ordinal: Value(row.ordinal + shiftBy)),
       );
     }
-    await into(notificationMentionFeed).insertOnConflictUpdate(
-      NotificationMentionFeedCompanion.insert(
-        messageId: messageId,
-        channelId: channelId,
-        ordinal: 0,
-      ),
-    );
+    for (var i = 0; i < messageIds.length; i++) {
+      await into(notificationMentionFeed).insertOnConflictUpdate(
+        NotificationMentionFeedCompanion.insert(
+          messageId: messageIds[i],
+          channelId: channelIds[i],
+          ordinal: i,
+        ),
+      );
+    }
   });
 
   Future<void> deleteMentionRow(String messageId) => (delete(

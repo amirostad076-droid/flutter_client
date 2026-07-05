@@ -33,7 +33,7 @@ void main() {
   group('alert and subtext widgets', () {
     testWidgets('renders note alert type', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: FluxerMarkdown(
               data: '> [!NOTE]\n> Body text',
@@ -51,7 +51,7 @@ void main() {
     testWidgets('renders subtext with smaller style', (tester) async {
       const TextStyle baseStyle = TextStyle(fontSize: 16);
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: FluxerMarkdown(
               data: '-# smaller text',

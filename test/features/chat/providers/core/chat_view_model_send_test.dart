@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
@@ -15,13 +16,14 @@ import 'package:fluxer_app/features/channels/data/ack_batcher.dart';
 import 'package:fluxer_app/features/channels/providers/ack_batcher_provider.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
-import 'package:fluxer_app/features/chat/providers/messages/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_realtime_provider.dart';
 import 'package:fluxer_app/features/chat/utils/message_send_failure_messages.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
+
+import '../../../../helpers/message_realtime_test_helpers.dart';
 
 String _snowflakeForUtc(DateTime utc) {
   final int internal = (utc.millisecondsSinceEpoch - kSnowflakeEpochMs) << 22;
@@ -72,6 +74,7 @@ Message _msg({
 );
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   Future<(ProviderContainer, _SendAdapter, String)> setUpChannel({
     _SendAdapter? adapter,
   }) async {
@@ -122,7 +125,7 @@ void main() {
     },
   );
 
-  test('gateway echo for an already-delivered message is coalesced', () async {
+  test('gateway echo for an already-delivered message is batched', () async {
     final (container, _, serverMessageId) = await setUpChannel();
     final notifier = container.read(chatViewModelProvider.notifier);
 
@@ -138,7 +141,7 @@ void main() {
     container
         .read(messageRealtimeBusProvider)
         .emit(
-          MessageCreated(
+          testMessageCreated(
             MessageCreateEvent(
               message: MessageResponseSchema.fromJson(
                 _messageJson(
@@ -305,6 +308,8 @@ Future<void> _flushAsync() async {
   for (var i = 0; i < 8; i++) {
     await pumpEventQueue();
   }
+  SchedulerBinding.instance.handleBeginFrame(Duration.zero);
+  SchedulerBinding.instance.handleDrawFrame();
 }
 
 class _SendAdapter implements HttpClientAdapter {

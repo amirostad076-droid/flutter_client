@@ -65,9 +65,9 @@ void fluxerMessageSfxBinding(Ref ref) {
         final bool foreground = ref.read(appUiForegroundProvider);
         final String? activeCh = ref.read(activeChannelIdProvider);
         final MessageNotificationSfxPlayRequest? request =
-            await FluxerMessageNotificationSfxEvaluator.evaluate(
-              database: db,
+            await FluxerMessageNotificationSfxEvaluator.evaluateFromSnapshot(
               message: evt.event.message,
+              snapshot: evt.snapshot,
               currentUserId: uid,
               blockedUserIds: ref.read(blockedUserIdsProvider),
               selfIsDnd: selfDnd,

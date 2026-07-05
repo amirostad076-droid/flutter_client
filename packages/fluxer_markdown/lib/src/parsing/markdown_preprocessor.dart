@@ -106,12 +106,12 @@ String _neutralizeInvalidMaskedLinks(String line) {
 
 String _escapeEmptyInlineFormatting(String text) {
   const Map<String, String> replacements = <String, String>{
-    r'` `': r'\` \`',
-    r'`` ``': r'\`\` \`\`',
-    r'** **': r'\*\* \*\*',
-    r'__ __': r'\_\_ \_\_',
-    r'~~ ~~': r'\~\~ \~\~',
-    r'|| ||': r'\|\| \|\|',
+    '` `': r'\` \`',
+    '`` ``': r'\`\` \`\`',
+    '** **': r'\*\* \*\*',
+    '__ __': r'\_\_ \_\_',
+    '~~ ~~': r'\~\~ \~\~',
+    '|| ||': r'\|\| \|\|',
   };
   var current = text;
   for (final MapEntry<String, String> entry in replacements.entries) {

@@ -31,6 +31,7 @@ import 'package:fluxer_app/features/chat/providers/core/chat_read_ack_gate.dart'
 import 'package:fluxer_app/features/chat/providers/guild/guild_composer_access_provider.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_length_limits_provider.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_realtime_events.dart';
+import 'package:fluxer_app/features/chat/providers/messages/message_realtime_frame_batcher.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_realtime_provider.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_references_provider.dart';
 import 'package:fluxer_app/features/chat/providers/messages/typing_sender.dart';
@@ -210,12 +211,19 @@ class ChatViewModel extends _$ChatViewModel {
       <String, Future<void>>{};
   final Map<String, DateTime> _lastNetworkRefreshByChannel =
       <String, DateTime>{};
+  MessageRealtimeFrameBatcher? _frameBatcher;
 
   @override
   ChatViewState build() {
     final bus = ref.watch(messageRealtimeBusProvider);
     unawaited(_eventsSub?.cancel());
-    _eventsSub = bus.stream.listen(_onRealtimeEvent);
+    _frameBatcher?.dispose();
+    _frameBatcher = MessageRealtimeFrameBatcher(
+      onFlush: _onRealtimeEventsBatch,
+    );
+    _eventsSub = bus.stream.listen((MessageRealtimeEvent event) {
+      _frameBatcher?.onEvent(event);
+    });
     ref
       ..listen<bool>(chatAutoAckAllowedProvider, (previous, next) {
         _syncActiveReadChannel();
@@ -232,6 +240,7 @@ class ChatViewModel extends _$ChatViewModel {
         _readAckRetryTimer?.cancel();
         _draftSaveTimer?.cancel();
         _jumpHighlightTimer?.cancel();
+        _frameBatcher?.dispose();
         unawaited(_eventsSub?.cancel());
       });
     return const ChatViewState(
@@ -250,6 +259,70 @@ class ChatViewModel extends _$ChatViewModel {
       hasMoreNewerMessages: false,
       errorMessage: null,
     );
+  }
+
+  void _onRealtimeEventsBatch(List<MessageRealtimeEvent> events) {
+    if (events.length == 1) {
+      unawaited(_onRealtimeEvent(events.first));
+      return;
+    }
+    for (final MessageRealtimeEvent event in events) {
+      _forwardRealtimeToMessageReferences(event);
+    }
+    unawaited(_applyRealtimeBatch(events));
+  }
+
+  Future<void> _applyRealtimeBatch(List<MessageRealtimeEvent> events) async {
+    List<Message>? workingMessages = state.messages;
+    var droppedOlder = false;
+    var shouldAck = false;
+    var clearSticky = false;
+    for (final MessageRealtimeEvent event in events) {
+      if (event is! MessageCreated) {
+        continue;
+      }
+      final List<Message>? next = await _nextMessagesFor(
+        event,
+        baseMessages: workingMessages,
+      );
+      if (next == null) {
+        continue;
+      }
+      workingMessages = next;
+      if (!state.hasMoreNewerMessages) {
+        final MessageWindowTrim trim = trimMessageWindow(
+          next,
+          keepNewest: true,
+        );
+        workingMessages = trim.messages;
+        droppedOlder = droppedOlder || trim.droppedOlder;
+      }
+      if (!event.snapshot.acknowledgedByGateway) {
+        shouldAck = true;
+      }
+      if (event.event.message.author.id == ref.read(currentUserIdProvider)) {
+        clearSticky = true;
+      }
+    }
+    if (workingMessages == null || identical(workingMessages, state.messages)) {
+      if (clearSticky) {
+        clearStickyUnread();
+      }
+      if (shouldAck) {
+        unawaited(ackCurrentChannel());
+      }
+      return;
+    }
+    state = state.copyWith(
+      messages: workingMessages,
+      hasMoreMessages: droppedOlder || state.hasMoreMessages,
+    );
+    if (clearSticky) {
+      clearStickyUnread();
+    }
+    if (shouldAck) {
+      unawaited(ackCurrentChannel());
+    }
   }
 
   Future<void> _onRealtimeEvent(MessageRealtimeEvent ev) async {
@@ -291,7 +364,9 @@ class ChatViewModel extends _$ChatViewModel {
         if (ev.event.message.author.id == ref.read(currentUserIdProvider)) {
           clearStickyUnread();
         }
-        unawaited(ackCurrentChannel());
+        if (!ev.snapshot.acknowledgedByGateway) {
+          unawaited(ackCurrentChannel());
+        }
       }
     } else if (clearEditing || clearComposerForDelete) {
       state = state.copyWith(
@@ -373,14 +448,20 @@ class ChatViewModel extends _$ChatViewModel {
     };
   }
 
-  Future<List<Message>?> _nextMessagesFor(MessageRealtimeEvent ev) async {
+  Future<List<Message>?> _nextMessagesFor(
+    MessageRealtimeEvent ev, {
+    List<Message>? baseMessages,
+  }) async {
+    final List<Message> messages = baseMessages ?? state.messages;
     switch (ev) {
-      case MessageCreated(:final event):
+      case MessageCreated(:final event, :final snapshot):
         if (event.message.channelId != state.channelId) {
           return null;
         }
-        final msg = _toDomain(event.message);
-        int matchedIndex = state.messages.indexWhere(
+        final Message msg = _toDomain(
+          event.message,
+        ).copyWith(isMentioned: snapshot.mentionsCurrentUser);
+        int matchedIndex = messages.indexWhere(
           (m) =>
               m.clientNonce != null &&
               msg.clientNonce != null &&
@@ -390,27 +471,26 @@ class ChatViewModel extends _$ChatViewModel {
           matchedIndex = _findOptimisticMatchForDelivered(msg);
         }
         if (matchedIndex != -1) {
-          final existing = state.messages[matchedIndex];
+          final Message existing = messages[matchedIndex];
           if (existing.id == msg.id &&
               existing.deliveryState == MessageDeliveryState.sent) {
-            // REST echo already applied this exact message; skip rebuild.
             return null;
           }
-          final updated = List<Message>.from(state.messages);
+          final List<Message> updated = List<Message>.from(messages);
           updated[matchedIndex] = msg.copyWith(
             deliveryState: MessageDeliveryState.sent,
             sendError: null,
           );
           return updated;
         }
-        if (state.messages.any((m) => m.id == msg.id)) {
+        if (messages.any((Message m) => m.id == msg.id)) {
           return null;
         }
         if (state.hasMoreNewerMessages) {
           return null;
         }
         _extendNewer(msg.id);
-        return [...state.messages, msg];
+        return <Message>[...messages, msg];
       case MessageUpdated(:final event):
         if (event.message.channelId != state.channelId) {
           return null;

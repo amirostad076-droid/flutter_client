@@ -16,11 +16,12 @@ import 'package:fluxer_app/features/channels/data/ack_batcher.dart';
 import 'package:fluxer_app/features/channels/providers/ack_batcher_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_auto_ack_allowed_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
-import 'package:fluxer_app/features/chat/providers/messages/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_realtime_provider.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
+
+import '../../../../helpers/message_realtime_test_helpers.dart';
 
 String _snowflakeForUtc(DateTime utc) {
   final int internal = (utc.millisecondsSinceEpoch - kSnowflakeEpochMs) << 22;
@@ -1636,7 +1637,7 @@ void main() {
       container
           .read(messageRealtimeBusProvider)
           .emit(
-            MessageCreated(
+            testMessageCreated(
               MessageCreateEvent(
                 message: MessageResponseSchema.fromJson(
                   _messageJson(
@@ -1821,7 +1822,7 @@ void main() {
         container
             .read(messageRealtimeBusProvider)
             .emit(
-              MessageCreated(
+              testMessageCreated(
                 MessageCreateEvent(
                   message: MessageResponseSchema.fromJson(
                     _messageJson(
@@ -1979,7 +1980,7 @@ void main() {
         container
             .read(messageRealtimeBusProvider)
             .emit(
-              MessageCreated(
+              testMessageCreated(
                 MessageCreateEvent(
                   message: MessageResponseSchema.fromJson(
                     _messageJson(

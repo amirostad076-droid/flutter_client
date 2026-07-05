@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/providers/messages/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/service/message_notification_sfx_gate.dart';
 import 'package:fluxer_app/features/settings/providers/sound_preferences_provider.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
@@ -353,6 +354,40 @@ void main() {
         await _evaluate(db: db, message: message, deduper: deduper),
         isNull,
       );
+    });
+  });
+
+  group('evaluateFromSnapshot', () {
+    test('uses snapshot mention flag without database reads', () async {
+      final MessageResponseSchema message = _message(
+        id: '900000000000000001',
+        channelId: 'channel-1',
+        authorId: 'other',
+        mentionedUserIds: const <String>['me'],
+      );
+      const MessagePersistSnapshot snapshot = MessagePersistSnapshot(
+        mentionsCurrentUser: true,
+        isDm: false,
+        guildStorageId: 'guild-1',
+        acknowledgedByGateway: false,
+        notificationLevel: UserNotificationSettings.onlyMentions,
+      );
+      final MessageNotificationSfxDeduper deduper =
+          MessageNotificationSfxDeduper(capacity: 32);
+      final MessageNotificationSfxPlayRequest? request =
+          await FluxerMessageNotificationSfxEvaluator.evaluateFromSnapshot(
+            message: message,
+            snapshot: snapshot,
+            currentUserId: 'me',
+            blockedUserIds: const <String>{},
+            selfIsDnd: false,
+            deduper: deduper,
+            foreground: true,
+            viewingChannel: false,
+            hasObscuringOverlay: false,
+          );
+      expect(request, isNotNull);
+      expect(request!.clipKind, MessageNotificationSfxClipKind.message);
     });
   });
 

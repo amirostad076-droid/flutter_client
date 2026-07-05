@@ -41,7 +41,6 @@ import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
 import 'package:fluxer_app/features/guilds/data/guild_user_settings_repository.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/presentation/modals/add_guild_modal.dart';
-import 'package:fluxer_app/features/guilds/providers/add_guild_enabled_provider.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_bottom_sheet.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
@@ -54,6 +53,7 @@ import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_menu_data.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_scroll_indicator.dart';
+import 'package:fluxer_app/features/guilds/providers/add_guild_enabled_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_availability_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';

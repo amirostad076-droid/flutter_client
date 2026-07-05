@@ -32,7 +32,7 @@ void listenChatViewModelErrors(WidgetRef ref) {
   );
 }
 
-/// Shared message list, composer, and overlay chrome for channel chat surfaces.
+/// Shared message list, composer, and overlays for channel chat surfaces.
 class ChannelChatPanel extends ConsumerStatefulWidget {
   const ChannelChatPanel({
     required this.displayChannelId,

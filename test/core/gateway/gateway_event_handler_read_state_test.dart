@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/gateway/gateway_event_handler.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
-import 'package:fluxer_app/features/channels/data/read_state_write_coalescer.dart';
+import 'package:fluxer_app/features/channels/data/read_state_write_batcher.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
@@ -1106,15 +1106,15 @@ void main() {
     },
   );
   test(
-    'server ack does not double-count a mention still pending in the coalescer',
+    'server ack does not double-count a mention still pending in the batcher',
     () async {
       final db = FluxerDatabase.forTesting(NativeDatabase.memory());
       addTearDown(db.close);
-      final coalescer = ReadStateWriteCoalescer(
+      final batcher = ReadStateWriteBatcher(
         database: db,
         window: const Duration(hours: 1),
       );
-      addTearDown(coalescer.clearAll);
+      addTearDown(batcher.clearAll);
 
       final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
       final mentionId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
@@ -1143,10 +1143,10 @@ void main() {
       final handler = GatewayEventHandler(
         database: db,
         currentUserId: 'me',
-        readStateWriteCoalescer: coalescer,
+        readStateWriteBatcher: batcher,
       );
 
-      // A new mention lands while unviewed -> the increment is coalesced
+      // A new mention lands while unviewed -> the increment is batched
       // (pending), not yet written to Drift.
       await handler.handle(
         MessageCreateEvent(
@@ -1158,7 +1158,7 @@ void main() {
           ),
         ),
       );
-      expect(coalescer.hasPending('channel-1'), isTrue);
+      expect(batcher.hasPending('channel-1'), isTrue);
 
       // A server ack refreshes the count at the current position. Its mention
       // count (1) already accounts for the still-pending mention.
@@ -1173,8 +1173,8 @@ void main() {
 
       // The ack flushed the pending increment before its absolute write, so a
       // later flush cannot replay it: the count stays the server's 1, not 2.
-      expect(coalescer.hasPending('channel-1'), isFalse);
-      await coalescer.flushAll();
+      expect(batcher.hasPending('channel-1'), isFalse);
+      await batcher.flushAll();
       final readState = await db.readStateDao.getReadState('channel-1');
       expect(readState?.mentionCount, 1);
       expect(readState?.lastMessageId, ackId);

@@ -2,6 +2,7 @@ import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/utils/message_mention_resolver.dart';
 import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/providers/messages/message_realtime_events.dart';
 import 'package:fluxer_dart/export.dart';
 
 Future<bool> executeReadSystemFocusModeEnabled() async => false;
@@ -99,7 +100,105 @@ class FluxerMessageNotificationSfxEvaluator {
     );
   }
 
+  static Future<MessageNotificationSfxPlayRequest?> evaluateFromSnapshot({
+    required MessageResponseSchema message,
+    required MessagePersistSnapshot snapshot,
+    required String currentUserId,
+    required Set<String> blockedUserIds,
+    required bool selfIsDnd,
+    required MessageNotificationSfxDeduper deduper,
+    required bool foreground,
+    required bool viewingChannel,
+    required bool hasObscuringOverlay,
+  }) {
+    return const FluxerMessageNotificationSfxEvaluator().resolveFromSnapshot(
+      message: message,
+      snapshot: snapshot,
+      currentUserId: currentUserId,
+      blockedUserIds: blockedUserIds,
+      selfIsDnd: selfIsDnd,
+      deduper: deduper,
+      foreground: foreground,
+      viewingChannel: viewingChannel,
+      hasObscuringOverlay: hasObscuringOverlay,
+    );
+  }
+
   const FluxerMessageNotificationSfxEvaluator();
+
+  Future<MessageNotificationSfxPlayRequest?> resolveFromSnapshot({
+    required MessageResponseSchema message,
+    required MessagePersistSnapshot snapshot,
+    required String currentUserId,
+    required Set<String> blockedUserIds,
+    required bool selfIsDnd,
+    required MessageNotificationSfxDeduper deduper,
+    required bool foreground,
+    required bool viewingChannel,
+    required bool hasObscuringOverlay,
+  }) async {
+    if (!_passesBasicAuthorChecks(
+      message: message,
+      currentUserId: currentUserId,
+      blockedUserIds: blockedUserIds,
+    )) {
+      return null;
+    }
+    final bool isFocusedViewingChannel =
+        foreground && viewingChannel && !hasObscuringOverlay;
+    if (isFocusedViewingChannel) {
+      if (!deduper.claim(message.id)) {
+        return null;
+      }
+      return MessageNotificationSfxPlayRequest(
+        messageId: message.id,
+        channelId: message.channelId,
+        clipKind: MessageNotificationSfxClipKind.sameChannelMessage,
+      );
+    }
+    if (!deduper.claim(message.id)) {
+      return null;
+    }
+    if (selfIsDnd) {
+      deduper.release(message.id);
+      return null;
+    }
+    if ((message.flags & messageFlagSuppressNotifications) != 0) {
+      deduper.release(message.id);
+      return null;
+    }
+    final UserNotificationSettings? level = snapshot.notificationLevel;
+    if (snapshot.isDm) {
+      if (!shouldNotifyMessageBasedOnSettings(
+        level: level ?? UserNotificationSettings.allMessages,
+        isMentioned: snapshot.mentionsCurrentUser,
+        isPrivateChannel: true,
+        isPrivateChannelMuted: false,
+      )) {
+        deduper.release(message.id);
+        return null;
+      }
+      return MessageNotificationSfxPlayRequest(
+        messageId: message.id,
+        channelId: message.channelId,
+        clipKind: MessageNotificationSfxClipKind.directMessage,
+      );
+    }
+    if (!shouldNotifyMessageBasedOnSettings(
+      level: level ?? UserNotificationSettings.allMessages,
+      isMentioned: snapshot.mentionsCurrentUser,
+      isPrivateChannel: false,
+      isPrivateChannelMuted: false,
+    )) {
+      deduper.release(message.id);
+      return null;
+    }
+    return MessageNotificationSfxPlayRequest(
+      messageId: message.id,
+      channelId: message.channelId,
+      clipKind: MessageNotificationSfxClipKind.message,
+    );
+  }
 
   Future<MessageNotificationSfxPlayRequest?> resolve({
     required FluxerDatabase database,
