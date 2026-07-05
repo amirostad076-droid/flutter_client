@@ -428,6 +428,82 @@ void main() {
     });
   });
 
+  group('GuildSidebar scroll persistence', () {
+    testWidgets('restores channel list scroll after widget recreation', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(390, 220);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final List<Channel> channels = List<Channel>.generate(
+        20,
+        (int index) => _channel('c${index + 1}', 'channel-${index + 1}'),
+      );
+      final Map<String, UnreadState> unread = <String, UnreadState>{
+        for (int index = 1; index <= 20; index++)
+          'c$index': index == 20
+              ? const UnreadState(hasUnread: true, hasUnreadMessages: true)
+              : const UnreadState(),
+      };
+      final List<Override> overrides = _buildOverrides(
+        channelListState: ChannelListState(
+          guild: const Guild(id: _guildId, name: 'Test Guild'),
+          categories: [
+            ChannelCategory(
+              id: 'cat1',
+              name: 'My Category',
+              channels: channels,
+            ),
+          ],
+          selectedChannelId: 'c1',
+        ),
+        selectedChannelId: 'c1',
+        unread: unread,
+      );
+      final ProviderContainer container = ProviderContainer(
+        overrides: overrides,
+      );
+      addTearDown(container.dispose);
+      final colorTheme = buildDarkColorTheme();
+      Future<void> pumpSidebar() async {
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(
+              localizationsDelegates:
+                  FluxerLocalizations.localizationsDelegates,
+              supportedLocales: FluxerLocalizations.supportedLocales,
+              theme: buildFluxerTheme(
+                colorTheme: colorTheme,
+                textTheme: FluxerTextTheme.fromColors(colorTheme),
+                layoutTheme: FluxerLayoutTheme.scaled(),
+              ),
+              home: const Scaffold(body: GuildSidebar()),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      await pumpSidebar();
+      await tester.scrollUntilVisible(
+        find.text('channel-20'),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('channel-20'), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      await pumpSidebar();
+
+      expect(find.text('channel-20'), findsOneWidget);
+    });
+  });
+
   group('GuildSidebar voice session isolation', () {
     testWidgets(
       'keeps text channels visible when voice session is connecting',

@@ -66,62 +66,6 @@ class GuildSidebar extends ConsumerStatefulWidget {
 }
 
 class _GuildSidebarState extends ConsumerState<GuildSidebar> {
-  late final ScrollController _scrollController;
-  late final UnreadScrollIndicatorController _scrollIndicator;
-  final Map<String, GlobalKey> _channelKeys = <String, GlobalKey>{};
-  String? _restoredGuildId;
-  bool _restoring = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController = ScrollController()..addListener(_persistScroll);
-    _scrollIndicator = UnreadScrollIndicatorController(
-      scrollController: _scrollController,
-      itemKeys: _channelKeys,
-      resolveSeverity: _resolveChannelScrollSeverity,
-      isMounted: () => mounted,
-    )..attach();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _scrollIndicator.scheduleUpdate();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _scrollController
-      ..removeListener(_persistScroll)
-      ..dispose();
-    _scrollIndicator.detach();
-    super.dispose();
-  }
-
-  ScrollIndicatorSeverity? _resolveChannelScrollSeverity(String channelId) {
-    final String? guildId = ref.read(activeGuildIdProvider);
-    if (guildId == null) {
-      return null;
-    }
-    return channelScrollIndicatorSeverity(
-      ref: ref,
-      guildId: guildId,
-      channelId: channelId,
-    );
-  }
-
-  void _persistScroll() {
-    if (_restoring) {
-      return;
-    }
-    final String? guildId = ref.read(activeGuildIdProvider);
-    if (guildId != null && _scrollController.hasClients) {
-      ref
-          .read(guildSidebarScrollStoreProvider)
-          .setOffset(guildId, _scrollController.offset);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final Guild? guild = ref.watch(
@@ -131,41 +75,6 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
     final List<GuildSidebarEntry> sidebarEntries = ref.watch(
       guildSidebarEntriesProvider,
     );
-
-    if (guildId == null) {
-      _restoredGuildId = null;
-    } else if (guildId != _restoredGuildId) {
-      _channelKeys.clear();
-      _restoredGuildId = guildId;
-      _restoring = true;
-      final double saved =
-          ref.read(guildSidebarScrollStoreProvider).offsetFor(guildId) ?? 0;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
-          return;
-        }
-        if (_scrollController.hasClients) {
-          _scrollController.jumpTo(
-            saved.clamp(0, _scrollController.position.maxScrollExtent),
-          );
-        }
-        _restoring = false;
-        _scrollIndicator.scheduleUpdate();
-      });
-    }
-
-    if (guildId != null) {
-      ref
-        ..listen(guildReadStateProvider.select((s) => s[guildId]), (_, _) {
-          _scrollIndicator.scheduleUpdate();
-        })
-        ..listen<List<GuildSidebarEntry>>(guildSidebarEntriesProvider, (
-          List<GuildSidebarEntry>? previous,
-          List<GuildSidebarEntry> next,
-        ) {
-          _scrollIndicator.scheduleUpdate();
-        });
-    }
 
     return Container(
       width: 240,
@@ -178,12 +87,14 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
         children: [
           _buildServerHeader(context, guild),
           Expanded(
-            child: _buildChannelList(
-              context,
-              guild: guild,
-              guildId: guildId,
-              sidebarEntries: sidebarEntries,
-            ),
+            child: guild == null || guildId == null
+                ? const SizedBox.shrink()
+                : _GuildSidebarChannelList(
+                    key: ValueKey<String>(guildId),
+                    guildId: guildId,
+                    guild: guild,
+                    sidebarEntries: sidebarEntries,
+                  ),
           ),
         ],
       ),
@@ -315,31 +226,145 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
       child: headerContent,
     );
   }
+}
 
-  Widget _buildChannelList(
-    BuildContext context, {
-    required Guild? guild,
-    required String? guildId,
-    required List<GuildSidebarEntry> sidebarEntries,
-  }) {
-    if (guild == null || guildId == null) {
-      return const SizedBox.shrink();
+class _GuildSidebarChannelList extends ConsumerStatefulWidget {
+  const _GuildSidebarChannelList({
+    required this.guildId,
+    required this.guild,
+    required this.sidebarEntries,
+    super.key,
+  });
+
+  final String guildId;
+  final Guild guild;
+  final List<GuildSidebarEntry> sidebarEntries;
+
+  @override
+  ConsumerState<_GuildSidebarChannelList> createState() =>
+      _GuildSidebarChannelListState();
+}
+
+class _GuildSidebarChannelListState
+    extends ConsumerState<_GuildSidebarChannelList> {
+  late final ScrollController _scrollController;
+  late final UnreadScrollIndicatorController _scrollIndicator;
+  final Map<String, GlobalKey> _channelKeys = <String, GlobalKey>{};
+  bool _restoring = false;
+  bool _needsScrollClamp = false;
+  GuildSidebarScrollStore? _scrollStore;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollStore = ref.read(guildSidebarScrollStoreProvider);
+    final double savedOffset = _scrollStore?.offsetFor(widget.guildId) ?? 0;
+    _needsScrollClamp = savedOffset > 0;
+    _scrollController = ScrollController(initialScrollOffset: savedOffset)
+      ..addListener(_persistScroll);
+    _scrollIndicator = UnreadScrollIndicatorController(
+      scrollController: _scrollController,
+      itemKeys: _channelKeys,
+      resolveSeverity: _resolveChannelScrollSeverity,
+      isMounted: () => mounted,
+    )..attach();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _clampScrollOffset();
+        _scrollIndicator.scheduleUpdate();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _persistScroll();
+    _scrollController
+      ..removeListener(_persistScroll)
+      ..dispose();
+    _scrollIndicator.detach();
+    super.dispose();
+  }
+
+  ScrollIndicatorSeverity? _resolveChannelScrollSeverity(String channelId) {
+    return channelScrollIndicatorSeverity(
+      ref: ref,
+      guildId: widget.guildId,
+      channelId: channelId,
+    );
+  }
+
+  void _persistScroll() {
+    if (_restoring) {
+      return;
     }
+    if (_scrollStore != null && _scrollController.hasClients) {
+      _scrollStore!.setOffset(widget.guildId, _scrollController.offset);
+    }
+  }
+
+  void _clampScrollOffset() {
+    if (!_needsScrollClamp || !_scrollController.hasClients) {
+      return;
+    }
+    final double maxExtent = _scrollController.position.maxScrollExtent;
+    if (maxExtent <= 0) {
+      return;
+    }
+    final double saved = _scrollStore?.offsetFor(widget.guildId) ?? 0;
+    final double target = saved.clamp(0, maxExtent);
+    if ((_scrollController.offset - target).abs() > 0.5) {
+      _restoring = true;
+      _scrollController.jumpTo(target);
+      _restoring = false;
+    }
+    _needsScrollClamp = false;
+    _scrollIndicator.scheduleUpdate();
+  }
+
+  void _scheduleScrollClamp() {
+    if (!_needsScrollClamp) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _clampScrollOffset();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _scrollStore = ref.read(guildSidebarScrollStoreProvider);
+    ref
+      ..listen(guildReadStateProvider.select((s) => s[widget.guildId]), (_, _) {
+        _scrollIndicator.scheduleUpdate();
+      })
+      ..listen<List<GuildSidebarEntry>>(guildSidebarEntriesProvider, (
+        List<GuildSidebarEntry>? previous,
+        List<GuildSidebarEntry> next,
+      ) {
+        _scrollIndicator.scheduleUpdate();
+        if (_needsScrollClamp && next.isNotEmpty) {
+          _scheduleScrollClamp();
+        }
+      });
     final String? selectedId = ref.watch(activeChannelIdProvider);
     final Widget channelListView = ListView.builder(
       controller: _scrollController,
       scrollCacheExtent: const ScrollCacheExtent.pixels(600),
       padding: const EdgeInsets.only(top: 12),
-      itemCount: sidebarEntries.length,
+      itemCount: widget.sidebarEntries.length,
       itemBuilder: (BuildContext context, int index) {
-        final GuildSidebarEntry entry = sidebarEntries[index];
+        final GuildSidebarEntry entry = widget.sidebarEntries[index];
         switch (entry.kind) {
           case GuildSidebarEntryKind.categoryHeader:
             return _CategoryHeader(
               key: ValueKey<String>('cat:${entry.category!.id}'),
               category: entry.category!,
               isCollapsed: entry.isCategoryCollapsed,
-              guildId: guildId,
+              guildId: widget.guildId,
             );
           case GuildSidebarEntryKind.channel:
             final String channelId = entry.channel!.id;
@@ -348,8 +373,8 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
               tileKey: _channelKeys.putIfAbsent(channelId, GlobalKey.new),
               channel: entry.channel!,
               isSelected: channelId == selectedId,
-              guildId: guildId,
-              guild: guild,
+              guildId: widget.guildId,
+              guild: widget.guild,
             );
           case GuildSidebarEntryKind.voiceParticipants:
             return VoiceChannelParticipantsList(
