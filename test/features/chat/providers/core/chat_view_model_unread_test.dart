@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:fake_async/fake_async.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
@@ -68,6 +69,8 @@ MessagesCompanion _cachedMessage({
 );
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   test(
     'switchChannel honors loadMessages false when target is provided',
     () async {
@@ -2039,6 +2042,11 @@ ProviderContainer _container(
 }
 
 Future<void> _flushAsync() async {
+  for (var i = 0; i < 8; i++) {
+    await pumpEventQueue();
+  }
+  SchedulerBinding.instance.handleBeginFrame(Duration.zero);
+  SchedulerBinding.instance.handleDrawFrame();
   for (var i = 0; i < 8; i++) {
     await pumpEventQueue();
   }
