@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:fluxer_app/core/database/drift_stream_utils.dart';
 
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/database/tables/notification_mention_feed.dart';
@@ -19,7 +20,7 @@ class NotificationDao extends DatabaseAccessor<FluxerDatabase>
   NotificationDao(super.attachedDatabase);
 
   Stream<List<NotificationUnreadCollapsedData>> watchUnreadCollapsedRows() =>
-      select(notificationUnreadCollapsed).watch();
+      select(notificationUnreadCollapsed).watch().suppressDriftCancellation;
 
   Future<List<NotificationUnreadCollapsedData>> getUnreadCollapsedRows() =>
       select(notificationUnreadCollapsed).get();
@@ -47,9 +48,10 @@ class NotificationDao extends DatabaseAccessor<FluxerDatabase>
   )..where((t) => t.channelId.equals(channelId))).go();
 
   Stream<List<NotificationMentionFeedData>> watchMentionFeedOrdered() =>
-      (select(
-        notificationMentionFeed,
-      )..orderBy([(t) => OrderingTerm.asc(t.ordinal)])).watch();
+      (select(notificationMentionFeed)
+            ..orderBy([(t) => OrderingTerm.asc(t.ordinal)]))
+          .watch()
+          .suppressDriftCancellation;
 
   Future<List<NotificationMentionFeedData>> getMentionFeedOrdered() => (select(
     notificationMentionFeed,
@@ -121,8 +123,9 @@ class NotificationDao extends DatabaseAccessor<FluxerDatabase>
     return q?.ordinal;
   }
 
-  Stream<NotificationMentionPref?> watchMentionPrefs() =>
-      select(notificationMentionPrefs).watchSingleOrNull();
+  Stream<NotificationMentionPref?> watchMentionPrefs() => select(
+    notificationMentionPrefs,
+  ).watchSingleOrNull().suppressDriftCancellation;
 
   Future<NotificationMentionPref?> getMentionPrefs() => (select(
     notificationMentionPrefs,
