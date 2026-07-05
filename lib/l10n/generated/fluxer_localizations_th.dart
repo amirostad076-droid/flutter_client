@@ -3941,6 +3941,13 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
       'เก็บร่างการแก้ไขไว้เมื่อยกเลิก';
 
   @override
+  String get accessibilitySaturationTitle => 'Saturation';
+
+  @override
+  String get accessibilitySaturationDescription =>
+      'Adjust how vivid theme colors appear across the app.';
+
+  @override
   String get accessibilityUnreadGroupTitle =>
       'ตัวบ่งชี้ข้อความที่ยังไม่ได้อ่าน';
 

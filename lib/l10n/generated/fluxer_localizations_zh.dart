@@ -3740,6 +3740,13 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get messagesMediaEditingPreserveDraftLabel => '取消时保留编辑草稿';
 
   @override
+  String get accessibilitySaturationTitle => 'Saturation';
+
+  @override
+  String get accessibilitySaturationDescription =>
+      'Adjust how vivid theme colors appear across the app.';
+
+  @override
   String get accessibilityUnreadGroupTitle => '未读指示器';
 
   @override

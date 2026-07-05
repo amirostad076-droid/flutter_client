@@ -14,6 +14,8 @@ import 'package:fluxer_app/core/push/pending_push_notification_path_provider.dar
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_store.dart';
+import 'package:fluxer_app/core/synced_preferences/synced_theme_hydration.dart';
+import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/auth/providers/current_auth_session_provider.dart';
@@ -39,6 +41,7 @@ import 'package:fluxer_app/features/settings/providers/webauthn_credentials_view
 import 'package:fluxer_app/features/voice/providers/voice_channel_participants_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
+import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -284,16 +287,7 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
       ref.read(syncedPreferencesStoreProvider).markSessionChanging();
     },
     onUserSettingsHydrate: (settings) {
-      unawaited(
-        ref
-            .read(themePreferenceProvider.notifier)
-            .applyServerSettings(settings),
-      );
-      unawaited(
-        ref
-            .read(syncedPreferencesStoreProvider)
-            .hydrateFromUserSettings(settings),
-      );
+      unawaited(_handleUserSettingsHydrate(ref, settings));
     },
     onUnavailableGuildsReady: (rawGuilds) {
       ref.read(guildAvailabilityProvider.notifier).loadFromReady(rawGuilds);
@@ -360,4 +354,17 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     handler.dispose();
   });
   return subscription;
+}
+
+Future<void> _handleUserSettingsHydrate(
+  Ref ref,
+  UserSettingsResponse settings,
+) async {
+  await ref
+      .read(syncedPreferencesStoreProvider)
+      .hydrateFromUserSettings(settings);
+  await applySyncedThemeFromUserSettings(ref, settings);
+  await ref
+      .read(themePreferenceProvider.notifier)
+      .applyServerSettings(settings);
 }

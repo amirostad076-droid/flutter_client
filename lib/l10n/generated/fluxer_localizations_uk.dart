@@ -3984,6 +3984,13 @@ class FluxerLocalizationsUk extends FluxerLocalizations {
       'Зберігати чернетку редагування під час скасування';
 
   @override
+  String get accessibilitySaturationTitle => 'Saturation';
+
+  @override
+  String get accessibilitySaturationDescription =>
+      'Adjust how vivid theme colors appear across the app.';
+
+  @override
   String get accessibilityUnreadGroupTitle => 'Індикатори непрочитаних';
 
   @override

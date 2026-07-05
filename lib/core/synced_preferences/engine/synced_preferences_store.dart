@@ -18,7 +18,10 @@ import 'package:fluxer_app/core/synced_preferences/fields/unread_channels_synced
 import 'package:fluxer_app/core/synced_preferences/fields/voice_prompts_synced_field.dart';
 import 'package:fluxer_app/core/synced_preferences/generated/fluxer/user/preferences/v1/preferences.pb.dart'
     as pb;
+import 'package:fluxer_app/core/synced_preferences/synced_theme_hydration.dart';
 import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/core/theme/custom_theme_css.dart';
+import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -148,8 +151,38 @@ class SyncedPreferencesStore {
       wasFirstHydrate: wasFirstHydrate,
       protectedFields: protectedFields,
     );
+    await _applyMergedAccessibilityTheme();
     _hasHydrated = true;
     _flushPendingPush();
+  }
+
+  Future<void> _applyMergedAccessibilityTheme() async {
+    if (_local.hasAccessibility()) {
+      final accessibility = _local.accessibility;
+      final String? mergedCss = accessibility.hasCustomThemeCss()
+          ? normalizeCustomThemeCss(accessibility.customThemeCss)
+          : null;
+      if (mergedCss != null || accessibility.hasSaturationFactor()) {
+        await applyThemeCustomizationFromAccessibilityProto(
+          _ref,
+          accessibility,
+        );
+        return;
+      }
+    }
+    final String? wireCss = normalizeCustomThemeCss(readWireCustomThemeCss());
+    if (wireCss == null) {
+      return;
+    }
+    await _ref
+        .read(themePreferenceProvider.notifier)
+        .applySyncedThemeCustomization(
+          saturationFactor: null,
+          customThemeCss: wireCss,
+          updateSaturationFactor: false,
+          updateCustomThemeCss: true,
+          clearCustomThemeCss: false,
+        );
   }
 
   Future<void> _reconcileRegisteredFields({
@@ -229,6 +262,22 @@ class SyncedPreferencesStore {
   }
 
   bool encodedIsEmpty() => _wireBlob.isEmpty;
+
+  String? readWireCustomThemeCss() {
+    if (_wireBlob.isEmpty) {
+      return null;
+    }
+    try {
+      final synced = SyncedPreferencesEngine.decodeLenient(_wireBlob);
+      if (!synced.hasAccessibility() ||
+          !synced.accessibility.hasCustomThemeCss()) {
+        return null;
+      }
+      return synced.accessibility.customThemeCss;
+    } on Object {
+      return null;
+    }
+  }
 
   Future<_DecodeStatus> _decodeIncoming(String encoded) async {
     if (encoded.isEmpty) {
@@ -401,7 +450,7 @@ class SyncedPreferencesStore {
         : SyncedPreferencesEngine.decodeLenient(_wireBlob);
     for (final entry in _adapters.entries) {
       final adapter = entry.value;
-      final local = await adapter.readLocalValue();
+      final Object? local = await _readLocalForPush(adapter);
       snapshot = _applyAdapterToProto(snapshot, adapter, local);
     }
     _local = snapshot;
@@ -412,7 +461,7 @@ class SyncedPreferencesStore {
     final fieldMessages = <int, Uint8List>{};
     for (final entry in _adapters.entries) {
       final adapter = entry.value;
-      final local = await adapter.readLocalValue();
+      final Object? local = await _readLocalForPush(adapter);
       fieldMessages[adapter.fieldNumber] = adapter
           .toProtoMessage(local)
           .writeToBuffer();
@@ -432,6 +481,18 @@ class SyncedPreferencesStore {
       currentWire: currentWire,
       fieldNumber: adapter.fieldNumber,
       fieldMessageBytes: adapter.toProtoMessage(local).writeToBuffer(),
+    );
+  }
+
+  Future<Object?> _readLocalForPush(SyncedFieldAdapter<Object?> adapter) async {
+    final Object? local = await adapter.readLocalValue();
+    if (adapter is! AccessibilitySyncedField ||
+        local is! AccessibilityLocalState) {
+      return local;
+    }
+    return AccessibilitySyncedField.preserveWireThemeForPush(
+      local: local,
+      wireCustomThemeCss: readWireCustomThemeCss(),
     );
   }
 

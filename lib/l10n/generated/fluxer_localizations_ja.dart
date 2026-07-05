@@ -3823,6 +3823,13 @@ class FluxerLocalizationsJa extends FluxerLocalizations {
   String get messagesMediaEditingPreserveDraftLabel => 'キャンセル時に編集下書きを保持';
 
   @override
+  String get accessibilitySaturationTitle => 'Saturation';
+
+  @override
+  String get accessibilitySaturationDescription =>
+      'Adjust how vivid theme colors appear across the app.';
+
+  @override
   String get accessibilityUnreadGroupTitle => '未読インジケーター';
 
   @override

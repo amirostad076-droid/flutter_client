@@ -3979,6 +3979,13 @@ class FluxerLocalizationsCy extends FluxerLocalizations {
       'Cadw drafft golygu wrth ganslo';
 
   @override
+  String get accessibilitySaturationTitle => 'Saturation';
+
+  @override
+  String get accessibilitySaturationDescription =>
+      'Adjust how vivid theme colors appear across the app.';
+
+  @override
   String get accessibilityUnreadGroupTitle => 'Dangosyddion heb eu darllen';
 
   @override

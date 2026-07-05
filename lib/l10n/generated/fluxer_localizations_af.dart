@@ -3973,6 +3973,13 @@ class FluxerLocalizationsAf extends FluxerLocalizations {
       'Behou konsep by kansellasie';
 
   @override
+  String get accessibilitySaturationTitle => 'Saturation';
+
+  @override
+  String get accessibilitySaturationDescription =>
+      'Adjust how vivid theme colors appear across the app.';
+
+  @override
   String get accessibilityUnreadGroupTitle => 'Ongelees aanwysers';
 
   @override

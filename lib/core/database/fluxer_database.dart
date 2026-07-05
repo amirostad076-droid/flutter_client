@@ -137,7 +137,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 68;
+  int get schemaVersion => 69;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -645,6 +645,16 @@ class FluxerDatabase extends _$FluxerDatabase {
         await m.addColumn(
           userPreferencesTable,
           userPreferencesTable.voiceSettingsJson,
+        );
+      }
+      if (from < 69) {
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.saturationFactor,
+        );
+        await m.addColumn(
+          userPreferencesTable,
+          userPreferencesTable.customThemeCss,
         );
       }
     },

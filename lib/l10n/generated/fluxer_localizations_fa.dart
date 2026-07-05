@@ -3961,6 +3961,13 @@ class FluxerLocalizationsFa extends FluxerLocalizations {
       'پیش‌نویس ویرایش را هنگام لغو حفظ کنید';
 
   @override
+  String get accessibilitySaturationTitle => 'Saturation';
+
+  @override
+  String get accessibilitySaturationDescription =>
+      'Adjust how vivid theme colors appear across the app.';
+
+  @override
   String get accessibilityUnreadGroupTitle => 'نشانگرهای خوانده نشده';
 
   @override

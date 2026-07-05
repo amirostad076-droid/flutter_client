@@ -3974,6 +3974,13 @@ class FluxerLocalizationsSr extends FluxerLocalizations {
       'Sačuvaj nacrt izmene prilikom otkazivanja';
 
   @override
+  String get accessibilitySaturationTitle => 'Saturation';
+
+  @override
+  String get accessibilitySaturationDescription =>
+      'Adjust how vivid theme colors appear across the app.';
+
+  @override
   String get accessibilityUnreadGroupTitle => 'Pokazatelji nepročitanih';
 
   @override

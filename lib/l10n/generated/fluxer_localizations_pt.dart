@@ -3988,6 +3988,13 @@ class FluxerLocalizationsPt extends FluxerLocalizations {
       'Preservar rascunho de edição ao cancelar';
 
   @override
+  String get accessibilitySaturationTitle => 'Saturation';
+
+  @override
+  String get accessibilitySaturationDescription =>
+      'Adjust how vivid theme colors appear across the app.';
+
+  @override
   String get accessibilityUnreadGroupTitle => 'Indicadores de não lidas';
 
   @override

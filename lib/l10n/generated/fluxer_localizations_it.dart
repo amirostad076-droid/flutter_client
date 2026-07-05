@@ -3984,6 +3984,13 @@ class FluxerLocalizationsIt extends FluxerLocalizations {
       'Conserva la bozza di modifica in caso di annullamento';
 
   @override
+  String get accessibilitySaturationTitle => 'Saturation';
+
+  @override
+  String get accessibilitySaturationDescription =>
+      'Adjust how vivid theme colors appear across the app.';
+
+  @override
   String get accessibilityUnreadGroupTitle => 'Indicatori non letti';
 
   @override

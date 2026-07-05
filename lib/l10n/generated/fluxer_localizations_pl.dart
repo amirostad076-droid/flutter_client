@@ -3990,6 +3990,13 @@ class FluxerLocalizationsPl extends FluxerLocalizations {
       'Zachowaj wersję roboczą edycji po anulowaniu';
 
   @override
+  String get accessibilitySaturationTitle => 'Saturation';
+
+  @override
+  String get accessibilitySaturationDescription =>
+      'Adjust how vivid theme colors appear across the app.';
+
+  @override
   String get accessibilityUnreadGroupTitle => 'Wskaźniki nieprzeczytanych';
 
   @override

@@ -3970,6 +3970,13 @@ class FluxerLocalizationsCs extends FluxerLocalizations {
       'Ponechat návrh úpravy při zrušení';
 
   @override
+  String get accessibilitySaturationTitle => 'Saturation';
+
+  @override
+  String get accessibilitySaturationDescription =>
+      'Adjust how vivid theme colors appear across the app.';
+
+  @override
   String get accessibilityUnreadGroupTitle => 'Indikátory nepřečtených zpráv';
 
   @override

@@ -3965,6 +3965,13 @@ class FluxerLocalizationsDa extends FluxerLocalizations {
       'Behold redigeringsudkast ved annullering';
 
   @override
+  String get accessibilitySaturationTitle => 'Saturation';
+
+  @override
+  String get accessibilitySaturationDescription =>
+      'Adjust how vivid theme colors appear across the app.';
+
+  @override
   String get accessibilityUnreadGroupTitle => 'Ubeskrevne indikatorer';
 
   @override

@@ -5006,6 +5006,14 @@
   "@messagesMediaEditingPreserveDraftLabel": {
     "description": "Toggle label for preserving edit drafts on cancel."
   },
+  "accessibilitySaturationTitle": "Saturation",
+  "@accessibilitySaturationTitle": {
+    "description": "Section title for the theme saturation slider on the accessibility settings page."
+  },
+  "accessibilitySaturationDescription": "Adjust how vivid theme colors appear across the app.",
+  "@accessibilitySaturationDescription": {
+    "description": "Section description for the theme saturation slider on the accessibility settings page."
+  },
   "accessibilityUnreadGroupTitle": "Unread indicators",
   "@accessibilityUnreadGroupTitle": {
     "description": "Section title for unread-indicator accessibility settings."

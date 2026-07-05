@@ -6763,6 +6763,18 @@ abstract class FluxerLocalizations {
   /// **'Preserve edit draft on cancel'**
   String get messagesMediaEditingPreserveDraftLabel;
 
+  /// Section title for the theme saturation slider on the accessibility settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturation'**
+  String get accessibilitySaturationTitle;
+
+  /// Section description for the theme saturation slider on the accessibility settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust how vivid theme colors appear across the app.'**
+  String get accessibilitySaturationDescription;
+
   /// Section title for unread-indicator accessibility settings.
   ///
   /// In en, this message translates to:

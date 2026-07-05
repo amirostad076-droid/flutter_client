@@ -4001,6 +4001,13 @@ class FluxerLocalizationsGl extends FluxerLocalizations {
       'Conservar o borrador de edición ao cancelar';
 
   @override
+  String get accessibilitySaturationTitle => 'Saturation';
+
+  @override
+  String get accessibilitySaturationDescription =>
+      'Adjust how vivid theme colors appear across the app.';
+
+  @override
   String get accessibilityUnreadGroupTitle => 'Indicadores de non lido';
 
   @override

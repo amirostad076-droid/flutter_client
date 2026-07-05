@@ -3811,6 +3811,13 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
   String get messagesMediaEditingPreserveDraftLabel => '취소 시 편집 초안 유지';
 
   @override
+  String get accessibilitySaturationTitle => 'Saturation';
+
+  @override
+  String get accessibilitySaturationDescription =>
+      'Adjust how vivid theme colors appear across the app.';
+
+  @override
   String get accessibilityUnreadGroupTitle => '읽지 않음 표시';
 
   @override
