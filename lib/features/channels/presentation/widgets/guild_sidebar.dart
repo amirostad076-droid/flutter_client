@@ -728,7 +728,7 @@ class _ChannelTile extends ConsumerWidget {
         if (developerMode)
           FluxerMenuItem(
             label: 'Debug Channel',
-            icon: PhosphorIconsRegular.bug,
+            icon: PhosphorIconsFill.bugBeetle,
             onPressed: () {
               close();
               unawaited(_showDebugChannelSheet(menuContext, ref));

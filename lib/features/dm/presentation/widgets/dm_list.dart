@@ -1606,12 +1606,12 @@ class _DmBottomSheet extends ConsumerWidget {
           children: [
             if (!convo.isGroup)
               FluxerBottomSheetMenuItem(
-                icon: PhosphorIconsFill.bug,
+                icon: PhosphorIconsFill.bugBeetle,
                 label: l10n.dmDebugUser,
                 onTap: () => pop(_DmAction.debugUser),
               ),
             FluxerBottomSheetMenuItem(
-              icon: PhosphorIconsFill.bug,
+              icon: PhosphorIconsFill.bugBeetle,
               label: l10n.dmDebugChannel,
               onTap: () => pop(_DmAction.debugChannel),
             ),

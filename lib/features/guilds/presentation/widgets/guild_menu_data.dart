@@ -227,7 +227,7 @@ List<GuildMenuGroup> buildGuildMenuGroups({
       [
         GuildMenuAction(
           label: l10n.guildMenuDebugCommunity,
-          icon: PhosphorIconsFill.bug,
+          icon: PhosphorIconsFill.bugBeetle,
           action: GuildAction.debugCommunity,
         ),
       ],
