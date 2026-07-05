@@ -888,6 +888,9 @@ class FluxerLocalizationsSk extends FluxerLocalizations {
   String get dmDebugChannel => 'Ladiť kanál';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'Pripnutá DM';
 
   @override

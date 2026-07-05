@@ -889,6 +889,9 @@ class FluxerLocalizationsCy extends FluxerLocalizations {
   String get dmDebugChannel => 'Sianel Debug';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'DM Wedi\'i Binio';
 
   @override

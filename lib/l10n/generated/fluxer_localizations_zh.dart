@@ -845,6 +845,9 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get dmDebugChannel => '调试频道';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => '已置顶私信';
 
   @override

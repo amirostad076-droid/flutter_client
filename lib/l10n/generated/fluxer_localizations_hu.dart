@@ -892,6 +892,9 @@ class FluxerLocalizationsHu extends FluxerLocalizations {
   String get dmDebugChannel => 'Csatorna hibakeresése';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'Pinelt DM';
 
   @override

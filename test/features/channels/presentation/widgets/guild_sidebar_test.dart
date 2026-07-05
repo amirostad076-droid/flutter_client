@@ -200,6 +200,7 @@ void main() {
       expect(find.text('Mute Category'), findsOneWidget);
       expect(find.text('Copy Category ID'), findsOneWidget);
       expect(find.text('Mark Category as Read'), findsOneWidget);
+      expect(find.text('Debug Category'), findsNothing);
 
       // Order must mirror the web category menu: Mark as Read -> Mute -> Copy ID.
       double dy(String label) => tester.getTopLeft(find.text(label)).dy;
@@ -250,6 +251,27 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Debug Channel'), findsOneWidget);
+    });
+
+    testWidgets('category menu shows Debug Category in developer mode', (
+      tester,
+    ) async {
+      _setMobileSurface(tester);
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: _buildOverrides(
+            channelListState: _state(),
+            unread: const {'c1': UnreadState(), 'c2': UnreadState()},
+            developerMode: true,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('My Category'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Debug Category'), findsOneWidget);
     });
 
     testWidgets('link channel menu shows Open Link', (tester) async {

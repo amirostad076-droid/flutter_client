@@ -887,6 +887,9 @@ class FluxerLocalizationsIs extends FluxerLocalizations {
   String get dmDebugChannel => 'Villaígræða rás';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'Vörumerkt skilaboð';
 
   @override

@@ -887,6 +887,9 @@ class FluxerLocalizationsCs extends FluxerLocalizations {
   String get dmDebugChannel => 'Ladit kanál';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'Připnutá DM';
 
   @override

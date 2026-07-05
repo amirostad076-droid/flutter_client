@@ -888,6 +888,9 @@ class FluxerLocalizationsFi extends FluxerLocalizations {
   String get dmDebugChannel => 'Debuggaa kanavaa';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'Kiinnitetty keskustelu';
 
   @override

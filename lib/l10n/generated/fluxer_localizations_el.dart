@@ -894,6 +894,9 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
   String get dmDebugChannel => 'Εντοπισμός Σφαλμάτων Καναλιού';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'Καρφιτσωμένη Συνομιλία';
 
   @override

@@ -892,6 +892,9 @@ class FluxerLocalizationsRu extends FluxerLocalizations {
   String get dmDebugChannel => 'Отладка канала';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'ЛС закреплено';
 
   @override

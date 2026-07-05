@@ -856,6 +856,9 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
   String get dmDebugChannel => '채널 디버그';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'DM 고정됨';
 
   @override

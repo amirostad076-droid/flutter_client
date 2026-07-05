@@ -893,6 +893,9 @@ class FluxerLocalizationsGl extends FluxerLocalizations {
   String get dmDebugChannel => 'Depurar canle';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'DM fixado';
 
   @override

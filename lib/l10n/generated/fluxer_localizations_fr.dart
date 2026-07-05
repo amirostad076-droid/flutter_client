@@ -902,6 +902,9 @@ class FluxerLocalizationsFr extends FluxerLocalizations {
   String get dmDebugChannel => 'Déboguer le canal';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'Discussion épinglée';
 
   @override

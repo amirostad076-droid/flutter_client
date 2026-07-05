@@ -1147,6 +1147,10 @@
   "@dmDebugChannel": {
     "description": "DM context menu action to debug channel data."
   },
+  "dmDebugCategory": "Debug Category",
+  "@dmDebugCategory": {
+    "description": "Category context menu action to debug category data."
+  },
   "dmPinned": "Pinned DM",
   "@dmPinned": {
     "description": "Toast message when a DM is pinned."

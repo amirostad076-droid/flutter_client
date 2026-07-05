@@ -889,6 +889,9 @@ class FluxerLocalizationsTr extends FluxerLocalizations {
   String get dmDebugChannel => 'Kanalı Hata Ayıkla';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'Sabitlenmiş DM';
 
   @override

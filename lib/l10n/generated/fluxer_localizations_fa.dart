@@ -886,6 +886,9 @@ class FluxerLocalizationsFa extends FluxerLocalizations {
   String get dmDebugChannel => 'اشکال‌زدایی کانال';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'DM پین شده';
 
   @override

@@ -1777,6 +1777,12 @@ abstract class FluxerLocalizations {
   /// **'Debug Channel'**
   String get dmDebugChannel;
 
+  /// Category context menu action to debug category data.
+  ///
+  /// In en, this message translates to:
+  /// **'Debug Category'**
+  String get dmDebugCategory;
+
   /// Toast message when a DM is pinned.
   ///
   /// In en, this message translates to:

@@ -885,6 +885,9 @@ class FluxerLocalizationsEt extends FluxerLocalizations {
   String get dmDebugChannel => 'Debugi kanalit';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'Kinnitatud vestlus';
 
   @override

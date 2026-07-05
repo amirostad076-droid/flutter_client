@@ -892,6 +892,9 @@ class FluxerLocalizationsGa extends FluxerLocalizations {
   String get dmDebugChannel => 'Deaschódáil Cainéal';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'DM faoi ghlas';
 
   @override

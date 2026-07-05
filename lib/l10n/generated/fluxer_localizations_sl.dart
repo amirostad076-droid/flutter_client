@@ -890,6 +890,9 @@ class FluxerLocalizationsSl extends FluxerLocalizations {
   String get dmDebugChannel => 'Odstrani napake kanala';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'Priponka sporočila';
 
   @override

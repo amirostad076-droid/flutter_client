@@ -955,6 +955,9 @@ class _CategoryHeader extends ConsumerWidget {
     final bool isMuted = mutedIds.contains(category.id);
     final muteConfig = await _loadChannelMuteConfig(ref, guildId, category.id);
     final String? mutedHint = isMuted ? formatMutedHintText(muteConfig) : null;
+    final bool developerMode = ref
+        .read(userSettingsViewModelProvider)
+        .developerMode;
     if (!context.mounted) {
       return;
     }
@@ -988,6 +991,15 @@ class _CategoryHeader extends ConsumerWidget {
             );
           },
         ),
+        if (developerMode)
+          FluxerMenuItem(
+            label: FluxerLocalizations.of(menuContext).dmDebugCategory,
+            icon: PhosphorIconsFill.bugBeetle,
+            onPressed: () {
+              close();
+              unawaited(_showDebugCategorySheet(menuContext, ref));
+            },
+          ),
         FluxerMenuItem(
           label: 'Copy Category ID',
           icon: PhosphorIconsRegular.copy,
@@ -998,6 +1010,34 @@ class _CategoryHeader extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _showDebugCategorySheet(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    try {
+      final channelResponse = await ref
+          .read(fluxerClientProvider)
+          .channels
+          .getChannel(channelId: category.id);
+      if (!context.mounted) {
+        return;
+      }
+      await showDebugBottomSheet(
+        context,
+        title: FluxerLocalizations.of(context).dmDebugCategory,
+        data: channelResponse.toJson(),
+        onCopied: (message) => ref
+            .read(toastProvider.notifier)
+            .show(
+              FluxerToast(
+                message: message,
+                variant: FluxerToastVariant.success,
+              ),
+            ),
+      );
+    } on Exception catch (_) {}
   }
 
   Future<void> _openCategoryMuteSheet(

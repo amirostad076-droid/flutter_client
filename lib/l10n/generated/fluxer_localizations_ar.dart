@@ -886,6 +886,9 @@ class FluxerLocalizationsAr extends FluxerLocalizations {
   String get dmDebugChannel => 'تصحيح بيانات القناة';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'تم تثبيت المحادثة';
 
   @override

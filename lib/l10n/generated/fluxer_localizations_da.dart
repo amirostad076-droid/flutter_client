@@ -886,6 +886,9 @@ class FluxerLocalizationsDa extends FluxerLocalizations {
   String get dmDebugChannel => 'Fejlfindingskanal';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'Fastgjort besked';
 
   @override

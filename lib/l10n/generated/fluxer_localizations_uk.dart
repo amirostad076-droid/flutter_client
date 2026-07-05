@@ -891,6 +891,9 @@ class FluxerLocalizationsUk extends FluxerLocalizations {
   String get dmDebugChannel => 'Налагодження каналу';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'Закріплений DM';
 
   @override

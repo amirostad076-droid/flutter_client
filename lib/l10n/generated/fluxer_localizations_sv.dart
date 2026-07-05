@@ -887,6 +887,9 @@ class FluxerLocalizationsSv extends FluxerLocalizations {
   String get dmDebugChannel => 'Felsök kanal';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'Fästad DM';
 
   @override

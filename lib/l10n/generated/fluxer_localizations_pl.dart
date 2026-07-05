@@ -892,6 +892,9 @@ class FluxerLocalizationsPl extends FluxerLocalizations {
   String get dmDebugChannel => 'Debuguj kanał';
 
   @override
+  String get dmDebugCategory => 'Debug Category';
+
+  @override
   String get dmPinned => 'Przypięty DM';
 
   @override
