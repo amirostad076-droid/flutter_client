@@ -8639,6 +8639,102 @@ abstract class FluxerLocalizations {
   /// **'Could not join community. Please try again.'**
   String get addGuildJoinFailed;
 
+  /// Title of the create-community sub-view in the add community modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a community'**
+  String get addGuildCreateTitle;
+
+  /// Body text on the create-community sub-view.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a community for you and your friends to chat.'**
+  String get addGuildCreateDescription;
+
+  /// Label for the community name input on the create sub-view.
+  ///
+  /// In en, this message translates to:
+  /// **'Community name'**
+  String get addGuildCreateNameLabel;
+
+  /// Primary button label to submit the create-community form.
+  ///
+  /// In en, this message translates to:
+  /// **'Create community'**
+  String get addGuildCreateSubmit;
+
+  /// Generic error when creating a community fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create community. Please try again.'**
+  String get addGuildCreateFailed;
+
+  /// Gate title when the user must claim their account before creating a community.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim your account'**
+  String get addGuildCreateClaimTitle;
+
+  /// Gate description when the user must claim their account before creating a community.
+  ///
+  /// In en, this message translates to:
+  /// **'You need to claim your account before you can create a community.'**
+  String get addGuildCreateClaimDescription;
+
+  /// Gate title when the user must verify email before creating a community.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email'**
+  String get addGuildCreateVerifyTitle;
+
+  /// Gate description when the user must verify email before creating a community.
+  ///
+  /// In en, this message translates to:
+  /// **'You need to verify your email address before you can create a community.'**
+  String get addGuildCreateVerifyDescription;
+
+  /// Error when the user picks an animated image for a new community icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Animated icons are not supported when creating a new community. Use a static image.'**
+  String get addGuildCreateAnimatedIconUnsupported;
+
+  /// Text before the community guidelines link on the create sub-view.
+  ///
+  /// In en, this message translates to:
+  /// **'By creating a community, you agree to follow and uphold the '**
+  String get addGuildCreateGuidelinesBefore;
+
+  /// Link label for community guidelines on the create sub-view.
+  ///
+  /// In en, this message translates to:
+  /// **'{productName} community guidelines'**
+  String addGuildCreateGuidelinesLink(String productName);
+
+  /// Error when creation is blocked because the instance only allows one community.
+  ///
+  /// In en, this message translates to:
+  /// **'This instance is a single community, so additional communities cannot be created.'**
+  String get addGuildCreateSingleCommunityBlocked;
+
+  /// Button label to replace the selected community icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Change icon'**
+  String get addGuildCreateChangeIcon;
+
+  /// Label for the optional community icon field on the create sub-view.
+  ///
+  /// In en, this message translates to:
+  /// **'Community icon'**
+  String get addGuildCreateIconLabel;
+
+  /// Helper text under the community icon upload buttons listing accepted formats and size guidance.
+  ///
+  /// In en, this message translates to:
+  /// **'PNG, JPEG, WebP, AVIF, HEIC, HEIF, JXL, SVG. Max 10MB. Recommended: 512×512px'**
+  String get addGuildCreateIconHint;
+
   /// Toast shown after accepting an emoji or sticker pack invite.
   ///
   /// In en, this message translates to:

@@ -41,6 +41,7 @@ import 'package:fluxer_app/features/gateway/providers/guild_sync_provider.dart';
 import 'package:fluxer_app/features/guilds/data/guild_user_settings_repository.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/presentation/modals/add_guild_modal.dart';
+import 'package:fluxer_app/features/guilds/providers/add_guild_enabled_provider.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_bottom_sheet.dart';
 import 'package:fluxer_app/features/guilds/presentation/'
@@ -162,6 +163,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
     required bool dmItemsVisible,
     required int pendingUnavailableCount,
     required List<GuildNavbarItem> organizedItems,
+    required bool showAddCommunity,
   }) {
     final List<_NavbarListEntry> entries = <_NavbarListEntry>[
       const _NavbarListEntry(kind: _NavbarListEntryKind.directMessages),
@@ -212,9 +214,13 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       ..add(const _NavbarListEntry(kind: _NavbarListEntryKind.divider))
       ..add(
         const _NavbarListEntry(kind: _NavbarListEntryKind.exploreCommunities),
-      )
-      ..add(const _NavbarListEntry(kind: _NavbarListEntryKind.addCommunity))
-      ..add(const _NavbarListEntry(kind: _NavbarListEntryKind.help));
+      );
+    if (showAddCommunity) {
+      entries.add(
+        const _NavbarListEntry(kind: _NavbarListEntryKind.addCommunity),
+      );
+    }
+    entries.add(const _NavbarListEntry(kind: _NavbarListEntryKind.help));
     return entries;
   }
 
@@ -288,6 +294,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
         _scrollIndicator.scheduleUpdate();
       });
 
+    final bool showAddCommunity = ref.watch(addGuildEnabledProvider);
     final double topPadding = max<double>(MediaQuery.paddingOf(context).top, 4);
     final List<_NavbarListEntry> navbarEntries = _buildNavbarEntries(
       showFavorites: showFavorites,
@@ -296,6 +303,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       dmItemsVisible: dmItemsVisible,
       pendingUnavailableCount: pendingUnavailableCount,
       organizedItems: organizedItems,
+      showAddCommunity: showAddCommunity,
     );
     final guildListView = ListView.builder(
       scrollCacheExtent: const ScrollCacheExtent.pixels(600),
@@ -467,7 +475,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
         return _DashedGuildIcon(
           label: l10n.guildNavbarAddCommunity,
           icon: PhosphorIconsRegular.plus,
-          onTap: () => unawaited(showAddGuildModal(context)),
+          onTap: () => unawaited(showAddGuildModal(context, ref)),
         );
       case _NavbarListEntryKind.help:
         return _DashedGuildIcon(

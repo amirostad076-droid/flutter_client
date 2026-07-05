@@ -6415,6 +6415,75 @@
   "@addGuildJoinFailed": {
     "description": "Generic error when joining a community via invite fails."
   },
+  "addGuildCreateTitle": "Create a community",
+  "@addGuildCreateTitle": {
+    "description": "Title of the create-community sub-view in the add community modal."
+  },
+  "addGuildCreateDescription": "Create a community for you and your friends to chat.",
+  "@addGuildCreateDescription": {
+    "description": "Body text on the create-community sub-view."
+  },
+  "addGuildCreateNameLabel": "Community name",
+  "@addGuildCreateNameLabel": {
+    "description": "Label for the community name input on the create sub-view."
+  },
+  "addGuildCreateSubmit": "Create community",
+  "@addGuildCreateSubmit": {
+    "description": "Primary button label to submit the create-community form."
+  },
+  "addGuildCreateFailed": "Could not create community. Please try again.",
+  "@addGuildCreateFailed": {
+    "description": "Generic error when creating a community fails."
+  },
+  "addGuildCreateClaimTitle": "Claim your account",
+  "@addGuildCreateClaimTitle": {
+    "description": "Gate title when the user must claim their account before creating a community."
+  },
+  "addGuildCreateClaimDescription": "You need to claim your account before you can create a community.",
+  "@addGuildCreateClaimDescription": {
+    "description": "Gate description when the user must claim their account before creating a community."
+  },
+  "addGuildCreateVerifyTitle": "Verify your email",
+  "@addGuildCreateVerifyTitle": {
+    "description": "Gate title when the user must verify email before creating a community."
+  },
+  "addGuildCreateVerifyDescription": "You need to verify your email address before you can create a community.",
+  "@addGuildCreateVerifyDescription": {
+    "description": "Gate description when the user must verify email before creating a community."
+  },
+  "addGuildCreateAnimatedIconUnsupported": "Animated icons are not supported when creating a new community. Use a static image.",
+  "@addGuildCreateAnimatedIconUnsupported": {
+    "description": "Error when the user picks an animated image for a new community icon."
+  },
+  "addGuildCreateGuidelinesBefore": "By creating a community, you agree to follow and uphold the ",
+  "@addGuildCreateGuidelinesBefore": {
+    "description": "Text before the community guidelines link on the create sub-view."
+  },
+  "addGuildCreateGuidelinesLink": "{productName} community guidelines",
+  "@addGuildCreateGuidelinesLink": {
+    "description": "Link label for community guidelines on the create sub-view.",
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
+  "addGuildCreateSingleCommunityBlocked": "This instance is a single community, so additional communities cannot be created.",
+  "@addGuildCreateSingleCommunityBlocked": {
+    "description": "Error when creation is blocked because the instance only allows one community."
+  },
+  "addGuildCreateChangeIcon": "Change icon",
+  "@addGuildCreateChangeIcon": {
+    "description": "Button label to replace the selected community icon."
+  },
+  "addGuildCreateIconLabel": "Community icon",
+  "@addGuildCreateIconLabel": {
+    "description": "Label for the optional community icon field on the create sub-view."
+  },
+  "addGuildCreateIconHint": "PNG, JPEG, WebP, AVIF, HEIC, HEIF, JXL, SVG. Max 10MB. Recommended: 512×512px",
+  "@addGuildCreateIconHint": {
+    "description": "Helper text under the community icon upload buttons listing accepted formats and size guidance."
+  },
   "addGuildPackInstalled": "Pack installed successfully.",
   "@addGuildPackInstalled": {
     "description": "Toast shown after accepting an emoji or sticker pack invite."
