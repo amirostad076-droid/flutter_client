@@ -743,6 +743,18 @@
   "@inviteAcceptNotFoundDescription": {
     "description": "Description when an invite link is expired or invalid."
   },
+  "invalidDeepLinkTitle": "Link couldn't be opened",
+  "@invalidDeepLinkTitle": {
+    "description": "Title when a deep link or route cannot be opened in the app."
+  },
+  "invalidDeepLinkDescription": "This link may be broken, only available on the web, or you might not have access. Check the link and try again.",
+  "@invalidDeepLinkDescription": {
+    "description": "Explanation shown when a deep link or route cannot be opened in the app."
+  },
+  "invalidDeepLinkGoHomeButton": "Go to home",
+  "@invalidDeepLinkGoHomeButton": {
+    "description": "Primary action on the invalid deep link screen to return to the home tab."
+  },
   "inviteAcceptJoinGroupButton": "Join group",
   "@inviteAcceptJoinGroupButton": {
     "description": "Primary action to join a group DM from the invite modal."

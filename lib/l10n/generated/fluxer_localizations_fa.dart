@@ -579,6 +579,16 @@ class FluxerLocalizationsFa extends FluxerLocalizations {
       'این دعوت‌نامه ممکن است منقضی شده یا نامعتبر باشد.';
 
   @override
+  String get invalidDeepLinkTitle => 'Link couldn\'t be opened';
+
+  @override
+  String get invalidDeepLinkDescription =>
+      'This link may be broken, only available on the web, or you might not have access. Check the link and try again.';
+
+  @override
+  String get invalidDeepLinkGoHomeButton => 'Go to home';
+
+  @override
   String get inviteAcceptJoinGroupButton => 'پیوستن به گروه';
 
   @override

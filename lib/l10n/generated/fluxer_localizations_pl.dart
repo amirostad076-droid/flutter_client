@@ -583,6 +583,16 @@ class FluxerLocalizationsPl extends FluxerLocalizations {
       'To zaproszenie może być nieaktualne lub nieprawidłowe.';
 
   @override
+  String get invalidDeepLinkTitle => 'Link couldn\'t be opened';
+
+  @override
+  String get invalidDeepLinkDescription =>
+      'This link may be broken, only available on the web, or you might not have access. Check the link and try again.';
+
+  @override
+  String get invalidDeepLinkGoHomeButton => 'Go to home';
+
+  @override
   String get inviteAcceptJoinGroupButton => 'Dołącz do grupy';
 
   @override

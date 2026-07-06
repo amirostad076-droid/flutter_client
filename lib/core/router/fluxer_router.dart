@@ -34,6 +34,7 @@ import 'package:fluxer_app/features/settings/presentation/pages/guild/settings_b
 import 'package:fluxer_app/features/settings/presentation/pages/guild/settings_moderation_page.dart';
 import 'package:fluxer_app/features/settings/presentation/pages/guild/settings_overview_page.dart';
 import 'package:fluxer_app/features/shell/presentation/app_layout.dart';
+import 'package:fluxer_app/features/shell/presentation/invalid_deep_link_screen.dart';
 import 'package:fluxer_app/features/shell/presentation/reconnecting_screen.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/presentation/splash_screen.dart';
@@ -158,6 +159,9 @@ GoRouter fluxerRouter(Ref ref) {
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: '/login',
+    errorBuilder: (BuildContext context, GoRouterState state) {
+      return InvalidDeepLinkScreen(uri: state.uri);
+    },
     refreshListenable: refreshNotifier,
     observers: [
       ChannelPersistenceObserver(db),

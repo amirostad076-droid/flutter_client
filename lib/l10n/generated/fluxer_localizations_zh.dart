@@ -549,6 +549,16 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get inviteAcceptNotFoundDescription => '此邀请可能已过期或无效。';
 
   @override
+  String get invalidDeepLinkTitle => 'Link couldn\'t be opened';
+
+  @override
+  String get invalidDeepLinkDescription =>
+      'This link may be broken, only available on the web, or you might not have access. Check the link and try again.';
+
+  @override
+  String get invalidDeepLinkGoHomeButton => 'Go to home';
+
+  @override
   String get inviteAcceptJoinGroupButton => '加入群组';
 
   @override

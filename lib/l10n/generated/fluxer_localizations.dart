@@ -1201,6 +1201,24 @@ abstract class FluxerLocalizations {
   /// **'This invite may be expired or invalid.'**
   String get inviteAcceptNotFoundDescription;
 
+  /// Title when a deep link or route cannot be opened in the app.
+  ///
+  /// In en, this message translates to:
+  /// **'Link couldn\'t be opened'**
+  String get invalidDeepLinkTitle;
+
+  /// Explanation shown when a deep link or route cannot be opened in the app.
+  ///
+  /// In en, this message translates to:
+  /// **'This link may be broken, only available on the web, or you might not have access. Check the link and try again.'**
+  String get invalidDeepLinkDescription;
+
+  /// Primary action on the invalid deep link screen to return to the home tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to home'**
+  String get invalidDeepLinkGoHomeButton;
+
   /// Primary action to join a group DM from the invite modal.
   ///
   /// In en, this message translates to:

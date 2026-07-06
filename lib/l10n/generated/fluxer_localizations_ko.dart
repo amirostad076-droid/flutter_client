@@ -553,6 +553,16 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
   String get inviteAcceptNotFoundDescription => '이 초대는 만료되었거나 유효하지 않을 수 있습니다.';
 
   @override
+  String get invalidDeepLinkTitle => 'Link couldn\'t be opened';
+
+  @override
+  String get invalidDeepLinkDescription =>
+      'This link may be broken, only available on the web, or you might not have access. Check the link and try again.';
+
+  @override
+  String get invalidDeepLinkGoHomeButton => 'Go to home';
+
+  @override
   String get inviteAcceptJoinGroupButton => '그룹 참여';
 
   @override
