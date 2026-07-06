@@ -642,26 +642,56 @@ class FluxerDatabase extends _$FluxerDatabase {
         }
       }
       if (from < 68) {
-        await m.addColumn(
-          userPreferencesTable,
-          userPreferencesTable.voiceSettingsJson,
-        );
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'user_preferences',
+          columnName: 'voice_settings_json',
+        )) {
+          await m.addColumn(
+            userPreferencesTable,
+            userPreferencesTable.voiceSettingsJson,
+          );
+        }
       }
       if (from < 69) {
-        await m.addColumn(
-          userPreferencesTable,
-          userPreferencesTable.saturationFactor,
-        );
-        await m.addColumn(
-          userPreferencesTable,
-          userPreferencesTable.customThemeCss,
-        );
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'user_preferences',
+          columnName: 'saturation_factor',
+        )) {
+          await m.addColumn(
+            userPreferencesTable,
+            userPreferencesTable.saturationFactor,
+          );
+        }
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'user_preferences',
+          columnName: 'custom_theme_css',
+        )) {
+          await m.addColumn(
+            userPreferencesTable,
+            userPreferencesTable.customThemeCss,
+          );
+        }
       }
       if (from < 70) {
-        await m.addColumn(messages, messages.callJson);
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'messages',
+          columnName: 'call_json',
+        )) {
+          await m.addColumn(messages, messages.callJson);
+        }
       }
       if (from < 71) {
-        await m.addColumn(dmChannels, dmChannels.nicksJson);
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'dm_channels',
+          columnName: 'nicks_json',
+        )) {
+          await m.addColumn(dmChannels, dmChannels.nicksJson);
+        }
       }
     },
   );
