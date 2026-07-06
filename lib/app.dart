@@ -12,6 +12,7 @@ import 'package:fluxer_app/features/shell/presentation/native_titlebar.dart';
 import 'package:fluxer_app/features/shell/presentation/widgets/beta_warning_layer.dart';
 import 'package:fluxer_app/features/ui/toast/fluxer_toast_overlay.dart';
 import 'package:fluxer_app/features/voice/presentation/widgets/incoming_voice_call_layer.dart';
+import 'package:fluxer_app/l10n/fluxer_localizations_utils.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/widgets/beta_banner.dart';
 import 'package:window_manager/window_manager.dart';
@@ -71,6 +72,12 @@ class FluxerApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       localizationsDelegates: FluxerLocalizations.localizationsDelegates,
       supportedLocales: FluxerLocalizations.supportedLocales,
+      localeResolutionCallback: (locale, supportedLocales) {
+        if (locale == null) {
+          return supportedLocales.first;
+        }
+        return resolveSupportedFluxerLocale(locale);
+      },
       theme: theme,
       darkTheme: darkThemeData,
       themeMode: themeMode,
