@@ -65,6 +65,7 @@ class EmojiPickerContent extends ConsumerStatefulWidget {
     this.skinTone = '',
     this.isMobile = false,
     this.channelId,
+    this.scrollController,
     this.trackUsageOnSelect = true,
     super.key,
   });
@@ -75,6 +76,7 @@ class EmojiPickerContent extends ConsumerStatefulWidget {
   final String skinTone;
   final bool isMobile;
   final String? channelId;
+  final ScrollController? scrollController;
 
   /// Whether selecting an emoji records it in the local frecency store.
   /// Disabled when the picker drives reactions, since those are tracked
@@ -151,9 +153,13 @@ class _HoverState {
 }
 
 class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
-  final _scrollController = ScrollController();
+  ScrollController? _ownedScrollController;
   final _hoverState = ValueNotifier<_HoverState>(const _HoverState());
   final _categoryKeys = <String, GlobalKey>{};
+
+  ScrollController get _scrollController =>
+      widget.scrollController ??
+      (_ownedScrollController ??= ScrollController());
 
   var _isFirstFrameSettled = false;
 
@@ -199,7 +205,7 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _ownedScrollController?.dispose();
     _hoverState.dispose();
     super.dispose();
   }
