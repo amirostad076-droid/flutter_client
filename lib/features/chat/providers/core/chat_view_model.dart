@@ -226,7 +226,7 @@ class ChatViewModel extends _$ChatViewModel {
     });
     ref
       ..listen<bool>(chatAutoAckAllowedProvider, (previous, next) {
-        _syncActiveReadChannel();
+        unawaited(Future.microtask(_syncActiveReadChannel));
         if (!next) {
           _readAckRetryTimer?.cancel();
           return;
