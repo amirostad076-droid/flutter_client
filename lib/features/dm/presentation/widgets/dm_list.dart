@@ -707,8 +707,11 @@ class _DMListState extends ConsumerState<DMList> {
     final layout = context.layout;
     final hasUnread = c.unreadCount > 0;
     final currentUserId = ref.watch(currentUserIdProvider);
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     final String displayName = c.displayNameWith(
       c.isGroup ? null : ref.watch(friendNicknameProvider(c.recipientId)).value,
+      l10n: l10n,
+      currentUserId: currentUserId,
     );
     final titleColor = isSelected
         ? context.colors.surfaceInteractiveSelectedColor
@@ -1429,6 +1432,8 @@ class _DmBottomSheet extends ConsumerWidget {
       convo.isGroup
           ? null
           : ref.watch(friendNicknameProvider(convo.recipientId)).value,
+      l10n: l10n,
+      currentUserId: ref.watch(currentUserIdProvider),
     );
 
     void pop(Object action) => Navigator.of(context).pop(action);

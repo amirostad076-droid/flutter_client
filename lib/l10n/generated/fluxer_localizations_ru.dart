@@ -863,6 +863,14 @@ class FluxerLocalizationsRu extends FluxerLocalizations {
   String get dmUnpinGroupDm => 'Открепить групповой ЛС';
 
   @override
+  String get dmUnnamedGroup => 'Unnamed group';
+
+  @override
+  String dmOwnersGroup(String resolvedName) {
+    return '$resolvedName\'s group';
+  }
+
+  @override
   String get dmFavoriteDm => 'Добавить ЛС в избранное';
 
   @override
@@ -5297,6 +5305,374 @@ class FluxerLocalizationsRu extends FluxerLocalizations {
   @override
   String get channelPinsEmptyDescription =>
       'Здесь будут отображаться закрепленные сообщения.';
+
+  @override
+  String get channelDetailsFallbackTitle => 'Details';
+
+  @override
+  String channelDetailsGroupDmSubtitle(int count) {
+    return 'Group DM · $count members';
+  }
+
+  @override
+  String channelDetailsCloseDmDescription(String name) {
+    return 'Close your conversation with $name?';
+  }
+
+  @override
+  String channelDetailsLeaveGroupDescription(String name) {
+    return 'Leave $name?';
+  }
+
+  @override
+  String get channelDetailsChannelSettingsTitle => 'Channel Settings';
+
+  @override
+  String get channelDetailsGroupSettingsTitle => 'Group Settings';
+
+  @override
+  String get channelDetailsDmSettingsTitle => 'DM Settings';
+
+  @override
+  String get channelDetailsInvitePeople => 'Invite People';
+
+  @override
+  String get channelDetailsCopyLink => 'Copy Link';
+
+  @override
+  String get channelDetailsAddFriendsToGroup => 'Add Friends to Group';
+
+  @override
+  String get channelDetailsGroupInvites => 'Group Invites';
+
+  @override
+  String get channelDetailsEditChannel => 'Edit Channel';
+
+  @override
+  String get channelDetailsDeleteChannel => 'Delete Channel';
+
+  @override
+  String get channelDetailsSystemMessage => 'System message';
+
+  @override
+  String get channelDetailsTextChannel => 'Text channel';
+
+  @override
+  String get channelDetailsVoiceChannel => 'Voice channel';
+
+  @override
+  String get channelDetailsCategory => 'Category';
+
+  @override
+  String get channelDetailsLinkChannel => 'Link channel';
+
+  @override
+  String get channelDetailsGenericChannel => 'Channel';
+
+  @override
+  String get channelDetailsMutedConversation => 'Muted conversation';
+
+  @override
+  String get channelDetailsUnmutedConversation => 'Unmuted conversation';
+
+  @override
+  String get channelDetailsMutedChannel => 'Muted channel';
+
+  @override
+  String get channelDetailsUnmutedChannel => 'Unmuted channel';
+
+  @override
+  String get channelDetailsNotificationSettingsUpdated =>
+      'Notification settings updated';
+
+  @override
+  String get channelDetailsTabMembers => 'Members';
+
+  @override
+  String get channelDetailsTabPins => 'Pins';
+
+  @override
+  String get channelDetailsActionMute => 'Mute';
+
+  @override
+  String get channelDetailsActionUnmute => 'Unmute';
+
+  @override
+  String get channelDetailsActionSearch => 'Search';
+
+  @override
+  String get channelDetailsActionMore => 'More';
+
+  @override
+  String get channelDetailsMembersEmptyTitle => 'No members to show';
+
+  @override
+  String get channelDetailsMembersEmptyBody =>
+      'Members will appear here once the community data is loaded.';
+
+  @override
+  String get channelDetailsPinsLoadFailedTitle => 'Pins could not be loaded';
+
+  @override
+  String get channelDetailsPinsGuildEndHint =>
+      'Members with the \"Pin Messages\" permission can pin messages for everyone to see.';
+
+  @override
+  String get channelDetailsPinsDmEndHint =>
+      'You can pin messages in this conversation for everyone to see.';
+
+  @override
+  String get channelDetailsPinsEndReached => 'You\'ve reached the end';
+
+  @override
+  String get channelDetailsSearchTitle => 'Search';
+
+  @override
+  String get channelDetailsSearchHint => 'Search Messages';
+
+  @override
+  String get channelDetailsSearchFilterFrom => 'From';
+
+  @override
+  String get channelDetailsSearchFilterHas => 'Has';
+
+  @override
+  String get channelDetailsSearchFilterSort => 'Sort';
+
+  @override
+  String channelDetailsSearchResultCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Results',
+      one: '1 Result',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get channelDetailsSearchFilterByUser => 'Filter by user';
+
+  @override
+  String get channelDetailsSearchFilterByContent => 'Filter by content';
+
+  @override
+  String get channelDetailsSearchSortBy => 'Sort results by';
+
+  @override
+  String get channelDetailsSearchIn => 'Search In';
+
+  @override
+  String get channelDetailsSearchEmptyTitle => 'Search this conversation';
+
+  @override
+  String get channelDetailsSearchEmptyBody =>
+      'Enter text, an author, or a content filter to find messages.';
+
+  @override
+  String get channelDetailsSearchIndexingTitle => 'Messages are indexing';
+
+  @override
+  String get channelDetailsSearchIndexingBody =>
+      'Try again shortly once search finishes indexing this scope.';
+
+  @override
+  String get channelDetailsSearchNoResultsTitle => 'No results';
+
+  @override
+  String get channelDetailsSearchNoResultsBody =>
+      'Try different search terms or filters.';
+
+  @override
+  String get channelDetailsMembersOnline => 'Online';
+
+  @override
+  String get channelDetailsMembersOffline => 'Offline';
+
+  @override
+  String get channelDetailsMemberYou => 'You';
+
+  @override
+  String get channelDetailsSearchUsersHint => 'Search users';
+
+  @override
+  String get channelDetailsSearchUsersTypeToSearch => 'Type to search members';
+
+  @override
+  String get channelDetailsSearchUsersEmpty => 'No users found';
+
+  @override
+  String get channelDetailsSearchUsersNoAvailable => 'No users available';
+
+  @override
+  String get channelDetailsDone => 'Done';
+
+  @override
+  String get channelDetailsHasFilterPrompt => 'Show messages that contain:';
+
+  @override
+  String get channelDetailsRetry => 'Retry';
+
+  @override
+  String get channelDetailsPinnedMessageTitle => 'Pinned Message';
+
+  @override
+  String get channelDetailsSearchResultTitle => 'Search Result';
+
+  @override
+  String get channelDetailsJumpToMessage => 'Jump to Message';
+
+  @override
+  String get channelDetailsUnpinMessage => 'Unpin Message';
+
+  @override
+  String get channelDetailsCopyMessageLink => 'Copy Message Link';
+
+  @override
+  String get channelDetailsCopyMessageId => 'Copy Message ID';
+
+  @override
+  String get channelDetailsMessageUnpinned => 'Message unpinned';
+
+  @override
+  String get channelDetailsSearchScopeCurrentCommunity => 'Current Community';
+
+  @override
+  String get channelDetailsSearchScopeCurrentDm => 'Current DM';
+
+  @override
+  String get channelDetailsSearchScopeAllCommunities => 'All Communities';
+
+  @override
+  String get channelDetailsSearchScopeAllDmsOnlyGuild => 'All DMs Only';
+
+  @override
+  String get channelDetailsSearchScopeAllDms => 'All DMs';
+
+  @override
+  String get channelDetailsSearchScopeOpenDmsOnlyGuild => 'Open DMs Only';
+
+  @override
+  String get channelDetailsSearchScopeOpenDms => 'Open DMs';
+
+  @override
+  String get channelDetailsSearchScopeAllDmsAndCommunities =>
+      'All DMs + Communities';
+
+  @override
+  String get channelDetailsSearchScopeOpenDmsAndCommunities =>
+      'Open DMs + Communities';
+
+  @override
+  String get channelDetailsSearchScopeCurrentCommunityDescription =>
+      'Search only in the current Community';
+
+  @override
+  String get channelDetailsSearchScopeCurrentDmDescription =>
+      'Search only in the current DM';
+
+  @override
+  String get channelDetailsSearchScopeAllCommunitiesDescription =>
+      'Across all Communities you\'re currently in';
+
+  @override
+  String get channelDetailsSearchScopeAllDmsOnlyGuildDescription =>
+      'Across all DMs you\'ve ever been in only';
+
+  @override
+  String get channelDetailsSearchScopeAllDmsDescription =>
+      'Across all DMs you\'ve ever been in';
+
+  @override
+  String get channelDetailsSearchScopeOpenDmsOnlyGuildDescription =>
+      'Across all DMs you currently have open only';
+
+  @override
+  String get channelDetailsSearchScopeOpenDmsDescription =>
+      'Across all DMs you currently have open';
+
+  @override
+  String get channelDetailsSearchScopeAllDmsAndCommunitiesDescription =>
+      'Across all DMs you\'ve ever been in + all Communities you\'re currently in';
+
+  @override
+  String get channelDetailsSearchScopeOpenDmsAndCommunitiesDescription =>
+      'Across all DMs you currently have open + all Communities you\'re currently in';
+
+  @override
+  String get channelDetailsSearchSortNewest => 'Newest First';
+
+  @override
+  String get channelDetailsSearchSortOldest => 'Oldest First';
+
+  @override
+  String get channelDetailsSearchSortRelevance => 'Most Relevant';
+
+  @override
+  String get channelDetailsSearchSortNewestDescription =>
+      'Show most recent messages first';
+
+  @override
+  String get channelDetailsSearchSortOldestDescription =>
+      'Show oldest messages first';
+
+  @override
+  String get channelDetailsSearchSortRelevanceDescription =>
+      'Show most relevant messages first';
+
+  @override
+  String get channelDetailsSearchContentImage => 'Image Upload';
+
+  @override
+  String get channelDetailsSearchContentVideo => 'Video Upload';
+
+  @override
+  String get channelDetailsSearchContentAudio => 'Audio Upload';
+
+  @override
+  String get channelDetailsSearchContentFile => 'File Upload';
+
+  @override
+  String get channelDetailsSearchContentLink => 'Link';
+
+  @override
+  String get channelDetailsSearchContentEmbed => 'Link Preview or Embed';
+
+  @override
+  String get channelDetailsSearchContentSticker => 'Sticker';
+
+  @override
+  String get channelDetailsSearchContentImageDescription =>
+      'Uploaded image files only';
+
+  @override
+  String get channelDetailsSearchContentVideoDescription =>
+      'Uploaded video files only';
+
+  @override
+  String get channelDetailsSearchContentAudioDescription =>
+      'Uploaded audio files only';
+
+  @override
+  String get channelDetailsSearchContentFileDescription =>
+      'Any uploaded attachment';
+
+  @override
+  String get channelDetailsSearchContentLinkDescription =>
+      'Typed URL in the message text';
+
+  @override
+  String get channelDetailsSearchContentEmbedDescription =>
+      'Resolved previews and rich embeds, not uploads';
+
+  @override
+  String get channelDetailsSearchContentStickerDescription =>
+      'Sticker attached to the message';
+
+  @override
+  String channelDetailsSearchContentTypesCount(int count) {
+    return '$count types';
+  }
 
   @override
   String get personalNotesTitle => 'Личные заметки';

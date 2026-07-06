@@ -177,9 +177,9 @@ List<InlineSpan> buildSystemMessageTextSpans({
   required FluxerLocalizations l10n,
   required Message message,
   required String authorName,
-  String? mentionedUserName,
   required TextStyle textStyle,
   required TextStyle usernameStyle,
+  String? mentionedUserName,
   TextStyle? newNameStyle,
   TextStyle? linkStyle,
   VoidCallback? onMessageLinkTap,
@@ -422,10 +422,10 @@ enum _SystemMessagePlaceholder { username, mentionedUsername, newName }
 List<InlineSpan> expandSystemMessageTemplate(
   String input, {
   required String authorName,
-  String? mentionedUserName,
-  String? newName,
   required TextStyle textStyle,
   required TextStyle usernameStyle,
+  String? mentionedUserName,
+  String? newName,
   TextStyle? newNameStyle,
 }) {
   if (input.isEmpty) {

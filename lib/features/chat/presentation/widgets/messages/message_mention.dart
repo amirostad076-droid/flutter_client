@@ -16,6 +16,8 @@ import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/sheets/channel_access_denied_sheet.dart';
 import 'package:fluxer_app/features/chat/utils/channel_jump_navigator.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
+import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
+import 'package:fluxer_app/features/dm/utils/group_dm_display_name.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/role_providers.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
@@ -333,7 +335,10 @@ final FutureProviderFamily<String?, String> _dmNameByChannelIdProvider =
         return null;
       }
       if (isDmGroupType(row.type)) {
-        return row.name ?? 'Group DM';
+        final conversation = await ref
+            .read(dmRepositoryProvider)
+            .conversationFromChannelRow(row);
+        return resolveGroupDmDisplayName(dm: conversation);
       }
       final user = await db.userDao.getUserById(row.recipientId);
       if (user == null) {

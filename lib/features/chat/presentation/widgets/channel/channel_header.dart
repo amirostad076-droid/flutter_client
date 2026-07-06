@@ -713,6 +713,7 @@ class ChannelHeader extends ConsumerWidget {
       dm: dm,
       isPersonalNotes: isPersonalNotes,
       friendNickname: friendNickname,
+      currentUserId: ref.watch(currentUserIdProvider),
     );
   }
 
@@ -722,6 +723,7 @@ class ChannelHeader extends ConsumerWidget {
     required DmConversation? dm,
     required bool isPersonalNotes,
     String? friendNickname,
+    String? currentUserId,
   }) {
     if (channel != null) {
       return channel.name;
@@ -730,7 +732,11 @@ class ChannelHeader extends ConsumerWidget {
       return l10n.personalNotesTitle;
     }
     if (dm != null) {
-      return dm.displayNameWith(friendNickname);
+      return dm.displayNameWith(
+        friendNickname,
+        l10n: l10n,
+        currentUserId: currentUserId,
+      );
     }
     return '';
   }

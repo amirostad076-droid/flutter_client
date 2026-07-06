@@ -62,7 +62,6 @@ Message _systemMessage(
 
 const MessageCall _sampleCall = MessageCall(
   participants: <String>['u1', 'viewer'],
-  endedTimestamp: null,
 );
 
 Future<void> _pumpSystemMessage(

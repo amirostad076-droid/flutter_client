@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
+import 'package:fluxer_app/features/dm/data/dm_conversation_mapper.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/domain/group_dm_utils.dart';
@@ -74,6 +74,10 @@ class DmRepository {
     return controller.stream;
   }
 
+  Future<DmConversation> conversationFromChannelRow(db.DmChannel row) {
+    return buildDmConversationFromChannelRow(_db, row);
+  }
+
   Future<List<DmConversation>> _buildConversations(
     List<db.DmChannel> rows,
   ) async {
@@ -89,7 +93,7 @@ class DmRepository {
     final allRecipientIds = <String>{};
     for (final row in rows) {
       allRecipientIds.add(row.recipientId);
-      final ids = _parseRecipientIds(row.recipientIds);
+      final ids = parseDmChannelRecipientIds(row.recipientIds);
       allRecipientIds.addAll(ids);
     }
     allRecipientIds.addAll(lastMessages.values.map((m) => m.authorId));
@@ -114,9 +118,9 @@ class DmRepository {
         ackLastMessageId: readState?.lastMessageId,
         mentionCount: readState?.mentionCount ?? 0,
       );
-      final recipientIds = _parseRecipientIds(row.recipientIds);
+      final recipientIds = parseDmChannelRecipientIds(row.recipientIds);
       final isGroup = isDmGroupType(row.type);
-      final remoteRecipientIds = _buildRemoteRecipientIds(
+      final remoteRecipientIds = buildDmRemoteRecipientIds(
         recipientIds,
         row.recipientId,
       );
@@ -132,8 +136,11 @@ class DmRepository {
             ? _computeGroupStatus(recipientIds, userMap)
             : null,
         groupMembers: isGroup
-            ? _buildGroupMembers(recipientIds, userMap)
+            ? buildDmGroupMembers(recipientIds, userMap)
             : const [],
+        channelNicks: isGroup
+            ? parseDmChannelNicksJson(row.nicksJson)
+            : const {},
         remoteRecipientIds: remoteRecipientIds,
         unreadCount: dmUnreadCountFromReadState(
           latestMessageId: latestMessageId,
@@ -146,24 +153,6 @@ class DmRepository {
     }).toList();
   }
 
-  static List<String> _parseRecipientIds(String json) {
-    try {
-      final List<dynamic> raw = jsonDecode(json) as List<dynamic>;
-      return raw.map((e) => e.toString()).where((s) => s.isNotEmpty).toList();
-    } on Object {
-      return [];
-    }
-  }
-
-  static List<String> _buildRemoteRecipientIds(
-    List<String> parsedRecipientIds,
-    String primaryRecipientId,
-  ) {
-    final Set<String> combined = {...parsedRecipientIds, primaryRecipientId};
-    final List<String> out = combined.toList()..sort();
-    return out;
-  }
-
   static String? _computeGroupStatus(
     List<String> recipientIds,
     Map<String, db.User> userMap,
@@ -174,20 +163,6 @@ class DmRepository {
       }
     }
     return null;
-  }
-
-  static List<GroupMemberInfo> _buildGroupMembers(
-    List<String> recipientIds,
-    Map<String, db.User> userMap,
-  ) {
-    return recipientIds.map((id) {
-      final user = userMap[id];
-      return GroupMemberInfo(
-        id: id,
-        avatar: user?.avatar,
-        name: user?.globalName ?? user?.username ?? '',
-      );
-    }).toList();
   }
 
   Future<db.DmChannelsCompanion?> _buildDmChannelCompanion(
@@ -241,7 +216,7 @@ class DmRepository {
     for (final row in rows) {
       if (isDmChannelType(row.type) &&
           (row.recipientId == userId ||
-              _parseRecipientIds(row.recipientIds).contains(userId))) {
+              parseDmChannelRecipientIds(row.recipientIds).contains(userId))) {
         return row.id;
       }
     }

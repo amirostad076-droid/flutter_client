@@ -137,7 +137,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 70;
+  int get schemaVersion => 71;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -659,6 +659,9 @@ class FluxerDatabase extends _$FluxerDatabase {
       }
       if (from < 70) {
         await m.addColumn(messages, messages.callJson);
+      }
+      if (from < 71) {
+        await m.addColumn(dmChannels, dmChannels.nicksJson);
       }
     },
   );

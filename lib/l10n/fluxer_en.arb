@@ -1107,6 +1107,20 @@
   "@dmUnpinGroupDm": {
     "description": "DM context menu action to unpin a group DM."
   },
+  "dmUnnamedGroup": "Unnamed group",
+  "@dmUnnamedGroup": {
+    "description": "Fallback title for a group DM without a custom name."
+  },
+  "dmOwnersGroup": "{resolvedName}'s group",
+  "@dmOwnersGroup": {
+    "description": "Fallback title when the current user is the only participant in a group DM.",
+    "placeholders": {
+      "resolvedName": {
+        "type": "String",
+        "example": "Alice"
+      }
+    }
+  },
   "dmFavoriteDm": "Favorite DM",
   "@dmFavoriteDm": {
     "description": "DM context menu action to favorite a DM."
@@ -6686,6 +6700,463 @@
   "channelPinsEmptyDescription": "Pinned messages show up here.",
   "@channelPinsEmptyDescription": {
     "description": "Description shown when a channel has no pinned messages."
+  },
+  "channelDetailsFallbackTitle": "Details",
+  "@channelDetailsFallbackTitle": {
+    "description": "Fallback title in channel details when no channel or DM name is available."
+  },
+  "channelDetailsGroupDmSubtitle": "Group DM · {count} members",
+  "@channelDetailsGroupDmSubtitle": {
+    "description": "Subtitle in channel details for a group DM showing member count.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "channelDetailsCloseDmDescription": "Close your conversation with {name}?",
+  "@channelDetailsCloseDmDescription": {
+    "description": "Confirmation body when closing a 1:1 DM from channel details.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "channelDetailsLeaveGroupDescription": "Leave {name}?",
+  "@channelDetailsLeaveGroupDescription": {
+    "description": "Confirmation body when leaving a group DM from channel details.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "channelDetailsChannelSettingsTitle": "Channel Settings",
+  "@channelDetailsChannelSettingsTitle": {
+    "description": "Title for the channel details overflow menu on guild channels."
+  },
+  "channelDetailsGroupSettingsTitle": "Group Settings",
+  "@channelDetailsGroupSettingsTitle": {
+    "description": "Title for the channel details overflow menu on group DMs."
+  },
+  "channelDetailsDmSettingsTitle": "DM Settings",
+  "@channelDetailsDmSettingsTitle": {
+    "description": "Title for the channel details overflow menu on 1:1 DMs."
+  },
+  "channelDetailsInvitePeople": "Invite People",
+  "@channelDetailsInvitePeople": {
+    "description": "Channel details menu action to invite people."
+  },
+  "channelDetailsCopyLink": "Copy Link",
+  "@channelDetailsCopyLink": {
+    "description": "Channel details menu action to copy a channel link."
+  },
+  "channelDetailsAddFriendsToGroup": "Add Friends to Group",
+  "@channelDetailsAddFriendsToGroup": {
+    "description": "Group DM menu action to add friends to the group."
+  },
+  "channelDetailsGroupInvites": "Group Invites",
+  "@channelDetailsGroupInvites": {
+    "description": "Group DM menu action to view group invites."
+  },
+  "channelDetailsEditChannel": "Edit Channel",
+  "@channelDetailsEditChannel": {
+    "description": "Channel details menu action to edit a guild channel."
+  },
+  "channelDetailsDeleteChannel": "Delete Channel",
+  "@channelDetailsDeleteChannel": {
+    "description": "Channel details menu action to delete a guild channel."
+  },
+  "channelDetailsSystemMessage": "System message",
+  "@channelDetailsSystemMessage": {
+    "description": "Subtitle in channel details for a system DM recipient."
+  },
+  "channelDetailsTextChannel": "Text channel",
+  "@channelDetailsTextChannel": {
+    "description": "Channel type subtitle for text channels."
+  },
+  "channelDetailsVoiceChannel": "Voice channel",
+  "@channelDetailsVoiceChannel": {
+    "description": "Channel type subtitle for voice channels."
+  },
+  "channelDetailsCategory": "Category",
+  "@channelDetailsCategory": {
+    "description": "Channel type subtitle for categories."
+  },
+  "channelDetailsLinkChannel": "Link channel",
+  "@channelDetailsLinkChannel": {
+    "description": "Channel type subtitle for link channels."
+  },
+  "channelDetailsGenericChannel": "Channel",
+  "@channelDetailsGenericChannel": {
+    "description": "Generic channel type subtitle fallback."
+  },
+  "channelDetailsMutedConversation": "Muted conversation",
+  "@channelDetailsMutedConversation": {
+    "description": "Toast after muting a DM conversation from channel details."
+  },
+  "channelDetailsUnmutedConversation": "Unmuted conversation",
+  "@channelDetailsUnmutedConversation": {
+    "description": "Toast after unmuting a DM conversation from channel details."
+  },
+  "channelDetailsMutedChannel": "Muted channel",
+  "@channelDetailsMutedChannel": {
+    "description": "Toast after muting a guild channel from channel details."
+  },
+  "channelDetailsUnmutedChannel": "Unmuted channel",
+  "@channelDetailsUnmutedChannel": {
+    "description": "Toast after unmuting a guild channel from channel details."
+  },
+  "channelDetailsNotificationSettingsUpdated": "Notification settings updated",
+  "@channelDetailsNotificationSettingsUpdated": {
+    "description": "Toast after updating notification settings from channel details."
+  },
+  "channelDetailsTabMembers": "Members",
+  "@channelDetailsTabMembers": {
+    "description": "Members tab label in channel details."
+  },
+  "channelDetailsTabPins": "Pins",
+  "@channelDetailsTabPins": {
+    "description": "Pins tab label in channel details."
+  },
+  "channelDetailsActionMute": "Mute",
+  "@channelDetailsActionMute": {
+    "description": "Mute action button label in channel details."
+  },
+  "channelDetailsActionUnmute": "Unmute",
+  "@channelDetailsActionUnmute": {
+    "description": "Unmute action button label in channel details."
+  },
+  "channelDetailsActionSearch": "Search",
+  "@channelDetailsActionSearch": {
+    "description": "Search action button label in channel details."
+  },
+  "channelDetailsActionMore": "More",
+  "@channelDetailsActionMore": {
+    "description": "More action button label in channel details."
+  },
+  "channelDetailsMembersEmptyTitle": "No members to show",
+  "@channelDetailsMembersEmptyTitle": {
+    "description": "Empty state title when channel details has no members loaded."
+  },
+  "channelDetailsMembersEmptyBody": "Members will appear here once the community data is loaded.",
+  "@channelDetailsMembersEmptyBody": {
+    "description": "Empty state body when channel details has no members loaded."
+  },
+  "channelDetailsPinsLoadFailedTitle": "Pins could not be loaded",
+  "@channelDetailsPinsLoadFailedTitle": {
+    "description": "Error title when pinned messages fail to load in channel details."
+  },
+  "channelDetailsPinsGuildEndHint": "Members with the \"Pin Messages\" permission can pin messages for everyone to see.",
+  "@channelDetailsPinsGuildEndHint": {
+    "description": "Footer hint at the end of the pins list in guild channels."
+  },
+  "channelDetailsPinsDmEndHint": "You can pin messages in this conversation for everyone to see.",
+  "@channelDetailsPinsDmEndHint": {
+    "description": "Footer hint at the end of the pins list in DM channels."
+  },
+  "channelDetailsPinsEndReached": "You've reached the end",
+  "@channelDetailsPinsEndReached": {
+    "description": "Footer label when the user has scrolled through all pinned messages."
+  },
+  "channelDetailsSearchTitle": "Search",
+  "@channelDetailsSearchTitle": {
+    "description": "Title for the channel search bottom sheet."
+  },
+  "channelDetailsSearchHint": "Search Messages",
+  "@channelDetailsSearchHint": {
+    "description": "Search field hint in channel details message search."
+  },
+  "channelDetailsSearchFilterFrom": "From",
+  "@channelDetailsSearchFilterFrom": {
+    "description": "Author filter chip label in channel message search."
+  },
+  "channelDetailsSearchFilterHas": "Has",
+  "@channelDetailsSearchFilterHas": {
+    "description": "Content filter chip label in channel message search."
+  },
+  "channelDetailsSearchFilterSort": "Sort",
+  "@channelDetailsSearchFilterSort": {
+    "description": "Sort filter chip label in channel message search."
+  },
+  "channelDetailsSearchResultCount": "{count, plural, =1{1 Result} other{{count} Results}}",
+  "@channelDetailsSearchResultCount": {
+    "description": "Result count label in channel message search.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "channelDetailsSearchFilterByUser": "Filter by user",
+  "@channelDetailsSearchFilterByUser": {
+    "description": "Title for the author filter sheet in channel message search."
+  },
+  "channelDetailsSearchFilterByContent": "Filter by content",
+  "@channelDetailsSearchFilterByContent": {
+    "description": "Title for the content filter sheet in channel message search."
+  },
+  "channelDetailsSearchSortBy": "Sort results by",
+  "@channelDetailsSearchSortBy": {
+    "description": "Title for the sort filter sheet in channel message search."
+  },
+  "channelDetailsSearchIn": "Search In",
+  "@channelDetailsSearchIn": {
+    "description": "Title for the search scope filter sheet in channel message search."
+  },
+  "channelDetailsSearchEmptyTitle": "Search this conversation",
+  "@channelDetailsSearchEmptyTitle": {
+    "description": "Empty state title before the user runs a channel message search."
+  },
+  "channelDetailsSearchEmptyBody": "Enter text, an author, or a content filter to find messages.",
+  "@channelDetailsSearchEmptyBody": {
+    "description": "Empty state body before the user runs a channel message search."
+  },
+  "channelDetailsSearchIndexingTitle": "Messages are indexing",
+  "@channelDetailsSearchIndexingTitle": {
+    "description": "Title when channel message search is still indexing."
+  },
+  "channelDetailsSearchIndexingBody": "Try again shortly once search finishes indexing this scope.",
+  "@channelDetailsSearchIndexingBody": {
+    "description": "Body when channel message search is still indexing."
+  },
+  "channelDetailsSearchNoResultsTitle": "No results",
+  "@channelDetailsSearchNoResultsTitle": {
+    "description": "Title when a channel message search returns no results."
+  },
+  "channelDetailsSearchNoResultsBody": "Try different search terms or filters.",
+  "@channelDetailsSearchNoResultsBody": {
+    "description": "Body when a channel message search returns no results."
+  },
+  "channelDetailsMembersOnline": "Online",
+  "@channelDetailsMembersOnline": {
+    "description": "Online members section header in channel details."
+  },
+  "channelDetailsMembersOffline": "Offline",
+  "@channelDetailsMembersOffline": {
+    "description": "Offline members section header in channel details."
+  },
+  "channelDetailsMemberYou": "You",
+  "@channelDetailsMemberYou": {
+    "description": "Label for the current user in the channel details member list."
+  },
+  "channelDetailsSearchUsersHint": "Search users",
+  "@channelDetailsSearchUsersHint": {
+    "description": "Search field hint in channel details user picker sheets."
+  },
+  "channelDetailsSearchUsersTypeToSearch": "Type to search members",
+  "@channelDetailsSearchUsersTypeToSearch": {
+    "description": "Prompt shown before the user types in the member search picker."
+  },
+  "channelDetailsSearchUsersEmpty": "No users found",
+  "@channelDetailsSearchUsersEmpty": {
+    "description": "Empty state when member search returns no results."
+  },
+  "channelDetailsSearchUsersNoAvailable": "No users available",
+  "@channelDetailsSearchUsersNoAvailable": {
+    "description": "Empty state when no users are available in the member picker."
+  },
+  "channelDetailsDone": "Done",
+  "@channelDetailsDone": {
+    "description": "Done button label in channel details picker sheets."
+  },
+  "channelDetailsHasFilterPrompt": "Show messages that contain:",
+  "@channelDetailsHasFilterPrompt": {
+    "description": "Prompt above content filter options in channel message search."
+  },
+  "channelDetailsRetry": "Retry",
+  "@channelDetailsRetry": {
+    "description": "Retry button label in channel details error states."
+  },
+  "channelDetailsPinnedMessageTitle": "Pinned Message",
+  "@channelDetailsPinnedMessageTitle": {
+    "description": "Title for the pinned message action sheet in channel details."
+  },
+  "channelDetailsSearchResultTitle": "Search Result",
+  "@channelDetailsSearchResultTitle": {
+    "description": "Title for the search result action sheet in channel details."
+  },
+  "channelDetailsJumpToMessage": "Jump to Message",
+  "@channelDetailsJumpToMessage": {
+    "description": "Action to jump to a message from channel details."
+  },
+  "channelDetailsUnpinMessage": "Unpin Message",
+  "@channelDetailsUnpinMessage": {
+    "description": "Action to unpin a message from channel details."
+  },
+  "channelDetailsCopyMessageLink": "Copy Message Link",
+  "@channelDetailsCopyMessageLink": {
+    "description": "Action to copy a message link from channel details."
+  },
+  "channelDetailsCopyMessageId": "Copy Message ID",
+  "@channelDetailsCopyMessageId": {
+    "description": "Action to copy a message ID from channel details."
+  },
+  "channelDetailsMessageUnpinned": "Message unpinned",
+  "@channelDetailsMessageUnpinned": {
+    "description": "Toast after unpinning a message from channel details."
+  },
+  "channelDetailsSearchScopeCurrentCommunity": "Current Community",
+  "@channelDetailsSearchScopeCurrentCommunity": {
+    "description": "Search scope label for the current community."
+  },
+  "channelDetailsSearchScopeCurrentDm": "Current DM",
+  "@channelDetailsSearchScopeCurrentDm": {
+    "description": "Search scope label for the current DM."
+  },
+  "channelDetailsSearchScopeAllCommunities": "All Communities",
+  "@channelDetailsSearchScopeAllCommunities": {
+    "description": "Search scope label for all communities."
+  },
+  "channelDetailsSearchScopeAllDmsOnlyGuild": "All DMs Only",
+  "@channelDetailsSearchScopeAllDmsOnlyGuild": {
+    "description": "Search scope label for all DMs when searching from a guild channel."
+  },
+  "channelDetailsSearchScopeAllDms": "All DMs",
+  "@channelDetailsSearchScopeAllDms": {
+    "description": "Search scope label for all DMs when searching from a DM."
+  },
+  "channelDetailsSearchScopeOpenDmsOnlyGuild": "Open DMs Only",
+  "@channelDetailsSearchScopeOpenDmsOnlyGuild": {
+    "description": "Search scope label for open DMs when searching from a guild channel."
+  },
+  "channelDetailsSearchScopeOpenDms": "Open DMs",
+  "@channelDetailsSearchScopeOpenDms": {
+    "description": "Search scope label for open DMs when searching from a DM."
+  },
+  "channelDetailsSearchScopeAllDmsAndCommunities": "All DMs + Communities",
+  "@channelDetailsSearchScopeAllDmsAndCommunities": {
+    "description": "Search scope label for all DMs and communities."
+  },
+  "channelDetailsSearchScopeOpenDmsAndCommunities": "Open DMs + Communities",
+  "@channelDetailsSearchScopeOpenDmsAndCommunities": {
+    "description": "Search scope label for open DMs and communities."
+  },
+  "channelDetailsSearchScopeCurrentCommunityDescription": "Search only in the current Community",
+  "@channelDetailsSearchScopeCurrentCommunityDescription": {
+    "description": "Description for the current community search scope."
+  },
+  "channelDetailsSearchScopeCurrentDmDescription": "Search only in the current DM",
+  "@channelDetailsSearchScopeCurrentDmDescription": {
+    "description": "Description for the current DM search scope."
+  },
+  "channelDetailsSearchScopeAllCommunitiesDescription": "Across all Communities you're currently in",
+  "@channelDetailsSearchScopeAllCommunitiesDescription": {
+    "description": "Description for the all communities search scope."
+  },
+  "channelDetailsSearchScopeAllDmsOnlyGuildDescription": "Across all DMs you've ever been in only",
+  "@channelDetailsSearchScopeAllDmsOnlyGuildDescription": {
+    "description": "Description for all DMs scope when searching from a guild channel."
+  },
+  "channelDetailsSearchScopeAllDmsDescription": "Across all DMs you've ever been in",
+  "@channelDetailsSearchScopeAllDmsDescription": {
+    "description": "Description for all DMs scope when searching from a DM."
+  },
+  "channelDetailsSearchScopeOpenDmsOnlyGuildDescription": "Across all DMs you currently have open only",
+  "@channelDetailsSearchScopeOpenDmsOnlyGuildDescription": {
+    "description": "Description for open DMs scope when searching from a guild channel."
+  },
+  "channelDetailsSearchScopeOpenDmsDescription": "Across all DMs you currently have open",
+  "@channelDetailsSearchScopeOpenDmsDescription": {
+    "description": "Description for open DMs scope when searching from a DM."
+  },
+  "channelDetailsSearchScopeAllDmsAndCommunitiesDescription": "Across all DMs you've ever been in + all Communities you're currently in",
+  "@channelDetailsSearchScopeAllDmsAndCommunitiesDescription": {
+    "description": "Description for the all DMs and communities search scope."
+  },
+  "channelDetailsSearchScopeOpenDmsAndCommunitiesDescription": "Across all DMs you currently have open + all Communities you're currently in",
+  "@channelDetailsSearchScopeOpenDmsAndCommunitiesDescription": {
+    "description": "Description for the open DMs and communities search scope."
+  },
+  "channelDetailsSearchSortNewest": "Newest First",
+  "@channelDetailsSearchSortNewest": {
+    "description": "Sort option label for newest messages first."
+  },
+  "channelDetailsSearchSortOldest": "Oldest First",
+  "@channelDetailsSearchSortOldest": {
+    "description": "Sort option label for oldest messages first."
+  },
+  "channelDetailsSearchSortRelevance": "Most Relevant",
+  "@channelDetailsSearchSortRelevance": {
+    "description": "Sort option label for most relevant messages first."
+  },
+  "channelDetailsSearchSortNewestDescription": "Show most recent messages first",
+  "@channelDetailsSearchSortNewestDescription": {
+    "description": "Description for the newest-first sort option."
+  },
+  "channelDetailsSearchSortOldestDescription": "Show oldest messages first",
+  "@channelDetailsSearchSortOldestDescription": {
+    "description": "Description for the oldest-first sort option."
+  },
+  "channelDetailsSearchSortRelevanceDescription": "Show most relevant messages first",
+  "@channelDetailsSearchSortRelevanceDescription": {
+    "description": "Description for the relevance sort option."
+  },
+  "channelDetailsSearchContentImage": "Image Upload",
+  "@channelDetailsSearchContentImage": {
+    "description": "Content filter label for uploaded images."
+  },
+  "channelDetailsSearchContentVideo": "Video Upload",
+  "@channelDetailsSearchContentVideo": {
+    "description": "Content filter label for uploaded videos."
+  },
+  "channelDetailsSearchContentAudio": "Audio Upload",
+  "@channelDetailsSearchContentAudio": {
+    "description": "Content filter label for uploaded audio."
+  },
+  "channelDetailsSearchContentFile": "File Upload",
+  "@channelDetailsSearchContentFile": {
+    "description": "Content filter label for uploaded files."
+  },
+  "channelDetailsSearchContentLink": "Link",
+  "@channelDetailsSearchContentLink": {
+    "description": "Content filter label for typed links."
+  },
+  "channelDetailsSearchContentEmbed": "Link Preview or Embed",
+  "@channelDetailsSearchContentEmbed": {
+    "description": "Content filter label for link previews and embeds."
+  },
+  "channelDetailsSearchContentSticker": "Sticker",
+  "@channelDetailsSearchContentSticker": {
+    "description": "Content filter label for stickers."
+  },
+  "channelDetailsSearchContentImageDescription": "Uploaded image files only",
+  "@channelDetailsSearchContentImageDescription": {
+    "description": "Description for the image content filter."
+  },
+  "channelDetailsSearchContentVideoDescription": "Uploaded video files only",
+  "@channelDetailsSearchContentVideoDescription": {
+    "description": "Description for the video content filter."
+  },
+  "channelDetailsSearchContentAudioDescription": "Uploaded audio files only",
+  "@channelDetailsSearchContentAudioDescription": {
+    "description": "Description for the audio content filter."
+  },
+  "channelDetailsSearchContentFileDescription": "Any uploaded attachment",
+  "@channelDetailsSearchContentFileDescription": {
+    "description": "Description for the file content filter."
+  },
+  "channelDetailsSearchContentLinkDescription": "Typed URL in the message text",
+  "@channelDetailsSearchContentLinkDescription": {
+    "description": "Description for the link content filter."
+  },
+  "channelDetailsSearchContentEmbedDescription": "Resolved previews and rich embeds, not uploads",
+  "@channelDetailsSearchContentEmbedDescription": {
+    "description": "Description for the embed content filter."
+  },
+  "channelDetailsSearchContentStickerDescription": "Sticker attached to the message",
+  "@channelDetailsSearchContentStickerDescription": {
+    "description": "Description for the sticker content filter."
+  },
+  "channelDetailsSearchContentTypesCount": "{count} types",
+  "@channelDetailsSearchContentTypesCount": {
+    "description": "Chip label when multiple content filters are selected in channel message search.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "personalNotesTitle": "Personal notes",
   "@personalNotesTitle": {
