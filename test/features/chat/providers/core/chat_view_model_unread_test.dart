@@ -963,6 +963,197 @@ void main() {
     },
   );
 
+  test('same-channel reveal round-trip keeps the loaded window without '
+      'refetching', () async {
+    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final olderOlderId = _snowflakeForUtc(DateTime.utc(2026, 5, 1, 8));
+    final olderId = _snowflakeForUtc(DateTime.utc(2026, 5, 1, 9));
+    final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 1, 10));
+    final firstUnreadId = _snowflakeForUtc(DateTime.utc(2026, 5, 1, 11));
+    final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 1, 12));
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(latestId),
+      ),
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(ackId),
+        mentionCount: const Value(0),
+        manual: const Value(true),
+      ),
+    );
+    final adapter = _ChatAdapter(
+      initialMessages: [
+        _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+      ],
+      aroundMessages: [
+        _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+        _messageJson(
+          id: firstUnreadId,
+          channelId: 'channel-1',
+          authorId: 'other',
+        ),
+        _messageJson(id: ackId, channelId: 'channel-1', authorId: 'other'),
+        _messageJson(id: olderId, channelId: 'channel-1', authorId: 'other'),
+      ],
+      messagesBefore: [
+        _messageJson(
+          id: olderOlderId,
+          channelId: 'channel-1',
+          authorId: 'other',
+        ),
+      ],
+    );
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel('channel-1');
+    await _flushAsync();
+    await notifier.loadMore();
+    await _flushAsync();
+
+    final expectedWindow = [
+      olderOlderId,
+      olderId,
+      ackId,
+      firstUnreadId,
+      latestId,
+    ];
+    var state = container.read(chatViewModelProvider);
+    expect(state.messages.map((message) => message.id), expectedWindow);
+    final windowBeforeReveal = state.messages;
+    final requestsBeforeReveal = adapter.messageRequestUris.length;
+
+    // Mobile drawer reveal round-trip: re-enters the same channel with
+    // loadMessages true and no target message.
+    await notifier.switchChannel('channel-1');
+    await _flushAsync();
+
+    state = container.read(chatViewModelProvider);
+    expect(
+      identical(state.messages, windowBeforeReveal),
+      isTrue,
+      reason: 'same-channel re-entry must not rebuild the message window',
+    );
+    expect(state.messages.map((message) => message.id), expectedWindow);
+    expect(state.isLoading, isFalse);
+    expect(state.isSyncingMessages, isFalse);
+    expect(adapter.messageRequestUris.length, requestsBeforeReveal);
+  });
+
+  test(
+    'channel change still loads fresh despite a loaded same-channel window',
+    () async {
+      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
+      addTearDown(db.close);
+      final olderOlderId = _snowflakeForUtc(DateTime.utc(2026, 5, 1, 8));
+      final olderId = _snowflakeForUtc(DateTime.utc(2026, 5, 1, 9));
+      final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 1, 10));
+      final firstUnreadId = _snowflakeForUtc(DateTime.utc(2026, 5, 1, 11));
+      final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 1, 12));
+      final channelTwoMessageId = _snowflakeForUtc(
+        DateTime.utc(2026, 5, 2, 12),
+      );
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(latestId),
+        ),
+      );
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-2',
+          guildId: 'guild-1',
+          name: 'other',
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(ackId),
+          mentionCount: const Value(0),
+          manual: const Value(true),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        initialMessages: [
+          _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+        ],
+        messagesByChannel: <String, List<Map<String, Object?>>>{
+          'channel-2': <Map<String, Object?>>[
+            _messageJson(
+              id: channelTwoMessageId,
+              channelId: 'channel-2',
+              authorId: 'other',
+            ),
+          ],
+        },
+        aroundMessages: [
+          _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+          _messageJson(
+            id: firstUnreadId,
+            channelId: 'channel-1',
+            authorId: 'other',
+          ),
+          _messageJson(id: ackId, channelId: 'channel-1', authorId: 'other'),
+          _messageJson(id: olderId, channelId: 'channel-1', authorId: 'other'),
+        ],
+        messagesBefore: [
+          _messageJson(
+            id: olderOlderId,
+            channelId: 'channel-1',
+            authorId: 'other',
+          ),
+        ],
+      );
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      await _flushAsync();
+      await notifier.loadMore();
+      await _flushAsync();
+
+      var state = container.read(chatViewModelProvider);
+      expect(state.messages.map((message) => message.id), [
+        olderOlderId,
+        olderId,
+        ackId,
+        firstUnreadId,
+        latestId,
+      ]);
+      final requestsBeforeSwitch = adapter.messageRequestUris.length;
+
+      // The same-channel reveal guard must not swallow genuine channel
+      // changes: switching away has to fetch the other channel's window.
+      await notifier.switchChannel('channel-2');
+      await _flushAsync();
+
+      state = container.read(chatViewModelProvider);
+      expect(state.channelId, 'channel-2');
+      expect(state.messages.map((message) => message.id), [
+        channelTwoMessageId,
+      ]);
+      expect(state.isLoading, isFalse);
+      expect(state.isSyncingMessages, isFalse);
+      expect(
+        adapter.messageRequestUris.length,
+        greaterThan(requestsBeforeSwitch),
+      );
+      expect(adapter.messageRequestUris.last.path, contains('channel-2'));
+    },
+  );
+
   test(
     'deep unread open keeps newer tail unloaded when around page stops before latest',
     () async {

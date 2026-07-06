@@ -116,12 +116,22 @@ enum _MessageListOpenMode { unresolved, unread, bottom }
 /// [ListView] anchored by a [ChatScrollObserver] (older messages prepend
 /// above the viewport; newer ones hold position unless at the live tail).
 class MessageList extends ConsumerStatefulWidget {
-  const MessageList({this.expectedChannelId, this.targetMessageId, super.key});
+  const MessageList({
+    this.expectedChannelId,
+    this.targetMessageId,
+    this.visible = true,
+    super.key,
+  });
 
   /// When set, shows a loading shell until [ChatViewState.channelId] matches.
   final String? expectedChannelId;
 
   final String? targetMessageId;
+
+  /// False while the shell keeps the list mounted but hidden (drawer
+  /// revealed). Deactivates the read viewport so hidden arrivals never
+  /// auto-ack.
+  final bool visible;
 
   @override
   ConsumerState<MessageList> createState() => _MessageListState();
@@ -167,7 +177,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       if (!mounted) {
         return;
       }
-      _chatViewModel.setReadViewportActive(isActive: true);
+      _chatViewModel.setReadViewportActive(isActive: widget.visible);
       _onScroll();
     });
   }
@@ -178,6 +188,9 @@ class _MessageListState extends ConsumerState<MessageList> {
     if (widget.targetMessageId != oldWidget.targetMessageId &&
         widget.targetMessageId != null) {
       _pendingScrollTarget = widget.targetMessageId;
+    }
+    if (widget.visible != oldWidget.visible) {
+      _chatViewModel.setReadViewportActive(isActive: widget.visible);
     }
   }
 

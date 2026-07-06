@@ -751,7 +751,6 @@ void main() {
 
         final _AroundAckMessageListHarness harness =
             await _createAroundAckMessageListHarness(
-              messageCount: 50,
               ackIndex: 48,
               hasMoreNewerMessages: false,
             );
@@ -808,11 +807,7 @@ void main() {
         addTearDown(tester.view.resetDevicePixelRatio);
 
         final _AroundAckMessageListHarness harness =
-            await _createAroundAckMessageListHarness(
-              messageCount: 50,
-              ackIndex: 48,
-              hasMoreNewerMessages: true,
-            );
+            await _createAroundAckMessageListHarness(ackIndex: 48);
         addTearDown(harness.database.close);
 
         await tester.pumpWidget(
@@ -841,10 +836,7 @@ void main() {
         // loaded message is not pinned to the viewport bottom.
         final Finder newest = _messageItemFor(harness.newestLoadedId);
         expect(newest, findsOneWidget);
-        expect(
-          tester.getRect(newest).bottom,
-          lessThan(viewport.bottom - 64),
-        );
+        expect(tester.getRect(newest).bottom, lessThan(viewport.bottom - 64));
 
         await _disposeMessageList(tester);
       },
@@ -895,6 +887,155 @@ void main() {
         await _disposeMessageList(tester);
       },
     );
+  });
+
+  group('reveal round-trip visibility', () {
+    testWidgets(
+      'toggling visible off and on preserves list state and scroll offset',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(420, 640);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final _AroundAckMessageListHarness harness =
+            await _createBottomMessageListHarness();
+        addTearDown(harness.database.close);
+
+        await tester.pumpWidget(
+          _messageListApp(
+            database: harness.database,
+            chatViewModel: harness.chatViewModel,
+            body: const _RevealToggleHost(),
+          ),
+        );
+        await tester.pump();
+
+        // Scroll up into history (reverse list: larger pixels == older).
+        final ScrollPosition position = _messageListScrollPosition(tester);
+        expect(position.maxScrollExtent, greaterThan(600));
+        position.jumpTo(600);
+        await tester.pumpAndSettle();
+        expect(position.pixels, moreOrLessEquals(600, epsilon: 1));
+
+        final State<MessageList> stateBeforeHide = tester
+            .state<State<MessageList>>(find.byType(MessageList));
+
+        _revealHostState(tester).setVisible(visible: false);
+        await tester.pump();
+
+        expect(find.byType(MessageList), findsNothing);
+        expect(_offstageMessageList(), findsOneWidget);
+        expect(
+          identical(
+            tester.state<State<MessageList>>(_offstageMessageList()),
+            stateBeforeHide,
+          ),
+          isTrue,
+          reason: 'hiding the list must not dispose its State',
+        );
+        expect(
+          _offstageMessageListPosition(tester).pixels,
+          moreOrLessEquals(600, epsilon: 1),
+        );
+
+        _revealHostState(tester).setVisible(visible: true);
+        await tester.pump();
+
+        expect(
+          identical(
+            tester.state<State<MessageList>>(find.byType(MessageList)),
+            stateBeforeHide,
+          ),
+          isTrue,
+          reason: 'revealing the list must reuse the retained State',
+        );
+        expect(
+          _messageListScrollPosition(tester).pixels,
+          moreOrLessEquals(600, epsilon: 1),
+        );
+
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets(
+      'visible toggles drive setReadViewportActive on the view model',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(420, 640);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final _AroundAckMessageListHarness harness =
+            await _createBottomMessageListHarness();
+        addTearDown(harness.database.close);
+
+        await tester.pumpWidget(
+          _messageListApp(
+            database: harness.database,
+            chatViewModel: harness.chatViewModel,
+            body: const _RevealToggleHost(),
+          ),
+        );
+        await tester.pump();
+
+        expect(harness.chatViewModel._readViewportActiveCalls, <bool>[true]);
+
+        _revealHostState(tester).setVisible(visible: false);
+        await tester.pump();
+        expect(harness.chatViewModel._readViewportActiveCalls, <bool>[
+          true,
+          false,
+        ]);
+
+        _revealHostState(tester).setVisible(visible: true);
+        await tester.pump();
+        expect(harness.chatViewModel._readViewportActiveCalls, <bool>[
+          true,
+          false,
+          true,
+        ]);
+
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets('list that opens hidden keeps the read viewport inactive until '
+        'revealed', (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(420, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final _AroundAckMessageListHarness harness =
+          await _createBottomMessageListHarness();
+      addTearDown(harness.database.close);
+
+      await tester.pumpWidget(
+        _messageListApp(
+          database: harness.database,
+          chatViewModel: harness.chatViewModel,
+          body: const _RevealToggleHost(initialVisible: false),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(MessageList), findsNothing);
+      expect(_offstageMessageList(), findsOneWidget);
+      expect(harness.chatViewModel._readViewportActiveCalls, <bool>[false]);
+
+      _revealHostState(tester).setVisible(visible: true);
+      await tester.pump();
+
+      expect(find.byType(MessageList), findsOneWidget);
+      expect(harness.chatViewModel._readViewportActiveCalls, <bool>[
+        false,
+        true,
+      ]);
+
+      await _disposeMessageList(tester);
+    });
   });
 }
 
@@ -966,6 +1107,19 @@ Finder _messageItemFor(String id) {
 
 ScrollPosition _messageListScrollPosition(WidgetTester tester) {
   return tester.state<ScrollableState>(_messageListScrollable()).position;
+}
+
+Finder _offstageMessageList() => find.byType(MessageList, skipOffstage: false);
+
+ScrollPosition _offstageMessageListPosition(WidgetTester tester) {
+  return tester
+      .state<ScrollableState>(
+        find.descendant(
+          of: _offstageMessageList(),
+          matching: find.byType(Scrollable, skipOffstage: false),
+        ),
+      )
+      .position;
 }
 
 Future<void> _pumpMessageJump(WidgetTester tester) async {
@@ -1139,6 +1293,7 @@ Future<_AroundAckMessageListHarness> _createBottomMessageListHarness({
 Widget _messageListApp({
   required db.FluxerDatabase database,
   required _InstrumentedChatViewModel chatViewModel,
+  Widget body = const MessageList(expectedChannelId: _messageListChannelId),
 }) {
   final colorTheme = buildDarkColorTheme();
   return ProviderScope(
@@ -1154,12 +1309,49 @@ Widget _messageListApp({
         textTheme: FluxerTextTheme.fromColors(colorTheme),
         layoutTheme: FluxerLayoutTheme.scaled(),
       ),
-      home: const Scaffold(
-        body: MessageList(expectedChannelId: _messageListChannelId),
-      ),
+      home: Scaffold(body: body),
     ),
   );
 }
+
+/// Mirrors the `ChannelChatPanel` reveal round-trip wrapping: while hidden
+/// the list stays mounted under `Offstage` + `TickerMode` instead of being
+/// swapped out of the tree, and `MessageList.visible` tracks the reveal.
+class _RevealToggleHost extends StatefulWidget {
+  const _RevealToggleHost({this.initialVisible = true});
+
+  final bool initialVisible;
+
+  @override
+  State<_RevealToggleHost> createState() => _RevealToggleHostState();
+}
+
+class _RevealToggleHostState extends State<_RevealToggleHost> {
+  late bool _visible = widget.initialVisible;
+
+  void setVisible({required bool visible}) {
+    setState(() {
+      _visible = visible;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Offstage(
+      offstage: !_visible,
+      child: TickerMode(
+        enabled: _visible,
+        child: MessageList(
+          expectedChannelId: _messageListChannelId,
+          visible: _visible,
+        ),
+      ),
+    );
+  }
+}
+
+_RevealToggleHostState _revealHostState(WidgetTester tester) =>
+    tester.state<_RevealToggleHostState>(find.byType(_RevealToggleHost));
 
 List<Override> _messageListOverrides({
   required db.FluxerDatabase database,
@@ -1220,6 +1412,7 @@ class _InstrumentedChatViewModel extends ChatViewModel {
   final ChatViewState _initialState;
   int _loadNewerCallCount = 0;
   String? _latestReplacementNewestId;
+  final List<bool> _readViewportActiveCalls = <bool>[];
 
   @override
   ChatViewState build() => _initialState;
@@ -1264,7 +1457,9 @@ class _InstrumentedChatViewModel extends ChatViewModel {
   Future<void> loadMore() async {}
 
   @override
-  void setReadViewportActive({required bool isActive}) {}
+  void setReadViewportActive({required bool isActive}) {
+    _readViewportActiveCalls.add(isActive);
+  }
 
   @override
   void updateReadViewport({

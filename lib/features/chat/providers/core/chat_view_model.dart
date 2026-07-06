@@ -857,6 +857,14 @@ class ChatViewModel extends _$ChatViewModel {
           !isChannelChange) {
         return;
       }
+      // A reveal round-trip or same-channel resync must not rebuild an
+      // already-loaded window: keep the pagination position and let the live
+      // tail machinery keep it current.
+      if (!isChannelChange &&
+          state.messages.isNotEmpty &&
+          !state.messageLoadFailed) {
+        return;
+      }
       final repo = ref.read(messageRepositoryProvider);
       final cached = await repo.getCachedMessages(channelId);
       if (!isCurrentSwitch()) {
@@ -1439,11 +1447,13 @@ class ChatViewModel extends _$ChatViewModel {
     _readViewportActive = isActive;
     if (!isActive) {
       _readAckRetryTimer?.cancel();
-      unawaited(Future.microtask(_syncActiveReadChannel));
-      return;
     }
-    _syncActiveReadChannel();
-    unawaited(ackCurrentChannel());
+    // Callers include widget lifecycles (didUpdateWidget runs mid-build), so
+    // the activeReadChannelProvider write must leave the build phase.
+    unawaited(Future.microtask(_syncActiveReadChannel));
+    if (isActive) {
+      unawaited(ackCurrentChannel());
+    }
   }
 
   void updateReadViewport({
