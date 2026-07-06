@@ -4,6 +4,20 @@ import 'package:fluxer_app/features/dm/domain/group_dm_utils.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:test/test.dart';
 
+const UserSettingsViewState _baseSettings = UserSettingsViewState(
+  userId: '1',
+  username: 'user',
+  displayName: 'user',
+  discriminator: '0001',
+  avatar: null,
+  avatarColor: null,
+  memberSince: null,
+  status: 'online',
+  messageDisplayCompact: false,
+  developerMode: false,
+  trustedDomains: <String>[],
+);
+
 void main() {
   group('canonicalizeRecipientIds', () {
     test('sorts and deduplicates recipient ids', () {
@@ -29,6 +43,7 @@ void main() {
         type: 3,
         recipientCount: 3,
         recipientIds: '["1","2"]',
+        nicksJson: '{}',
         lastMessage: '',
         lastMessageTime: DateTime.utc(2024),
         unreadCount: 0,
@@ -49,6 +64,7 @@ void main() {
         type: 3,
         recipientCount: 3,
         recipientIds: '["1","2"]',
+        nicksJson: '{}',
         lastMessage: '',
         lastMessageTime: DateTime.utc(2024),
         unreadCount: 0,
@@ -76,19 +92,21 @@ void main() {
 
   group('getCreateDmRestriction', () {
     test('returns unclaimed when email is missing', () {
-      const UserSettingsViewState settings = UserSettingsViewState();
-      expect(getCreateDmRestriction(settings), CreateDmRestriction.unclaimed);
+      expect(
+        getCreateDmRestriction(_baseSettings),
+        CreateDmRestriction.unclaimed,
+      );
     });
 
     test('returns unverified when email exists but not verified', () {
-      const UserSettingsViewState settings = UserSettingsViewState(
+      final UserSettingsViewState settings = _baseSettings.copyWith(
         email: 'user@example.com',
       );
       expect(getCreateDmRestriction(settings), CreateDmRestriction.unverified);
     });
 
     test('returns null for verified accounts', () {
-      const UserSettingsViewState settings = UserSettingsViewState(
+      final UserSettingsViewState settings = _baseSettings.copyWith(
         email: 'user@example.com',
         verified: true,
       );
