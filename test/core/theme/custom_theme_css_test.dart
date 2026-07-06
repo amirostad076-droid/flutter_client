@@ -17,7 +17,10 @@ void main() {
     });
 
     test('parseCssColor handles hex and hsl with saturation factor', () {
-      expect(parseCssColor('#AABBCC', saturationFactor: 1)?.value, 0xFFAABBCC);
+      expect(
+        parseCssColor('#AABBCC', saturationFactor: 1)?.toARGB32(),
+        0xFFAABBCC,
+      );
       final Color? hslColor = parseCssColor(
         'hsl(210, calc(100% * var(--saturation-factor)), 45%)',
         saturationFactor: 0.5,

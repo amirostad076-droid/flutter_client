@@ -18,8 +18,10 @@ import 'package:fluxer_app/features/channels/utils/navigate_to_channel_content.d
 import 'package:fluxer_app/features/channels/utils/show_channel_debug_sheet.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_providers.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
+import 'package:fluxer_app/features/dm/domain/create_dm_restriction.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
+import 'package:fluxer_app/features/dm/presentation/create_dm_flow.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/dm_list_message_preview_row.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/group_dm_avatar.dart';
 import 'package:fluxer_app/features/dm/providers/dm_list_presence_provider.dart';
@@ -266,25 +268,28 @@ class _DMListState extends ConsumerState<DMList> {
     );
   }
 
-  Widget _buildComposeFab(BuildContext context) => SizedBox(
-    width: 56,
-    height: 56,
-    child: FloatingActionButton(
-      onPressed: () {
-        ref
-            .read(toastProvider.notifier)
-            .show(const FluxerToast(message: 'Coming soon'));
-      },
-      backgroundColor: context.colors.brandPrimary,
-      elevation: 4,
-      shape: const CircleBorder(),
-      child: PhosphorIcon(
-        PhosphorIconsFill.paperPlane,
-        size: 24,
-        color: context.colors.textOnBrandPrimary,
+  Widget _buildComposeFab(BuildContext context) {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    return Semantics(
+      label: l10n.createDmNewMessage,
+      button: true,
+      child: SizedBox(
+        width: 56,
+        height: 56,
+        child: FloatingActionButton(
+          onPressed: () => unawaited(CreateDmFlow.show(context)),
+          backgroundColor: context.colors.brandPrimary,
+          elevation: 4,
+          shape: const CircleBorder(),
+          child: PhosphorIcon(
+            PhosphorIconsFill.paperPlane,
+            size: 24,
+            color: context.colors.textOnBrandPrimary,
+          ),
+        ),
       ),
-    ),
-  );
+    );
+  }
 
   Widget _buildQuickSwitcher(BuildContext context) => Material(
     color: Colors.transparent,
@@ -437,7 +442,7 @@ class _DMListState extends ConsumerState<DMList> {
         children: [
           Expanded(
             child: Text(
-              'Messages',
+              l10n.dmListMessagesTitle,
               style: TextStyle(
                 color: context.colors.textPrimary,
                 fontSize: 18,
@@ -620,14 +625,19 @@ class _DMListState extends ConsumerState<DMList> {
   );
 
   Widget _buildDmHeader(BuildContext context) {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     final layout = context.layout;
+    final UserSettingsViewState settings = ref.watch(
+      userSettingsViewModelProvider,
+    );
+    final bool isRestricted = getCreateDmRestriction(settings) != null;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: layout.s2, vertical: layout.s2),
       child: Row(
         children: [
           Expanded(
             child: Text(
-              'Direct Messages',
+              l10n.dmListDirectMessagesTitle,
               style: TextStyle(
                 color: context.colors.textPrimaryMuted,
                 fontSize: 13,
@@ -635,10 +645,28 @@ class _DMListState extends ConsumerState<DMList> {
               ),
             ),
           ),
-          PhosphorIcon(
-            PhosphorIconsRegular.plus,
-            size: 16,
-            color: context.colors.textPrimaryMuted,
+          Semantics(
+            label: l10n.createDm,
+            button: true,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: isRestricted
+                    ? null
+                    : () => unawaited(CreateDmFlow.show(context)),
+                borderRadius: BorderRadius.circular(4),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: PhosphorIcon(
+                    PhosphorIconsRegular.plus,
+                    size: 16,
+                    color: isRestricted
+                        ? context.colors.textPrimaryMuted.withValues(alpha: 0.4)
+                        : context.colors.textPrimaryMuted,
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),

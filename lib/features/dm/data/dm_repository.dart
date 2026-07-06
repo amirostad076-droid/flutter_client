@@ -8,8 +8,10 @@ import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
+import 'package:fluxer_app/features/dm/domain/group_dm_utils.dart';
 import 'package:fluxer_app/features/guilds/data/guild_user_settings_repository.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
+import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 
 class DmRepository {
@@ -253,6 +255,55 @@ class DmRepository {
     }
 
     return channel.id;
+  }
+
+  Future<String> createGroupDmChannel(List<String> recipientIds) async {
+    final channel = await _client.users.createPrivateChannel(
+      body: CreatePrivateChannelRequest(recipients: recipientIds),
+    );
+    final companion = await _buildDmChannelCompanion(channel);
+    if (companion != null) {
+      await _db.dmChannelDao.upsertDmChannels([companion]);
+    }
+    return channel.id;
+  }
+
+  Future<String> createDmFromSelection(List<String> userIds) async {
+    if (userIds.length == 1) {
+      return ensureDmChannel(userIds.first);
+    }
+    return createGroupDmChannel(userIds);
+  }
+
+  Future<List<DmConversation>> findDuplicateGroupDms(
+    List<String> recipientIds, {
+    String? excludeChannelId,
+  }) async {
+    if (recipientIds.length < 2) {
+      return const <DmConversation>[];
+    }
+    final String key = canonicalizeRecipientIds(recipientIds);
+    final List<db.DmChannel> rows = await _db.dmChannelDao.getDmChannels();
+    final List<db.DmChannel> matches = rows
+        .where(
+          (db.DmChannel row) => isDuplicateGroupDmRow(
+            row: row,
+            canonicalKey: key,
+            excludeChannelId: excludeChannelId,
+          ),
+        )
+        .toList();
+    matches.sort((db.DmChannel a, db.DmChannel b) {
+      final String aSnowflake = a.lastMessageId ?? a.id;
+      final String bSnowflake = b.lastMessageId ?? b.id;
+      return dateTimeFromSnowflakeAsLocalOrNow(
+        bSnowflake,
+      ).compareTo(dateTimeFromSnowflakeAsLocalOrNow(aSnowflake));
+    });
+    final List<DmConversation> conversations = await _buildConversations(
+      matches,
+    );
+    return conversations;
   }
 
   Future<void> markAsRead(String channelId) =>

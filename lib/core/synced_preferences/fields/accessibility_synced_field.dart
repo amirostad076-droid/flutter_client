@@ -68,8 +68,6 @@ class AccessibilitySyncedField
       compactMessageGroupSpacing: appearance.compactMessageGroupSpacing,
       saturationFactor: theme.saturationFactor,
       customThemeCss: theme.customThemeCss,
-      hasSaturationFactorInProto: true,
-      hasCustomThemeCssInProto: true,
     );
   }
 
@@ -86,7 +84,6 @@ class AccessibilitySyncedField
       updateSaturationFactor: value.hasSaturationFactorInProto,
       updateCustomThemeCss:
           value.hasCustomThemeCssInProto && value.customThemeCss != null,
-      clearCustomThemeCss: false,
     );
   }
 

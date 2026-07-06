@@ -55,6 +55,5 @@ Future<void> applyThemeCustomizationFromAccessibilityProto(
         customThemeCss: normalizedCss,
         updateSaturationFactor: hasSaturation,
         updateCustomThemeCss: hasCustomThemeCss,
-        clearCustomThemeCss: false,
       );
 }

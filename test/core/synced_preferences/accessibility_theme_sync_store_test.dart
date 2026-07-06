@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:drift/native.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
@@ -261,8 +261,6 @@ void main() {
             .read(themePreferenceProvider.notifier)
             .applySyncedThemeCustomization(
               saturationFactor: 1,
-              customThemeCss: null,
-              updateCustomThemeCss: true,
               clearCustomThemeCss: true,
             );
         store.markDirty(SyncedPreferenceField.accessibility);

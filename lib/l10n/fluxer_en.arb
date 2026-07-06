@@ -9507,5 +9507,140 @@
   "guildSettingsAuditLogFilterAction": "Filter by action",
   "@guildSettingsAuditLogFilterAction": {
     "description": "Label of the action-type filter dropdown in the activity log tab."
+  },
+  "createDm": "Create DM",
+  "@createDm": {
+    "description": "Button to create a direct message with selected friends."
+  },
+  "createGroupDm": "Create group DM",
+  "@createGroupDm": {
+    "description": "Button to create a group direct message."
+  },
+  "createDmNewMessage": "New message",
+  "@createDmNewMessage": {
+    "description": "Accessibility label for the mobile compose FAB in the DM list."
+  },
+  "createDmSelectFriends": "Select friends",
+  "@createDmSelectFriends": {
+    "description": "Title for the create DM modal or bottom sheet."
+  },
+  "createDmChooseFriendsSubtitle": "Choose friends to message.",
+  "@createDmChooseFriendsSubtitle": {
+    "description": "Subtitle in the create DM flow."
+  },
+  "createDmSearchFriends": "Search friends",
+  "@createDmSearchFriends": {
+    "description": "Search input placeholder in the friend selector."
+  },
+  "createDmNoFriendsFound": "No friends found",
+  "@createDmNoFriendsFound": {
+    "description": "Empty state when friend search has no matches."
+  },
+  "createDmNoFriendsYet": "You have no friends yet",
+  "@createDmNoFriendsYet": {
+    "description": "Empty state when the user has no friends."
+  },
+  "createDmClaimToStartDms": "Claim your account to start DMs.",
+  "@createDmClaimToStartDms": {
+    "description": "Blocked state when an unclaimed account cannot start DMs."
+  },
+  "createDmVerifyToStartDms": "Verify your email to start DMs.",
+  "@createDmVerifyToStartDms": {
+    "description": "Blocked state when an unverified account cannot start DMs."
+  },
+  "createDmVerifyYourEmail": "Verify your email",
+  "@createDmVerifyYourEmail": {
+    "description": "Title when email verification is required to start DMs."
+  },
+  "createDmNewGroup": "New group",
+  "@createDmNewGroup": {
+    "description": "Row title to create a group from an existing 1:1 DM."
+  },
+  "createDmCreateGroupWithRecipient": "Create a new group with {userName}",
+  "@createDmCreateGroupWithRecipient": {
+    "description": "Subtitle for the new group row in channel details.",
+    "placeholders": {
+      "userName": {
+        "type": "String"
+      }
+    }
+  },
+  "createDmConfirmNewGroup": "Confirm new group",
+  "@createDmConfirmNewGroup": {
+    "description": "Title for duplicate group confirmation modal."
+  },
+  "createDmCreateNewGroup": "Create new group",
+  "@createDmCreateNewGroup": {
+    "description": "Confirm button to create a new group despite duplicates."
+  },
+  "createDmRemoveFriend": "Remove {displayName}",
+  "@createDmRemoveFriend": {
+    "description": "Accessibility label for removing a selected friend pill.",
+    "placeholders": {
+      "displayName": {
+        "type": "String"
+      }
+    }
+  },
+  "createDmDuplicateGroupDescription": "You already have a group with these users. Do you really want to create a new one? That's fine too!",
+  "@createDmDuplicateGroupDescription": {
+    "description": "Body text in the duplicate group confirmation modal."
+  },
+  "createDmNoActivityYet": "No activity yet",
+  "@createDmNoActivityYet": {
+    "description": "Fallback label for duplicate group list items with no recent activity."
+  },
+  "createDmSomeUsersCantBeAdded": "Some users can't be added",
+  "@createDmSomeUsersCantBeAdded": {
+    "description": "Title for unaddable recipients confirmation."
+  },
+  "createDmCreateWithoutThem": "Create without them",
+  "@createDmCreateWithoutThem": {
+    "description": "Confirm button to create group DM excluding unaddable users."
+  },
+  "createDmUnaddableIntro": "The following people can't be added to this group DM:",
+  "@createDmUnaddableIntro": {
+    "description": "Intro text listing users who cannot be added to a group DM."
+  },
+  "createDmUnaddableProceed": "Create the group DM with the remaining {count} recipient(s) and skip the others?",
+  "@createDmUnaddableProceed": {
+    "description": "Prompt to proceed with addable recipients only.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "createDmUnaddableNoneRemaining": "No remaining recipients to create a group DM with.",
+  "@createDmUnaddableNoneRemaining": {
+    "description": "Shown when every selected recipient is unaddable."
+  },
+  "createDmUnaddableUserNotFound": "User not found",
+  "@createDmUnaddableUserNotFound": {
+    "description": "Reason when an unaddable recipient is unknown."
+  },
+  "createDmUnaddableBlocked": "You can't message this user",
+  "@createDmUnaddableBlocked": {
+    "description": "Reason when an unaddable recipient is blocked or DMs are disallowed."
+  },
+  "createDmUnaddableNotFriends": "Not on your friends list",
+  "@createDmUnaddableNotFriends": {
+    "description": "Reason when a recipient is not a friend."
+  },
+  "createDmUnaddableGroupDisabled": "Doesn't allow being added to group DMs",
+  "@createDmUnaddableGroupDisabled": {
+    "description": "Reason when a user disabled group DM additions."
+  },
+  "createDmFailed": "Couldn't create the conversation. Try again.",
+  "@createDmFailed": {
+    "description": "Generic error when DM or group DM creation fails."
+  },
+  "dmListMessagesTitle": "Messages",
+  "@dmListMessagesTitle": {
+    "description": "Mobile header title for the DM list."
+  },
+  "dmListDirectMessagesTitle": "Direct Messages",
+  "@dmListDirectMessagesTitle": {
+    "description": "Desktop section header for the DM conversation list."
   }
 }

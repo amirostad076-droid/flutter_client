@@ -177,11 +177,8 @@ class SyncedPreferencesStore {
     await _ref
         .read(themePreferenceProvider.notifier)
         .applySyncedThemeCustomization(
-          saturationFactor: null,
           customThemeCss: wireCss,
           updateSaturationFactor: false,
-          updateCustomThemeCss: true,
-          clearCustomThemeCss: false,
         );
   }
 

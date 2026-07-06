@@ -4,7 +4,6 @@ import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_mode.dart';
-import 'package:fluxer_app/core/theme/fluxer_theme_mode.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 
 void main() {
@@ -35,7 +34,6 @@ void main() {
     test('applies brand primary into Material ThemeData extensions', () {
       const css = ':root { --brand-primary: #ff5500; }';
       final ThemePreferenceState state = ThemePreferenceState(
-        mode: FluxerThemeMode.dark,
         customThemeCss: css,
       );
       final ThemeData theme = buildFluxerTheme(

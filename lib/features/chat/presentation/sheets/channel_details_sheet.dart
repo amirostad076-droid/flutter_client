@@ -33,7 +33,9 @@ import 'package:fluxer_app/features/chat/utils/composer_mention_query.dart';
 import 'package:fluxer_app/features/chat/utils/message_link.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
+import 'package:fluxer_app/features/dm/presentation/create_dm_flow.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/group_dm_avatar.dart';
+import 'package:fluxer_app/features/dm/providers/create_dm_view_model.dart';
 import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
@@ -793,7 +795,15 @@ class _MembersTab extends ConsumerWidget {
           if (canShowNewGroupCta)
             _NewGroupCtaRow(
               recipientHandle: dm!.recipientUsername ?? dm!.recipientName,
-              onTap: () => _stubComingSoon(context, ref),
+              onTap: () => unawaited(
+                CreateDmFlow.show(
+                  context,
+                  options: CreateDmOptions(
+                    initialSelectedUserIds: dm!.remoteRecipientIds,
+                    duplicateExcludeChannelId: dm!.id,
+                  ),
+                ),
+              ),
             ),
           _DmMemberGroups(dm: dm!, currentUserId: currentUserId),
         ],
@@ -1753,6 +1763,7 @@ class _NewGroupCtaRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.only(top: 8, bottom: 24),
       child: Material(
@@ -1787,14 +1798,14 @@ class _NewGroupCtaRow extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'New Group',
+                        l10n.createDmNewGroup,
                         style: context.textStyles.username.copyWith(
                           color: colors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Create a new group with $recipientHandle',
+                        l10n.createDmCreateGroupWithRecipient(recipientHandle),
                         style: context.textStyles.bodySmall.copyWith(
                           color: colors.textTertiary,
                         ),

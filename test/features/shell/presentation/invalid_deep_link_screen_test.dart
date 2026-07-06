@@ -18,7 +18,7 @@ void main() {
       await tester.pumpWidget(_buildRouterApp(initialLocation: '/missing'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Link couldn\'t be opened'), findsOneWidget);
+      expect(find.text("Link couldn't be opened"), findsOneWidget);
       expect(
         find.text(
           'This link may be broken, only available on the web, or you might not have access. Check the link and try again.',

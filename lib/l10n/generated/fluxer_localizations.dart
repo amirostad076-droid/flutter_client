@@ -12599,6 +12599,186 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Filter by action'**
   String get guildSettingsAuditLogFilterAction;
+
+  /// Button to create a direct message with selected friends.
+  ///
+  /// In en, this message translates to:
+  /// **'Create DM'**
+  String get createDm;
+
+  /// Button to create a group direct message.
+  ///
+  /// In en, this message translates to:
+  /// **'Create group DM'**
+  String get createGroupDm;
+
+  /// Accessibility label for the mobile compose FAB in the DM list.
+  ///
+  /// In en, this message translates to:
+  /// **'New message'**
+  String get createDmNewMessage;
+
+  /// Title for the create DM modal or bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Select friends'**
+  String get createDmSelectFriends;
+
+  /// Subtitle in the create DM flow.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose friends to message.'**
+  String get createDmChooseFriendsSubtitle;
+
+  /// Search input placeholder in the friend selector.
+  ///
+  /// In en, this message translates to:
+  /// **'Search friends'**
+  String get createDmSearchFriends;
+
+  /// Empty state when friend search has no matches.
+  ///
+  /// In en, this message translates to:
+  /// **'No friends found'**
+  String get createDmNoFriendsFound;
+
+  /// Empty state when the user has no friends.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no friends yet'**
+  String get createDmNoFriendsYet;
+
+  /// Blocked state when an unclaimed account cannot start DMs.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim your account to start DMs.'**
+  String get createDmClaimToStartDms;
+
+  /// Blocked state when an unverified account cannot start DMs.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email to start DMs.'**
+  String get createDmVerifyToStartDms;
+
+  /// Title when email verification is required to start DMs.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email'**
+  String get createDmVerifyYourEmail;
+
+  /// Row title to create a group from an existing 1:1 DM.
+  ///
+  /// In en, this message translates to:
+  /// **'New group'**
+  String get createDmNewGroup;
+
+  /// Subtitle for the new group row in channel details.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a new group with {userName}'**
+  String createDmCreateGroupWithRecipient(String userName);
+
+  /// Title for duplicate group confirmation modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm new group'**
+  String get createDmConfirmNewGroup;
+
+  /// Confirm button to create a new group despite duplicates.
+  ///
+  /// In en, this message translates to:
+  /// **'Create new group'**
+  String get createDmCreateNewGroup;
+
+  /// Accessibility label for removing a selected friend pill.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {displayName}'**
+  String createDmRemoveFriend(String displayName);
+
+  /// Body text in the duplicate group confirmation modal.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have a group with these users. Do you really want to create a new one? That\'s fine too!'**
+  String get createDmDuplicateGroupDescription;
+
+  /// Fallback label for duplicate group list items with no recent activity.
+  ///
+  /// In en, this message translates to:
+  /// **'No activity yet'**
+  String get createDmNoActivityYet;
+
+  /// Title for unaddable recipients confirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Some users can\'t be added'**
+  String get createDmSomeUsersCantBeAdded;
+
+  /// Confirm button to create group DM excluding unaddable users.
+  ///
+  /// In en, this message translates to:
+  /// **'Create without them'**
+  String get createDmCreateWithoutThem;
+
+  /// Intro text listing users who cannot be added to a group DM.
+  ///
+  /// In en, this message translates to:
+  /// **'The following people can\'t be added to this group DM:'**
+  String get createDmUnaddableIntro;
+
+  /// Prompt to proceed with addable recipients only.
+  ///
+  /// In en, this message translates to:
+  /// **'Create the group DM with the remaining {count} recipient(s) and skip the others?'**
+  String createDmUnaddableProceed(int count);
+
+  /// Shown when every selected recipient is unaddable.
+  ///
+  /// In en, this message translates to:
+  /// **'No remaining recipients to create a group DM with.'**
+  String get createDmUnaddableNoneRemaining;
+
+  /// Reason when an unaddable recipient is unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'User not found'**
+  String get createDmUnaddableUserNotFound;
+
+  /// Reason when an unaddable recipient is blocked or DMs are disallowed.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t message this user'**
+  String get createDmUnaddableBlocked;
+
+  /// Reason when a recipient is not a friend.
+  ///
+  /// In en, this message translates to:
+  /// **'Not on your friends list'**
+  String get createDmUnaddableNotFriends;
+
+  /// Reason when a user disabled group DM additions.
+  ///
+  /// In en, this message translates to:
+  /// **'Doesn\'t allow being added to group DMs'**
+  String get createDmUnaddableGroupDisabled;
+
+  /// Generic error when DM or group DM creation fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create the conversation. Try again.'**
+  String get createDmFailed;
+
+  /// Mobile header title for the DM list.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get dmListMessagesTitle;
+
+  /// Desktop section header for the DM conversation list.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct Messages'**
+  String get dmListDirectMessagesTitle;
 }
 
 class _FluxerLocalizationsDelegate

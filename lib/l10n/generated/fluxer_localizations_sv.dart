@@ -7466,4 +7466,104 @@ class FluxerLocalizationsSv extends FluxerLocalizations {
 
   @override
   String get guildSettingsAuditLogFilterAction => 'Filtrera efter åtgärd';
+
+  @override
+  String get createDm => 'Create DM';
+
+  @override
+  String get createGroupDm => 'Create group DM';
+
+  @override
+  String get createDmNewMessage => 'New message';
+
+  @override
+  String get createDmSelectFriends => 'Select friends';
+
+  @override
+  String get createDmChooseFriendsSubtitle => 'Choose friends to message.';
+
+  @override
+  String get createDmSearchFriends => 'Search friends';
+
+  @override
+  String get createDmNoFriendsFound => 'No friends found';
+
+  @override
+  String get createDmNoFriendsYet => 'You have no friends yet';
+
+  @override
+  String get createDmClaimToStartDms => 'Claim your account to start DMs.';
+
+  @override
+  String get createDmVerifyToStartDms => 'Verify your email to start DMs.';
+
+  @override
+  String get createDmVerifyYourEmail => 'Verify your email';
+
+  @override
+  String get createDmNewGroup => 'New group';
+
+  @override
+  String createDmCreateGroupWithRecipient(String userName) {
+    return 'Create a new group with $userName';
+  }
+
+  @override
+  String get createDmConfirmNewGroup => 'Confirm new group';
+
+  @override
+  String get createDmCreateNewGroup => 'Create new group';
+
+  @override
+  String createDmRemoveFriend(String displayName) {
+    return 'Remove $displayName';
+  }
+
+  @override
+  String get createDmDuplicateGroupDescription =>
+      'You already have a group with these users. Do you really want to create a new one? That\'s fine too!';
+
+  @override
+  String get createDmNoActivityYet => 'No activity yet';
+
+  @override
+  String get createDmSomeUsersCantBeAdded => 'Some users can\'t be added';
+
+  @override
+  String get createDmCreateWithoutThem => 'Create without them';
+
+  @override
+  String get createDmUnaddableIntro =>
+      'The following people can\'t be added to this group DM:';
+
+  @override
+  String createDmUnaddableProceed(int count) {
+    return 'Create the group DM with the remaining $count recipient(s) and skip the others?';
+  }
+
+  @override
+  String get createDmUnaddableNoneRemaining =>
+      'No remaining recipients to create a group DM with.';
+
+  @override
+  String get createDmUnaddableUserNotFound => 'User not found';
+
+  @override
+  String get createDmUnaddableBlocked => 'You can\'t message this user';
+
+  @override
+  String get createDmUnaddableNotFriends => 'Not on your friends list';
+
+  @override
+  String get createDmUnaddableGroupDisabled =>
+      'Doesn\'t allow being added to group DMs';
+
+  @override
+  String get createDmFailed => 'Couldn\'t create the conversation. Try again.';
+
+  @override
+  String get dmListMessagesTitle => 'Messages';
+
+  @override
+  String get dmListDirectMessagesTitle => 'Direct Messages';
 }
