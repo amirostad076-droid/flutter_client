@@ -41,17 +41,29 @@ class _RenderReactionsOff extends UserSettingsViewModel {
   );
 }
 
-Message _systemMessage(int type, {List<Reaction> reactions = const []}) =>
-    Message(
-      id: '1',
-      channelId: 'c1',
-      authorId: 'u1',
-      authorName: 'Sample User',
-      content: '',
-      timestamp: DateTime(2026),
-      type: type,
-      reactions: reactions,
-    );
+Message _systemMessage(
+  int type, {
+  List<Reaction> reactions = const [],
+  String content = '',
+  List<String> mentionedUserIds = const [],
+  MessageCall? call,
+}) => Message(
+  id: '1',
+  channelId: 'c1',
+  authorId: 'u1',
+  authorName: 'Sample User',
+  content: content,
+  timestamp: DateTime(2026),
+  type: type,
+  reactions: reactions,
+  mentionedUserIds: mentionedUserIds,
+  call: call,
+);
+
+const MessageCall _sampleCall = MessageCall(
+  participants: <String>['u1', 'viewer'],
+  endedTimestamp: null,
+);
 
 Future<void> _pumpSystemMessage(
   WidgetTester tester, {
@@ -124,13 +136,68 @@ void main() {
       ) async {
         await _pumpSystemMessage(
           tester,
-          message: _systemMessage(type, reactions: const [reaction]),
+          message: _systemMessage(
+            type,
+            reactions: const [reaction],
+            call: type == messageTypeCall ? _sampleCall : null,
+          ),
         );
 
         expect(find.byType(MessageReactionsBar), findsOneWidget);
         expect(find.text('3'), findsOneWidget);
       });
     }
+
+    testWidgets('renders localized recipient add text', (tester) async {
+      await _pumpSystemMessage(
+        tester,
+        message: _systemMessage(
+          messageTypeRecipientAdd,
+          mentionedUserIds: const <String>['u2'],
+        ),
+      );
+
+      expect(find.textContaining('Sample User added u2'), findsOneWidget);
+    });
+
+    testWidgets('renders localized channel rename with new name', (
+      tester,
+    ) async {
+      await _pumpSystemMessage(
+        tester,
+        message: _systemMessage(
+          messageTypeChannelNameChange,
+          content: 'New Group Name',
+        ),
+      );
+
+      expect(
+        find.textContaining('changed the channel name to New Group Name'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('hides call system message without call payload', (
+      tester,
+    ) async {
+      await _pumpSystemMessage(
+        tester,
+        message: _systemMessage(messageTypeCall),
+      );
+
+      expect(find.byType(SystemMessage), findsOneWidget);
+      expect(find.textContaining('started a call'), findsNothing);
+    });
+
+    testWidgets('renders ongoing call with join action', (tester) async {
+      await _pumpSystemMessage(
+        tester,
+        message: _systemMessage(messageTypeCall, call: _sampleCall),
+      );
+
+      expect(find.textContaining('started a call.'), findsOneWidget);
+      expect(find.text('Join the call'), findsOneWidget);
+    });
 
     testWidgets('renders no reaction view when the message has none', (
       tester,

@@ -6943,6 +6943,114 @@ abstract class FluxerLocalizations {
   /// **'{username} started a call.'**
   String systemPreviewStartedCall(String username);
 
+  /// Call-to-action button label on an in-progress call system message.
+  ///
+  /// In en, this message translates to:
+  /// **'Join the call'**
+  String get systemCallJoinTheCall;
+
+  /// System message when a call has ended and the viewer participated.
+  ///
+  /// In en, this message translates to:
+  /// **'{username} started a call that lasted {duration}.'**
+  String systemCallStartedThatLasted(String username, String duration);
+
+  /// System message when the viewer missed a call that had a measurable duration.
+  ///
+  /// In en, this message translates to:
+  /// **'You missed a call from {username} that lasted {duration}.'**
+  String systemCallMissedWithDuration(String username, String duration);
+
+  /// System message when the viewer missed a call.
+  ///
+  /// In en, this message translates to:
+  /// **'You missed a call from {username}.'**
+  String systemCallMissed(String username);
+
+  /// Duration label for a very short elapsed call.
+  ///
+  /// In en, this message translates to:
+  /// **'a few seconds'**
+  String get systemCallDurationFewSeconds;
+
+  /// Duration label when a call lasted about one minute.
+  ///
+  /// In en, this message translates to:
+  /// **'a minute'**
+  String get systemCallDurationMinute;
+
+  /// Duration label when a call lasted about one year.
+  ///
+  /// In en, this message translates to:
+  /// **'1 year'**
+  String get systemCallDurationOneYear;
+
+  /// Duration label when a call lasted about one month.
+  ///
+  /// In en, this message translates to:
+  /// **'1 month'**
+  String get systemCallDurationOneMonth;
+
+  /// Duration label when a call lasted about one week.
+  ///
+  /// In en, this message translates to:
+  /// **'1 week'**
+  String get systemCallDurationOneWeek;
+
+  /// Duration label when a call lasted about one day.
+  ///
+  /// In en, this message translates to:
+  /// **'1 day'**
+  String get systemCallDurationOneDay;
+
+  /// Duration label when a call lasted about one hour.
+  ///
+  /// In en, this message translates to:
+  /// **'1 hour'**
+  String get systemCallDurationOneHour;
+
+  /// Duration label for multiple years in a call duration.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} years'**
+  String systemCallDurationYears(String count);
+
+  /// Duration label for multiple months in a call duration.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} months'**
+  String systemCallDurationMonths(String count);
+
+  /// Duration label for multiple weeks in a call duration.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} weeks'**
+  String systemCallDurationWeeks(String count);
+
+  /// Duration label for multiple days in a call duration.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days'**
+  String systemCallDurationDays(String count);
+
+  /// Duration label for multiple hours in a call duration.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} hours'**
+  String systemCallDurationHours(String count);
+
+  /// Duration label for multiple minutes in a call duration.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} minutes'**
+  String systemCallDurationMinutes(String count);
+
+  /// Fallback system message when the client does not recognize the message type.
+  ///
+  /// In en, this message translates to:
+  /// **'Update {productName} to view this message.'**
+  String systemUnknownMessage(String productName);
+
   /// Title of the multi-device voice join confirmation dialog.
   ///
   /// In en, this message translates to:

@@ -5185,6 +5185,134 @@
       }
     }
   },
+  "systemCallJoinTheCall": "Join the call",
+  "@systemCallJoinTheCall": {
+    "description": "Call-to-action button label on an in-progress call system message."
+  },
+  "systemCallStartedThatLasted": "{username} started a call that lasted {duration}.",
+  "@systemCallStartedThatLasted": {
+    "description": "System message when a call has ended and the viewer participated.",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "systemCallMissedWithDuration": "You missed a call from {username} that lasted {duration}.",
+  "@systemCallMissedWithDuration": {
+    "description": "System message when the viewer missed a call that had a measurable duration.",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "systemCallMissed": "You missed a call from {username}.",
+  "@systemCallMissed": {
+    "description": "System message when the viewer missed a call.",
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "systemCallDurationFewSeconds": "a few seconds",
+  "@systemCallDurationFewSeconds": {
+    "description": "Duration label for a very short elapsed call."
+  },
+  "systemCallDurationMinute": "a minute",
+  "@systemCallDurationMinute": {
+    "description": "Duration label when a call lasted about one minute."
+  },
+  "systemCallDurationOneYear": "1 year",
+  "@systemCallDurationOneYear": {
+    "description": "Duration label when a call lasted about one year."
+  },
+  "systemCallDurationOneMonth": "1 month",
+  "@systemCallDurationOneMonth": {
+    "description": "Duration label when a call lasted about one month."
+  },
+  "systemCallDurationOneWeek": "1 week",
+  "@systemCallDurationOneWeek": {
+    "description": "Duration label when a call lasted about one week."
+  },
+  "systemCallDurationOneDay": "1 day",
+  "@systemCallDurationOneDay": {
+    "description": "Duration label when a call lasted about one day."
+  },
+  "systemCallDurationOneHour": "1 hour",
+  "@systemCallDurationOneHour": {
+    "description": "Duration label when a call lasted about one hour."
+  },
+  "systemCallDurationYears": "{count} years",
+  "@systemCallDurationYears": {
+    "description": "Duration label for multiple years in a call duration.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "systemCallDurationMonths": "{count} months",
+  "@systemCallDurationMonths": {
+    "description": "Duration label for multiple months in a call duration.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "systemCallDurationWeeks": "{count} weeks",
+  "@systemCallDurationWeeks": {
+    "description": "Duration label for multiple weeks in a call duration.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "systemCallDurationDays": "{count} days",
+  "@systemCallDurationDays": {
+    "description": "Duration label for multiple days in a call duration.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "systemCallDurationHours": "{count} hours",
+  "@systemCallDurationHours": {
+    "description": "Duration label for multiple hours in a call duration.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "systemCallDurationMinutes": "{count} minutes",
+  "@systemCallDurationMinutes": {
+    "description": "Duration label for multiple minutes in a call duration.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "systemUnknownMessage": "Update {productName} to view this message.",
+  "@systemUnknownMessage": {
+    "description": "Fallback system message when the client does not recognize the message type.",
+    "placeholders": {
+      "productName": {
+        "type": "String"
+      }
+    }
+  },
   "voiceConnectionConfirmTitle": "Voice Connection Confirmation",
   "@voiceConnectionConfirmTitle": {
     "description": "Title of the multi-device voice join confirmation dialog."

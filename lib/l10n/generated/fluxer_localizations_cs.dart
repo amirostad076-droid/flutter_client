@@ -4092,6 +4092,80 @@ class FluxerLocalizationsCs extends FluxerLocalizations {
   }
 
   @override
+  String get systemCallJoinTheCall => 'Join the call';
+
+  @override
+  String systemCallStartedThatLasted(String username, String duration) {
+    return '$username started a call that lasted $duration.';
+  }
+
+  @override
+  String systemCallMissedWithDuration(String username, String duration) {
+    return 'You missed a call from $username that lasted $duration.';
+  }
+
+  @override
+  String systemCallMissed(String username) {
+    return 'You missed a call from $username.';
+  }
+
+  @override
+  String get systemCallDurationFewSeconds => 'a few seconds';
+
+  @override
+  String get systemCallDurationMinute => 'a minute';
+
+  @override
+  String get systemCallDurationOneYear => '1 year';
+
+  @override
+  String get systemCallDurationOneMonth => '1 month';
+
+  @override
+  String get systemCallDurationOneWeek => '1 week';
+
+  @override
+  String get systemCallDurationOneDay => '1 day';
+
+  @override
+  String get systemCallDurationOneHour => '1 hour';
+
+  @override
+  String systemCallDurationYears(String count) {
+    return '$count years';
+  }
+
+  @override
+  String systemCallDurationMonths(String count) {
+    return '$count months';
+  }
+
+  @override
+  String systemCallDurationWeeks(String count) {
+    return '$count weeks';
+  }
+
+  @override
+  String systemCallDurationDays(String count) {
+    return '$count days';
+  }
+
+  @override
+  String systemCallDurationHours(String count) {
+    return '$count hours';
+  }
+
+  @override
+  String systemCallDurationMinutes(String count) {
+    return '$count minutes';
+  }
+
+  @override
+  String systemUnknownMessage(String productName) {
+    return 'Update $productName to view this message.';
+  }
+
+  @override
   String get voiceConnectionConfirmTitle => 'Potvrzení hlasového připojení';
 
   @override
