@@ -32,6 +32,23 @@ class _FakeVoiceSession extends VoiceSession {
   VoiceSessionState build() => const VoiceSessionState();
 }
 
+class _FakeUserSettings extends UserSettingsViewModel {
+  @override
+  UserSettingsViewState build() => const UserSettingsViewState(
+    userId: 'viewer',
+    username: 'viewer',
+    displayName: 'viewer',
+    discriminator: '0001',
+    avatar: null,
+    avatarColor: null,
+    memberSince: null,
+    status: 'online',
+    messageDisplayCompact: false,
+    developerMode: false,
+    trustedDomains: <String>[],
+  );
+}
+
 class _RenderReactionsOff extends UserSettingsViewModel {
   @override
   UserSettingsViewState build() => const UserSettingsViewState(
@@ -47,6 +64,17 @@ class _RenderReactionsOff extends UserSettingsViewModel {
     developerMode: false,
     trustedDomains: <String>[],
     renderReactions: false,
+  );
+}
+
+AsyncValue<GuildUserDisplay?> _mentionedUserDisplay(String userId) {
+  return AsyncValue.data(
+    GuildUserDisplay(
+      displayName: userId,
+      avatarUrl: null,
+      avatarColor: null,
+      accountDisplayName: userId,
+    ),
   );
 }
 
@@ -100,20 +128,20 @@ Future<void> _pumpSystemMessage(
             ),
           ),
         ),
-        for (final String userId in message.mentionedUserIds)
-          guildUserDisplayProvider((userId, 'g1')).overrideWith(
-            (ref) => AsyncValue.data(
-              GuildUserDisplay(
-                displayName: userId,
-                avatarUrl: null,
-                avatarColor: null,
-                accountDisplayName: userId,
-              ),
-            ),
-          ),
+        for (final String userId in message.mentionedUserIds) ...[
+          guildUserDisplayProvider((
+            userId,
+            'g1',
+          )).overrideWith((ref) => _mentionedUserDisplay(userId)),
+          guildUserDisplayFromDbProvider((
+            userId,
+            null,
+          )).overrideWith((ref) => _mentionedUserDisplay(userId)),
+        ],
         memberRoleColorProvider(('u1', 'g1')).overrideWith((ref) => roleColor),
-        if (userSettingsOverride != null)
-          userSettingsViewModelProvider.overrideWith(userSettingsOverride),
+        userSettingsViewModelProvider.overrideWith(
+          userSettingsOverride ?? _FakeUserSettings.new,
+        ),
       ],
       child: MaterialApp(
         localizationsDelegates: FluxerLocalizations.localizationsDelegates,
@@ -131,6 +159,11 @@ Future<void> _pumpSystemMessage(
     ),
   );
   await tester.pumpAndSettle();
+}
+
+Future<void> _disposeSystemMessage(WidgetTester tester) async {
+  await tester.pumpWidget(const SizedBox.shrink());
+  await tester.pump(const Duration(milliseconds: 1));
 }
 
 void main() {
@@ -183,6 +216,7 @@ void main() {
       );
 
       expect(find.textContaining('Sample User added u2'), findsOneWidget);
+      await _disposeSystemMessage(tester);
     });
 
     testWidgets('renders localized channel rename with new name', (

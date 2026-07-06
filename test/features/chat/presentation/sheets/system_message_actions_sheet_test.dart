@@ -17,6 +17,7 @@ import 'package:fluxer_app/features/chat/presentation/sheets/system_message_acti
 import 'package:fluxer_app/features/chat/providers/messages/saved_message_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations_en.dart';
 
 const String _messageId = 'm1';
 
@@ -173,6 +174,9 @@ void main() {
     await tester.tap(find.text('Copy Message'));
     await tester.pumpAndSettle();
 
-    expect(clipboardWrites, ['renamed-channel']);
+    final l10n = FluxerLocalizationsEn();
+    expect(clipboardWrites, [
+      l10n.systemPreviewChangedChannelNameTo('Author', 'renamed-channel'),
+    ]);
   });
 }
