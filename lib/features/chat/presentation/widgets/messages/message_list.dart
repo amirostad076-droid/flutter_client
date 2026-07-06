@@ -137,6 +137,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   late final ChatViewModel _chatViewModel;
   String? _pendingScrollTarget;
   int _messageJumpInFlight = 0;
+  bool _landAtLatestTailPending = false;
   String? _centerAnchorMessageId;
   BuildContext? _leadingSliverCtx;
   BuildContext? _trailingSliverCtx;
@@ -354,6 +355,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     _leadingSliverCtx = null;
     _trailingSliverCtx = null;
     _centerAnchorMessageId = null;
+    _landAtLatestTailPending = false;
     _openMode = _MessageListOpenMode.unresolved;
     _edgeLoadTrigger.reset();
     _useCompactScrollCache = true;
@@ -527,7 +529,8 @@ class _MessageListState extends ConsumerState<MessageList> {
     if (_openMode == _MessageListOpenMode.unread) {
       final ChatViewState chatState = ref.read(chatViewModelProvider);
       if (chatState.hasMoreNewerMessages) {
-        setState(() => _centerAnchorMessageId = null);
+        _centerAnchorMessageId = null;
+        _landAtLatestTailPending = true;
         unawaited(_chatViewModel.jumpToLatestMessages());
         return;
       }
@@ -543,6 +546,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
     final ChatViewState chatState = ref.read(chatViewModelProvider);
     if (chatState.hasMoreNewerMessages) {
+      _landAtLatestTailPending = true;
       unawaited(_chatViewModel.jumpToLatestMessages());
       return;
     }
@@ -573,6 +577,29 @@ class _MessageListState extends ConsumerState<MessageList> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && _scrollController.hasClients) {
         _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      }
+    });
+  }
+
+  // Coordinates the latest-window replacement with its tail landing so the
+  // reverse list never paints a clamped intermediate frame.
+  void _landAtLatestTail(List<Message> next) {
+    _lastAnchorMessages = next;
+    _edgeLoadTrigger.reset();
+    if (_openMode == _MessageListOpenMode.unread) {
+      // Center-split newest edge is only known after layout.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _scrollController.hasClients) {
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        }
+      });
+    } else if (_scrollController.hasClients) {
+      // Reverse ListView newest edge is valid before the new window lays out.
+      _scrollController.jumpTo(_scrollController.position.minScrollExtent);
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _onScroll();
       }
     });
   }
@@ -1276,6 +1303,12 @@ class _MessageListState extends ConsumerState<MessageList> {
       ..listen<List<Message>>(
         chatViewModelProvider.select((ChatViewState s) => s.messages),
         (List<Message>? previous, List<Message> next) {
+          if (_landAtLatestTailPending &&
+              !ref.read(chatViewModelProvider).hasMoreNewerMessages) {
+            _landAtLatestTailPending = false;
+            _landAtLatestTail(next);
+            return;
+          }
           if (_openMode == _MessageListOpenMode.unread) {
             _followTailCenter();
           } else {

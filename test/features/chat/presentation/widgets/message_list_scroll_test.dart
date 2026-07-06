@@ -475,6 +475,105 @@ void main() {
     );
 
     testWidgets(
+      'jump to newest replacement lands at the bottom edge after one frame',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(420, 640);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final _AroundAckMessageListHarness harness =
+            await _createBottomMessageListHarness(hasMoreNewerMessages: true);
+        addTearDown(harness.database.close);
+
+        await tester.pumpWidget(
+          _messageListApp(
+            database: harness.database,
+            chatViewModel: harness.chatViewModel,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final ScrollPosition position = _messageListScrollPosition(tester);
+        position.jumpTo(position.maxScrollExtent);
+        await tester.pumpAndSettle();
+        expect(
+          position.pixels - position.minScrollExtent,
+          greaterThan(kMessageListReadBottomThreshold),
+        );
+
+        harness.chatViewModel.scrollToBottom();
+        await tester.pump();
+
+        expect(
+          position.pixels,
+          moreOrLessEquals(position.minScrollExtent, epsilon: 1),
+        );
+
+        await _pumpScrollToBottom(tester);
+        expect(
+          position.pixels,
+          moreOrLessEquals(position.minScrollExtent, epsilon: 1),
+        );
+
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets(
+      'unread jump to newest replacement lands at the newest trailing edge',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(420, 640);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final _AroundAckMessageListHarness harness =
+            await _createAroundAckMessageListHarness(
+              messageCount: 70,
+              ackIndex: 42,
+            );
+        addTearDown(harness.database.close);
+
+        await tester.pumpWidget(
+          _messageListApp(
+            database: harness.database,
+            chatViewModel: harness.chatViewModel,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final Finder firstUnread = _messageItemFor(harness.firstUnreadId);
+        expect(firstUnread, findsOneWidget);
+        final Rect viewport = tester.getRect(_messageListScrollable());
+        final double viewportCenterY = viewport.top + viewport.height * 0.5;
+        expect(
+          tester.getRect(firstUnread).center.dy,
+          moreOrLessEquals(viewportCenterY, epsilon: 96),
+        );
+
+        harness.chatViewModel.scrollToBottom();
+        await _pumpScrollToBottom(tester);
+
+        final ScrollPosition position = _messageListScrollPosition(tester);
+        expect(
+          position.pixels,
+          moreOrLessEquals(position.maxScrollExtent, epsilon: 1),
+        );
+
+        final Finder newest = _messageItemFor(
+          harness.latestReplacementNewestId,
+        );
+        expect(newest, findsOneWidget);
+        final Rect newestRect = tester.getRect(newest);
+        expect(newestRect.center.dy, greaterThan(viewportCenterY + 96));
+        expect(firstUnread, findsNothing);
+
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets(
       'appending newer messages away from the trailing edge keeps the first unread fixed',
       (WidgetTester tester) async {
         tester.view.physicalSize = const Size(420, 640);
@@ -795,6 +894,9 @@ class _AroundAckMessageListHarness {
 
   String get oldestLoadedId => messages.first.id;
 
+  String get latestReplacementNewestId =>
+      chatViewModel._latestReplacementNewestIdValue;
+
   void appendNewerMessages({required int count}) {
     final List<Message> next = List<Message>.of(
       chatViewModel._testState.messages,
@@ -914,12 +1016,13 @@ Future<_AroundAckMessageListHarness> _createAroundAckMessageListHarness({
 
 Future<_AroundAckMessageListHarness> _createBottomMessageListHarness({
   int messageCount = 80,
+  bool hasMoreNewerMessages = false,
 }) {
   assert(messageCount >= 3, 'messageCount must leave loaded jump targets');
   return _createAroundAckMessageListHarness(
     ackIndex: messageCount - 2,
     messageCount: messageCount,
-    hasMoreNewerMessages: false,
+    hasMoreNewerMessages: hasMoreNewerMessages,
     readThroughNewest: true,
   );
 }
@@ -1007,6 +1110,7 @@ class _InstrumentedChatViewModel extends ChatViewModel {
 
   final ChatViewState _initialState;
   int _loadNewerCallCount = 0;
+  String? _latestReplacementNewestId;
 
   @override
   ChatViewState build() => _initialState;
@@ -1015,6 +1119,31 @@ class _InstrumentedChatViewModel extends ChatViewModel {
 
   set _testState(ChatViewState nextState) {
     state = nextState;
+  }
+
+  String get _latestReplacementNewestIdValue {
+    final String? id = _latestReplacementNewestId;
+    if (id == null) {
+      throw StateError('jumpToLatestMessages has not replaced the window yet');
+    }
+    return id;
+  }
+
+  List<Message> _latestReplacementMessages() {
+    const int latestWindowCount = 30;
+    final DateTime firstTimestamp = state.messages.isEmpty
+        ? DateTime.utc(2026, 7, 5, 12)
+        : state.messages.last.timestamp.add(const Duration(hours: 1));
+    return <Message>[
+      for (int index = 0; index < latestWindowCount; index += 1)
+        _message(
+          id: _snowflakeForUtc(firstTimestamp.add(Duration(minutes: index))),
+          content: index == latestWindowCount - 1
+              ? 'latest replacement newest message'
+              : 'latest replacement message $index',
+          timestamp: firstTimestamp.add(Duration(minutes: index)),
+        ),
+    ];
   }
 
   @override
@@ -1045,7 +1174,15 @@ class _InstrumentedChatViewModel extends ChatViewModel {
   Future<void> jumpToFirstUnread() async {}
 
   @override
-  Future<void> jumpToLatestMessages() async {}
+  Future<void> jumpToLatestMessages() async {
+    final List<Message> latestMessages = _latestReplacementMessages();
+    _latestReplacementNewestId = latestMessages.last.id;
+    state = state.copyWith(
+      messages: latestMessages,
+      hasMoreNewerMessages: false,
+    );
+    scrollToBottom();
+  }
 
   @override
   void trimToNewestWindow() {}
