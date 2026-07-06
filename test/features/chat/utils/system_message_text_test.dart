@@ -119,7 +119,7 @@ void main() {
     test('formats multi-unit durations with conjunction', () {
       expect(
         formatCallDuration(l10n: l10n, durationSeconds: 3660),
-        '1 hour and 1 minute',
+        '1 hour and a minute',
       );
     });
   });
