@@ -96,7 +96,7 @@ class Member {
     return Member(
       id: row.userId,
       username: user?.username ?? '',
-      globalName: row.nick ?? user?.globalName,
+      globalName: user?.globalName,
       avatar: avatar,
       avatarColor: user?.avatarColor,
       nickname: row.nick,
