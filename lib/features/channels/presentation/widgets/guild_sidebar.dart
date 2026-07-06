@@ -32,6 +32,7 @@ import 'package:fluxer_app/features/channels/providers/guild_sidebar_scroll_stor
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/channels/utils/channel_scroll_indicator_severity.dart';
 import 'package:fluxer_app/features/channels/utils/navigate_to_channel_content.dart';
+import 'package:fluxer_app/features/channels/utils/show_channel_debug_sheet.dart';
 import 'package:fluxer_app/features/chat/utils/message_link.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
@@ -52,7 +53,6 @@ import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/utils/voice_e2ee_display.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/external_links/external_url_launcher.dart';
-import 'package:fluxer_app/shared/widgets/debug_bottom_sheet.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:go_router/go_router.dart';
@@ -727,7 +727,7 @@ class _ChannelTile extends ConsumerWidget {
           ),
         if (developerMode)
           FluxerMenuItem(
-            label: 'Debug Channel',
+            label: FluxerLocalizations.of(menuContext).dmDebugChannel,
             icon: PhosphorIconsFill.bugBeetle,
             onPressed: () {
               close();
@@ -756,35 +756,13 @@ class _ChannelTile extends ConsumerWidget {
     );
   }
 
-  Future<void> _showDebugChannelSheet(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    try {
-      final channelResponse = await ref
-          .read(fluxerClientProvider)
-          .channels
-          .getChannel(channelId: channel.id);
-      if (!context.mounted) {
-        return;
-      }
-      await showDebugBottomSheet(
+  Future<void> _showDebugChannelSheet(BuildContext context, WidgetRef ref) =>
+      showChannelDebugSheet(
         context,
+        ref: ref,
+        channelId: channel.id,
         title: FluxerLocalizations.of(context).dmDebugChannel,
-        data: channelResponse.toJson(),
-        onCopied: (message) => ref
-            .read(toastProvider.notifier)
-            .show(
-              FluxerToast(
-                message: message,
-                variant: FluxerToastVariant.success,
-              ),
-            ),
       );
-    } on Exception catch (_) {
-      // Ignore — failed to fetch channel for debug view.
-    }
-  }
 
   Future<void> _confirmDeleteChannel(
     BuildContext context,
@@ -1012,33 +990,13 @@ class _CategoryHeader extends ConsumerWidget {
     );
   }
 
-  Future<void> _showDebugCategorySheet(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    try {
-      final channelResponse = await ref
-          .read(fluxerClientProvider)
-          .channels
-          .getChannel(channelId: category.id);
-      if (!context.mounted) {
-        return;
-      }
-      await showDebugBottomSheet(
+  Future<void> _showDebugCategorySheet(BuildContext context, WidgetRef ref) =>
+      showChannelDebugSheet(
         context,
+        ref: ref,
+        channelId: category.id,
         title: FluxerLocalizations.of(context).dmDebugCategory,
-        data: channelResponse.toJson(),
-        onCopied: (message) => ref
-            .read(toastProvider.notifier)
-            .show(
-              FluxerToast(
-                message: message,
-                variant: FluxerToastVariant.success,
-              ),
-            ),
       );
-    } on Exception catch (_) {}
-  }
 
   Future<void> _openCategoryMuteSheet(
     BuildContext context,

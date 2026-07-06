@@ -21,6 +21,7 @@ import 'package:fluxer_app/features/channels/presentation/sheets/mute_duration_s
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
+import 'package:fluxer_app/features/channels/utils/show_channel_debug_sheet.dart';
 import 'package:fluxer_app/features/chat/data/channel_pins_repository.dart';
 import 'package:fluxer_app/features/chat/data/message_search_repository.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
@@ -2901,7 +2902,7 @@ Future<void> _showDetailsMoreSheet(
       final miscItems = <Widget>[
         if (developerMode && channelId != null)
           FluxerBottomSheetMenuItem(
-            label: 'Debug Channel',
+            label: FluxerLocalizations.of(context).dmDebugChannel,
             icon: PhosphorIconsBold.bug,
             onTap: () {
               close();
@@ -3013,27 +3014,12 @@ Future<void> _showDebugChannelSheet(
   BuildContext context, {
   required WidgetRef ref,
   required String channelId,
-}) async {
-  try {
-    final client = ref.read(fluxerClientProvider);
-    final channel = await client.channels.getChannel(channelId: channelId);
-    if (!context.mounted) {
-      return;
-    }
-    await showDebugBottomSheet(
-      context,
-      title: FluxerLocalizations.of(context).dmDebugChannel,
-      data: channel.toJson(),
-      onCopied: (message) => ref
-          .read(toastProvider.notifier)
-          .show(
-            FluxerToast(message: message, variant: FluxerToastVariant.success),
-          ),
-    );
-  } on Exception catch (_) {
-    // Ignore — failed to fetch channel.
-  }
-}
+}) => showChannelDebugSheet(
+  context,
+  ref: ref,
+  channelId: channelId,
+  title: FluxerLocalizations.of(context).dmDebugChannel,
+);
 
 Future<void> _showDebugUserSheet(
   BuildContext context, {

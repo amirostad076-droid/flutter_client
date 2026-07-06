@@ -15,6 +15,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/presentation/sheets/mute_duration_sheet.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_unread_indicator.dart';
 import 'package:fluxer_app/features/channels/utils/navigate_to_channel_content.dart';
+import 'package:fluxer_app/features/channels/utils/show_channel_debug_sheet.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_providers.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
@@ -1194,28 +1195,12 @@ class _DMListState extends ConsumerState<DMList> {
           // API fetch failed — ignore silently.
         }
       case _DmAction.debugChannel:
-        try {
-          final client = ref.read(fluxerClientProvider);
-          final channel = await client.channels.getChannel(channelId: convo.id);
-          if (!mounted || !context.mounted) {
-            break;
-          }
-          await showDebugBottomSheet(
-            context,
-            title: FluxerLocalizations.of(context).dmDebugChannel,
-            data: channel.toJson(),
-            onCopied: (message) => ref
-                .read(toastProvider.notifier)
-                .show(
-                  FluxerToast(
-                    message: message,
-                    variant: FluxerToastVariant.success,
-                  ),
-                ),
-          );
-        } on Exception catch (_) {
-          // API fetch failed — ignore silently.
-        }
+        await showChannelDebugSheet(
+          context,
+          ref: ref,
+          channelId: convo.id,
+          title: FluxerLocalizations.of(context).dmDebugChannel,
+        );
       case _DmAction.copyUserId:
         await Clipboard.setData(ClipboardData(text: convo.recipientId));
         if (!mounted || !context.mounted) {
