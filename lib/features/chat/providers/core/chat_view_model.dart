@@ -907,10 +907,25 @@ class ChatViewModel extends _$ChatViewModel {
         hasMoreMessages: true,
         hasMoreNewerMessages: false,
       );
+      String? aroundUnreadId;
+      if (hasUnread) {
+        final db.ReadState? unreadReadState = await ref
+            .read(fluxerDatabaseProvider)
+            .readStateDao
+            .getReadState(channelId);
+        if (!isCurrentSwitch()) {
+          return;
+        }
+        final String? ack = unreadReadState?.lastMessageId;
+        if (ack != null && ack.isNotEmpty) {
+          aroundUnreadId = ack;
+        }
+      }
       await _refreshMessagesFromNetwork(
         channelId,
         showLoadingSpinner: true,
         limit: _kInitialPageSize,
+        aroundMessageId: aroundUnreadId,
         shouldApplyResult: isCurrentSwitch,
       );
     } finally {
@@ -973,6 +988,7 @@ class ChatViewModel extends _$ChatViewModel {
   Future<void> _refreshMessagesFromNetwork(
     String channelId, {
     String? targetMessageId,
+    String? aroundMessageId,
     bool showLoadingSpinner = false,
     int limit = _kPageSize,
     bool Function()? shouldApplyResult,
@@ -990,10 +1006,12 @@ class ChatViewModel extends _$ChatViewModel {
       );
     }
     try {
+      final String? effectiveAroundMessageId =
+          targetMessageId ?? aroundMessageId;
       final repo = ref.read(messageRepositoryProvider);
       final page = await repo.loadMessagePage(
         channelId: channelId,
-        around: targetMessageId,
+        around: effectiveAroundMessageId,
         limit: limit,
       );
       if (state.channelId != channelId || !shouldApply()) {
@@ -1013,11 +1031,16 @@ class ChatViewModel extends _$ChatViewModel {
       if (state.channelId != channelId || !shouldApply()) {
         return;
       }
+      // Around pages are split before/after the anchor; near the live tail they
+      // can be shorter than [limit] while older history still exists.
+      final bool hasMoreOlder =
+          page.messages.length >= limit ||
+          (effectiveAroundMessageId != null && page.messages.isNotEmpty);
       state = state.copyWith(
         messages: merged,
         isLoading: false,
         isSyncingMessages: false,
-        hasMoreMessages: page.messages.length >= limit,
+        hasMoreMessages: hasMoreOlder,
         hasMoreNewerMessages: hasMoreNewer,
         errorMessage: null,
         messageLoadFailed: false,
@@ -1164,6 +1187,7 @@ class ChatViewModel extends _$ChatViewModel {
     try {
       final repo = ref.read(messageRepositoryProvider);
       final oldestId = state.messages.first.id;
+      talker.debug('[ChatPagination] older request oldest=$oldestId');
       if (_contigChannelId == channelId &&
           canServeOlderFromCache(
             windowOldestId: oldestId,
@@ -1212,13 +1236,17 @@ class ChatViewModel extends _$ChatViewModel {
         isLoadingMore: false,
         hasMoreMessages: page.messages.length >= _kPageSize,
       );
+      talker.debug(
+        '[ChatPagination] older loaded count=${page.messages.length} '
+        'hasMore=${page.messages.length >= _kPageSize}',
+      );
       _notifyMessageReferencesLoaded(
         channelId: channelId,
         messages: page.messages,
         embeddedReplyParents: page.embeddedReplyParents,
       );
     } on Exception catch (e) {
-      debugPrint('[ChatViewModel] Failed to load more: $e');
+      talker.warning('[ChatPagination] older load failed', e);
       if (state.channelId == channelId) {
         state = state.copyWith(isLoadingMore: false);
       }
@@ -1240,6 +1268,7 @@ class ChatViewModel extends _$ChatViewModel {
     try {
       final repo = ref.read(messageRepositoryProvider);
       final String newestId = state.messages.last.id;
+      talker.debug('[ChatPagination] newer request newest=$newestId');
       if (_contigChannelId == channelId &&
           canServeNewerFromCache(
             windowNewestId: newestId,
@@ -1304,13 +1333,17 @@ class ChatViewModel extends _$ChatViewModel {
         hasMoreNewerMessages: hasMoreNewer,
         hasMoreMessages: trim.droppedOlder || state.hasMoreMessages,
       );
+      talker.debug(
+        '[ChatPagination] newer loaded count=${page.messages.length} '
+        'hasMore=$hasMoreNewer',
+      );
       _notifyMessageReferencesLoaded(
         channelId: channelId,
         messages: trim.messages,
         embeddedReplyParents: page.embeddedReplyParents,
       );
     } on Exception catch (e) {
-      debugPrint('[ChatViewModel] Failed to load newer messages: $e');
+      talker.warning('[ChatPagination] newer load failed', e);
       if (state.channelId == channelId) {
         state = state.copyWith(isLoadingNewer: false);
       }
@@ -1370,7 +1403,7 @@ class ChatViewModel extends _$ChatViewModel {
       );
       scrollToBottom();
     } on Exception catch (e) {
-      debugPrint('[ChatViewModel] Failed to jump to latest messages: $e');
+      talker.warning('[ChatPagination] jump to latest failed', e);
       if (state.channelId == channelId) {
         state = state.copyWith(isSyncingMessages: false);
       }

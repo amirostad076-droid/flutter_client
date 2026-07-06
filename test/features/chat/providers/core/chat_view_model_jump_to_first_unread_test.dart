@@ -91,7 +91,10 @@ void main() {
         ),
       );
 
-      final adapter = _JumpAdapter(initialMessages: window);
+      final adapter = _JumpAdapter(
+        initialMessages: window,
+        aroundMessages: window,
+      );
       final container = _container(db, adapter);
       addTearDown(container.dispose);
 
@@ -115,17 +118,17 @@ void main() {
       expect(state.scrollToMessageSignal?.$1, firstUnreadId);
       expect(state.highlightedMessageId, firstUnreadId);
       expect(adapter.messageRequestUris.length, fetchesAfterLoad);
-      expect(adapter.aroundQueries, isEmpty);
+      expect(adapter.aroundQueries, [ackId]);
     },
   );
 
-  test('jumpToFirstUnread fetches around the ack and lands on the nearest '
-      'newer message when the ack message is gone', () async {
+  test('jumpToFirstUnread lands on the nearest newer message from the open '
+      'around window without refetching', () async {
     final db = FluxerDatabase.forTesting(NativeDatabase.memory());
     addTearDown(db.close);
 
-    // Ack far below the initial window: 50 loaded ids all newer than the
-    // ack, so the unread boundary is NOT loaded and the jump must fetch.
+    // Ack far below the default latest page, but the unread-open around
+    // request loads the ack boundary and its first newer message immediately.
     final String ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 19, 9));
     final String nearestNewerId = _snowflakeForUtc(
       DateTime.utc(2026, 5, 19, 10),
@@ -142,9 +145,10 @@ void main() {
       for (final id in windowIds)
         _messageJson(id: id, channelId: 'channel-1', authorId: 'other'),
     ];
-    // The ack message itself was deleted: the around page only contains
-    // newer messages, forcing the nearest-newer degradation.
+    // The around page is loaded during switchChannel, so jumpToFirstUnread
+    // should only scroll to the first newer message already in memory.
     final List<Map<String, Object?>> aroundPage = <Map<String, Object?>>[
+      _messageJson(id: ackId, channelId: 'channel-1', authorId: 'other'),
       _messageJson(
         id: nearestNewerId,
         channelId: 'channel-1',
@@ -185,16 +189,23 @@ void main() {
     await _flushAsync();
 
     expect(container.read(chatViewModelProvider).hasMoreMessages, isTrue);
-    expect(adapter.aroundQueries, isEmpty);
+    expect(adapter.aroundQueries, [ackId]);
+    final int fetchesAfterLoad = adapter.messageRequestUris.length;
+    adapter.failMessageFetches = true;
 
     await notifier.jumpToFirstUnread();
     await _flushAsync();
 
     expect(adapter.aroundQueries, [ackId]);
     final ChatViewState state = container.read(chatViewModelProvider);
-    expect(state.messages.map((m) => m.id), [nearestNewerId, aroundNewerId]);
+    expect(state.messages.map((m) => m.id), [
+      ackId,
+      nearestNewerId,
+      aroundNewerId,
+    ]);
     expect(state.scrollToMessageSignal?.$1, nearestNewerId);
     expect(state.highlightedMessageId, nearestNewerId);
+    expect(adapter.messageRequestUris.length, fetchesAfterLoad);
   });
 }
 

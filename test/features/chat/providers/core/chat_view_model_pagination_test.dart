@@ -326,7 +326,7 @@ class _PaginatingAdapter implements HttpClientAdapter {
       final channelId = match.group(1)!;
       final all = messagesByChannel[channelId] ?? const [];
       final before = options.uri.queryParameters['before'];
-      final after = options.uri.queryParameters['after'];
+      final around = options.uri.queryParameters['around'];
       if (before != null && holdBeforeFetch) {
         _beforeCompleter ??= Completer<void>();
         await _beforeCompleter!.future;
@@ -339,11 +339,16 @@ class _PaginatingAdapter implements HttpClientAdapter {
         page = older.length <= pageLimit
             ? older
             : older.sublist(older.length - pageLimit);
-      } else if (after != null) {
-        final newer = all
-            .where((m) => _compare(m['id']! as String, after) > 0)
-            .toList();
-        page = newer.length <= pageLimit ? newer : newer.sublist(0, pageLimit);
+      } else if (around != null) {
+        final aroundIndex = all.indexWhere((m) => m['id'] == around);
+        if (aroundIndex == -1) {
+          page = const [];
+        } else {
+          final halfLimit = pageLimit ~/ 2;
+          final end = (aroundIndex + halfLimit + 1).clamp(0, all.length);
+          final start = (end - pageLimit).clamp(0, all.length);
+          page = all.sublist(start, end);
+        }
       } else {
         page = all.length <= pageLimit
             ? all
