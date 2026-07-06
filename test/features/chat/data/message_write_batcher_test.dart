@@ -1,5 +1,5 @@
-import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../../helpers/open_test_database.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/gateway/channel_last_message_index.dart';
 import 'package:fluxer_app/features/chat/data/message_write_batcher.dart';
@@ -11,7 +11,7 @@ void main() {
   final List<Map<String, String>> flushBatches = <Map<String, String>>[];
 
   setUp(() {
-    db = FluxerDatabase.forTesting(NativeDatabase.memory());
+    db = openTestDatabase();
     index = ChannelLastMessageIndex();
     batcher = MessageWriteBatcher(
       database: db,
@@ -24,7 +24,6 @@ void main() {
   tearDown(() async {
     await batcher.dispose();
     await index.dispose();
-    await db.close();
   });
 
   test('batch flush updates channel last message index', () async {

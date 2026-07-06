@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:drift/drift.dart' show Value;
-import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../../../helpers/open_test_database.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
@@ -276,7 +276,6 @@ void main() {
 
         final _AroundAckMessageListHarness harness =
             await _createAroundAckMessageListHarness(ackIndex: 42);
-        addTearDown(harness.database.close);
 
         await tester.pumpWidget(
           _messageListApp(
@@ -336,7 +335,6 @@ void main() {
 
         final _AroundAckMessageListHarness harness =
             await _createAroundAckMessageListHarness(ackIndex: 42);
-        addTearDown(harness.database.close);
 
         await tester.pumpWidget(
           _messageListApp(
@@ -379,7 +377,6 @@ void main() {
             messageCount: 60,
             ackIndex: 34,
           );
-      addTearDown(harness.database.close);
 
       await tester.pumpWidget(
         _messageListApp(
@@ -411,7 +408,6 @@ void main() {
 
         final _AroundAckMessageListHarness harness =
             await _createBottomMessageListHarness();
-        addTearDown(harness.database.close);
 
         await tester.pumpWidget(
           _messageListApp(
@@ -484,7 +480,6 @@ void main() {
 
         final _AroundAckMessageListHarness harness =
             await _createBottomMessageListHarness(hasMoreNewerMessages: true);
-        addTearDown(harness.database.close);
 
         await tester.pumpWidget(
           _messageListApp(
@@ -533,7 +528,6 @@ void main() {
               messageCount: 70,
               ackIndex: 42,
             );
-        addTearDown(harness.database.close);
 
         await tester.pumpWidget(
           _messageListApp(
@@ -586,7 +580,6 @@ void main() {
               messageCount: 90,
               ackIndex: 30,
             );
-        addTearDown(harness.database.close);
 
         await tester.pumpWidget(
           _messageListApp(
@@ -640,7 +633,6 @@ void main() {
               messageCount: 60,
               ackIndex: 42,
             );
-        addTearDown(harness.database.close);
 
         await tester.pumpWidget(
           _messageListApp(
@@ -704,7 +696,6 @@ void main() {
               messageCount: 60,
               ackIndex: 42,
             );
-        addTearDown(harness.database.close);
 
         await tester.pumpWidget(
           _messageListApp(
@@ -754,7 +745,6 @@ void main() {
               ackIndex: 48,
               hasMoreNewerMessages: false,
             );
-        addTearDown(harness.database.close);
 
         await tester.pumpWidget(
           _messageListApp(
@@ -808,7 +798,6 @@ void main() {
 
         final _AroundAckMessageListHarness harness =
             await _createAroundAckMessageListHarness(ackIndex: 48);
-        addTearDown(harness.database.close);
 
         await tester.pumpWidget(
           _messageListApp(
@@ -845,10 +834,7 @@ void main() {
     testWidgets(
       'empty resolved channel renders the empty state instead of the loading spinner',
       (WidgetTester tester) async {
-        final db.FluxerDatabase database = db.FluxerDatabase.forTesting(
-          NativeDatabase.memory(),
-        );
-        addTearDown(database.close);
+        final db.FluxerDatabase database = openTestDatabase();
         await database.readStateDao.upsertReadState(
           const db.ReadStatesCompanion(
             channelId: Value<String>(_messageListChannelId),
@@ -900,7 +886,6 @@ void main() {
 
         final _AroundAckMessageListHarness harness =
             await _createBottomMessageListHarness();
-        addTearDown(harness.database.close);
 
         await tester.pumpWidget(
           _messageListApp(
@@ -969,7 +954,6 @@ void main() {
 
         final _AroundAckMessageListHarness harness =
             await _createBottomMessageListHarness();
-        addTearDown(harness.database.close);
 
         await tester.pumpWidget(
           _messageListApp(
@@ -1010,7 +994,6 @@ void main() {
 
       final _AroundAckMessageListHarness harness =
           await _createBottomMessageListHarness();
-      addTearDown(harness.database.close);
 
       await tester.pumpWidget(
         _messageListApp(
@@ -1239,9 +1222,7 @@ Future<_AroundAckMessageListHarness> _createAroundAckMessageListHarness({
         timestamp: base.add(Duration(minutes: index)),
       ),
   ];
-  final db.FluxerDatabase database = db.FluxerDatabase.forTesting(
-    NativeDatabase.memory(),
-  );
+  final db.FluxerDatabase database = openTestDatabase();
   await database.readStateDao.upsertReadState(
     db.ReadStatesCompanion(
       channelId: const Value<String>(_messageListChannelId),

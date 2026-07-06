@@ -1,8 +1,8 @@
-import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../../../helpers/open_test_database.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart'
     show FluxerDatabase;
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
@@ -645,8 +645,7 @@ List<Override> _buildOverrides({
   bool developerMode = false,
   VoiceSession Function()? voiceSessionFactory,
 }) {
-  final db = FluxerDatabase.forTesting(NativeDatabase.memory());
-  addTearDown(db.close);
+  final db = openTestDatabase();
   return [
     fluxerDatabaseProvider.overrideWithValue(db),
     currentUserIdProvider.overrideWithValue('me'),

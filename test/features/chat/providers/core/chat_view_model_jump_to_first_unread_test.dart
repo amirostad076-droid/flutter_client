@@ -3,9 +3,9 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../../../helpers/open_test_database.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
@@ -53,8 +53,7 @@ void main() {
   test(
     'jumpToFirstUnread targets the loaded first unread without fetching',
     () async {
-      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
-      addTearDown(db.close);
+      final db = openTestDatabase();
 
       // Full 50-message initial page so hasMoreMessages stays true and the
       // boundary is "loaded" only because ids <= ack are in the window.
@@ -124,8 +123,7 @@ void main() {
 
   test('jumpToFirstUnread lands on the nearest newer message from the open '
       'around window without refetching', () async {
-    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
-    addTearDown(db.close);
+    final db = openTestDatabase();
 
     // Ack far below the default latest page, but the unread-open around
     // request loads the ack boundary and its first newer message immediately.

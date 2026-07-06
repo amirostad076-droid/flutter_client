@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../../helpers/open_test_database.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart'
     show FluxerDatabase;
@@ -333,8 +333,7 @@ _RecordingDmSetup _createRecordingRepository({
   String createResult = 'dm-channel',
   List<DmConversation> duplicates = const <DmConversation>[],
 }) {
-  final FluxerDatabase db = FluxerDatabase.forTesting(NativeDatabase.memory());
-  addTearDown(db.close);
+  final FluxerDatabase db = openTestDatabase();
   final ProviderContainer container = ProviderContainer(
     overrides: <Override>[
       fluxerDatabaseProvider.overrideWithValue(db),

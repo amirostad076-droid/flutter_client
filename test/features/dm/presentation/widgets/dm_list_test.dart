@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../../../helpers/open_test_database.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart'
     show FluxerDatabase;
 import 'package:fluxer_app/core/providers/database_provider.dart';
@@ -458,8 +458,7 @@ List<Override> _buildOverrides({
   Stream<Map<String, DmListRecipientRowData>>? recipientRows,
   DmMessagePreviewMode dmMessagePreviewMode = DmMessagePreviewMode.all,
 }) {
-  final db = FluxerDatabase.forTesting(NativeDatabase.memory());
-  addTearDown(db.close);
+  final db = openTestDatabase();
   return [
     fluxerDatabaseProvider.overrideWithValue(db),
     dmListRecipientRowDataProvider.overrideWith(

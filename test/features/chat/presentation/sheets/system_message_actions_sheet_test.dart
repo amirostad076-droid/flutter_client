@@ -1,8 +1,8 @@
-import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../../../helpers/open_test_database.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart'
     show FluxerDatabase;
 import 'package:fluxer_app/core/limits/instance_limit_provider.dart';
@@ -89,8 +89,7 @@ void main() {
   testWidgets(
     'pinned-message system menu shows system actions and hides user-only ones',
     (tester) async {
-      final db = FluxerDatabase.forTesting(NativeDatabase.memory());
-      addTearDown(db.close);
+      final db = openTestDatabase();
       final message = _systemMessage(type: messageTypeChannelPinnedMessage);
       await tester.pumpWidget(
         _app(
@@ -129,8 +128,7 @@ void main() {
   );
 
   testWidgets('Copy Message copies the system message content', (tester) async {
-    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
-    addTearDown(db.close);
+    final db = openTestDatabase();
     final message = _systemMessage(
       type: messageTypeChannelNameChange,
       content: 'renamed-channel',

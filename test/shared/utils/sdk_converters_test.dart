@@ -1,5 +1,5 @@
-import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../helpers/open_test_database.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart'
     show FluxerDatabase;
 import 'package:fluxer_app/features/channels/domain/channel.dart';
@@ -7,8 +7,7 @@ import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 
 void main() {
   test('channelResponseFromRow maps a local row to the wire format', () async {
-    final db = FluxerDatabase.forTesting(NativeDatabase.memory());
-    addTearDown(db.close);
+    final db = openTestDatabase();
     await db.channelDao.upsertChannels([
       const Channel(
         id: 'c1',
