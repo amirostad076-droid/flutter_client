@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
-import 'package:fluxer_app/core/database/fluxer_database.dart' show FluxerDatabase;
+import 'package:fluxer_app/core/database/fluxer_database.dart'
+    show FluxerDatabase;
 import 'package:fluxer_app/core/limits/instance_limit_provider.dart';
 import 'package:fluxer_app/core/limits/limit_key.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
@@ -417,9 +418,7 @@ List<Override> _buildOverrides({
   ];
 }
 
-List<Override> _buildDmListOverrides({
-  required List<Friend> friends,
-}) {
+List<Override> _buildDmListOverrides({required List<Friend> friends}) {
   return <Override>[
     dmListRecipientRowDataProvider.overrideWith(
       (Ref ref) => Stream.value(const <String, DmListRecipientRowData>{}),
@@ -436,7 +435,9 @@ List<Override> _buildDmListOverrides({
     mutedDmChannelIdsProvider.overrideWith(
       (Ref ref) => Stream.value(const <String>{}),
     ),
-    pendingFriendRequestCountProvider.overrideWith((Ref ref) => Stream.value(0)),
+    pendingFriendRequestCountProvider.overrideWith(
+      (Ref ref) => Stream.value(0),
+    ),
     friendNicknameProvider.overrideWith(
       (Ref ref, String userId) => Stream.value(null),
     ),
