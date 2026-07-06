@@ -52,6 +52,7 @@ import 'package:fluxer_app/features/chat/utils/message_grouping_utils.dart';
 import 'package:fluxer_app/features/chat/utils/pinned_system_message_navigation.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
+import 'package:fluxer_app/features/dm/presentation/widgets/group_dm_welcome_section.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/personal_notes_welcome_section.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';
@@ -1386,6 +1387,12 @@ class _MessageListState extends ConsumerState<MessageList> {
             return dm?.isPersonalNotes ?? false;
           }),
         );
+    final DmConversation? groupDmConversation = ref.watch(
+      dmViewModelProvider.select((DmViewState dmState) {
+        final DmConversation? dm = findDmById(dmState.conversations, channelId);
+        return dm != null && dm.isGroup ? dm : null;
+      }),
+    );
     final channelRow = isDmChannel || channelId.isEmpty
         ? null
         : findChannelById(ref.watch(channelListViewModelProvider), channelId);
@@ -1462,12 +1469,19 @@ class _MessageListState extends ConsumerState<MessageList> {
       }
     }
 
-    final Widget? startOfChannelHeader = !hasMoreMessages && channelRow != null
-        ? ChannelWelcomeSection(
-            key: const ValueKey<String>('channel-welcome-section'),
-            channel: channelRow,
-            effectivePermissionBits: channelPermissionBits,
-          )
+    final Widget? startOfChannelHeader = !hasMoreMessages
+        ? switch ((channelRow, groupDmConversation)) {
+            (final channel?, null) => ChannelWelcomeSection(
+              key: const ValueKey<String>('channel-welcome-section'),
+              channel: channel,
+              effectivePermissionBits: channelPermissionBits,
+            ),
+            (null, final dm?) => GroupDmWelcomeSection(
+              key: const ValueKey<String>('group-dm-welcome-section'),
+              dm: dm,
+            ),
+            _ => null,
+          }
         : null;
 
     return _MessageListSettingsLayer(
@@ -1533,6 +1547,11 @@ class _MessageListState extends ConsumerState<MessageList> {
             } else if (messages.isEmpty) {
               if (isPersonalNotesChannel) {
                 body = const PersonalNotesWelcomeSection();
+              } else if (groupDmConversation != null) {
+                body = Align(
+                  alignment: Alignment.bottomCenter,
+                  child: GroupDmWelcomeSection(dm: groupDmConversation),
+                );
               } else if (channelRow != null) {
                 body = Align(
                   alignment: Alignment.bottomLeft,

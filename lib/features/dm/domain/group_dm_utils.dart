@@ -58,3 +58,10 @@ bool isDuplicateGroupDmRow({
 int getMaxGroupDmOtherRecipients(int maxGroupDmRecipients) {
   return (maxGroupDmRecipients - 1).clamp(0, maxGroupDmRecipients);
 }
+
+bool isGroupDmFull({
+  required int memberCount,
+  required int maxGroupDmRecipients,
+}) {
+  return memberCount >= maxGroupDmRecipients;
+}

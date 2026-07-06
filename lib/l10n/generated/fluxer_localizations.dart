@@ -9615,6 +9615,24 @@ abstract class FluxerLocalizations {
   /// **'Your private space for thoughts and reminders'**
   String get personalNotesSubtitle;
 
+  /// Welcome copy on the group DM hero at the start of chat history. {displayName} is rendered bold in the UI.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to {displayName}. Add friends to get the group going.'**
+  String groupDmWelcome(String displayName);
+
+  /// Secondary action on the group DM welcome hero.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit group'**
+  String get groupDmWelcomeEditGroup;
+
+  /// Primary action on the group DM welcome hero.
+  ///
+  /// In en, this message translates to:
+  /// **'Add friends to group'**
+  String get groupDmWelcomeAddFriends;
+
   /// Heading on the start-of-channel welcome shown at the top of a guild channel's loaded message history and as its empty state. {channelName} already includes the leading # (e.g. #general).
   ///
   /// In en, this message translates to:

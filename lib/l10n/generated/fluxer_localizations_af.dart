@@ -5660,6 +5660,17 @@ class FluxerLocalizationsAf extends FluxerLocalizations {
       'Jou privaat spasie vir gedagtes en herinneringe';
 
   @override
+  String groupDmWelcome(String displayName) {
+    return 'Welcome to $displayName. Add friends to get the group going.';
+  }
+
+  @override
+  String get groupDmWelcomeEditGroup => 'Edit group';
+
+  @override
+  String get groupDmWelcomeAddFriends => 'Add friends to group';
+
+  @override
   String channelWelcomeHeading(String channelName) {
     return 'Welkom by $channelName';
   }

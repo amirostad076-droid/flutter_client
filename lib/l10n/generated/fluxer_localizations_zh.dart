@@ -5343,6 +5343,17 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get personalNotesSubtitle => '你的私人空间，用于记录想法和提醒';
 
   @override
+  String groupDmWelcome(String displayName) {
+    return 'Welcome to $displayName. Add friends to get the group going.';
+  }
+
+  @override
+  String get groupDmWelcomeEditGroup => 'Edit group';
+
+  @override
+  String get groupDmWelcomeAddFriends => 'Add friends to group';
+
+  @override
   String channelWelcomeHeading(String channelName) {
     return '欢迎来到 $channelName';
   }
