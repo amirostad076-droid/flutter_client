@@ -359,11 +359,16 @@ Future<void> _handleUserSettingsHydrate(
   Ref ref,
   UserSettingsResponse settings,
 ) async {
+  final notifier = ref.read(themePreferenceProvider.notifier);
   await ref
       .read(syncedPreferencesStoreProvider)
-      .hydrateFromUserSettings(settings);
-  await applySyncedThemeFromUserSettings(ref, settings);
-  await ref
-      .read(themePreferenceProvider.notifier)
-      .applyServerSettings(settings);
+      .hydrateFromUserSettings(
+        settings,
+        themeCustomizationApplier: notifier.applySyncedThemeCustomization,
+      );
+  await applySyncedThemeFromUserSettings(
+    settings,
+    notifier.applySyncedThemeCustomization,
+  );
+  await notifier.applyServerSettings(settings);
 }

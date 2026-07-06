@@ -113,7 +113,10 @@ class SyncedPreferencesStore {
     });
   }
 
-  Future<void> hydrateFromUserSettings(UserSettingsResponse settings) async {
+  Future<void> hydrateFromUserSettings(
+    UserSettingsResponse settings, {
+    SyncedThemeCustomizationApplier? themeCustomizationApplier,
+  }) async {
     final encoded = settings.syncedPreferences;
     _wireBlob = encoded;
     final decodeStatus = await _decodeIncoming(encoded);
@@ -151,12 +154,21 @@ class SyncedPreferencesStore {
       wasFirstHydrate: wasFirstHydrate,
       protectedFields: protectedFields,
     );
-    await _applyMergedAccessibilityTheme();
+    await _applyMergedAccessibilityTheme(
+      themeCustomizationApplier: themeCustomizationApplier,
+    );
     _hasHydrated = true;
     _flushPendingPush();
   }
 
-  Future<void> _applyMergedAccessibilityTheme() async {
+  Future<void> _applyMergedAccessibilityTheme({
+    SyncedThemeCustomizationApplier? themeCustomizationApplier,
+  }) async {
+    final SyncedThemeCustomizationApplier apply =
+        themeCustomizationApplier ??
+        _ref
+            .read(themePreferenceProvider.notifier)
+            .applySyncedThemeCustomization;
     if (_local.hasAccessibility()) {
       final accessibility = _local.accessibility;
       final String? mergedCss = accessibility.hasCustomThemeCss()
@@ -164,8 +176,8 @@ class SyncedPreferencesStore {
           : null;
       if (mergedCss != null || accessibility.hasSaturationFactor()) {
         await applyThemeCustomizationFromAccessibilityProto(
-          _ref,
           accessibility,
+          apply,
         );
         return;
       }
@@ -174,12 +186,7 @@ class SyncedPreferencesStore {
     if (wireCss == null) {
       return;
     }
-    await _ref
-        .read(themePreferenceProvider.notifier)
-        .applySyncedThemeCustomization(
-          customThemeCss: wireCss,
-          updateSaturationFactor: false,
-        );
+    await apply(customThemeCss: wireCss, updateSaturationFactor: false);
   }
 
   Future<void> _reconcileRegisteredFields({

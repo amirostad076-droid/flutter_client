@@ -1,15 +1,22 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_engine.dart';
 import 'package:fluxer_app/core/synced_preferences/generated/fluxer/user/preferences/v1/accessibility.pb.dart'
     as pb;
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/custom_theme_css.dart';
-import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_dart/export.dart';
 
+typedef SyncedThemeCustomizationApplier =
+    Future<void> Function({
+      double? saturationFactor,
+      String? customThemeCss,
+      bool updateSaturationFactor,
+      bool updateCustomThemeCss,
+      bool clearCustomThemeCss,
+    });
+
 Future<void> applySyncedThemeFromUserSettings(
-  Ref ref,
   UserSettingsResponse settings,
+  SyncedThemeCustomizationApplier apply,
 ) async {
   final String encoded = settings.syncedPreferences;
   if (encoded.isEmpty) {
@@ -21,8 +28,8 @@ Future<void> applySyncedThemeFromUserSettings(
       return;
     }
     await applyThemeCustomizationFromAccessibilityProto(
-      ref,
       synced.accessibility,
+      apply,
     );
   } on Object catch (error, stackTrace) {
     talker.warning(
@@ -34,8 +41,8 @@ Future<void> applySyncedThemeFromUserSettings(
 }
 
 Future<void> applyThemeCustomizationFromAccessibilityProto(
-  Ref ref,
   pb.AccessibilitySettings accessibility,
+  SyncedThemeCustomizationApplier apply,
 ) async {
   final bool hasSaturation = accessibility.hasSaturationFactor();
   final bool hasCustomThemeCssField = accessibility.hasCustomThemeCss();
@@ -46,14 +53,12 @@ Future<void> applyThemeCustomizationFromAccessibilityProto(
   if (!hasSaturation && !hasCustomThemeCss) {
     return;
   }
-  await ref
-      .read(themePreferenceProvider.notifier)
-      .applySyncedThemeCustomization(
-        saturationFactor: hasSaturation
-            ? clampSaturationFactor(accessibility.saturationFactor)
-            : null,
-        customThemeCss: normalizedCss,
-        updateSaturationFactor: hasSaturation,
-        updateCustomThemeCss: hasCustomThemeCss,
-      );
+  await apply(
+    saturationFactor: hasSaturation
+        ? clampSaturationFactor(accessibility.saturationFactor)
+        : null,
+    customThemeCss: normalizedCss,
+    updateSaturationFactor: hasSaturation,
+    updateCustomThemeCss: hasCustomThemeCss,
+  );
 }

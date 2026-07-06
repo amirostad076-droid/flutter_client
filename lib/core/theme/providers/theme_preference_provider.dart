@@ -265,8 +265,14 @@ class ThemePreference extends _$ThemePreference {
   Future<void> _applyRemoteUserSettings(UserSettingsResponse settings) async {
     await ref
         .read(syncedPreferencesStoreProvider)
-        .hydrateFromUserSettings(settings);
-    await applySyncedThemeFromUserSettings(ref, settings);
+        .hydrateFromUserSettings(
+          settings,
+          themeCustomizationApplier: applySyncedThemeCustomization,
+        );
+    await applySyncedThemeFromUserSettings(
+      settings,
+      applySyncedThemeCustomization,
+    );
     if (state.syncAcrossDevices && state.mode != FluxerThemeMode.system) {
       await applyServerSettings(settings);
     }
