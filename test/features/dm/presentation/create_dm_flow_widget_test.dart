@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
-import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart' show FluxerDatabase;
 import 'package:fluxer_app/core/limits/instance_limit_provider.dart';
 import 'package:fluxer_app/core/limits/limit_key.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
@@ -15,17 +15,26 @@ import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
+import 'package:fluxer_app/features/channels/domain/channel.dart';
+import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/dm/data/dm_repository.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/presentation/sheets/create_dm_bottom_sheet.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/dm_list.dart';
+import 'package:fluxer_app/features/dm/providers/dm_list_presence_provider.dart';
+import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
+import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
+import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:fluxer_app/features/guilds/data/guild_user_settings_repository.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/mature_content/domain/mature_content_types.dart';
 import 'package:fluxer_app/features/mature_content/providers/mature_content_agreements_provider.dart';
+import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_dart/export.dart';
@@ -36,10 +45,10 @@ void main() {
   group('Create DM flow', () {
     testWidgets('opens bottom sheet and lists friends', (tester) async {
       _setMobileSurface(tester);
-      final _RecordingDmRepository repository = _createRecordingRepository();
+      final _RecordingDmSetup setup = _createRecordingRepository();
 
       await tester.pumpWidget(
-        _buildHarness(repository: repository, friends: _sampleFriends),
+        _buildHarness(setup: setup, friends: _sampleFriends),
       );
       await tester.pumpAndSettle();
 
@@ -57,10 +66,10 @@ void main() {
       tester,
     ) async {
       _setMobileSurface(tester);
-      final _RecordingDmRepository repository = _createRecordingRepository();
+      final _RecordingDmSetup setup = _createRecordingRepository();
 
       await tester.pumpWidget(
-        _buildHarness(repository: repository, friends: _sampleFriends),
+        _buildHarness(setup: setup, friends: _sampleFriends),
       );
       await tester.pumpAndSettle();
       await tester.tap(find.text('Open create DM'));
@@ -79,12 +88,12 @@ void main() {
       tester,
     ) async {
       _setMobileSurface(tester);
-      final _RecordingDmRepository repository = _createRecordingRepository(
+      final _RecordingDmSetup setup = _createRecordingRepository(
         createResult: 'existing-dm-channel',
       );
 
       await tester.pumpWidget(
-        _buildHarness(repository: repository, friends: _sampleFriends),
+        _buildHarness(setup: setup, friends: _sampleFriends),
       );
       await tester.pumpAndSettle();
       await tester.tap(find.text('Open create DM'));
@@ -98,8 +107,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(repository.createCallCount, 1);
-      expect(repository.lastCreateSelection, <String>['200']);
+      expect(setup.repository.createCallCount, 1);
+      expect(setup.repository.lastCreateSelection, <String>['200']);
       expect(find.text('Select friends'), findsNothing);
     });
 
@@ -107,12 +116,12 @@ void main() {
       tester,
     ) async {
       _setMobileSurface(tester);
-      final _RecordingDmRepository repository = _createRecordingRepository(
+      final _RecordingDmSetup setup = _createRecordingRepository(
         createResult: 'new-group-channel',
       );
 
       await tester.pumpWidget(
-        _buildHarness(repository: repository, friends: _sampleFriends),
+        _buildHarness(setup: setup, friends: _sampleFriends),
       );
       await tester.pumpAndSettle();
       await tester.tap(find.text('Open create DM'));
@@ -125,8 +134,8 @@ void main() {
       await tester.tap(find.text('Create group DM'));
       await tester.pumpAndSettle();
 
-      expect(repository.createCallCount, 1);
-      expect(repository.lastCreateSelection, <String>['200', '300']);
+      expect(setup.repository.createCallCount, 1);
+      expect(setup.repository.lastCreateSelection, <String>['200', '300']);
       expect(find.text('Select friends'), findsNothing);
     });
 
@@ -134,7 +143,7 @@ void main() {
       tester,
     ) async {
       _setMobileSurface(tester);
-      final _RecordingDmRepository repository = _createRecordingRepository(
+      final _RecordingDmSetup setup = _createRecordingRepository(
         createResult: 'duplicate-group-channel',
         duplicates: <DmConversation>[
           DmConversation(
@@ -149,7 +158,7 @@ void main() {
       );
 
       await tester.pumpWidget(
-        _buildHarness(repository: repository, friends: _sampleFriends),
+        _buildHarness(setup: setup, friends: _sampleFriends),
       );
       await tester.pumpAndSettle();
       await tester.tap(find.text('Open create DM'));
@@ -173,17 +182,17 @@ void main() {
       await tester.tap(find.text('Create new group'));
       await tester.pumpAndSettle();
 
-      expect(repository.createCallCount, 1);
-      expect(repository.lastCreateSelection, <String>['200', '300']);
+      expect(setup.repository.createCallCount, 1);
+      expect(setup.repository.lastCreateSelection, <String>['200', '300']);
     });
 
     testWidgets('shows verify-email restriction empty state', (tester) async {
       _setMobileSurface(tester);
-      final _RecordingDmRepository repository = _createRecordingRepository();
+      final _RecordingDmSetup setup = _createRecordingRepository();
 
       await tester.pumpWidget(
         _buildHarness(
-          repository: repository,
+          setup: setup,
           friends: _sampleFriends,
           settings: _unverifiedSettings,
         ),
@@ -199,13 +208,13 @@ void main() {
 
     testWidgets('dm list fab opens create dm sheet on mobile', (tester) async {
       _setMobileSurface(tester);
-      final _RecordingDmRepository repository = _createRecordingRepository();
+      final _RecordingDmSetup setup = _createRecordingRepository();
       final GoRouter router = _buildRouter(home: const DMList());
 
       await tester.pumpWidget(
         _buildDmListHarness(
           router: router,
-          repository: repository,
+          setup: setup,
           friends: _sampleFriends,
         ),
       );
@@ -314,7 +323,12 @@ class _RecordingDmRepository extends DmRepository {
   }
 }
 
-_RecordingDmRepository _createRecordingRepository({
+typedef _RecordingDmSetup = ({
+  _RecordingDmRepository repository,
+  FluxerDatabase database,
+});
+
+_RecordingDmSetup _createRecordingRepository({
   String createResult = 'dm-channel',
   List<DmConversation> duplicates = const <DmConversation>[],
 }) {
@@ -329,13 +343,14 @@ _RecordingDmRepository _createRecordingRepository({
     ],
   );
   addTearDown(container.dispose);
-  return _RecordingDmRepository(
+  final _RecordingDmRepository repository = _RecordingDmRepository(
     container.read(fluxerClientProvider),
     db,
     container.read(guildUserSettingsRepositoryProvider),
     createResult: createResult,
     duplicates: duplicates,
   );
+  return (repository: repository, database: db);
 }
 
 void _setMobileSurface(WidgetTester tester) {
@@ -374,15 +389,14 @@ GoRouter _buildRouter({required Widget home}) {
 }
 
 List<Override> _buildOverrides({
+  required FluxerDatabase database,
   required _RecordingDmRepository repository,
   required List<Friend> friends,
   UserSettingsViewState settings = _verifiedSettings,
   String gateChannelId = 'existing-dm-channel',
 }) {
-  final FluxerDatabase db = FluxerDatabase.forTesting(NativeDatabase.memory());
-  addTearDown(db.close);
   return <Override>[
-    fluxerDatabaseProvider.overrideWithValue(db),
+    fluxerDatabaseProvider.overrideWithValue(database),
     dmRepositoryProvider.overrideWithValue(repository),
     friendsListProvider.overrideWith((Ref ref) => Stream.value(friends)),
     userSettingsViewModelProvider.overrideWith(
@@ -403,8 +417,48 @@ List<Override> _buildOverrides({
   ];
 }
 
+List<Override> _buildDmListOverrides({
+  required List<Friend> friends,
+}) {
+  return <Override>[
+    dmListRecipientRowDataProvider.overrideWith(
+      (Ref ref) => Stream.value(const <String, DmListRecipientRowData>{}),
+    ),
+    appearancePreferencesProvider.overrideWith(
+      _DefaultAppearancePreferences.new,
+    ),
+    pinnedDmChannelIdsProvider.overrideWith(
+      (Ref ref) => Stream.value(const <String>{}),
+    ),
+    pinnedDmChannelOrderProvider.overrideWith(
+      (Ref ref) => Stream.value(const <String>[]),
+    ),
+    mutedDmChannelIdsProvider.overrideWith(
+      (Ref ref) => Stream.value(const <String>{}),
+    ),
+    pendingFriendRequestCountProvider.overrideWith((Ref ref) => Stream.value(0)),
+    friendNicknameProvider.overrideWith(
+      (Ref ref, String userId) => Stream.value(null),
+    ),
+    allChannelsProvider.overrideWith(
+      (Ref ref) => Stream<List<Channel>>.value(const <Channel>[]),
+    ),
+    guildListViewModelProvider.overrideWith(_EmptyGuildListViewModel.new),
+    favoriteChannelsProvider.overrideWith((Ref ref) => Stream.value(const [])),
+    dmViewModelProvider.overrideWithValue(
+      DmViewState(
+        conversations: const <DmConversation>[],
+        friendsList: friends,
+        activeTab: FriendsTab.online,
+        searchQuery: '',
+      ),
+    ),
+    currentUserIdProvider.overrideWithValue('1'),
+  ];
+}
+
 Widget _buildHarness({
-  required _RecordingDmRepository repository,
+  required _RecordingDmSetup setup,
   required List<Friend> friends,
   UserSettingsViewState settings = _verifiedSettings,
 }) {
@@ -416,7 +470,8 @@ Widget _buildHarness({
     overrides: <Override>[
       fluxerRouterProvider.overrideWithValue(router),
       ..._buildOverrides(
-        repository: repository,
+        database: setup.database,
+        repository: setup.repository,
         friends: friends,
         settings: settings,
       ),
@@ -436,7 +491,7 @@ Widget _buildHarness({
 
 Widget _buildDmListHarness({
   required GoRouter router,
-  required _RecordingDmRepository repository,
+  required _RecordingDmSetup setup,
   required List<Friend> friends,
 }) {
   addTearDown(router.dispose);
@@ -445,16 +500,12 @@ Widget _buildDmListHarness({
   return ProviderScope(
     overrides: <Override>[
       fluxerRouterProvider.overrideWithValue(router),
-      ..._buildOverrides(repository: repository, friends: friends),
-      dmViewModelProvider.overrideWithValue(
-        DmViewState(
-          conversations: const <DmConversation>[],
-          friendsList: friends,
-          activeTab: FriendsTab.online,
-          searchQuery: '',
-        ),
+      ..._buildOverrides(
+        database: setup.database,
+        repository: setup.repository,
+        friends: friends,
       ),
-      currentUserIdProvider.overrideWithValue('1'),
+      ..._buildDmListOverrides(friends: friends),
     ],
     child: MaterialApp.router(
       localizationsDelegates: FluxerLocalizations.localizationsDelegates,
@@ -467,6 +518,16 @@ Widget _buildDmListHarness({
       routerConfig: router,
     ),
   );
+}
+
+class _DefaultAppearancePreferences extends AppearancePreferences {
+  @override
+  AppearancePreferencesState build() => const AppearancePreferencesState();
+}
+
+class _EmptyGuildListViewModel extends GuildListViewModel {
+  @override
+  GuildListViewState build() => const GuildListViewState(guilds: <Guild>[]);
 }
 
 class _StaticUserSettingsViewModel extends UserSettingsViewModel {

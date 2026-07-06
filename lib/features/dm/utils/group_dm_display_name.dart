@@ -1,3 +1,4 @@
+import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 
@@ -36,7 +37,10 @@ String resolveGroupDmDisplayName({
   if (otherMembers.length <= 4) {
     final List<GroupMemberInfo> sorted = List<GroupMemberInfo>.from(
       otherMembers,
-    )..sort((GroupMemberInfo a, GroupMemberInfo b) => b.id.compareTo(a.id));
+    )..sort(
+        (GroupMemberInfo a, GroupMemberInfo b) =>
+            compareSnowflakeIds(b.id, a.id),
+      );
     final List<String> names = sorted
         .map((GroupMemberInfo member) => _resolveMemberDisplayName(dm, member))
         .whereType<String>()
