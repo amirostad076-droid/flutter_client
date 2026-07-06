@@ -215,7 +215,6 @@ void main() {
                     FluxerBottomSheet.showScrollable(
                       context,
                       initialChildSize: 0.7,
-                      minChildSize: 0.4,
                       maxChildSize: 0.9,
                       builder: (context, scrollController, close) {
                         return ListView.builder(

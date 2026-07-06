@@ -1,10 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import '../../../helpers/open_test_database.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/features/members/data/member_repository.dart';
 import 'package:fluxer_app/features/members/domain/member.dart' as domain;
 import 'package:fluxer_dart/export.dart';
+
+import '../../../helpers/open_test_database.dart';
 
 class _FakeFluxerClient extends FluxerClient {
   _FakeFluxerClient() : super(Dio());

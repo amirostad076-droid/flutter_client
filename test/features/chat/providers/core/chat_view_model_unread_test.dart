@@ -7,7 +7,6 @@ import 'package:fake_async/fake_async.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import '../../../../helpers/open_test_database.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
@@ -23,6 +22,7 @@ import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
 
 import '../../../../helpers/message_realtime_test_helpers.dart';
+import '../../../../helpers/open_test_database.dart';
 
 String _snowflakeForUtc(DateTime utc) {
   final int internal = (utc.millisecondsSinceEpoch - kSnowflakeEpochMs) << 22;
@@ -1597,9 +1597,7 @@ void main() {
       final db = openTestDatabase();
       final adapter = _ChatAdapter();
       final container = _container(db, adapter);
-      addTearDown(() {
-        container.dispose();
-      });
+      addTearDown(container.dispose);
       container
           .read(chatViewModelProvider.notifier)
           .highlightJumpMessage('message-1');
