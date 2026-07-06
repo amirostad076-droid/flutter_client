@@ -4043,9 +4043,9 @@
   "@chatAttachmentSourceBrowse": {
     "description": "Option to pick arbitrary files from storage."
   },
-  "chatAttachmentPasteTooltip": "Paste image from clipboard",
+  "chatAttachmentPasteTooltip": "Paste file from clipboard",
   "@chatAttachmentPasteTooltip": {
-    "description": "Tooltip for pasting an image attachment from the clipboard."
+    "description": "Tooltip for pasting a file attachment from the clipboard."
   },
   "chatAttachmentSpoiler": "Spoiler",
   "@chatAttachmentSpoiler": {

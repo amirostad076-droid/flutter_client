@@ -3126,7 +3126,7 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get chatAttachmentSourceBrowse => 'Browse files';
 
   @override
-  String get chatAttachmentPasteTooltip => 'Paste image from clipboard';
+  String get chatAttachmentPasteTooltip => 'Paste file from clipboard';
 
   @override
   String get chatAttachmentSpoiler => 'Spoiler';

@@ -5353,10 +5353,10 @@ abstract class FluxerLocalizations {
   /// **'Browse files'**
   String get chatAttachmentSourceBrowse;
 
-  /// Tooltip for pasting an image attachment from the clipboard.
+  /// Tooltip for pasting a file attachment from the clipboard.
   ///
   /// In en, this message translates to:
-  /// **'Paste image from clipboard'**
+  /// **'Paste file from clipboard'**
   String get chatAttachmentPasteTooltip;
 
   /// Badge text for spoiler attachments.
