@@ -35,12 +35,11 @@ String resolveGroupDmDisplayName({
     return l10n?.dmUnnamedGroup ?? 'Unnamed group';
   }
   if (otherMembers.length <= 4) {
-    final List<GroupMemberInfo> sorted = List<GroupMemberInfo>.from(
-      otherMembers,
-    )..sort(
-        (GroupMemberInfo a, GroupMemberInfo b) =>
-            compareSnowflakeIds(b.id, a.id),
-      );
+    final List<GroupMemberInfo> sorted =
+        List<GroupMemberInfo>.from(otherMembers)..sort(
+          (GroupMemberInfo a, GroupMemberInfo b) =>
+              compareSnowflakeIds(b.id, a.id),
+        );
     final List<String> names = sorted
         .map((GroupMemberInfo member) => _resolveMemberDisplayName(dm, member))
         .whereType<String>()

@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
+import 'package:fluxer_app/features/channels/domain/channel.dart';
+import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_reactions_bar.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/system_message.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
+import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
+import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/guild_user_display_provider.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
@@ -22,6 +26,11 @@ const List<int> _systemMessageTypes = <int>[
   messageTypeChannelPinnedMessage,
   messageTypeUserJoin,
 ];
+
+class _FakeVoiceSession extends VoiceSession {
+  @override
+  VoiceSessionState build() => const VoiceSessionState();
+}
 
 class _RenderReactionsOff extends UserSettingsViewModel {
   @override
@@ -75,6 +84,12 @@ Future<void> _pumpSystemMessage(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        voiceSessionProvider.overrideWith(_FakeVoiceSession.new),
+        channelByIdProvider('c1').overrideWith(
+          (ref) => Stream<Channel?>.value(
+            const Channel(id: 'c1', guildId: 'g1', name: 'general'),
+          ),
+        ),
         guildUserDisplayProvider(('u1', 'g1')).overrideWith(
           (ref) => const AsyncValue.data(
             GuildUserDisplay(
@@ -85,6 +100,17 @@ Future<void> _pumpSystemMessage(
             ),
           ),
         ),
+        for (final String userId in message.mentionedUserIds)
+          guildUserDisplayProvider((userId, 'g1')).overrideWith(
+            (ref) => AsyncValue.data(
+              GuildUserDisplay(
+                displayName: userId,
+                avatarUrl: null,
+                avatarColor: null,
+                accountDisplayName: userId,
+              ),
+            ),
+          ),
         memberRoleColorProvider(('u1', 'g1')).overrideWith((ref) => roleColor),
         if (userSettingsOverride != null)
           userSettingsViewModelProvider.overrideWith(userSettingsOverride),

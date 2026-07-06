@@ -87,6 +87,7 @@ class VoiceSession extends _$VoiceSession {
   DateTime? _lastCameraOrientationRefresh;
   LocalParticipant? _observedLocalParticipant;
   EventsListener<RoomEvent>? _roomEventsListener;
+  Room? _managedLiveKitRoom;
   String? _voiceMovePreviousChannelId;
   bool _intentionalLiveKitTeardown = false;
   ChannelE2eeStatus? _lastLoggedE2eeChannelStatus;
@@ -101,13 +102,7 @@ class VoiceSession extends _$VoiceSession {
   @override
   VoiceSessionState build() {
     ref
-      ..onDispose(() {
-        _cancelConnectWatchdog();
-        _cancelLiveKitConnectWatchdog();
-        _cancelDeferredServerDisconnect();
-        _detachLocalParticipantListener();
-        unawaited(_disconnectRoomOnly());
-      })
+      ..onDispose(_teardownOnDispose)
       ..listen<Map<String, int>>(channelPermissionCacheProvider, (
         Map<String, int>? _,
         Map<String, int> _,
@@ -237,22 +232,12 @@ class VoiceSession extends _$VoiceSession {
     }
     _detachRoomEventsListener();
     _detachLocalParticipantListener();
-    _intentionalLiveKitTeardown = true;
-    final Room? roomToDisconnect = state.liveKitRoom;
+    final Room? roomToDisconnect = _managedLiveKitRoom ?? state.liveKitRoom;
+    _managedLiveKitRoom = null;
     if (roomToDisconnect != null) {
       _sendVoiceDisconnectState(guildId: guildId, connectionId: connectionId);
-      try {
-        await roomToDisconnect.disconnect();
-      } on Object catch (e) {
-        talker.warning('[Voice] failed to disconnect after $reason: $e');
-      }
-      try {
-        await roomToDisconnect.dispose();
-      } on Object catch (e) {
-        talker.warning('[Voice] failed to dispose room after $reason: $e');
-      }
+      await _disconnectAndDisposeRoom(roomToDisconnect, reason: reason);
     }
-    _intentionalLiveKitTeardown = false;
     state = state.copyWith(
       isConnecting: false,
       isConnected: false,
@@ -905,6 +890,7 @@ class VoiceSession extends _$VoiceSession {
           baseRoomOptions.defaultScreenShareCaptureOptions,
     );
     final Room room = Room(roomOptions: roomOptions);
+    _managedLiveKitRoom = room;
     final String? resolvedGuildId =
         _normalizeVoiceGuildId(event.guildId) ?? _expectedGuildId;
     state = state.copyWith(
@@ -965,6 +951,9 @@ class VoiceSession extends _$VoiceSession {
         _detachRoomEventsListener();
         _detachLocalParticipantListener();
         unawaited(room.disconnect());
+        if (identical(_managedLiveKitRoom, room)) {
+          _managedLiveKitRoom = null;
+        }
         if (identical(state.liveKitRoom, room)) {
           state = state.copyWith(clearRoom: true);
         }
@@ -1121,17 +1110,48 @@ class VoiceSession extends _$VoiceSession {
     }
   }
 
+  void _teardownOnDispose() {
+    _cancelConnectWatchdog();
+    _cancelLiveKitConnectWatchdog();
+    _cancelDeferredServerDisconnect();
+    _detachLocalParticipantListener();
+    _detachRoomEventsListener();
+    final Room? roomToDisconnect = _managedLiveKitRoom;
+    _managedLiveKitRoom = null;
+    if (roomToDisconnect == null) {
+      return;
+    }
+    unawaited(_disconnectAndDisposeRoom(roomToDisconnect));
+  }
+
+  Future<void> _disconnectAndDisposeRoom(Room room, {String? reason}) async {
+    _intentionalLiveKitTeardown = true;
+    final String reasonSuffix = reason == null ? '' : ' after $reason';
+    try {
+      await room.disconnect();
+    } on Object catch (e) {
+      talker.warning('[Voice] failed to disconnect$reasonSuffix: $e');
+    } finally {
+      try {
+        await room.dispose();
+      } on Object catch (e) {
+        talker.warning('[Voice] failed to dispose room$reasonSuffix: $e');
+      }
+      _intentionalLiveKitTeardown = false;
+    }
+  }
+
   Future<void> _disconnectRoomOnly({
     String? guildId,
     String? connectionId,
   }) async {
-    _intentionalLiveKitTeardown = true;
     _detachRoomEventsListener();
     _detachLocalParticipantListener();
     final VoiceSessionState sessionState = state;
-    final Room? roomToDisconnect = sessionState.liveKitRoom;
+    final Room? roomToDisconnect =
+        _managedLiveKitRoom ?? sessionState.liveKitRoom;
+    _managedLiveKitRoom = null;
     if (roomToDisconnect == null) {
-      _intentionalLiveKitTeardown = false;
       return;
     }
     _sendVoiceDisconnectState(
@@ -1139,18 +1159,7 @@ class VoiceSession extends _$VoiceSession {
       connectionId: connectionId ?? sessionState.activeConnectionId,
     );
     state = state.copyWith(clearRoom: true, clearE2eeKey: true);
-    try {
-      await roomToDisconnect.disconnect();
-    } on Object catch (e) {
-      talker.warning('[Voice] failed to disconnect: $e');
-    } finally {
-      try {
-        await roomToDisconnect.dispose();
-      } on Object catch (e) {
-        talker.warning('[Voice] failed to dispose room: $e');
-      }
-      _intentionalLiveKitTeardown = false;
-    }
+    await _disconnectAndDisposeRoom(roomToDisconnect);
   }
 
   void _sendVoiceDisconnectState({

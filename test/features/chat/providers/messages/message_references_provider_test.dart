@@ -114,17 +114,19 @@ void main() {
   });
 
   group('MessageReferencesNotifier', () {
+    late FluxerDatabase database;
     late ProviderContainer container;
 
     setUp(() {
-      final database = FluxerDatabase.forTesting(NativeDatabase.memory());
+      database = FluxerDatabase.forTesting(NativeDatabase.memory());
       container = ProviderContainer(
         overrides: [fluxerDatabaseProvider.overrideWithValue(database)],
       );
     });
 
-    tearDown(() {
+    tearDown(() async {
       container.dispose();
+      await database.close();
     });
 
     test('resolveSync returns loaded when parent is in channel messages', () {
