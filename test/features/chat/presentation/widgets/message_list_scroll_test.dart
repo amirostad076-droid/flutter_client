@@ -742,6 +742,115 @@ void main() {
     );
 
     testWidgets(
+      'short unread block falls back to a bottom-anchored open without a trailing gap',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(420, 640);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final _AroundAckMessageListHarness harness =
+            await _createAroundAckMessageListHarness(
+              messageCount: 50,
+              ackIndex: 48,
+              hasMoreNewerMessages: false,
+            );
+        addTearDown(harness.database.close);
+
+        await tester.pumpWidget(
+          _messageListApp(
+            database: harness.database,
+            chatViewModel: harness.chatViewModel,
+          ),
+        );
+        await tester.pump();
+
+        // The open frame centers the single unread message, so the underfill
+        // fallback is scheduled against this frame.
+        final Finder unreadDivider = find.text('NEW');
+        expect(unreadDivider, findsOneWidget);
+        final Rect viewport = tester.getRect(_messageListScrollable());
+        final double viewportCenterY = viewport.top + viewport.height * 0.5;
+        expect(
+          tester.getRect(unreadDivider).center.dy,
+          moreOrLessEquals(viewportCenterY, epsilon: 48),
+        );
+
+        await tester.pump();
+        await tester.pump();
+
+        // The fallback demoted the centered anchor to a bottom-anchored open:
+        // the position is settled with nothing scrollable below the newest
+        // message beyond the 33px trailing padding.
+        final ScrollPosition position = _messageListScrollPosition(tester);
+        expect(position.pixels, moreOrLessEquals(0, epsilon: 1));
+        expect(position.maxScrollExtent, lessThanOrEqualTo(34));
+
+        final Finder newest = _messageItemFor(harness.newestLoadedId);
+        expect(newest, findsOneWidget);
+        final Rect newestRect = tester.getRect(newest);
+        expect(newestRect.bottom, greaterThan(viewport.bottom - 64));
+        expect(newestRect.bottom, lessThanOrEqualTo(viewport.bottom + 1));
+
+        // The NEW divider is per-tile, so the fallback keeps it rendered.
+        expect(unreadDivider, findsOneWidget);
+
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets(
+      'short unread block keeps the centered anchor when newer pages remain',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(420, 640);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final _AroundAckMessageListHarness harness =
+            await _createAroundAckMessageListHarness(
+              messageCount: 50,
+              ackIndex: 48,
+              hasMoreNewerMessages: true,
+            );
+        addTearDown(harness.database.close);
+
+        await tester.pumpWidget(
+          _messageListApp(
+            database: harness.database,
+            chatViewModel: harness.chatViewModel,
+          ),
+        );
+        await tester.pump();
+        // Extra frames so the post-frame underfill fallback has run.
+        await tester.pump();
+        await tester.pump();
+
+        // Newer pagination will fill the trailing half, so the fallback must
+        // keep the NEW divider centered instead of demoting the anchor.
+        final Finder unreadDivider = find.text('NEW');
+        expect(unreadDivider, findsOneWidget);
+        final Rect viewport = tester.getRect(_messageListScrollable());
+        final double viewportCenterY = viewport.top + viewport.height * 0.5;
+        expect(
+          tester.getRect(unreadDivider).center.dy,
+          moreOrLessEquals(viewportCenterY, epsilon: 48),
+        );
+
+        // The trailing half stays reserved for the newer pages: the newest
+        // loaded message is not pinned to the viewport bottom.
+        final Finder newest = _messageItemFor(harness.newestLoadedId);
+        expect(newest, findsOneWidget);
+        expect(
+          tester.getRect(newest).bottom,
+          lessThan(viewport.bottom - 64),
+        );
+
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets(
       'empty resolved channel renders the empty state instead of the loading spinner',
       (WidgetTester tester) async {
         final db.FluxerDatabase database = db.FluxerDatabase.forTesting(

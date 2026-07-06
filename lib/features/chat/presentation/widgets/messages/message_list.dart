@@ -582,6 +582,29 @@ class _MessageListState extends ConsumerState<MessageList> {
     });
   }
 
+  // A short unread block can't fill the viewport below _kUnreadOpenAnchor:
+  // the viewport clamps maxScrollExtent to 0, leaving an unscrollable gap
+  // under the newest message. Once the open frame lays out, fall back to a
+  // bottom-anchored open. The NEW divider is per-tile, so it stays visible.
+  void _scheduleUnreadUnderfillFallback() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          _openMode != _MessageListOpenMode.unread ||
+          _centerAnchorMessageId == null ||
+          !_scrollController.hasClients) {
+        return;
+      }
+      if (ref.read(chatViewModelProvider).hasMoreNewerMessages) {
+        // Newer pagination will fill the trailing half; keep the anchor.
+        return;
+      }
+      if (_scrollController.position.maxScrollExtent > 0) {
+        return;
+      }
+      setState(() => _centerAnchorMessageId = null);
+    });
+  }
+
   // Coordinates the latest-window replacement with its tail landing so the
   // reverse list never paints a clamped intermediate frame.
   void _landAtLatestTail(List<Message> next) {
@@ -1436,6 +1459,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       if (canAnchor) {
         _openMode = _MessageListOpenMode.unread;
         _centerAnchorMessageId = anchorId;
+        _scheduleUnreadUnderfillFallback();
       } else {
         _openMode = _MessageListOpenMode.bottom;
       }
