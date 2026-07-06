@@ -243,6 +243,59 @@ class FluxerBottomSheet {
 
 const double _kDragHandleHitHeight = 28;
 
+/// Captures downward vertical drags on sheet body content to dismiss the sheet.
+///
+/// Pair with [NeverScrollableScrollPhysics] (or a scroll view already at the top)
+/// so inner scrollables do not claim the drag.
+class FluxerBottomSheetDismissDragTarget extends StatefulWidget {
+  const FluxerBottomSheetDismissDragTarget({
+    required this.onDismiss,
+    required this.child,
+    super.key,
+  });
+
+  final VoidCallback onDismiss;
+  final Widget child;
+
+  @override
+  State<FluxerBottomSheetDismissDragTarget> createState() =>
+      _FluxerBottomSheetDismissDragTargetState();
+}
+
+class _FluxerBottomSheetDismissDragTargetState
+    extends State<FluxerBottomSheetDismissDragTarget> {
+  double _dragDistance = 0;
+
+  void _handleVerticalDragStart(DragStartDetails details) {
+    _dragDistance = 0;
+  }
+
+  void _handleVerticalDragUpdate(DragUpdateDetails details) {
+    _dragDistance += details.delta.dy;
+  }
+
+  void _handleVerticalDragEnd(DragEndDetails details) {
+    if (fluxerBottomSheetShouldDismissAfterDrag(
+      dragDistance: _dragDistance,
+      velocity: details.primaryVelocity ?? 0,
+    )) {
+      widget.onDismiss();
+    }
+    _dragDistance = 0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onVerticalDragStart: _handleVerticalDragStart,
+      onVerticalDragUpdate: _handleVerticalDragUpdate,
+      onVerticalDragEnd: _handleVerticalDragEnd,
+      child: widget.child,
+    );
+  }
+}
+
 class _FluxerDraggableScrollableSheet extends StatefulWidget {
   const _FluxerDraggableScrollableSheet({
     required this.minChildSize,
