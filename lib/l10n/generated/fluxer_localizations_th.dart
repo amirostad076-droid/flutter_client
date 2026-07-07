@@ -6379,6 +6379,9 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
   String get guildNavbarUrlHint => 'https://example.com';
 
   @override
+  String get guildNavbarChannelTypeSelection => 'Channel type selection';
+
+  @override
   String get guildNavbarCreateCategory => 'สร้างหมวดหมู่';
 
   @override
@@ -6612,6 +6615,9 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
 
   @override
   String get guildMenuSettingsBans => 'การแบน';
+
+  @override
+  String get guildMenuSettingsChannels => 'Channels';
 
   @override
   String get guildSettingsNoPermission => 'คุณไม่มีสิทธิ์ดูแท็บการตั้งค่านี้';

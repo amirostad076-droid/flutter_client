@@ -6361,10 +6361,10 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get guildNavbarGroupDm => 'Group DM';
 
   @override
-  String get guildNavbarCreateChannel => 'Create Channel';
+  String get guildNavbarCreateChannel => 'Create channel';
 
   @override
-  String get guildNavbarChannelType => 'Channel Type';
+  String get guildNavbarChannelType => 'Channel type';
 
   @override
   String get guildNavbarTextChannel => 'Text Channel';
@@ -6400,10 +6400,13 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get guildNavbarUrlHint => 'https://example.com';
 
   @override
-  String get guildNavbarCreateCategory => 'Create Category';
+  String get guildNavbarChannelTypeSelection => 'Channel type selection';
 
   @override
-  String get guildNavbarNewCategoryHint => 'New Category';
+  String get guildNavbarCreateCategory => 'Create category';
+
+  @override
+  String get guildNavbarNewCategoryHint => 'New category';
 
   @override
   String guildNavbarInviteFriendsTo(String communityName) {
@@ -6635,6 +6638,9 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get guildMenuSettingsBans => 'Bans';
+
+  @override
+  String get guildMenuSettingsChannels => 'Channels';
 
   @override
   String get guildSettingsNoPermission =>

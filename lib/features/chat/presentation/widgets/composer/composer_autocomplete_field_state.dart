@@ -325,7 +325,7 @@ class ComposerAutocompleteFieldState
     if (generation != _syncGeneration) {
       return;
     }
-    final Map<String, String>? discs = await ref
+    final Map<String, String> discs = await ref
         .read(guildMentionMemberSearchProvider)
         .discriminatorsFor(members);
     if (generation != _syncGeneration) {
@@ -334,7 +334,7 @@ class ComposerAutocompleteFieldState
     final MentionAutocompleteSession stableSession = MentionAutocompleteSession(
       sessionKey: 'dm:${parsed.usernameQuery}',
     );
-    List<Member> ranked = filterGuildMembersForAutocomplete(
+    final List<Member> ranked = filterGuildMembersForAutocomplete(
       members: members,
       parsed: parsed,
       limit: kMentionResultLimit,
@@ -382,7 +382,7 @@ class ComposerAutocompleteFieldState
     if (generation != _syncGeneration) {
       return;
     }
-    final Map<String, String>? discs =
+    final Map<String, String> discs =
         discriminators ??
         await ref
             .read(guildMentionMemberSearchProvider)

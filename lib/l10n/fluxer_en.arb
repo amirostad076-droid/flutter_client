@@ -8123,11 +8123,11 @@
   "@guildNavbarGroupDm": {
     "description": "Secondary label for a group DM in the invite recipients list."
   },
-  "guildNavbarCreateChannel": "Create Channel",
+  "guildNavbarCreateChannel": "Create channel",
   "@guildNavbarCreateChannel": {
     "description": "Title and confirm label for the create channel modal."
   },
-  "guildNavbarChannelType": "Channel Type",
+  "guildNavbarChannelType": "Channel type",
   "@guildNavbarChannelType": {
     "description": "Section label for channel type selection in create channel modal."
   },
@@ -8171,11 +8171,15 @@
   "@guildNavbarUrlHint": {
     "description": "Placeholder hint for URL input in link channel creation."
   },
-  "guildNavbarCreateCategory": "Create Category",
+  "guildNavbarChannelTypeSelection": "Channel type selection",
+  "@guildNavbarChannelTypeSelection": {
+    "description": "Accessibility label for channel type radio group in create channel modal."
+  },
+  "guildNavbarCreateCategory": "Create category",
   "@guildNavbarCreateCategory": {
     "description": "Title and confirm label for the create category modal."
   },
-  "guildNavbarNewCategoryHint": "New Category",
+  "guildNavbarNewCategoryHint": "New category",
   "@guildNavbarNewCategoryHint": {
     "description": "Placeholder hint for new category name input."
   },
@@ -8489,6 +8493,10 @@
   "guildMenuSettingsBans": "Bans",
   "@guildMenuSettingsBans": {
     "description": "Community settings tab for banned members."
+  },
+  "guildMenuSettingsChannels": "Channels",
+  "@guildMenuSettingsChannels": {
+    "description": "Guild settings menu item for channel management."
   },
   "guildSettingsNoPermission": "You do not have permission to view this settings tab.",
   "@guildSettingsNoPermission": {

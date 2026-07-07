@@ -15,6 +15,7 @@ import 'package:fluxer_app/features/voice/presentation/widgets/incoming_voice_ca
 import 'package:fluxer_app/l10n/fluxer_localizations_utils.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/widgets/beta_banner.dart';
+import 'package:fluxer_app/shared/widgets/input_modality_listener.dart';
 import 'package:window_manager/window_manager.dart';
 
 bool get _isDesktopPlatform =>
@@ -83,8 +84,12 @@ class FluxerApp extends ConsumerWidget {
       themeMode: themeMode,
       routerConfig: router,
       builder: (context, child) {
-        final Widget layered = AppUiLifecycleObserver(
-          child: BetaWarningLayer(child: IncomingVoiceCallLayer(child: child!)),
+        final Widget layered = InputModalityListener(
+          child: AppUiLifecycleObserver(
+            child: BetaWarningLayer(
+              child: IncomingVoiceCallLayer(child: child!),
+            ),
+          ),
         );
         final Widget content;
         if (!_isDesktopPlatform) {

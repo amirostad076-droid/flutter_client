@@ -10926,13 +10926,13 @@ abstract class FluxerLocalizations {
   /// Title and confirm label for the create channel modal.
   ///
   /// In en, this message translates to:
-  /// **'Create Channel'**
+  /// **'Create channel'**
   String get guildNavbarCreateChannel;
 
   /// Section label for channel type selection in create channel modal.
   ///
   /// In en, this message translates to:
-  /// **'Channel Type'**
+  /// **'Channel type'**
   String get guildNavbarChannelType;
 
   /// Label for the text channel type option.
@@ -10995,16 +10995,22 @@ abstract class FluxerLocalizations {
   /// **'https://example.com'**
   String get guildNavbarUrlHint;
 
+  /// Accessibility label for channel type radio group in create channel modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel type selection'**
+  String get guildNavbarChannelTypeSelection;
+
   /// Title and confirm label for the create category modal.
   ///
   /// In en, this message translates to:
-  /// **'Create Category'**
+  /// **'Create category'**
   String get guildNavbarCreateCategory;
 
   /// Placeholder hint for new category name input.
   ///
   /// In en, this message translates to:
-  /// **'New Category'**
+  /// **'New category'**
   String get guildNavbarNewCategoryHint;
 
   /// Title for the invite members modal.
@@ -11420,6 +11426,12 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Bans'**
   String get guildMenuSettingsBans;
+
+  /// Guild settings menu item for channel management.
+  ///
+  /// In en, this message translates to:
+  /// **'Channels'**
+  String get guildMenuSettingsChannels;
 
   /// Shown when the user lacks permission for a guild settings tab.
   ///

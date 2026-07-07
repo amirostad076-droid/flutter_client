@@ -44,8 +44,8 @@ import 'package:fluxer_app/features/favorites/providers/favorite_channels_provid
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:fluxer_app/features/guilds/data/guild_user_settings_repository.dart';
-import 'package:fluxer_app/features/members/domain/group_dm_member_groups.dart';
 import 'package:fluxer_app/features/members/data/guild_mention_member_search.dart';
+import 'package:fluxer_app/features/members/domain/group_dm_member_groups.dart';
 import 'package:fluxer_app/features/members/domain/member.dart';
 import 'package:fluxer_app/features/members/presentation/widgets/guild_members_tab_content.dart';
 import 'package:fluxer_app/features/members/providers/member_list_desired_ranges_provider.dart';

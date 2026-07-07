@@ -13,6 +13,7 @@ import 'package:fluxer_app/features/settings/domain/guild/guild_settings_tab.dar
 import 'package:fluxer_app/features/settings/presentation/pages/guild/guild_settings_nav_page.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/audit_log/guild_audit_log_widget.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/bans/guild_bans_widget.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/guild/channels/guild_channels_settings_widget.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/guild_settings_access_gate.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/guild_settings_page_shell.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/moderation/guild_moderation_widget.dart';
@@ -58,7 +59,8 @@ class _GuildSettingsModalState extends ConsumerState<GuildSettingsModal> {
       guildByIdProvider(widget.guildId),
     );
     final Guild? guild = guildAsync.value;
-    final List<GuildSettingsTab> visibleTabs = visibleGuildSettingsTabs(
+    final List<GuildSettingsTab> visibleTabs = visibleGuildSettingsTabsForRef(
+      ref: ref,
       permissions: permissions,
       guild: guild,
     );
@@ -234,6 +236,9 @@ class GuildSettingsTabBody extends ConsumerWidget {
           state: state,
           scrollController: scrollController,
         ),
+      ),
+      GuildSettingsTab.channels => GuildChannelsSettingsWidget(
+        guildId: guildId,
       ),
       _ => const SizedBox.shrink(),
     };

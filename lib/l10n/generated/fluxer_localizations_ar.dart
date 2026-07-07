@@ -6386,6 +6386,9 @@ class FluxerLocalizationsAr extends FluxerLocalizations {
   String get guildNavbarUrlHint => 'https://example.com';
 
   @override
+  String get guildNavbarChannelTypeSelection => 'Channel type selection';
+
+  @override
   String get guildNavbarCreateCategory => 'إنشاء فئة';
 
   @override
@@ -6615,6 +6618,9 @@ class FluxerLocalizationsAr extends FluxerLocalizations {
 
   @override
   String get guildMenuSettingsBans => 'الحظر';
+
+  @override
+  String get guildMenuSettingsChannels => 'Channels';
 
   @override
   String get guildSettingsNoPermission =>

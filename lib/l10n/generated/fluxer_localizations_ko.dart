@@ -6185,6 +6185,9 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
   String get guildNavbarUrlHint => 'https://example.com';
 
   @override
+  String get guildNavbarChannelTypeSelection => 'Channel type selection';
+
+  @override
   String get guildNavbarCreateCategory => '카테고리 만들기';
 
   @override
@@ -6413,6 +6416,9 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
 
   @override
   String get guildMenuSettingsBans => '차단';
+
+  @override
+  String get guildMenuSettingsChannels => 'Channels';
 
   @override
   String get guildSettingsNoPermission => '이 설정 탭을 볼 권한이 없습니다.';

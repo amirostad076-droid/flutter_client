@@ -6097,6 +6097,9 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get guildNavbarUrlHint => 'https://example.com';
 
   @override
+  String get guildNavbarChannelTypeSelection => 'Channel type selection';
+
+  @override
   String get guildNavbarCreateCategory => '创建分类';
 
   @override
@@ -6323,6 +6326,9 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
 
   @override
   String get guildMenuSettingsBans => '封禁';
+
+  @override
+  String get guildMenuSettingsChannels => 'Channels';
 
   @override
   String get guildSettingsNoPermission => '您没有权限查看此设置标签页。';
