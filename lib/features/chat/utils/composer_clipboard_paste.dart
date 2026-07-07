@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/features/chat/providers/upload/cloud_upload_controller.dart';
 import 'package:fluxer_app/features/chat/utils/clipboard_attachment_reader.dart';
 import 'package:fluxer_app/features/chat/utils/file_upload_validator.dart';
+import 'package:super_clipboard/super_clipboard.dart';
 
 Future<FileUploadValidationResult?> tryPasteClipboardAttachments({
   required WidgetRef ref,
@@ -23,11 +24,33 @@ Future<FileUploadValidationResult?> tryPasteClipboardAttachments({
       .addFiles(files);
 }
 
+Future<String?> readClipboardPlainText() async {
+  final ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
+  final String? platformText = data?.text;
+  if (platformText != null && platformText.isNotEmpty) {
+    return platformText;
+  }
+  final SystemClipboard? clipboard = SystemClipboard.instance;
+  if (clipboard == null) {
+    return null;
+  }
+  final ClipboardReader reader = await clipboard.read();
+  for (final ClipboardDataReader item in reader.items) {
+    if (!item.canProvide(Formats.plainText)) {
+      continue;
+    }
+    final String? text = await item.readValue(Formats.plainText);
+    if (text != null && text.isNotEmpty) {
+      return text;
+    }
+  }
+  return null;
+}
+
 Future<void> pastePlainTextIntoComposer(
   TextEditingController controller,
 ) async {
-  final ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
-  final String? text = data?.text;
+  final String? text = await readClipboardPlainText();
   if (text == null || text.isEmpty) {
     return;
   }

@@ -72,6 +72,32 @@ void main() {
     });
   });
 
+  group('shouldSkipClipboardFileFormat', () {
+    test('skips text file formats when plain text value is available', () {
+      final ClipboardDataReader item = _FakeClipboardDataReader(
+        providedFormats: <DataFormat<Object>>[
+          Formats.plainText,
+          Formats.plainTextFile,
+        ],
+      );
+      expect(
+        shouldSkipClipboardFileFormat(item, Formats.plainTextFile),
+        isTrue,
+      );
+      expect(shouldSkipClipboardFileFormat(item, Formats.png), isFalse);
+    });
+
+    test('keeps text file formats when only a file was copied', () {
+      final ClipboardDataReader item = _FakeClipboardDataReader(
+        providedFormats: <DataFormat<Object>>[Formats.plainTextFile],
+      );
+      expect(
+        shouldSkipClipboardFileFormat(item, Formats.plainTextFile),
+        isFalse,
+      );
+    });
+  });
+
   group('pastePlainTextIntoComposer', () {
     test('inserts clipboard text at the current selection', () async {
       TestWidgetsFlutterBinding.ensureInitialized();
@@ -93,4 +119,22 @@ void main() {
       expect(controller.selection, const TextSelection.collapsed(offset: 11));
     });
   });
+}
+
+class _FakeClipboardDataReader implements ClipboardDataReader {
+  _FakeClipboardDataReader({required this.providedFormats});
+
+  final List<DataFormat<Object>> providedFormats;
+
+  @override
+  bool canProvide(DataFormat<Object> format) =>
+      providedFormats.contains(format);
+
+  @override
+  List<DataFormat<Object>> getFormats(List<DataFormat<Object>> allFormats) {
+    return allFormats.where(canProvide).toList();
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

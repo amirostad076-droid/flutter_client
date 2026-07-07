@@ -16,6 +16,30 @@ final List<FileFormat> _clipboardFileFormats = Formats.standardFormats
     .whereType<FileFormat>()
     .toList();
 
+const Set<FileFormat> textClipboardFileFormats = <FileFormat>{
+  Formats.plainTextFile,
+  Formats.htmlFile,
+  Formats.md,
+  Formats.csv,
+  Formats.json,
+  Formats.rtf,
+};
+
+bool isTextClipboardFileFormat(FileFormat format) {
+  return textClipboardFileFormats.contains(format);
+}
+
+bool shouldSkipClipboardFileFormat(
+  ClipboardDataReader item,
+  FileFormat format,
+) {
+  if (!isTextClipboardFileFormat(format)) {
+    return false;
+  }
+  return item.canProvide(Formats.plainText) ||
+      item.canProvide(Formats.htmlText);
+}
+
 Future<_ClipboardFileRead?> _readClipboardFile(
   DataReader reader,
   FileFormat format,
@@ -66,6 +90,9 @@ Future<List<XFile>> readClipboardAttachmentFiles() async {
     );
     for (final DataFormat<Object> format in available) {
       if (format is! FileFormat) {
+        continue;
+      }
+      if (shouldSkipClipboardFileFormat(item, format)) {
         continue;
       }
       final _ClipboardFileRead? read = await _readClipboardFile(item, format);
