@@ -2669,6 +2669,81 @@ class FluxerLocalizationsEt extends FluxerLocalizations {
   String get iarReportUserTitle => 'Teata kasutajast';
 
   @override
+  String get iarReportGuildTitle => 'Report community';
+
+  @override
+  String get iarReportGuildPreconfirmBody =>
+      'If this report is about a specific message in this community, report that message instead. Message reports give our safety team the clearest context, and adding details in the comments can help us review it faster. Only continue with reporting the community as a whole if reporting a message would not capture the broader issue.';
+
+  @override
+  String get iarContinueToReportCommunity => 'Continue to report community';
+
+  @override
+  String get iarPreviewCommunitySubtitle => 'Community';
+
+  @override
+  String get iarReasonHarassmentGuildLabel => 'Harassment or targeted abuse';
+
+  @override
+  String get iarReasonHarassmentGuildDescription =>
+      'Community facilitates pile-ons or targeted abuse.';
+
+  @override
+  String get iarReasonHateGuildDescription =>
+      'Promotes hatred against protected groups.';
+
+  @override
+  String get iarReasonTerrorismLabel => 'Terrorism or violent extremism';
+
+  @override
+  String get iarReasonTerrorismDescription =>
+      'Promotes, recruits for, or coordinates violent extremist activity.';
+
+  @override
+  String get iarReasonMatureContentGuildLabel =>
+      'Mature content or unsafe gating';
+
+  @override
+  String get iarReasonMatureContentGuildDescription =>
+      'Mature content without proper gating.';
+
+  @override
+  String get iarReasonChildSafetyGuildDescription =>
+      'Endangers minors or hosts child-exploitation content.';
+
+  @override
+  String get iarReasonRaidLabel => 'Raid coordination';
+
+  @override
+  String get iarReasonRaidDescription =>
+      'Coordinates raids, brigading, or harassment against people or communities.';
+
+  @override
+  String get iarReasonSpamGuildDescription =>
+      'Community exists to spam, scam, or abuse the platform.';
+
+  @override
+  String get iarReasonMalwareGuildLabel => 'Malware distribution';
+
+  @override
+  String get iarReasonMalwareGuildDescription =>
+      'Distributes malware, credential theft, or harmful files.';
+
+  @override
+  String get iarReasonPrivacyGuildLabel => 'Privacy violation or doxxing';
+
+  @override
+  String get iarReasonPrivacyGuildDescription =>
+      'Shares personal info, stalks users, or coordinates privacy abuse.';
+
+  @override
+  String get iarReasonSelfHarmGuildLabel => 'Encourages self-harm';
+
+  @override
+  String get iarReasonSelfHarmGuildDescription =>
+      'Encourages suicide, self-harm, or eating disorders.';
+
+  @override
   String get iarReasonInappropriateProfile => 'Sobimatu profiil';
 
   @override

@@ -3451,6 +3451,90 @@
   "@iarReportUserTitle": {
     "description": "Title of the simple user-report sheet."
   },
+  "iarReportGuildTitle": "Report community",
+  "@iarReportGuildTitle": {
+    "description": "Title of the simple community-report sheet."
+  },
+  "iarReportGuildPreconfirmBody": "If this report is about a specific message in this community, report that message instead. Message reports give our safety team the clearest context, and adding details in the comments can help us review it faster. Only continue with reporting the community as a whole if reporting a message would not capture the broader issue.",
+  "@iarReportGuildPreconfirmBody": {
+    "description": "Body shown in the pre-confirm dialog before opening the community report sheet."
+  },
+  "iarContinueToReportCommunity": "Continue to report community",
+  "@iarContinueToReportCommunity": {
+    "description": "Primary button in the community report pre-confirm dialog."
+  },
+  "iarPreviewCommunitySubtitle": "Community",
+  "@iarPreviewCommunitySubtitle": {
+    "description": "Subtitle shown under the community name in the IAR preview card."
+  },
+  "iarReasonHarassmentGuildLabel": "Harassment or targeted abuse",
+  "@iarReasonHarassmentGuildLabel": {
+    "description": "Community-report reason label for harassment or targeted abuse."
+  },
+  "iarReasonHarassmentGuildDescription": "Community facilitates pile-ons or targeted abuse.",
+  "@iarReasonHarassmentGuildDescription": {
+    "description": "Community-report reason description for harassment or targeted abuse."
+  },
+  "iarReasonHateGuildDescription": "Promotes hatred against protected groups.",
+  "@iarReasonHateGuildDescription": {
+    "description": "Community-report reason description for hate speech."
+  },
+  "iarReasonTerrorismLabel": "Terrorism or violent extremism",
+  "@iarReasonTerrorismLabel": {
+    "description": "Community-report reason label for terrorism or violent extremism."
+  },
+  "iarReasonTerrorismDescription": "Promotes, recruits for, or coordinates violent extremist activity.",
+  "@iarReasonTerrorismDescription": {
+    "description": "Community-report reason description for terrorism or violent extremism."
+  },
+  "iarReasonMatureContentGuildLabel": "Mature content or unsafe gating",
+  "@iarReasonMatureContentGuildLabel": {
+    "description": "Community-report reason label for mature content or unsafe gating."
+  },
+  "iarReasonMatureContentGuildDescription": "Mature content without proper gating.",
+  "@iarReasonMatureContentGuildDescription": {
+    "description": "Community-report reason description for mature content or unsafe gating."
+  },
+  "iarReasonChildSafetyGuildDescription": "Endangers minors or hosts child-exploitation content.",
+  "@iarReasonChildSafetyGuildDescription": {
+    "description": "Community-report reason description for child safety."
+  },
+  "iarReasonRaidLabel": "Raid coordination",
+  "@iarReasonRaidLabel": {
+    "description": "Community-report reason label for raid coordination."
+  },
+  "iarReasonRaidDescription": "Coordinates raids, brigading, or harassment against people or communities.",
+  "@iarReasonRaidDescription": {
+    "description": "Community-report reason description for raid coordination."
+  },
+  "iarReasonSpamGuildDescription": "Community exists to spam, scam, or abuse the platform.",
+  "@iarReasonSpamGuildDescription": {
+    "description": "Community-report reason description for spam, scams, or phishing."
+  },
+  "iarReasonMalwareGuildLabel": "Malware distribution",
+  "@iarReasonMalwareGuildLabel": {
+    "description": "Community-report reason label for malware distribution."
+  },
+  "iarReasonMalwareGuildDescription": "Distributes malware, credential theft, or harmful files.",
+  "@iarReasonMalwareGuildDescription": {
+    "description": "Community-report reason description for malware distribution."
+  },
+  "iarReasonPrivacyGuildLabel": "Privacy violation or doxxing",
+  "@iarReasonPrivacyGuildLabel": {
+    "description": "Community-report reason label for privacy violation or doxxing."
+  },
+  "iarReasonPrivacyGuildDescription": "Shares personal info, stalks users, or coordinates privacy abuse.",
+  "@iarReasonPrivacyGuildDescription": {
+    "description": "Community-report reason description for privacy violation or doxxing."
+  },
+  "iarReasonSelfHarmGuildLabel": "Encourages self-harm",
+  "@iarReasonSelfHarmGuildLabel": {
+    "description": "Community-report reason label for self-harm encouragement."
+  },
+  "iarReasonSelfHarmGuildDescription": "Encourages suicide, self-harm, or eating disorders.",
+  "@iarReasonSelfHarmGuildDescription": {
+    "description": "Community-report reason description for self-harm encouragement."
+  },
   "iarReasonInappropriateProfile": "Inappropriate profile",
   "@iarReasonInappropriateProfile": {
     "description": "User-report reason: the user's profile contains inappropriate content."

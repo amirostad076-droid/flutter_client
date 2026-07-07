@@ -4729,6 +4729,132 @@ abstract class FluxerLocalizations {
   /// **'Report user'**
   String get iarReportUserTitle;
 
+  /// Title of the simple community-report sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Report community'**
+  String get iarReportGuildTitle;
+
+  /// Body shown in the pre-confirm dialog before opening the community report sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'If this report is about a specific message in this community, report that message instead. Message reports give our safety team the clearest context, and adding details in the comments can help us review it faster. Only continue with reporting the community as a whole if reporting a message would not capture the broader issue.'**
+  String get iarReportGuildPreconfirmBody;
+
+  /// Primary button in the community report pre-confirm dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to report community'**
+  String get iarContinueToReportCommunity;
+
+  /// Subtitle shown under the community name in the IAR preview card.
+  ///
+  /// In en, this message translates to:
+  /// **'Community'**
+  String get iarPreviewCommunitySubtitle;
+
+  /// Community-report reason label for harassment or targeted abuse.
+  ///
+  /// In en, this message translates to:
+  /// **'Harassment or targeted abuse'**
+  String get iarReasonHarassmentGuildLabel;
+
+  /// Community-report reason description for harassment or targeted abuse.
+  ///
+  /// In en, this message translates to:
+  /// **'Community facilitates pile-ons or targeted abuse.'**
+  String get iarReasonHarassmentGuildDescription;
+
+  /// Community-report reason description for hate speech.
+  ///
+  /// In en, this message translates to:
+  /// **'Promotes hatred against protected groups.'**
+  String get iarReasonHateGuildDescription;
+
+  /// Community-report reason label for terrorism or violent extremism.
+  ///
+  /// In en, this message translates to:
+  /// **'Terrorism or violent extremism'**
+  String get iarReasonTerrorismLabel;
+
+  /// Community-report reason description for terrorism or violent extremism.
+  ///
+  /// In en, this message translates to:
+  /// **'Promotes, recruits for, or coordinates violent extremist activity.'**
+  String get iarReasonTerrorismDescription;
+
+  /// Community-report reason label for mature content or unsafe gating.
+  ///
+  /// In en, this message translates to:
+  /// **'Mature content or unsafe gating'**
+  String get iarReasonMatureContentGuildLabel;
+
+  /// Community-report reason description for mature content or unsafe gating.
+  ///
+  /// In en, this message translates to:
+  /// **'Mature content without proper gating.'**
+  String get iarReasonMatureContentGuildDescription;
+
+  /// Community-report reason description for child safety.
+  ///
+  /// In en, this message translates to:
+  /// **'Endangers minors or hosts child-exploitation content.'**
+  String get iarReasonChildSafetyGuildDescription;
+
+  /// Community-report reason label for raid coordination.
+  ///
+  /// In en, this message translates to:
+  /// **'Raid coordination'**
+  String get iarReasonRaidLabel;
+
+  /// Community-report reason description for raid coordination.
+  ///
+  /// In en, this message translates to:
+  /// **'Coordinates raids, brigading, or harassment against people or communities.'**
+  String get iarReasonRaidDescription;
+
+  /// Community-report reason description for spam, scams, or phishing.
+  ///
+  /// In en, this message translates to:
+  /// **'Community exists to spam, scam, or abuse the platform.'**
+  String get iarReasonSpamGuildDescription;
+
+  /// Community-report reason label for malware distribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Malware distribution'**
+  String get iarReasonMalwareGuildLabel;
+
+  /// Community-report reason description for malware distribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Distributes malware, credential theft, or harmful files.'**
+  String get iarReasonMalwareGuildDescription;
+
+  /// Community-report reason label for privacy violation or doxxing.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy violation or doxxing'**
+  String get iarReasonPrivacyGuildLabel;
+
+  /// Community-report reason description for privacy violation or doxxing.
+  ///
+  /// In en, this message translates to:
+  /// **'Shares personal info, stalks users, or coordinates privacy abuse.'**
+  String get iarReasonPrivacyGuildDescription;
+
+  /// Community-report reason label for self-harm encouragement.
+  ///
+  /// In en, this message translates to:
+  /// **'Encourages self-harm'**
+  String get iarReasonSelfHarmGuildLabel;
+
+  /// Community-report reason description for self-harm encouragement.
+  ///
+  /// In en, this message translates to:
+  /// **'Encourages suicide, self-harm, or eating disorders.'**
+  String get iarReasonSelfHarmGuildDescription;
+
   /// User-report reason: the user's profile contains inappropriate content.
   ///
   /// In en, this message translates to:

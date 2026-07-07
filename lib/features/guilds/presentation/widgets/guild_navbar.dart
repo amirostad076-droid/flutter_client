@@ -67,6 +67,7 @@ import 'package:fluxer_app/features/guilds/providers/guild_voice_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provider.dart';
 import 'package:fluxer_app/features/guilds/utils/guild_folder_icon.dart';
 import 'package:fluxer_app/features/guilds/utils/leave_guild_action.dart';
+import 'package:fluxer_app/features/moderation/iar/iar_report_guild.dart';
 import 'package:fluxer_app/features/settings/presentation/user_settings_modal.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
@@ -4012,7 +4013,13 @@ class _GuildListItemState extends State<_GuildListItem>
           ),
         );
       case GuildAction.reportCommunity:
-        break;
+        unawaited(
+          showReportGuildFlow(
+            context,
+            guildId: guildId,
+            guildName: widget.guild!.name,
+          ),
+        );
       case GuildAction.privacySettings:
         unawaited(_showPrivacySettingsSheet(context));
       case GuildAction.debugCommunity:
