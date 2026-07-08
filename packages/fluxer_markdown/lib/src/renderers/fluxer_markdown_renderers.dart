@@ -1430,10 +1430,21 @@ class FluxerSvgCache {
     return _cache.putIfAbsent(url, () async {
       final uri = Uri.parse(url);
       final response = await HttpClient().getUrl(uri).then((r) => r.close());
+      if (response.statusCode != HttpStatus.ok) {
+        throw HttpException(
+          'Twemoji load failed: ${response.statusCode}',
+          uri: uri,
+        );
+      }
       final builder = BytesBuilder();
       await response.forEach(builder.add);
       return builder.toBytes();
     });
+  }
+
+  @visibleForTesting
+  static void clearCacheForTesting() {
+    _cache.clear();
   }
 }
 
@@ -1464,19 +1475,31 @@ class FluxerEmojiWidget extends StatelessWidget {
     return _buildUnicode(size);
   }
 
+  Widget _buildSystemUnicodeEmoji(String surrogate, double size) {
+    return Text(surrogate, style: TextStyle(fontSize: size));
+  }
+
   Widget _buildUnicode(double size) {
     final surrogate = element.attributes['surrogate'] ?? element.textContent;
     final url = unicodeEmojiUrlBuilder(surrogate);
     if (url == null) {
-      return Text(surrogate, style: TextStyle(fontSize: size));
+      return _buildSystemUnicodeEmoji(surrogate, size);
     }
     return FutureBuilder<Uint8List>(
       future: FluxerSvgCache.load(url),
       builder: (context, snap) {
+        if (snap.hasError) {
+          return _buildSystemUnicodeEmoji(surrogate, size);
+        }
         if (!snap.hasData) {
           return SizedBox(width: size, height: size);
         }
-        return SvgPicture.memory(snap.data!, width: size, height: size);
+        return SvgPicture.memory(
+          snap.data!,
+          width: size,
+          height: size,
+          errorBuilder: (_, _, _) => _buildSystemUnicodeEmoji(surrogate, size),
+        );
       },
     );
   }
