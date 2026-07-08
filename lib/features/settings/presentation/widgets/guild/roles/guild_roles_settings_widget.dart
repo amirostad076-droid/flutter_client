@@ -10,7 +10,7 @@ import 'package:fluxer_app/features/members/providers/guild_roles_provider.dart'
 import 'package:fluxer_app/features/members/providers/member_providers.dart';
 import 'package:fluxer_app/features/settings/data/guild_role_settings_repository.dart';
 import 'package:fluxer_app/features/settings/domain/guild/roles/guild_role_hierarchy.dart';
-import 'package:fluxer_app/features/settings/domain/guild/roles/guild_role_order_utils.dart';
+import 'package:fluxer_app/features/settings/domain/guild/roles/guild_role_order.dart';
 import 'package:fluxer_app/features/settings/domain/guild/roles/guild_role_permission_spec.dart';
 import 'package:fluxer_app/features/settings/domain/guild/roles/guild_role_update.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/roles/guild_mobile_role_list.dart';

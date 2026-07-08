@@ -28,6 +28,7 @@ class _ComposerRow {
     this.channelRowType,
     this.emojiSurrogates,
     this.emojiImageUrl,
+    this.emojiCacheKey,
   });
 
   final String title;
@@ -38,6 +39,7 @@ class _ComposerRow {
   final ChannelType? channelRowType;
   final String? emojiSurrogates;
   final String? emojiImageUrl;
+  final String? emojiCacheKey;
 }
 
 class ComposerAutocompleteFieldState
@@ -612,6 +614,7 @@ class ComposerAutocompleteFieldState
             onApply: () =>
                 _applyEmoji(trigger, name: entry.name, wire: entry.markdown),
             emojiImageUrl: entry.url,
+            emojiCacheKey: entry.cacheKeyForSize(kCustomEmojiFetchSize),
           ),
           UnicodeEmojiResult(:final EmojiEntry entry) => _ComposerRow(
             title: ':${entry.primaryName}:',
@@ -684,6 +687,7 @@ class ComposerAutocompleteFieldState
           userAvatarStatus: status,
           emojiSurrogates: r.emojiSurrogates,
           emojiImageUrl: r.emojiImageUrl,
+          emojiCacheKey: r.emojiCacheKey,
         );
       }).toList(),
       selectedIndex: safeIndex,

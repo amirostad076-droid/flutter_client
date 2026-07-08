@@ -23,13 +23,14 @@ import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/emoji_image_cache.dart';
 import 'package:fluxer_app/shared/utils/emoji_registry.dart';
 import 'package:fluxer_app/shared/utils/emoji_sprite_sheet.dart';
+import 'package:fluxer_app/shared/utils/emoji_utils.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const _kGridColumns = 9;
 const _kMobileGridColumns = 8;
 const _kEmojiSize = 40.0;
 const _kCellSize = 48.0;
-const _kCustomEmojiRequestSize = 48;
+const int _kCustomEmojiRequestSize = kCustomEmojiFetchSize;
 
 const Map<String, IconData> _kCategoryIcons = {
   'people': PhosphorIconsFill.smiley,

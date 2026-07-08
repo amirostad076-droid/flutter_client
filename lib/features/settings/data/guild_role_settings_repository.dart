@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:fluxer_app/features/settings/domain/guild/roles/guild_role_order_utils.dart';
+import 'package:fluxer_app/features/settings/domain/guild/roles/guild_role_order.dart';
 import 'package:fluxer_dart/export.dart';
 
 class GuildRoleSettingsRepository {

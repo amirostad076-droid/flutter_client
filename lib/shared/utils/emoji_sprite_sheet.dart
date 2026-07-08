@@ -39,7 +39,8 @@ class EmojiSpriteSheet {
   static final Map<String, ui.Image> _images = <String, ui.Image>{};
   static final Map<String, Future<ui.Image>> _loading =
       <String, Future<ui.Image>>{};
-  static final BaseCacheManager _cacheManager = DefaultCacheManager();
+  static BaseCacheManager get _cacheManager =>
+      CachedNetworkImageProvider.defaultCacheManager;
 
   static bool isLoaded({String? skinTone}) =>
       _images.containsKey(_spriteSheetKeyForSkinTone(skinTone));
