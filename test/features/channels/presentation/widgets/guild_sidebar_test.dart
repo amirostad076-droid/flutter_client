@@ -17,6 +17,7 @@ import 'package:fluxer_app/features/channels/providers/channel_list_view_model.d
 import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
 import 'package:fluxer_app/features/channels/providers/channel_sidebar_icon_connect_bits_provider.dart';
 import 'package:fluxer_app/features/channels/providers/guild_collapsed_categories_provider.dart';
+import 'package:fluxer_app/features/channels/providers/guild_sidebar_scroll_store_provider.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
@@ -32,6 +33,12 @@ import 'package:riverpod/src/framework.dart' show Override;
 import '../../../../helpers/open_test_database.dart';
 
 const String _guildId = 'g1';
+const String _otherGuildId = 'g2';
+
+class _GuildSwitchTestHarness {
+  String activeGuildId = _guildId;
+  late ChannelListState channelListState;
+}
 
 void main() {
   group('GuildSidebar collapsed category visibility', () {
@@ -523,6 +530,130 @@ void main() {
 
       expect(find.text('channel-20'), findsOneWidget);
     });
+
+    testWidgets('restores channel list scroll after switching guilds', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(390, 220);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final List<Channel> guildAChannels = List<Channel>.generate(
+        20,
+        (int index) => _channel('c${index + 1}', 'channel-${index + 1}'),
+      );
+      final List<Channel> guildBChannels = List<Channel>.generate(
+        5,
+        (int index) => Channel(
+          id: 'b${index + 1}',
+          guildId: _otherGuildId,
+          name: 'guild-b-${index + 1}',
+          parentId: 'cat-b1',
+        ),
+      );
+      final Map<String, UnreadState> unread = <String, UnreadState>{
+        for (int index = 1; index <= 20; index++)
+          'c$index': index == 20
+              ? const UnreadState(hasUnread: true, hasUnreadMessages: true)
+              : const UnreadState(),
+      };
+      final _GuildSwitchTestHarness harness = _GuildSwitchTestHarness();
+      final ChannelListState guildAState = ChannelListState(
+        guild: const Guild(id: _guildId, name: 'Test Guild'),
+        categories: <ChannelCategory>[
+          ChannelCategory(
+            id: 'cat1',
+            name: 'My Category',
+            channels: guildAChannels,
+          ),
+        ],
+        selectedChannelId: 'c1',
+      );
+      final ChannelListState guildBState = ChannelListState(
+        guild: const Guild(id: _otherGuildId, name: 'Other Guild'),
+        categories: <ChannelCategory>[
+          ChannelCategory(
+            id: 'cat-b1',
+            name: 'Other Category',
+            channels: guildBChannels,
+          ),
+        ],
+        selectedChannelId: 'b1',
+      );
+      harness.channelListState = guildAState;
+      final List<Override> overrides = <Override>[
+        ..._buildOverrides(
+          channelListState: guildAState,
+          selectedChannelId: 'c1',
+          unread: unread,
+          activeGuildIdReader: (Ref ref) => harness.activeGuildId,
+          channelListViewModelFactory: () => _HarnessChannelListViewModel(harness),
+        ),
+        guildMuteProvider(_otherGuildId).overrideWith(
+          (Ref ref) => Stream<GuildMuteState>.value(const GuildMuteState()),
+        ),
+        mutedChannelIdsProvider(_otherGuildId).overrideWith(
+          (Ref ref) => Stream<Set<String>>.value(const <String>{}),
+        ),
+        guildCollapsedCategoriesProvider(_otherGuildId).overrideWith(
+          (Ref ref) => Stream<Set<String>>.value(const <String>{}),
+        ),
+        for (final Channel channel in guildBChannels)
+          channelUnreadProvider(
+            channel.id,
+          ).overrideWith((Ref ref) => Stream<UnreadState>.value(const UnreadState())),
+      ];
+      final ProviderContainer container = ProviderContainer(
+        overrides: overrides,
+      );
+      addTearDown(container.dispose);
+      final colorTheme = buildDarkColorTheme();
+      Future<void> pumpSidebar() async {
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(
+              localizationsDelegates:
+                  FluxerLocalizations.localizationsDelegates,
+              supportedLocales: FluxerLocalizations.supportedLocales,
+              theme: buildFluxerTheme(
+                colorTheme: colorTheme,
+                textTheme: FluxerTextTheme.fromColors(colorTheme),
+                layoutTheme: FluxerLayoutTheme.scaled(),
+              ),
+              home: const Scaffold(body: GuildSidebar()),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      await pumpSidebar();
+      await tester.scrollUntilVisible(
+        find.text('channel-20'),
+        100,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('channel-20'), findsOneWidget);
+
+      harness.activeGuildId = _otherGuildId;
+      harness.channelListState = guildBState;
+      container
+        ..invalidate(activeGuildIdProvider)
+        ..invalidate(channelListViewModelProvider);
+      await pumpSidebar();
+      expect(find.text('guild-b-1'), findsOneWidget);
+
+      harness.activeGuildId = _guildId;
+      harness.channelListState = guildAState;
+      container
+        ..invalidate(activeGuildIdProvider)
+        ..invalidate(channelListViewModelProvider);
+      await pumpSidebar();
+      expect(find.text('channel-20'), findsOneWidget);
+    });
   });
 
   group('GuildSidebar voice session isolation', () {
@@ -643,15 +774,21 @@ List<Override> _buildOverrides({
   Map<String, int?> sidebarConnectBits = const {},
   bool developerMode = false,
   VoiceSession Function()? voiceSessionFactory,
+  String? Function(Ref ref)? activeGuildIdReader,
+  ChannelListViewModel Function()? channelListViewModelFactory,
 }) {
   final db = openTestDatabase();
   return [
     fluxerDatabaseProvider.overrideWithValue(db),
     currentUserIdProvider.overrideWithValue('me'),
-    activeGuildIdProvider.overrideWithValue(_guildId),
+    if (activeGuildIdReader != null)
+      activeGuildIdProvider.overrideWith(activeGuildIdReader)
+    else
+      activeGuildIdProvider.overrideWithValue(_guildId),
     activeChannelIdProvider.overrideWithValue(selectedChannelId),
     channelListViewModelProvider.overrideWith(
-      () => _FakeChannelListViewModel(channelListState),
+      channelListViewModelFactory ??
+          () => _FakeChannelListViewModel(channelListState),
     ),
     appearancePreferencesProvider.overrideWith(_FakeAppearancePreferences.new),
     voiceSessionProvider.overrideWith(
@@ -724,6 +861,15 @@ class _FakeChannelListViewModel extends ChannelListViewModel {
 
   @override
   ChannelListState build() => _state;
+}
+
+class _HarnessChannelListViewModel extends ChannelListViewModel {
+  _HarnessChannelListViewModel(this._harness);
+
+  final _GuildSwitchTestHarness _harness;
+
+  @override
+  ChannelListState build() => _harness.channelListState;
 }
 
 class _FakeAppearancePreferences extends AppearancePreferences {

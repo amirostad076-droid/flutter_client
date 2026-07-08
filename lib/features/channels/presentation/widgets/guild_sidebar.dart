@@ -87,7 +87,7 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
         children: [
           _buildServerHeader(context, guild),
           Expanded(
-            child: guild == null || guildId == null
+            child: guild == null || guildId == null || guild.id != guildId
                 ? const SizedBox.shrink()
                 : _GuildSidebarChannelList(
                     key: ValueKey<String>(guildId),
@@ -277,6 +277,12 @@ class _GuildSidebarChannelListState
   }
 
   @override
+  void deactivate() {
+    _persistScroll();
+    super.deactivate();
+  }
+
+  @override
   void dispose() {
     _persistScroll();
     _scrollController
@@ -318,7 +324,11 @@ class _GuildSidebarChannelListState
       _scrollController.jumpTo(target);
       _restoring = false;
     }
-    _needsScrollClamp = false;
+    if (_needsScrollClamp) {
+      setState(() {
+        _needsScrollClamp = false;
+      });
+    }
     _scrollIndicator.scheduleUpdate();
   }
 
@@ -390,7 +400,10 @@ class _GuildSidebarChannelListState
       child: UnreadScrollIndicatorLayer(
         controller: _scrollIndicator,
         label: FluxerLocalizations.of(context).scrollIndicatorNewMessage,
-        child: channelListView,
+        child: Opacity(
+          opacity: _needsScrollClamp ? 0 : 1,
+          child: channelListView,
+        ),
       ),
     );
   }
