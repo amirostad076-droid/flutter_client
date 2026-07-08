@@ -9159,6 +9159,54 @@ abstract class FluxerLocalizations {
   /// **'Delete Channel'**
   String get channelDetailsDeleteChannel;
 
+  /// Guild channel menu action that opens a voice channel chat without joining voice.
+  ///
+  /// In en, this message translates to:
+  /// **'Open chat'**
+  String get channelMenuOpenChat;
+
+  /// Guild channel menu action to duplicate the selected channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate channel'**
+  String get channelMenuDuplicateChannel;
+
+  /// Developer tool action that forgets a local mature-content gate acknowledgement.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset mature content agreement state'**
+  String get channelMenuResetMatureContentAgreeState;
+
+  /// Confirmation title for deleting all of the caller's messages in a channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete your messages in this channel?'**
+  String get channelMenuDeleteMyMessagesTitle;
+
+  /// Confirmation description for deleting all of the caller's messages in a channel.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete every message you have ever sent in this channel. This cannot be undone.'**
+  String get channelMenuDeleteMyMessagesDescription;
+
+  /// Confirm button for deleting all of the caller's messages in a channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete My Messages'**
+  String get channelMenuDeleteMyMessagesConfirm;
+
+  /// Success toast after deleting messages in a channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted your messages'**
+  String get channelMenuDeletedYourMessages;
+
+  /// Error toast when deleting messages in a channel fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t delete your messages'**
+  String get channelMenuCouldNotDeleteYourMessages;
+
   /// Subtitle in channel details for a system DM recipient.
   ///
   /// In en, this message translates to:

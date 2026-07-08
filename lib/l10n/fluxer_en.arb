@@ -6852,6 +6852,38 @@
   "@channelDetailsDeleteChannel": {
     "description": "Channel details menu action to delete a guild channel."
   },
+  "channelMenuOpenChat": "Open chat",
+  "@channelMenuOpenChat": {
+    "description": "Guild channel menu action that opens a voice channel chat without joining voice."
+  },
+  "channelMenuDuplicateChannel": "Duplicate channel",
+  "@channelMenuDuplicateChannel": {
+    "description": "Guild channel menu action to duplicate the selected channel."
+  },
+  "channelMenuResetMatureContentAgreeState": "Reset mature content agreement state",
+  "@channelMenuResetMatureContentAgreeState": {
+    "description": "Developer tool action that forgets a local mature-content gate acknowledgement."
+  },
+  "channelMenuDeleteMyMessagesTitle": "Delete your messages in this channel?",
+  "@channelMenuDeleteMyMessagesTitle": {
+    "description": "Confirmation title for deleting all of the caller's messages in a channel."
+  },
+  "channelMenuDeleteMyMessagesDescription": "This will permanently delete every message you have ever sent in this channel. This cannot be undone.",
+  "@channelMenuDeleteMyMessagesDescription": {
+    "description": "Confirmation description for deleting all of the caller's messages in a channel."
+  },
+  "channelMenuDeleteMyMessagesConfirm": "Delete My Messages",
+  "@channelMenuDeleteMyMessagesConfirm": {
+    "description": "Confirm button for deleting all of the caller's messages in a channel."
+  },
+  "channelMenuDeletedYourMessages": "Deleted your messages",
+  "@channelMenuDeletedYourMessages": {
+    "description": "Success toast after deleting messages in a channel."
+  },
+  "channelMenuCouldNotDeleteYourMessages": "Couldn't delete your messages",
+  "@channelMenuCouldNotDeleteYourMessages": {
+    "description": "Error toast when deleting messages in a channel fails."
+  },
   "channelDetailsSystemMessage": "System message",
   "@channelDetailsSystemMessage": {
     "description": "Subtitle in channel details for a system DM recipient."

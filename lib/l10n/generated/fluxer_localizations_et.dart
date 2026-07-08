@@ -5391,6 +5391,34 @@ class FluxerLocalizationsEt extends FluxerLocalizations {
   String get channelDetailsDeleteChannel => 'Delete Channel';
 
   @override
+  String get channelMenuOpenChat => 'Open chat';
+
+  @override
+  String get channelMenuDuplicateChannel => 'Duplicate channel';
+
+  @override
+  String get channelMenuResetMatureContentAgreeState =>
+      'Reset mature content agreement state';
+
+  @override
+  String get channelMenuDeleteMyMessagesTitle =>
+      'Delete your messages in this channel?';
+
+  @override
+  String get channelMenuDeleteMyMessagesDescription =>
+      'This will permanently delete every message you have ever sent in this channel. This cannot be undone.';
+
+  @override
+  String get channelMenuDeleteMyMessagesConfirm => 'Delete My Messages';
+
+  @override
+  String get channelMenuDeletedYourMessages => 'Deleted your messages';
+
+  @override
+  String get channelMenuCouldNotDeleteYourMessages =>
+      'Couldn\'t delete your messages';
+
+  @override
   String get channelDetailsSystemMessage => 'System message';
 
   @override

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide SensitiveContent;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -21,6 +21,9 @@ import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_read_state_provider.dart';
+import 'package:fluxer_app/features/mature_content/domain/mature_content_types.dart';
+import 'package:fluxer_app/features/mature_content/providers/mature_content_agreements_provider.dart';
+import 'package:fluxer_app/features/mature_content/providers/sensitive_content_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
@@ -152,7 +155,7 @@ void main() {
   });
 
   group('GuildSidebar long-press menus', () {
-    testWidgets('channel menu shows copy and notification actions', (
+    testWidgets('channel menu hides mark as read when channel is read', (
       tester,
     ) async {
       _setMobileSurface(tester);
@@ -169,20 +172,92 @@ void main() {
       await tester.longPress(find.text('general'));
       await tester.pumpAndSettle();
 
+      expect(find.text('Mark as Read'), findsNothing);
       expect(find.text('Copy Link'), findsOneWidget);
       expect(find.text('Copy Channel ID'), findsOneWidget);
       expect(find.text('Notification Settings'), findsOneWidget);
-      expect(find.text('Open Link'), findsNothing);
+      expect(find.text('Delete My Messages'), findsOneWidget);
+      expect(find.text('Open link'), findsNothing);
       expect(find.text('Debug Channel'), findsNothing);
       expect(find.text('Delete Channel'), findsNothing);
 
-      // Order must mirror the web channel menu:
-      // Mark as Read -> Copy Link -> Mute -> Notification Settings -> Copy ID.
       double dy(String label) => tester.getTopLeft(find.text(label)).dy;
-      expect(dy('Mark as Read'), lessThan(dy('Copy Link')));
       expect(dy('Copy Link'), lessThan(dy('Mute Channel')));
       expect(dy('Mute Channel'), lessThan(dy('Notification Settings')));
       expect(dy('Notification Settings'), lessThan(dy('Copy Channel ID')));
+      expect(dy('Copy Channel ID'), lessThan(dy('Delete My Messages')));
+    });
+
+    testWidgets('channel menu shows mark as read when channel is unread', (
+      tester,
+    ) async {
+      _setMobileSurface(tester);
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: _buildOverrides(
+            channelListState: _state(),
+            unread: const {
+              'c1': UnreadState(hasUnread: true, hasUnreadMessages: true),
+              'c2': UnreadState(),
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('general'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Mark as Read'), findsOneWidget);
+      double dy(String label) => tester.getTopLeft(find.text(label)).dy;
+      expect(dy('Mark as Read'), lessThan(dy('Copy Link')));
+    });
+
+    testWidgets('channel menu shows invite people when permitted', (
+      tester,
+    ) async {
+      _setMobileSurface(tester);
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: _buildOverrides(
+            channelListState: _state(),
+            unread: const {'c1': UnreadState(), 'c2': UnreadState()},
+            permissionBits: {
+              'c1': Permission.createInstantInvite.value,
+              'c2': Permission.viewChannel.value,
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('general'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Invite People'), findsOneWidget);
+      double dy(String label) => tester.getTopLeft(find.text(label)).dy;
+      expect(dy('Invite People'), lessThan(dy('Copy Link')));
+    });
+
+    testWidgets('voice channel menu shows open chat and delete my messages', (
+      tester,
+    ) async {
+      _setMobileSurface(tester);
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: _buildOverrides(
+            channelListState: _mixedChannelState(),
+            unread: const {'c1': UnreadState(), 'voice-1': UnreadState()},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('voice-room'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Open chat'), findsOneWidget);
+      expect(find.text('Delete My Messages'), findsOneWidget);
     });
 
     testWidgets('category menu shows mute, copy id, and mark read actions', (
@@ -231,10 +306,14 @@ void main() {
       await tester.longPress(find.text('general'));
       await tester.pumpAndSettle();
 
+      expect(find.text('Edit Channel'), findsOneWidget);
+      expect(find.text('Duplicate channel'), findsOneWidget);
       expect(find.text('Delete Channel'), findsOneWidget);
-      // Delete is the final, destructive entry (after Copy Channel ID).
       double dy(String label) => tester.getTopLeft(find.text(label)).dy;
+      expect(dy('Edit Channel'), lessThan(dy('Duplicate channel')));
+      expect(dy('Duplicate channel'), lessThan(dy('Copy Channel ID')));
       expect(dy('Copy Channel ID'), lessThan(dy('Delete Channel')));
+      expect(dy('Delete Channel'), lessThan(dy('Delete My Messages')));
     });
 
     testWidgets('channel menu shows Debug Channel in developer mode', (
@@ -307,8 +386,10 @@ void main() {
       await tester.longPress(find.text('announcements'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Open Link'), findsOneWidget);
+      expect(find.text('Open link'), findsOneWidget);
       expect(find.text('Copy Link'), findsOneWidget);
+      expect(find.text('Notification Settings'), findsOneWidget);
+      expect(find.text('Mute Channel'), findsNothing);
     });
   });
 
@@ -797,6 +878,8 @@ List<Override> _buildOverrides({
     userSettingsViewModelProvider.overrideWith(
       () => _FakeUserSettings(developerMode: developerMode),
     ),
+    sensitiveContentProvider.overrideWith(_FakeSensitiveContent.new),
+    matureContentAgreementsProvider.overrideWith(_FakeMatureAgreements.new),
     guildMuteProvider(_guildId).overrideWith(
       (ref) => Stream.value(GuildMuteState(hideMutedChannels: hideMuted)),
     ),
@@ -914,4 +997,16 @@ class _FakeUserSettings extends UserSettingsViewModel {
     developerMode: developerMode,
     trustedDomains: const [],
   );
+}
+
+class _FakeSensitiveContent extends SensitiveContent {
+  @override
+  SensitiveContentState build() =>
+      const SensitiveContentState(isLoading: false);
+}
+
+class _FakeMatureAgreements extends MatureContentAgreements {
+  @override
+  MatureContentAgreementsState build() =>
+      const MatureContentAgreementsState(isLoaded: true);
 }
