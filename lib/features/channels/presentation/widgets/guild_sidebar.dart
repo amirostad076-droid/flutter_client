@@ -22,13 +22,13 @@ import 'package:fluxer_app/features/channels/presentation/modals/show_channel_in
 import 'package:fluxer_app/features/channels/presentation/sheets/channel_notification_settings_sheet.dart';
 import 'package:fluxer_app/features/channels/presentation/sheets/mute_duration_sheet.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
+import 'package:fluxer_app/features/channels/presentation/widgets/channel_list_typing_indicator.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_unread_indicator.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/voice_channel_participants.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/voice_channel_user_count.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
 import 'package:fluxer_app/features/channels/providers/channel_sidebar_icon_connect_bits_provider.dart';
-import 'package:fluxer_app/features/channels/providers/channel_typing_provider.dart';
 import 'package:fluxer_app/features/channels/providers/guild_sidebar_entries_provider.dart';
 import 'package:fluxer_app/features/channels/providers/guild_sidebar_scroll_store_provider.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
@@ -453,7 +453,6 @@ class _ChannelTile extends ConsumerWidget {
       showFadedUnreadOnMutedChannels: showFadedUnread,
       unreadBadgesLevel: unread?.unreadBadgesLevel,
     );
-    final bool hasTyping = ref.watch(channelHasTypingProvider(channel.id));
     final int? connectPermissionBits = ref
         .watch(channelSidebarIconConnectBitsProvider(channel.id))
         .value;
@@ -574,14 +573,11 @@ class _ChannelTile extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (hasTyping) ...[
-                  const SizedBox(width: 4),
-                  RepaintBoundary(
-                    child: FluxerLoadingSpinner(
-                      color: context.colors.textSecondary,
-                    ),
-                  ),
-                ],
+                ChannelListTypingIndicator(
+                  channelId: channel.id,
+                  guildId: guildId,
+                  isSelected: isSelected,
+                ),
                 if (!isSelected &&
                     mentionCount > 0 &&
                     channelUnreadState.hasMentions) ...[
