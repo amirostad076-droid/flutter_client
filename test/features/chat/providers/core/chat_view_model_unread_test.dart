@@ -11,6 +11,7 @@ import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/providers/gateway_session_recovery_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/data/ack_batcher.dart';
 import 'package:fluxer_app/features/channels/providers/ack_batcher_provider.dart';
@@ -408,6 +409,278 @@ void main() {
       expect(state.messages.map((m) => m.id), [anchorId, keptId]);
       expect(await db.messageDao.getMessage(deletedId), null);
       expect(await db.messageDao.getMessage(keptId), isNot(null));
+    },
+  );
+
+  test(
+    'gateway recovery removes deleted message from already loaded channel',
+    () async {
+      final db = openTestDatabase();
+      final anchorId = _snowflakeForUtc(DateTime.utc(2026, 5, 16, 10));
+      final deletedId = _snowflakeForUtc(DateTime.utc(2026, 5, 16, 11));
+      final keptId = _snowflakeForUtc(DateTime.utc(2026, 5, 16, 12));
+      await db.messageDao.upsertMessages([
+        _cachedMessage(id: anchorId, channelId: 'channel-1', authorId: 'other'),
+        _cachedMessage(
+          id: deletedId,
+          channelId: 'channel-1',
+          authorId: 'other',
+        ),
+        _cachedMessage(id: keptId, channelId: 'channel-1', authorId: 'other'),
+      ]);
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(keptId),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(keptId),
+          mentionCount: const Value(0),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        messagesByChannel: <String, List<Map<String, Object?>>>{
+          'channel-1': <Map<String, Object?>>[
+            _messageJson(id: keptId, channelId: 'channel-1', authorId: 'other'),
+            _messageJson(
+              id: deletedId,
+              channelId: 'channel-1',
+              authorId: 'other',
+            ),
+            _messageJson(
+              id: anchorId,
+              channelId: 'channel-1',
+              authorId: 'other',
+            ),
+          ],
+        },
+      );
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      await _flushAsync();
+      expect(container.read(chatViewModelProvider).messages.map((m) => m.id), [
+        anchorId,
+        deletedId,
+        keptId,
+      ]);
+
+      adapter.messagesByChannel['channel-1'] = <Map<String, Object?>>[
+        _messageJson(id: keptId, channelId: 'channel-1', authorId: 'other'),
+        _messageJson(id: anchorId, channelId: 'channel-1', authorId: 'other'),
+      ];
+      container.read(gatewaySessionRecoveryProvider.notifier).bump();
+      await _flushAsync();
+
+      final state = container.read(chatViewModelProvider);
+      expect(state.messages.map((m) => m.id), [anchorId, keptId]);
+      expect(await db.messageDao.getMessage(deletedId), null);
+    },
+  );
+
+  test(
+    'switchChannel reconciles stale same-channel window after recovery',
+    () async {
+      final db = openTestDatabase();
+      final anchorId = _snowflakeForUtc(DateTime.utc(2026, 5, 16, 10));
+      final deletedId = _snowflakeForUtc(DateTime.utc(2026, 5, 16, 11));
+      final keptId = _snowflakeForUtc(DateTime.utc(2026, 5, 16, 12));
+      await db.messageDao.upsertMessages([
+        _cachedMessage(id: anchorId, channelId: 'channel-1', authorId: 'other'),
+        _cachedMessage(
+          id: deletedId,
+          channelId: 'channel-1',
+          authorId: 'other',
+        ),
+        _cachedMessage(id: keptId, channelId: 'channel-1', authorId: 'other'),
+      ]);
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(keptId),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(keptId),
+          mentionCount: const Value(0),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        messagesByChannel: <String, List<Map<String, Object?>>>{
+          'channel-1': <Map<String, Object?>>[
+            _messageJson(id: keptId, channelId: 'channel-1', authorId: 'other'),
+            _messageJson(
+              id: deletedId,
+              channelId: 'channel-1',
+              authorId: 'other',
+            ),
+            _messageJson(
+              id: anchorId,
+              channelId: 'channel-1',
+              authorId: 'other',
+            ),
+          ],
+        },
+      );
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      await _flushAsync();
+      expect(container.read(chatViewModelProvider).messages.map((m) => m.id), [
+        anchorId,
+        deletedId,
+        keptId,
+      ]);
+
+      adapter.messagesByChannel['channel-1'] = <Map<String, Object?>>[
+        _messageJson(id: keptId, channelId: 'channel-1', authorId: 'other'),
+        _messageJson(id: anchorId, channelId: 'channel-1', authorId: 'other'),
+      ];
+      await db.messageDao.upsertMessage(
+        _cachedMessage(
+          id: deletedId,
+          channelId: 'channel-1',
+          authorId: 'other',
+        ),
+      );
+      container
+          .read(messageRealtimeBusProvider)
+          .emit(
+            testMessageCreated(
+              MessageCreateEvent(
+                message: MessageResponseSchema.fromJson(
+                  _messageJson(
+                    id: deletedId,
+                    channelId: 'channel-1',
+                    authorId: 'other',
+                  ),
+                ),
+              ),
+            ),
+          );
+      await _flushAsync();
+      expect(container.read(chatViewModelProvider).messages.map((m) => m.id), [
+        anchorId,
+        deletedId,
+        keptId,
+      ]);
+
+      container.read(gatewaySessionRecoveryProvider.notifier).bump();
+      await notifier.switchChannel('channel-1');
+      await _flushAsync();
+
+      expect(container.read(chatViewModelProvider).messages.map((m) => m.id), [
+        anchorId,
+        keptId,
+      ]);
+      expect(await db.messageDao.getMessage(deletedId), null);
+    },
+  );
+
+  test(
+    'app foreground resume removes deleted message from open channel',
+    () async {
+      final db = openTestDatabase();
+      final anchorId = _snowflakeForUtc(DateTime.utc(2026, 5, 16, 10));
+      final deletedId = _snowflakeForUtc(DateTime.utc(2026, 5, 16, 11));
+      final keptId = _snowflakeForUtc(DateTime.utc(2026, 5, 16, 12));
+      await db.messageDao.upsertMessages([
+        _cachedMessage(id: anchorId, channelId: 'channel-1', authorId: 'other'),
+        _cachedMessage(
+          id: deletedId,
+          channelId: 'channel-1',
+          authorId: 'other',
+        ),
+        _cachedMessage(id: keptId, channelId: 'channel-1', authorId: 'other'),
+      ]);
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(keptId),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(keptId),
+          mentionCount: const Value(0),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        messagesByChannel: <String, List<Map<String, Object?>>>{
+          'channel-1': <Map<String, Object?>>[
+            _messageJson(id: keptId, channelId: 'channel-1', authorId: 'other'),
+            _messageJson(
+              id: deletedId,
+              channelId: 'channel-1',
+              authorId: 'other',
+            ),
+            _messageJson(
+              id: anchorId,
+              channelId: 'channel-1',
+              authorId: 'other',
+            ),
+          ],
+        },
+      );
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
+        ..httpClientAdapter = adapter;
+      final client = FluxerClient(dio, baseUrl: 'https://api.fluxer.app/v1');
+      final container = ProviderContainer(
+        overrides: [
+          fluxerDatabaseProvider.overrideWithValue(db),
+          fluxerDioProvider.overrideWithValue(dio),
+          fluxerClientProvider.overrideWithValue(client),
+          currentUserIdProvider.overrideWithValue('me'),
+          ackBatcherProvider.overrideWith((ref) {
+            final batcher = AckBatcher(
+              client: client,
+              batchDelay: Duration.zero,
+            );
+            ref.onDispose(() {
+              unawaited(batcher.dispose());
+            });
+            return batcher;
+          }),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      await _flushAsync();
+      expect(container.read(chatViewModelProvider).messages.map((m) => m.id), [
+        anchorId,
+        deletedId,
+        keptId,
+      ]);
+
+      adapter.messagesByChannel['channel-1'] = <Map<String, Object?>>[
+        _messageJson(id: keptId, channelId: 'channel-1', authorId: 'other'),
+        _messageJson(id: anchorId, channelId: 'channel-1', authorId: 'other'),
+      ];
+      container.read(appUiForegroundProvider.notifier).setResumed(false);
+      container.read(appUiForegroundProvider.notifier).setResumed(true);
+      await _flushAsync();
+
+      final state = container.read(chatViewModelProvider);
+      expect(state.messages.map((m) => m.id), [anchorId, keptId]);
+      expect(await db.messageDao.getMessage(deletedId), null);
     },
   );
 
