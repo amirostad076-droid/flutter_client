@@ -588,7 +588,8 @@ void main() {
           selectedChannelId: 'c1',
           unread: unread,
           activeGuildIdReader: (Ref ref) => harness.activeGuildId,
-          channelListViewModelFactory: () => _HarnessChannelListViewModel(harness),
+          channelListViewModelFactory: () =>
+              _HarnessChannelListViewModel(harness),
         ),
         guildMuteProvider(_otherGuildId).overrideWith(
           (Ref ref) => Stream<GuildMuteState>.value(const GuildMuteState()),
@@ -600,9 +601,9 @@ void main() {
           (Ref ref) => Stream<Set<String>>.value(const <String>{}),
         ),
         for (final Channel channel in guildBChannels)
-          channelUnreadProvider(
-            channel.id,
-          ).overrideWith((Ref ref) => Stream<UnreadState>.value(const UnreadState())),
+          channelUnreadProvider(channel.id).overrideWith(
+            (Ref ref) => Stream<UnreadState>.value(const UnreadState()),
+          ),
       ];
       final ProviderContainer container = ProviderContainer(
         overrides: overrides,

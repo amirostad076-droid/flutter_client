@@ -54,7 +54,9 @@ void main() {
     expect(leaflessTree, isNotNull);
     expect(leaflessTree!.surrogates, '🪾');
 
-    final EmojiEntry? rootVegetable = EmojiRegistry.entryByName('root_vegetable');
+    final EmojiEntry? rootVegetable = EmojiRegistry.entryByName(
+      'root_vegetable',
+    );
     expect(rootVegetable, isNotNull);
     expect(rootVegetable!.surrogates, '🫜');
 

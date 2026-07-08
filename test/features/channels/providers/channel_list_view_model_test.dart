@@ -22,9 +22,9 @@ void main() {
         channelRepositoryProvider.overrideWithValue(
           _FakeChannelRepository(controllers),
         ),
-        channelPermissionCacheProvider.overrideWithValue(
-          <String, int>{'c1': Permission.viewChannel.value},
-        ),
+        channelPermissionCacheProvider.overrideWithValue(<String, int>{
+          'c1': Permission.viewChannel.value,
+        }),
       ],
     );
     addTearDown(container.dispose);
@@ -45,10 +45,7 @@ void main() {
     controllerA.add(channelsA);
     await Future<void>.delayed(Duration.zero);
 
-    expect(
-      container.read(channelListViewModelProvider).categories,
-      isNotEmpty,
-    );
+    expect(container.read(channelListViewModelProvider).categories, isNotEmpty);
     expect(
       container
           .read(channelListViewModelProvider)
@@ -65,17 +62,11 @@ void main() {
     controllers['guild-b'] = controllerB;
     notifier.loadChannels('guild-b', guild: guildB);
 
-    expect(
-      container.read(channelListViewModelProvider).categories,
-      isEmpty,
-    );
+    expect(container.read(channelListViewModelProvider).categories, isEmpty);
 
     notifier.loadChannels('guild-a', guild: guildA);
 
-    expect(
-      container.read(channelListViewModelProvider).categories,
-      isNotEmpty,
-    );
+    expect(container.read(channelListViewModelProvider).categories, isNotEmpty);
     expect(
       container
           .read(channelListViewModelProvider)
@@ -96,10 +87,9 @@ class _FakeChannelRepository implements ChannelRepository {
 
   @override
   Stream<List<Channel>> watchChannels(String guildId) {
-    return controllers.putIfAbsent(
-      guildId,
-      () => StreamController<List<Channel>>.broadcast(),
-    ).stream;
+    return controllers
+        .putIfAbsent(guildId, () => StreamController<List<Channel>>.broadcast())
+        .stream;
   }
 
   @override
