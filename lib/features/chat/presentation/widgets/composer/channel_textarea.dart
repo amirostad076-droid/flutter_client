@@ -318,33 +318,39 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       key: _pasteScopeKey,
       channelId: channelId,
       controller: _controller,
+      focusNode: _focusNode,
       isAttachEnabled: perms.isAttachEnabled,
       onValidationResult: _toastUploadValidation,
       builder: (BuildContext context, ComposerPasteScopeState pasteScope) {
         return Stack(
           clipBehavior: Clip.none,
           children: [
-            TextField(
-              controller: _controller,
-              focusNode: _focusNode,
-              enabled: perms.isComposerEnabled,
-              style: context.textStyles.inputText,
-              minLines: minLines,
-              maxLines: maxLines,
-              decoration: effectiveDecoration,
-              textAlignVertical: textAlignVertical,
-              textCapitalization: TextCapitalization.sentences,
-              contextMenuBuilder: pasteScope.buildContextMenu,
-              inputFormatters: _messageLengthInputFormatters(
-                maxMessageLength: maxMessageLength,
-                perms: perms,
-                channelId: channelId,
-              ),
-              onTap: () {
-                if (ref.read(expressionPanelProvider)) {
-                  ref.read(expressionPanelProvider.notifier).close();
-                }
+            Listener(
+              onPointerDown: (_) {
+                unawaited(pasteScope.refreshClipboardPasteAvailability());
               },
+              child: TextField(
+                controller: _controller,
+                focusNode: _focusNode,
+                enabled: perms.isComposerEnabled,
+                style: context.textStyles.inputText,
+                minLines: minLines,
+                maxLines: maxLines,
+                decoration: effectiveDecoration,
+                textAlignVertical: textAlignVertical,
+                textCapitalization: TextCapitalization.sentences,
+                contextMenuBuilder: pasteScope.buildContextMenu,
+                inputFormatters: _messageLengthInputFormatters(
+                  maxMessageLength: maxMessageLength,
+                  perms: perms,
+                  channelId: channelId,
+                ),
+                onTap: () {
+                  if (ref.read(expressionPanelProvider)) {
+                    ref.read(expressionPanelProvider.notifier).close();
+                  }
+                },
+              ),
             ),
             Positioned(
               right: 8,
