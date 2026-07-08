@@ -34,6 +34,7 @@ import 'package:fluxer_app/features/settings/presentation/pages/guild/settings_b
 import 'package:fluxer_app/features/settings/presentation/pages/guild/settings_channels_page.dart';
 import 'package:fluxer_app/features/settings/presentation/pages/guild/settings_moderation_page.dart';
 import 'package:fluxer_app/features/settings/presentation/pages/guild/settings_overview_page.dart';
+import 'package:fluxer_app/features/settings/presentation/pages/guild/settings_roles_page.dart';
 import 'package:fluxer_app/features/shell/presentation/app_layout.dart';
 import 'package:fluxer_app/features/shell/presentation/invalid_deep_link_screen.dart';
 import 'package:fluxer_app/features/shell/presentation/reconnecting_screen.dart';
@@ -378,6 +379,18 @@ GoRouter fluxerRouter(Ref ref) {
           context: context,
           key: state.pageKey,
           child: SettingsChannelsPage(
+            guildId: state.pathParameters['guildId'] ?? '',
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/settings/guild/:guildId/roles',
+        name: RouteNames.guildSettingsRoles,
+        parentNavigatorKey: rootNavigatorKey,
+        pageBuilder: (context, state) => shellMobileRootPushTransitionPage(
+          context: context,
+          key: state.pageKey,
+          child: SettingsRolesPage(
             guildId: state.pathParameters['guildId'] ?? '',
           ),
         ),

@@ -6804,6 +6804,383 @@ class FluxerLocalizationsSl extends FluxerLocalizations {
   String get guildSettingsRolesListTitle => 'Vloge';
 
   @override
+  String get guildSettingsRolesNewRole => 'New role';
+
+  @override
+  String get guildSettingsRolesDeleteRole => 'Delete role';
+
+  @override
+  String get guildSettingsRolesBackToRoles => 'Back to roles';
+
+  @override
+  String guildSettingsRolesEditTitle(String name) {
+    return 'Edit \"$name\"';
+  }
+
+  @override
+  String get guildSettingsRolesEditSubtitle =>
+      'Configure role settings and permissions';
+
+  @override
+  String get guildSettingsRolesDisplaySection => 'Display';
+
+  @override
+  String get guildSettingsRolesRoleName => 'Role name';
+
+  @override
+  String get guildSettingsRolesRoleColor => 'Role color';
+
+  @override
+  String get guildSettingsRolesRoleColorHelper =>
+      'Type a color (hex, rgb(), hsl(), or name) or use the picker.';
+
+  @override
+  String get guildSettingsRolesShowSeparately => 'Show this role separately';
+
+  @override
+  String get guildSettingsRolesShowSeparatelyHelper =>
+      'Lists members with this role in their own section in the member list.';
+
+  @override
+  String get guildSettingsRolesAllowMentions => 'Allow mentions for this role';
+
+  @override
+  String guildSettingsRolesAllowMentionsHelper(String permission) {
+    return 'Members with the \"$permission\" permission can always mention roles, regardless of this setting.';
+  }
+
+  @override
+  String get guildSettingsRolesClearPermissionsHelp =>
+      'Use this button to quickly clear all permissions.';
+
+  @override
+  String get guildSettingsRolesClearPermissions => 'Clear permissions';
+
+  @override
+  String get guildSettingsRolesPermissionsSection => 'Permissions';
+
+  @override
+  String get guildSettingsRolesSearchPermissions => 'Search permissions';
+
+  @override
+  String get guildSettingsRolesDenseLayout => 'Dense layout';
+
+  @override
+  String get guildSettingsRolesComfyLayout => 'Comfy layout';
+
+  @override
+  String get guildSettingsRolesSwitchToDenseLayout => 'Switch to dense layout';
+
+  @override
+  String get guildSettingsRolesSwitchToComfyLayout => 'Switch to comfy layout';
+
+  @override
+  String get guildSettingsRolesSingleColumn => 'Single column';
+
+  @override
+  String get guildSettingsRolesTwoColumns => 'Two columns';
+
+  @override
+  String get guildSettingsRolesSwitchToSingleColumn =>
+      'Switch to single column';
+
+  @override
+  String get guildSettingsRolesSwitchToTwoColumns => 'Switch to two columns';
+
+  @override
+  String get guildSettingsRolesNoPermissionsFound => 'No permissions found';
+
+  @override
+  String get guildSettingsRolesCustomHoistOrder => 'Custom hoist order';
+
+  @override
+  String get guildSettingsRolesHoistOrder => 'Hoist order';
+
+  @override
+  String get guildSettingsRolesResetHoistOrder => 'Reset to default';
+
+  @override
+  String get guildSettingsRolesHoistOrderHelp =>
+      'Drag roles to customize the order they appear in the member list.';
+
+  @override
+  String get guildSettingsRolesNoHoistedRoles =>
+      'No hoisted roles. Enable \"Show this role separately\" on a role to see it here.';
+
+  @override
+  String get guildSettingsRolesLockedTooltip =>
+      'You cannot edit this role because it is your highest role or above you';
+
+  @override
+  String guildSettingsRolesNeedManageRolesPermission(String permission) {
+    return 'You need the \"$permission\" permission to edit these permissions';
+  }
+
+  @override
+  String get guildSettingsRolesCannotEditHigherRole =>
+      'You cannot edit a role at or above your highest role';
+
+  @override
+  String get guildSettingsRolesCannotGrantPermission =>
+      'You cannot grant a permission you don\'t have';
+
+  @override
+  String get guildSettingsRolesCannotRemoveOwnPermission =>
+      'You cannot remove this permission because it would remove it from yourself';
+
+  @override
+  String get guildSettingsRolesUpdatedSuccess => 'Roles updated successfully';
+
+  @override
+  String get guildSettingsRolesCreatedSuccess => 'Role created successfully';
+
+  @override
+  String get guildSettingsRolesDeletedSuccess => 'Role deleted successfully';
+
+  @override
+  String get guildSettingsRolesHoistResetSuccess =>
+      'Hoist order reset to default';
+
+  @override
+  String get guildSettingsRolesNameRequiredTitle => 'Role name is required';
+
+  @override
+  String get guildSettingsRolesNameRequiredBody =>
+      'Give the role a name before saving.';
+
+  @override
+  String get guildSettingsRolesCreateFailedTitle => 'Couldn\'t create role';
+
+  @override
+  String get guildSettingsRolesUpdateFailedTitle => 'Couldn\'t update roles';
+
+  @override
+  String get guildSettingsRolesDeleteFailedTitle => 'Couldn\'t delete role';
+
+  @override
+  String guildSettingsRolesDeleteFailedBody(String name) {
+    return '\"$name\" wouldn\'t delete. Try again.';
+  }
+
+  @override
+  String get guildSettingsRolesResetHoistFailedTitle =>
+      'Couldn\'t reset hoist order';
+
+  @override
+  String get guildSettingsRolesTryAgainInAMoment => 'Try again in a moment.';
+
+  @override
+  String guildSettingsRolesDeleteConfirm(String name) {
+    return 'Are you sure you want to delete the $name role? Any members with this role will no longer have it.';
+  }
+
+  @override
+  String get permissionCategoryCommunityWide => 'Community-wide';
+
+  @override
+  String get permissionCategoryMessagesMedia => 'Messages & media';
+
+  @override
+  String get permissionCategoryModeration => 'Moderation';
+
+  @override
+  String get permissionCategoryChannelAccess => 'Channel access';
+
+  @override
+  String get permissionCategoryAudioVideo => 'Audio & video';
+
+  @override
+  String get permissionUnknown => 'Unknown permission';
+
+  @override
+  String get permissionAdministrator => 'Administrator';
+
+  @override
+  String get permissionAdministratorDescription =>
+      'Grants all permissions and bypasses channel restrictions. Highly sensitive.';
+
+  @override
+  String get permissionViewActivityLog => 'View activity log';
+
+  @override
+  String get permissionViewActivityLogDescription =>
+      'Read the community\'s activity log of changes and moderation actions.';
+
+  @override
+  String get permissionManageCommunity => 'Manage community';
+
+  @override
+  String get permissionManageCommunityDescription =>
+      'Edit global settings like name, description, and icon.';
+
+  @override
+  String get permissionManageRoles => 'Manage roles';
+
+  @override
+  String get permissionManageRolesDescription =>
+      'Create, edit, or delete roles below your highest role. Also allows editing channel permission overwrites.';
+
+  @override
+  String get permissionManageChannels => 'Manage channels';
+
+  @override
+  String get permissionManageChannelsDescription =>
+      'Create, edit, or delete channels and categories.';
+
+  @override
+  String get permissionKickMembers => 'Kick members';
+
+  @override
+  String get permissionBanMembers => 'Ban members';
+
+  @override
+  String get permissionCreateInviteLinks => 'Create invite links';
+
+  @override
+  String get permissionChangeOwnNickname => 'Change own nickname';
+
+  @override
+  String get permissionChangeOwnNicknameDescription =>
+      'Update your own nickname.';
+
+  @override
+  String get permissionManageNicknames => 'Manage nicknames';
+
+  @override
+  String get permissionManageNicknamesDescription =>
+      'Change other members\' nicknames.';
+
+  @override
+  String get permissionCreateEmojiStickers => 'Create emoji & stickers';
+
+  @override
+  String get permissionCreateEmojiStickersDescription =>
+      'Upload new emoji and stickers, and manage your own creations.';
+
+  @override
+  String get permissionManageEmojiStickers => 'Manage emoji & stickers';
+
+  @override
+  String get permissionManageEmojiStickersDescription =>
+      'Edit or delete emoji and stickers created by other members.';
+
+  @override
+  String get permissionManageWebhooks => 'Manage webhooks';
+
+  @override
+  String get permissionManageWebhooksDescription =>
+      'Create, edit, or delete webhooks.';
+
+  @override
+  String get permissionSendMessages => 'Send messages';
+
+  @override
+  String get permissionSendTtsMessages => 'Send TTS messages';
+
+  @override
+  String get permissionSendTtsMessagesDescription =>
+      'Send text-to-speech messages.';
+
+  @override
+  String get permissionManageMessages => 'Manage messages';
+
+  @override
+  String get permissionManageMessagesDescription =>
+      'Delete other members\' messages. Pinning is controlled separately.';
+
+  @override
+  String get permissionPinMessages => 'Pin messages';
+
+  @override
+  String get permissionEmbedLinks => 'Embed links';
+
+  @override
+  String get permissionAttachFiles => 'Attach files';
+
+  @override
+  String get permissionMentionEveryone => 'Use @everyone/@here and @role';
+
+  @override
+  String get permissionMentionEveryoneDescription =>
+      'Mention everyone or any role (even if the role isn\'t set to be mentionable).';
+
+  @override
+  String get permissionUseExternalEmoji => 'Use external emoji';
+
+  @override
+  String get permissionUseExternalEmojiDescription =>
+      'Use emoji from other communities.';
+
+  @override
+  String get permissionUseExternalStickers => 'Use external stickers';
+
+  @override
+  String get permissionAddReactions => 'Add reactions';
+
+  @override
+  String get permissionAddReactionsDescription =>
+      'Add new reactions to messages.';
+
+  @override
+  String get permissionBypassSlowmode => 'Bypass slowmode';
+
+  @override
+  String get permissionBypassSlowmodeDescription =>
+      'Ignore per-channel message rate limits.';
+
+  @override
+  String get permissionTimeOutMembers => 'Time out members';
+
+  @override
+  String get permissionTimeOutMembersDescription =>
+      'Prevent members from sending messages, reacting, and joining voice for a duration.';
+
+  @override
+  String get permissionViewChannel => 'View channel';
+
+  @override
+  String get permissionViewChannelMembers => 'View channel members';
+
+  @override
+  String get permissionViewChannelMembersDescription =>
+      'See the member list for channels in this community.';
+
+  @override
+  String get permissionConnect => 'Connect';
+
+  @override
+  String get permissionSpeak => 'Speak';
+
+  @override
+  String get permissionStreamVideo => 'Stream video';
+
+  @override
+  String get permissionUseVoiceActivity => 'Use voice activity';
+
+  @override
+  String get permissionUseVoiceActivityDescription =>
+      'Without this permission, push-to-talk is required.';
+
+  @override
+  String get permissionPrioritySpeaker => 'Priority speaker';
+
+  @override
+  String get permissionMuteMembers => 'Mute members';
+
+  @override
+  String get permissionDeafenMembers => 'Deafen members';
+
+  @override
+  String get permissionMoveMembers => 'Move members';
+
+  @override
+  String get permissionMoveMembersDescription =>
+      'Drag members between channels they can access.';
+
+  @override
+  String get permissionSetVoiceRegion => 'Set voice region';
+
+  @override
   String guildSettingsEmojiSlotInfo(int staticCount, int animatedCount) {
     return '$staticCount statičnih, $animatedCount animiranih mest za emodžije zasedenih';
   }

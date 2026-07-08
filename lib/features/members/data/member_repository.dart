@@ -150,6 +150,9 @@ class MemberRepository {
             permissions: map['permissions'] != null
                 ? Value(map['permissions'] as String)
                 : const Value.absent(),
+            hoistPosition: map['hoist_position'] != null
+                ? Value(map['hoist_position'] as int)
+                : const Value.absent(),
           );
         }).toList();
       } else {

@@ -18,6 +18,7 @@ import 'package:fluxer_app/features/settings/presentation/widgets/guild/guild_se
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/guild_settings_page_shell.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/moderation/guild_moderation_widget.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/overview/guild_overview_widget.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/guild/roles/guild_roles_settings_widget.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/settings_sidebar.dart';
 import 'package:fluxer_app/features/settings/providers/guild/guild_audit_log_provider.dart';
 import 'package:fluxer_app/features/settings/providers/guild/guild_bans_provider.dart';
@@ -240,6 +241,7 @@ class GuildSettingsTabBody extends ConsumerWidget {
       GuildSettingsTab.channels => GuildChannelsSettingsWidget(
         guildId: guildId,
       ),
+      GuildSettingsTab.roles => GuildRolesSettingsWidget(guildId: guildId),
       _ => const SizedBox.shrink(),
     };
   }
