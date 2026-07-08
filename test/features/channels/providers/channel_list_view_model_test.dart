@@ -88,7 +88,7 @@ class _FakeChannelRepository implements ChannelRepository {
   @override
   Stream<List<Channel>> watchChannels(String guildId) {
     return controllers
-        .putIfAbsent(guildId, () => StreamController<List<Channel>>.broadcast())
+        .putIfAbsent(guildId, StreamController<List<Channel>>.broadcast)
         .stream;
   }
 

@@ -7947,11 +7947,109 @@ class FluxerLocalizationsHu extends FluxerLocalizations {
   }
 
   @override
+  String get guildSettingsInvitesTitle => 'Invites';
+
+  @override
   String get guildSettingsInvitesDescription =>
       'Aktív meghívólinkek megtekintése és visszavonása.';
 
   @override
   String get guildSettingsInvitesEmpty => 'Nincsenek aktív meghívók.';
+
+  @override
+  String get guildSettingsInvitesEmptyDescription =>
+      'This community doesn\'t have any invite links yet. Go to a channel and create an invite to invite people.';
+
+  @override
+  String get guildSettingsInvitesLoadFailedTitle => 'Failed to load invites';
+
+  @override
+  String get guildSettingsInvitesLoadFailedDescription =>
+      'There was an error loading the invites. Try again.';
+
+  @override
+  String get guildSettingsInvitesTryAgain => 'Try again';
+
+  @override
+  String get guildSettingsInvitesShowCreatedDate =>
+      'Show creation date instead of expiration date';
+
+  @override
+  String get guildSettingsInvitesPauseInvites => 'Pause invites';
+
+  @override
+  String get guildSettingsInvitesEnableInvites => 'Enable invites';
+
+  @override
+  String get guildSettingsInvitesPauseForCommunityTitle =>
+      'Pause invites for this community';
+
+  @override
+  String get guildSettingsInvitesEnableForCommunityTitle =>
+      'Enable invites for this community';
+
+  @override
+  String get guildSettingsInvitesPauseConfirmDescription =>
+      'Pause invites? New users won\'t be able to join through invite links until you re-enable them. Existing members won\'t be affected.';
+
+  @override
+  String get guildSettingsInvitesEnableConfirmDescription =>
+      'Enable invites? Users will be able to join this community through invite links again.';
+
+  @override
+  String get guildSettingsInvitesPause => 'Pause';
+
+  @override
+  String get guildSettingsInvitesPausedForCommunity =>
+      'Invites are paused for this community.';
+
+  @override
+  String guildSettingsInvitesPausedBecauseRaid(String productName) {
+    return 'Invites are paused because $productName detected a potential raid. New users can\'t join right now.';
+  }
+
+  @override
+  String get guildSettingsInvitesLabelInviter => 'Inviter:';
+
+  @override
+  String get guildSettingsInvitesLabelChannel => 'Channel:';
+
+  @override
+  String get guildSettingsInvitesLabelCode => 'Code:';
+
+  @override
+  String get guildSettingsInvitesLabelUses => 'Uses:';
+
+  @override
+  String get guildSettingsInvitesLabelCreated => 'Created:';
+
+  @override
+  String get guildSettingsInvitesLabelExpires => 'Expires:';
+
+  @override
+  String get guildSettingsInvitesUnknown => 'Unknown';
+
+  @override
+  String get guildSettingsInvitesNoCategory => 'No category';
+
+  @override
+  String get guildSettingsInvitesExpired => 'Expired';
+
+  @override
+  String get guildSettingsInvitesNever => 'Never';
+
+  @override
+  String get guildSettingsInvitesCopyLink => 'Copy invite link';
+
+  @override
+  String get guildSettingsInvitesRevoke => 'Revoke invite';
+
+  @override
+  String get guildSettingsInvitesRevokeFailedTitle => 'Couldn\'t revoke invite';
+
+  @override
+  String get guildSettingsInvitesRevokeFailedDescription =>
+      'The link may still work. Try again in a moment.';
 
   @override
   String guildSettingsInviteUses(int uses, int maxUses) {
@@ -8414,6 +8512,9 @@ class FluxerLocalizationsHu extends FluxerLocalizations {
 
   @override
   String get guildSettingsInvitesTableCreated => 'Létrehozva';
+
+  @override
+  String get guildSettingsInvitesTableExpires => 'Expires';
 
   @override
   String get guildSettingsMembersSortNewest => 'Legújabb elöl';

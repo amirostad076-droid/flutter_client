@@ -3957,7 +3957,9 @@ class _GuildListItemState extends State<_GuildListItem>
       case GuildAction.settingsWebhooks:
       case GuildAction.settingsDiscovery:
       case GuildAction.settingsInviteLinks:
-        unawaited(context.push(RoutePaths.guildSettingsPath(guildId)));
+        unawaited(
+          context.push(RoutePaths.guildSettingsPath(guildId, tab: 'invites')),
+        );
       case GuildAction.settingsMembers:
         unawaited(
           context.push(RoutePaths.guildSettingsPath(guildId, tab: 'members')),

@@ -11544,7 +11544,7 @@ abstract class FluxerLocalizations {
   /// Community settings tab for invite links.
   ///
   /// In en, this message translates to:
-  /// **'Invite Links'**
+  /// **'Invites'**
   String get guildMenuSettingsInviteLinks;
 
   /// Community settings tab for banned members.
@@ -13386,17 +13386,191 @@ abstract class FluxerLocalizations {
   /// **'{count} members'**
   String guildSettingsMembersResultsTitle(int count);
 
+  /// Title for the invites settings tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Invites'**
+  String get guildSettingsInvitesTitle;
+
   /// Description for invites tab.
   ///
   /// In en, this message translates to:
-  /// **'View and revoke active invite links.'**
+  /// **'View all invites for this community. To create a new invite, go to a channel and use the invite button.'**
   String get guildSettingsInvitesDescription;
 
-  /// Empty state for invites.
+  /// Empty state title for invites.
   ///
   /// In en, this message translates to:
-  /// **'No active invites.'**
+  /// **'No invite links'**
   String get guildSettingsInvitesEmpty;
+
+  /// Empty state description for invites.
+  ///
+  /// In en, this message translates to:
+  /// **'This community doesn\'t have any invite links yet. Go to a channel and create an invite to invite people.'**
+  String get guildSettingsInvitesEmptyDescription;
+
+  /// Error title when invites fail to load.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load invites'**
+  String get guildSettingsInvitesLoadFailedTitle;
+
+  /// Error description when invites fail to load.
+  ///
+  /// In en, this message translates to:
+  /// **'There was an error loading the invites. Try again.'**
+  String get guildSettingsInvitesLoadFailedDescription;
+
+  /// Retry button on invites load error.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get guildSettingsInvitesTryAgain;
+
+  /// Toggle to show invite creation date instead of expiration.
+  ///
+  /// In en, this message translates to:
+  /// **'Show creation date instead of expiration date'**
+  String get guildSettingsInvitesShowCreatedDate;
+
+  /// Button to pause invite links for a community.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause invites'**
+  String get guildSettingsInvitesPauseInvites;
+
+  /// Button to re-enable invite links for a community.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable invites'**
+  String get guildSettingsInvitesEnableInvites;
+
+  /// Confirmation title before pausing invites.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause invites for this community'**
+  String get guildSettingsInvitesPauseForCommunityTitle;
+
+  /// Confirmation title before enabling invites.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable invites for this community'**
+  String get guildSettingsInvitesEnableForCommunityTitle;
+
+  /// Confirmation body before pausing invites.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause invites? New users won\'t be able to join through invite links until you re-enable them. Existing members won\'t be affected.'**
+  String get guildSettingsInvitesPauseConfirmDescription;
+
+  /// Confirmation body before enabling invites.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable invites? Users will be able to join this community through invite links again.'**
+  String get guildSettingsInvitesEnableConfirmDescription;
+
+  /// Confirm button to pause invites.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get guildSettingsInvitesPause;
+
+  /// Status message when invites are manually paused.
+  ///
+  /// In en, this message translates to:
+  /// **'Invites are paused for this community.'**
+  String get guildSettingsInvitesPausedForCommunity;
+
+  /// Status message when invites are paused due to raid detection.
+  ///
+  /// In en, this message translates to:
+  /// **'Invites are paused because {productName} detected a potential raid. New users can\'t join right now.'**
+  String guildSettingsInvitesPausedBecauseRaid(String productName);
+
+  /// Mobile invite row label for inviter.
+  ///
+  /// In en, this message translates to:
+  /// **'Inviter:'**
+  String get guildSettingsInvitesLabelInviter;
+
+  /// Mobile invite row label for channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel:'**
+  String get guildSettingsInvitesLabelChannel;
+
+  /// Mobile invite row label for invite code.
+  ///
+  /// In en, this message translates to:
+  /// **'Code:'**
+  String get guildSettingsInvitesLabelCode;
+
+  /// Mobile invite row label for uses count.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses:'**
+  String get guildSettingsInvitesLabelUses;
+
+  /// Mobile invite row label for created date.
+  ///
+  /// In en, this message translates to:
+  /// **'Created:'**
+  String get guildSettingsInvitesLabelCreated;
+
+  /// Mobile invite row label for expiration date.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires:'**
+  String get guildSettingsInvitesLabelExpires;
+
+  /// Fallback when invite inviter is unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get guildSettingsInvitesUnknown;
+
+  /// Fallback when invite channel has no parent category.
+  ///
+  /// In en, this message translates to:
+  /// **'No category'**
+  String get guildSettingsInvitesNoCategory;
+
+  /// Label when an invite has expired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get guildSettingsInvitesExpired;
+
+  /// Label when an invite does not expire.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get guildSettingsInvitesNever;
+
+  /// Action to copy an invite link.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy invite link'**
+  String get guildSettingsInvitesCopyLink;
+
+  /// Action to revoke an invite link.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke invite'**
+  String get guildSettingsInvitesRevoke;
+
+  /// Error title when revoking an invite fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t revoke invite'**
+  String get guildSettingsInvitesRevokeFailedTitle;
+
+  /// Error description when revoking an invite fails.
+  ///
+  /// In en, this message translates to:
+  /// **'The link may still work. Try again in a moment.'**
+  String get guildSettingsInvitesRevokeFailedDescription;
 
   /// Invite usage count.
   ///
@@ -14171,6 +14345,12 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Created'**
   String get guildSettingsInvitesTableCreated;
+
+  /// No description provided for @guildSettingsInvitesTableExpires.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires'**
+  String get guildSettingsInvitesTableExpires;
 
   /// No description provided for @guildSettingsMembersSortNewest.
   ///

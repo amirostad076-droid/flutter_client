@@ -8570,7 +8570,7 @@
   "@guildMenuSettingsMembers": {
     "description": "Community settings tab for member management."
   },
-  "guildMenuSettingsInviteLinks": "Invite Links",
+  "guildMenuSettingsInviteLinks": "Invites",
   "@guildMenuSettingsInviteLinks": {
     "description": "Community settings tab for invite links."
   },
@@ -10273,13 +10273,132 @@
       "count": {"type": "int"}
     }
   },
-  "guildSettingsInvitesDescription": "View and revoke active invite links.",
+  "guildSettingsInvitesTitle": "Invites",
+  "@guildSettingsInvitesTitle": {
+    "description": "Title for the invites settings tab."
+  },
+  "guildSettingsInvitesDescription": "View all invites for this community. To create a new invite, go to a channel and use the invite button.",
   "@guildSettingsInvitesDescription": {
     "description": "Description for invites tab."
   },
-  "guildSettingsInvitesEmpty": "No active invites.",
+  "guildSettingsInvitesEmpty": "No invite links",
   "@guildSettingsInvitesEmpty": {
-    "description": "Empty state for invites."
+    "description": "Empty state title for invites."
+  },
+  "guildSettingsInvitesEmptyDescription": "This community doesn't have any invite links yet. Go to a channel and create an invite to invite people.",
+  "@guildSettingsInvitesEmptyDescription": {
+    "description": "Empty state description for invites."
+  },
+  "guildSettingsInvitesLoadFailedTitle": "Failed to load invites",
+  "@guildSettingsInvitesLoadFailedTitle": {
+    "description": "Error title when invites fail to load."
+  },
+  "guildSettingsInvitesLoadFailedDescription": "There was an error loading the invites. Try again.",
+  "@guildSettingsInvitesLoadFailedDescription": {
+    "description": "Error description when invites fail to load."
+  },
+  "guildSettingsInvitesTryAgain": "Try again",
+  "@guildSettingsInvitesTryAgain": {
+    "description": "Retry button on invites load error."
+  },
+  "guildSettingsInvitesShowCreatedDate": "Show creation date instead of expiration date",
+  "@guildSettingsInvitesShowCreatedDate": {
+    "description": "Toggle to show invite creation date instead of expiration."
+  },
+  "guildSettingsInvitesPauseInvites": "Pause invites",
+  "@guildSettingsInvitesPauseInvites": {
+    "description": "Button to pause invite links for a community."
+  },
+  "guildSettingsInvitesEnableInvites": "Enable invites",
+  "@guildSettingsInvitesEnableInvites": {
+    "description": "Button to re-enable invite links for a community."
+  },
+  "guildSettingsInvitesPauseForCommunityTitle": "Pause invites for this community",
+  "@guildSettingsInvitesPauseForCommunityTitle": {
+    "description": "Confirmation title before pausing invites."
+  },
+  "guildSettingsInvitesEnableForCommunityTitle": "Enable invites for this community",
+  "@guildSettingsInvitesEnableForCommunityTitle": {
+    "description": "Confirmation title before enabling invites."
+  },
+  "guildSettingsInvitesPauseConfirmDescription": "Pause invites? New users won't be able to join through invite links until you re-enable them. Existing members won't be affected.",
+  "@guildSettingsInvitesPauseConfirmDescription": {
+    "description": "Confirmation body before pausing invites."
+  },
+  "guildSettingsInvitesEnableConfirmDescription": "Enable invites? Users will be able to join this community through invite links again.",
+  "@guildSettingsInvitesEnableConfirmDescription": {
+    "description": "Confirmation body before enabling invites."
+  },
+  "guildSettingsInvitesPause": "Pause",
+  "@guildSettingsInvitesPause": {
+    "description": "Confirm button to pause invites."
+  },
+  "guildSettingsInvitesPausedForCommunity": "Invites are paused for this community.",
+  "@guildSettingsInvitesPausedForCommunity": {
+    "description": "Status message when invites are manually paused."
+  },
+  "guildSettingsInvitesPausedBecauseRaid": "Invites are paused because {productName} detected a potential raid. New users can't join right now.",
+  "@guildSettingsInvitesPausedBecauseRaid": {
+    "description": "Status message when invites are paused due to raid detection.",
+    "placeholders": {
+      "productName": {"type": "String"}
+    }
+  },
+  "guildSettingsInvitesLabelInviter": "Inviter:",
+  "@guildSettingsInvitesLabelInviter": {
+    "description": "Mobile invite row label for inviter."
+  },
+  "guildSettingsInvitesLabelChannel": "Channel:",
+  "@guildSettingsInvitesLabelChannel": {
+    "description": "Mobile invite row label for channel."
+  },
+  "guildSettingsInvitesLabelCode": "Code:",
+  "@guildSettingsInvitesLabelCode": {
+    "description": "Mobile invite row label for invite code."
+  },
+  "guildSettingsInvitesLabelUses": "Uses:",
+  "@guildSettingsInvitesLabelUses": {
+    "description": "Mobile invite row label for uses count."
+  },
+  "guildSettingsInvitesLabelCreated": "Created:",
+  "@guildSettingsInvitesLabelCreated": {
+    "description": "Mobile invite row label for created date."
+  },
+  "guildSettingsInvitesLabelExpires": "Expires:",
+  "@guildSettingsInvitesLabelExpires": {
+    "description": "Mobile invite row label for expiration date."
+  },
+  "guildSettingsInvitesUnknown": "Unknown",
+  "@guildSettingsInvitesUnknown": {
+    "description": "Fallback when invite inviter is unknown."
+  },
+  "guildSettingsInvitesNoCategory": "No category",
+  "@guildSettingsInvitesNoCategory": {
+    "description": "Fallback when invite channel has no parent category."
+  },
+  "guildSettingsInvitesExpired": "Expired",
+  "@guildSettingsInvitesExpired": {
+    "description": "Label when an invite has expired."
+  },
+  "guildSettingsInvitesNever": "Never",
+  "@guildSettingsInvitesNever": {
+    "description": "Label when an invite does not expire."
+  },
+  "guildSettingsInvitesCopyLink": "Copy invite link",
+  "@guildSettingsInvitesCopyLink": {
+    "description": "Action to copy an invite link."
+  },
+  "guildSettingsInvitesRevoke": "Revoke invite",
+  "@guildSettingsInvitesRevoke": {
+    "description": "Action to revoke an invite link."
+  },
+  "guildSettingsInvitesRevokeFailedTitle": "Couldn't revoke invite",
+  "@guildSettingsInvitesRevokeFailedTitle": {
+    "description": "Error title when revoking an invite fails."
+  },
+  "guildSettingsInvitesRevokeFailedDescription": "The link may still work. Try again in a moment.",
+  "@guildSettingsInvitesRevokeFailedDescription": {
+    "description": "Error description when revoking an invite fails."
   },
   "guildSettingsInviteUses": "{uses} / {maxUses} uses",
   "@guildSettingsInviteUses": {
@@ -10666,6 +10785,7 @@
   "guildSettingsInvitesTableCode": "Code",
   "guildSettingsInvitesTableUses": "Uses",
   "guildSettingsInvitesTableCreated": "Created",
+  "guildSettingsInvitesTableExpires": "Expires",
   "guildSettingsMembersSortNewest": "Newest first",
   "guildSettingsAuditLogFilterUser": "Filter by user",
   "@guildSettingsAuditLogFilterUser": {

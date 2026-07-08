@@ -17,12 +17,12 @@ void main() {
     });
 
     test('preserves ZWJ in sequences', () {
-      final String emoji = '\u{1F468}\u200D\u{1F469}\u200D\u{1F467}';
+      const String emoji = '\u{1F468}\u200D\u{1F469}\u200D\u{1F467}';
       expect(emojiToCodePoints(emoji).contains('200d'), isTrue);
     });
 
     test('keeps variation selectors for ZWJ flag sequences', () {
-      final String emoji = '\u{1F3F3}\uFE0F\u200D\u26A7\uFE0F';
+      const String emoji = '\u{1F3F3}\uFE0F\u200D\u26A7\uFE0F';
       expect(emojiToCodePoints(emoji), '1f3f3-fe0f-200d-26a7-fe0f');
     });
 
