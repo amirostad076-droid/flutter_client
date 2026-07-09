@@ -7,7 +7,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/shared/widgets/unicode_emoji_widget.dart';
 
 class _StatusCodeHttpOverrides extends HttpOverrides {
-  _StatusCodeHttpOverrides({required this.statusCode, this.body = const <int>[]});
+  _StatusCodeHttpOverrides({
+    required this.statusCode,
+    this.body = const <int>[],
+  });
 
   final int statusCode;
   final List<int> body;

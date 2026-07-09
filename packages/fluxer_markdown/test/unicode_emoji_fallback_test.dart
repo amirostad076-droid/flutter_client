@@ -9,7 +9,10 @@ import 'package:fluxer_markdown/src/syntaxes/fluxer_markdown_syntaxes.dart';
 import 'package:markdown/markdown.dart' as md;
 
 class _StatusCodeHttpOverrides extends HttpOverrides {
-  _StatusCodeHttpOverrides({required this.statusCode, this.body = const <int>[]});
+  _StatusCodeHttpOverrides({
+    required this.statusCode,
+    this.body = const <int>[],
+  });
 
   final int statusCode;
   final List<int> body;
