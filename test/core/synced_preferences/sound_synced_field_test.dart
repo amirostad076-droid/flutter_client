@@ -12,8 +12,7 @@ void main() {
         masterVolume: 80,
         disabledSounds: {'message': true},
       );
-      final wireBase = pickers.SoundSettings()
-        ..soundOverrides['message'] = 0.5;
+      final wireBase = pickers.SoundSettings()..soundOverrides['message'] = 0.5;
       final pushed = SoundSyncedField.toProtoForPush(
         local: local,
         wireBase: wireBase,

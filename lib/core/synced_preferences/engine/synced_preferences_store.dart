@@ -553,8 +553,11 @@ class SyncedPreferencesStore {
     return SyncedPreferencesWireCodec.encodeFieldIntoWire(
       currentWire: currentWire,
       fieldNumber: adapter.fieldNumber,
-      fieldMessageBytes: _buildProtoForPush(adapter, local, wire: wire)
-          .writeToBuffer(),
+      fieldMessageBytes: _buildProtoForPush(
+        adapter,
+        local,
+        wire: wire,
+      ).writeToBuffer(),
     );
   }
 
@@ -564,10 +567,7 @@ class SyncedPreferencesStore {
     required pb.SyncedPreferences wire,
   }) {
     final wireSubMessage = adapter.readWireSubMessage(wire);
-    return adapter.toProtoMessageForPush(
-      local,
-      wireSubMessage: wireSubMessage,
-    );
+    return adapter.toProtoMessageForPush(local, wireSubMessage: wireSubMessage);
   }
 
   pb.SyncedPreferences _applyAdapterToProto(
@@ -580,8 +580,11 @@ class SyncedPreferencesStore {
       SyncedPreferencesWireCodec.encodeFieldIntoWire(
         currentWire: null,
         fieldNumber: adapter.fieldNumber,
-        fieldMessageBytes: _buildProtoForPush(adapter, local, wire: wire)
-            .writeToBuffer(),
+        fieldMessageBytes: _buildProtoForPush(
+          adapter,
+          local,
+          wire: wire,
+        ).writeToBuffer(),
       ),
     );
     return SyncedPreferencesEngine.copyField(

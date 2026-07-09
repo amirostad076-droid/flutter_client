@@ -437,28 +437,25 @@ void main() {
       expect(synced.accessibility.autoSendKlipyGifs, isTrue);
     });
 
-    test(
-      'first hydrate with desktop-only diff does not auto-push',
-      () async {
-        final store = container.read(syncedPreferencesStoreProvider);
-        await store.hydrateFromUserSettings(
-          _testUserSettings(
-            syncedPreferences: _settingsWithAccessibility(
-              accessibility_pb.AccessibilitySettings(
-                showMessageSendButton: true,
-                hideKeyboardHints: true,
-              ),
+    test('first hydrate with desktop-only diff does not auto-push', () async {
+      final store = container.read(syncedPreferencesStoreProvider);
+      await store.hydrateFromUserSettings(
+        _testUserSettings(
+          syncedPreferences: _settingsWithAccessibility(
+            accessibility_pb.AccessibilitySettings(
+              showMessageSendButton: true,
+              hideKeyboardHints: true,
             ),
           ),
-        );
-        await _waitForDebounce();
+        ),
+      );
+      await _waitForDebounce();
 
-        expect(usersApi.pushCount, 0);
-        expect(
-          container.read(appearancePreferencesProvider).hideKeyboardHints,
-          isTrue,
-        );
-      },
-    );
+      expect(usersApi.pushCount, 0);
+      expect(
+        container.read(appearancePreferencesProvider).hideKeyboardHints,
+        isTrue,
+      );
+    });
   });
 }
