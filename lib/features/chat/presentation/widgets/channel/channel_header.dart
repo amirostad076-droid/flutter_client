@@ -17,6 +17,7 @@ import 'package:fluxer_app/features/chat/presentation/sheets/channel_details_she
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/chat_back_button.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_back_button_unread_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
+import 'package:fluxer_app/features/chat/utils/inline_expression_panel_layout.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/presentation/create_dm_flow.dart';
@@ -145,7 +146,7 @@ class ChannelHeader extends ConsumerWidget {
       chatBackButtonUnreadCountProvider(channelId),
     );
     return Container(
-      height: 64,
+      height: kMobileChannelHeaderHeight,
       color: context.colors.chatInputBackground,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
