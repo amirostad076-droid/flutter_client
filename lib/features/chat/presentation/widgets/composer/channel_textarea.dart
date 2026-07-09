@@ -59,6 +59,7 @@ import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart'
 import 'package:fluxer_app/features/guilds/services/guild_verification.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_confirm_sheet.dart';
+import 'package:fluxer_app/features/ui/input/inline_token_paste_formatter.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
@@ -200,6 +201,18 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       unawaited(_pasteScopeKey.currentState?.handlePaste());
       return KeyEventResult.handled;
     }
+    if (event.logicalKey == LogicalKeyboardKey.keyC &&
+        (HardwareKeyboard.instance.isMetaPressed ||
+            HardwareKeyboard.instance.isControlPressed)) {
+      unawaited(_pasteScopeKey.currentState?.handleCopy());
+      return KeyEventResult.handled;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.keyX &&
+        (HardwareKeyboard.instance.isMetaPressed ||
+            HardwareKeyboard.instance.isControlPressed)) {
+      unawaited(_pasteScopeKey.currentState?.handleCut());
+      return KeyEventResult.handled;
+    }
     if (!_isDesktop) {
       return KeyEventResult.ignored;
     }
@@ -282,6 +295,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     required String channelId,
   }) {
     return <TextInputFormatter>[
+      ComposerMentionPasteFormatter(controller: _controller),
       ComposerMessageLengthPasteFormatter(
         controller: _controller,
         maxLength: maxMessageLength,
