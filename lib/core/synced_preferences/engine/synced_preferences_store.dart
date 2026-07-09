@@ -23,6 +23,7 @@ import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/custom_theme_css.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_dart/export.dart';
+import 'package:protobuf/protobuf.dart' as $pb;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'synced_preferences_store.g.dart';
@@ -163,6 +164,9 @@ class SyncedPreferencesStore {
       wasFirstHydrate: wasFirstHydrate,
       protectedFields: protectedFields,
     );
+    if (encoded.isNotEmpty && decodeStatus == _DecodeStatus.success) {
+      _clearStaleDirtyForAbsentServerFields(incoming: incoming);
+    }
     await _applyMergedAccessibilityTheme(
       themeCustomizationApplier: themeCustomizationApplier,
     );
@@ -217,7 +221,7 @@ class SyncedPreferencesStore {
             await _applyAdapterRemote(adapter, remote);
           }
           _dirtyFields.remove(field);
-        } else if (hasLocal && (wasFirstHydrate || encodedIsEmpty())) {
+        } else if (hasLocal && encodedIsEmpty()) {
           _dirtyFields.add(field);
           scheduleFlush();
         }
@@ -261,7 +265,7 @@ class SyncedPreferencesStore {
         continue;
       }
       if (hasLocal && !hasRemote) {
-        if (wasFirstHydrate || encodedIsEmpty()) {
+        if (encodedIsEmpty()) {
           _dirtyFields.add(field);
           scheduleFlush();
         }
@@ -275,6 +279,24 @@ class SyncedPreferencesStore {
   }
 
   bool encodedIsEmpty() => _wireBlob.isEmpty;
+
+  void _clearStaleDirtyForAbsentServerFields({
+    required pb.SyncedPreferences incoming,
+  }) {
+    for (final field in List<SyncedPreferenceField>.from(_dirtyFields)) {
+      if (_inFlightFields.contains(field)) {
+        continue;
+      }
+      final adapter = _adapters[field];
+      if (adapter == null) {
+        continue;
+      }
+      if (adapter.readFromProto(incoming) != null) {
+        continue;
+      }
+      _dirtyFields.remove(field);
+    }
+  }
 
   String? readWireCustomThemeCss() {
     if (_wireBlob.isEmpty) {
@@ -378,9 +400,9 @@ class SyncedPreferencesStore {
         _pendingPush = false;
         return;
       }
-      final fieldsInRequest = _dirtyFields.isEmpty
-          ? changedFields
-          : changedFields.where(_dirtyFields.contains).toList();
+      final fieldsInRequest = changedFields
+          .where(_dirtyFields.contains)
+          .toList();
       if (fieldsInRequest.isEmpty) {
         _pendingPush = false;
         return;
@@ -481,32 +503,38 @@ class SyncedPreferencesStore {
   }
 
   Future<pb.SyncedPreferences> _buildLocalSnapshot() async {
-    var snapshot = _wireBlob.isEmpty
+    final wire = _wireBlob.isEmpty
         ? SyncedPreferencesEngine.createEmpty()
         : SyncedPreferencesEngine.decodeLenient(_wireBlob);
+    var snapshot = wire;
     for (final entry in _adapters.entries) {
       if (!_ref.mounted) {
         return snapshot;
       }
       final adapter = entry.value;
-      final Object? local = await _readLocalForPush(adapter);
-      snapshot = _applyAdapterToProto(snapshot, adapter, local);
+      final Object? local = await adapter.readLocalValue();
+      snapshot = _applyAdapterToProto(snapshot, adapter, local, wire: wire);
     }
     _local = snapshot;
     return snapshot;
   }
 
   Future<String> _encodeLocalSnapshot(pb.SyncedPreferences snapshot) async {
+    final wire = _wireBlob.isEmpty
+        ? SyncedPreferencesEngine.createEmpty()
+        : SyncedPreferencesEngine.decodeLenient(_wireBlob);
     final fieldMessages = <int, Uint8List>{};
     for (final entry in _adapters.entries) {
       if (!_ref.mounted) {
         return '';
       }
       final adapter = entry.value;
-      final Object? local = await _readLocalForPush(adapter);
-      fieldMessages[adapter.fieldNumber] = adapter
-          .toProtoMessage(local)
-          .writeToBuffer();
+      final Object? local = await adapter.readLocalValue();
+      fieldMessages[adapter.fieldNumber] = _buildProtoForPush(
+        adapter,
+        local,
+        wire: wire,
+      ).writeToBuffer();
     }
     return SyncedPreferencesWireCodec.encodeSnapshotIntoWire(
       currentWire: _wireBlob.isEmpty ? null : _wireBlob,
@@ -519,35 +547,41 @@ class SyncedPreferencesStore {
     Object? local, {
     required String? currentWire,
   }) {
+    final wire = currentWire == null || currentWire.isEmpty
+        ? SyncedPreferencesEngine.createEmpty()
+        : SyncedPreferencesEngine.decodeLenient(currentWire);
     return SyncedPreferencesWireCodec.encodeFieldIntoWire(
       currentWire: currentWire,
       fieldNumber: adapter.fieldNumber,
-      fieldMessageBytes: adapter.toProtoMessage(local).writeToBuffer(),
+      fieldMessageBytes: _buildProtoForPush(adapter, local, wire: wire)
+          .writeToBuffer(),
     );
   }
 
-  Future<Object?> _readLocalForPush(SyncedFieldAdapter<Object?> adapter) async {
-    final Object? local = await adapter.readLocalValue();
-    if (adapter is! AccessibilitySyncedField ||
-        local is! AccessibilityLocalState) {
-      return local;
-    }
-    return AccessibilitySyncedField.preserveWireThemeForPush(
-      local: local,
-      wireCustomThemeCss: readWireCustomThemeCss(),
+  $pb.GeneratedMessage _buildProtoForPush(
+    SyncedFieldAdapter<Object?> adapter,
+    Object? local, {
+    required pb.SyncedPreferences wire,
+  }) {
+    final wireSubMessage = adapter.readWireSubMessage(wire);
+    return adapter.toProtoMessageForPush(
+      local,
+      wireSubMessage: wireSubMessage,
     );
   }
 
   pb.SyncedPreferences _applyAdapterToProto(
     pb.SyncedPreferences target,
     SyncedFieldAdapter<Object?> adapter,
-    Object? local,
-  ) {
+    Object? local, {
+    required pb.SyncedPreferences wire,
+  }) {
     final fieldOnly = SyncedPreferencesEngine.decode(
       SyncedPreferencesWireCodec.encodeFieldIntoWire(
         currentWire: null,
         fieldNumber: adapter.fieldNumber,
-        fieldMessageBytes: adapter.toProtoMessage(local).writeToBuffer(),
+        fieldMessageBytes: _buildProtoForPush(adapter, local, wire: wire)
+            .writeToBuffer(),
       ),
     );
     return SyncedPreferencesEngine.copyField(
@@ -565,7 +599,10 @@ class SyncedPreferencesStore {
     try {
       await adapter.applyRemote(value);
       final local = await adapter.readLocalValue();
-      _local = _applyAdapterToProto(_local, adapter, local);
+      final wire = _wireBlob.isEmpty
+          ? SyncedPreferencesEngine.createEmpty()
+          : SyncedPreferencesEngine.decodeLenient(_wireBlob);
+      _local = _applyAdapterToProto(_local, adapter, local, wire: wire);
     } finally {
       _isApplyingRemote = false;
       _flushPendingPush();
