@@ -39,6 +39,7 @@ void main() {
       expect(find.textContaining('Header', findRichText: true), findsOneWidget);
       expect(find.textContaining('Value', findRichText: true), findsOneWidget);
       expect(find.textContaining('A', findRichText: true), findsOneWidget);
+      expect(find.byType(Table), findsOneWidget);
     });
 
     testWidgets('embed context does not render table structure', (
@@ -62,6 +63,7 @@ void main() {
         find.textContaining('| not | table |', findRichText: true),
         findsOneWidget,
       );
+      expect(find.byType(Table), findsNothing);
     });
   });
 }

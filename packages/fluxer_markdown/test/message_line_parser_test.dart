@@ -163,6 +163,63 @@ void main() {
         expect((segments[1] as MessageTextFlowSegment).text, 'after');
       },
     );
+
+    test('routes table-only message to block markdown segment', () {
+      const String input = '''
+| Header | Value |
+| --- | --- |
+| A | 1 |''';
+      final List<MessageContentSegment> segments = parseMessageContentStructure(
+        input,
+        features,
+      );
+      expect(segments, hasLength(1));
+      expect(segments.first, isA<MessageBlockMarkdownSegment>());
+      expect((segments.first as MessageBlockMarkdownSegment).text, input);
+    });
+
+    test('splits text before a table into text flow and block segments', () {
+      const String input = '''
+before
+
+| Header | Value |
+| --- | --- |
+| A | 1 |''';
+      final List<MessageContentSegment> segments = parseMessageContentStructure(
+        input,
+        features,
+      );
+      expect(segments, hasLength(2));
+      expect(segments[0], isA<MessageTextFlowSegment>());
+      expect((segments[0] as MessageTextFlowSegment).text, 'before\n\n');
+      expect(segments[1], isA<MessageBlockMarkdownSegment>());
+      expect((segments[1] as MessageBlockMarkdownSegment).text, '''
+| Header | Value |
+| --- | --- |
+| A | 1 |''');
+    });
+
+    test('keeps single-line pipe text in text flow when not a table', () {
+      const String input = '| not | table |';
+      final List<MessageContentSegment> segments = parseMessageContentStructure(
+        input,
+        features,
+      );
+      expect(segments, hasLength(1));
+      expect(segments.first, isA<MessageTextFlowSegment>());
+      expect((segments.first as MessageTextFlowSegment).text, input);
+    });
+
+    test('keeps inline pipe text in text flow when separator is missing', () {
+      const String input = 'column one | column two';
+      final List<MessageContentSegment> segments = parseMessageContentStructure(
+        input,
+        features,
+      );
+      expect(segments, hasLength(1));
+      expect(segments.first, isA<MessageTextFlowSegment>());
+      expect((segments.first as MessageTextFlowSegment).text, input);
+    });
   });
 
   group('normalizeBlockquoteBarMarkdown', () {
