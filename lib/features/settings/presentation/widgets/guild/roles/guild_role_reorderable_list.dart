@@ -137,10 +137,7 @@ class GuildRoleReorderableList extends ConsumerWidget {
           ),
         );
         if (useDragHandle) {
-          return KeyedSubtree(
-            key: ValueKey<String>(role.id),
-            child: item,
-          );
+          return KeyedSubtree(key: ValueKey<String>(role.id), child: item);
         }
         return ReorderableDragStartListener(
           key: ValueKey<String>(role.id),
