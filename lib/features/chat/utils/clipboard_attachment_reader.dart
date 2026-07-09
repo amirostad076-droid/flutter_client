@@ -113,29 +113,6 @@ Future<List<XFile>> readClipboardAttachmentFiles() async {
   return result;
 }
 
-Future<bool> clipboardHasPasteableAttachments() async {
-  final SystemClipboard? clipboard = SystemClipboard.instance;
-  if (clipboard == null) {
-    return false;
-  }
-  final ClipboardReader reader = await clipboard.read();
-  for (final ClipboardDataReader item in reader.items) {
-    final List<DataFormat<Object>> available = item.getFormats(
-      _clipboardFileFormats,
-    );
-    for (final DataFormat<Object> format in available) {
-      if (format is! FileFormat) {
-        continue;
-      }
-      if (shouldSkipClipboardFileFormat(item, format)) {
-        continue;
-      }
-      return true;
-    }
-  }
-  return false;
-}
-
 String resolveClipboardFilename({
   required FileFormat format,
   String? fileName,
