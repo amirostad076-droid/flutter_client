@@ -183,9 +183,8 @@ _InlineLineGroup _parseInlineLineGroup(
   if (startIndex + consumed < lines.length) {
     final nextLine = lines[startIndex + consumed];
     final trimmedNext = nextLine.trimLeft();
-    final nextIsHeading = _isHeadingStart(trimmedNext, features);
-    final nextIsBlockquote = _isBlockquoteStart(trimmedNext, features);
-    if (nextLine.trim().isEmpty || (!nextIsHeading && !nextIsBlockquote)) {
+    final nextIsBlockStart = _isBlockStart(trimmedNext, features);
+    if (nextLine.trim().isEmpty || !nextIsBlockStart) {
       buffer.write('\n');
     }
   }
