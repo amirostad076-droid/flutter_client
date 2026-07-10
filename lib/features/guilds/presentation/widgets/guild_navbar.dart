@@ -4207,7 +4207,8 @@ class _DashedGuildIconState extends State<_DashedGuildIcon>
                         width: 44,
                         height: 44,
                         child: CustomPaint(
-                          painter: _DashedBorderPainter(
+                          painter: DashedBorderPainter(
+                            shape: DashedBorderShape.roundedRectangle,
                             borderRadius: widget.isSelected
                                 ? 13
                                 : _radiusAnim.value,
@@ -4233,56 +4234,6 @@ class _DashedGuildIconState extends State<_DashedGuildIcon>
       ],
     ),
   );
-}
-
-class _DashedBorderPainter extends CustomPainter {
-  final double borderRadius;
-  final Color color;
-  final bool isSolid;
-
-  _DashedBorderPainter({
-    required this.borderRadius,
-    required this.color,
-    this.isSolid = false,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-
-    final rrect = RRect.fromRectAndRadius(
-      Offset.zero & size,
-      Radius.circular(borderRadius),
-    );
-    final path = Path()..addRRect(rrect);
-
-    if (isSolid) {
-      canvas.drawPath(path, paint);
-      return;
-    }
-
-    const dashLength = 6.0;
-    const gapLength = 4.0;
-
-    final metrics = path.computeMetrics();
-    for (final metric in metrics) {
-      var distance = 0.0;
-      while (distance < metric.length) {
-        final end = (distance + dashLength).clamp(0.0, metric.length);
-        canvas.drawPath(metric.extractPath(distance, end), paint);
-        distance += dashLength + gapLength;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DashedBorderPainter oldDelegate) =>
-      oldDelegate.borderRadius != borderRadius ||
-      oldDelegate.color != color ||
-      oldDelegate.isSolid != isSolid;
 }
 
 class _RightTooltip extends StatefulWidget {

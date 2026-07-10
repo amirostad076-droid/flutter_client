@@ -1034,7 +1034,7 @@
   "@dmAddNote": {
     "description": "DM context menu action to add a note about the user."
   },
-  "dmEditGroup": "Edit Group",
+  "dmEditGroup": "Edit group",
   "@dmEditGroup": {
     "description": "DM context menu action to edit a group DM."
   },
@@ -6836,11 +6836,11 @@
   "@channelDetailsCopyLink": {
     "description": "Channel details menu action to copy a channel link."
   },
-  "channelDetailsAddFriendsToGroup": "Add Friends to Group",
+  "channelDetailsAddFriendsToGroup": "Add friends to group",
   "@channelDetailsAddFriendsToGroup": {
     "description": "Group DM menu action to add friends to the group."
   },
-  "channelDetailsGroupInvites": "Group Invites",
+  "channelDetailsGroupInvites": "Group invites",
   "@channelDetailsGroupInvites": {
     "description": "Group DM menu action to view group invites."
   },
@@ -7298,6 +7298,181 @@
   "groupDmWelcomeAddFriends": "Add friends to group",
   "@groupDmWelcomeAddFriends": {
     "description": "Primary action on the group DM welcome hero."
+  },
+  "dmGroupInvites": "Invites",
+  "@dmGroupInvites": {
+    "description": "Menu label for managing group DM invites."
+  },
+  "groupDmEditTitle": "Edit group",
+  "@groupDmEditTitle": {
+    "description": "Title for the edit group DM modal or sheet."
+  },
+  "groupDmEditDetailsTooltip": "Edit group details",
+  "@groupDmEditDetailsTooltip": {
+    "description": "Tooltip on the desktop group DM header edit action."
+  },
+  "groupDmGroupName": "Group name",
+  "@groupDmGroupName": {
+    "description": "Label for the group name field in edit group."
+  },
+  "groupDmMyGroup": "My group",
+  "@groupDmMyGroup": {
+    "description": "Placeholder for the group name field in edit group."
+  },
+  "groupDmGroupNameMaxLength": "Group name must not exceed 100 characters",
+  "@groupDmGroupNameMaxLength": {
+    "description": "Validation error when group name is too long."
+  },
+  "groupDmGroupIcon": "Group icon",
+  "@groupDmGroupIcon": {
+    "description": "Label for the group icon section in edit group."
+  },
+  "groupDmUploadIcon": "Upload icon",
+  "@groupDmUploadIcon": {
+    "description": "Button to upload a group icon."
+  },
+  "groupDmChangeIcon": "Change icon",
+  "@groupDmChangeIcon": {
+    "description": "Button to change an existing group icon."
+  },
+  "groupDmRemoveIcon": "Remove icon",
+  "@groupDmRemoveIcon": {
+    "description": "Button to remove the group icon."
+  },
+  "groupDmUpdated": "Group updated",
+  "@groupDmUpdated": {
+    "description": "Success toast after saving group changes."
+  },
+  "groupDmUpdateFailed": "Couldn't update group. Try again.",
+  "@groupDmUpdateFailed": {
+    "description": "Error toast when group update fails."
+  },
+  "groupDmAnimatedIconNotSupported": "Animated icons are not supported. Use a static image.",
+  "@groupDmAnimatedIconNotSupported": {
+    "description": "Error when user selects an animated group icon."
+  },
+  "groupDmAnimatedIconNotSupportedTitle": "Animated icons are not supported",
+  "@groupDmAnimatedIconNotSupportedTitle": {
+    "description": "Title when user selects an animated group icon."
+  },
+  "groupDmIconFileTooLargeTitle": "Icon file is too large",
+  "@groupDmIconFileTooLargeTitle": {
+    "description": "Title when the selected group icon exceeds the size limit."
+  },
+  "groupDmIconFileTooLargeBody": "Icon file is too large. Choose a file smaller than {maxSize}.",
+  "@groupDmIconFileTooLargeBody": {
+    "description": "Body when the selected group icon exceeds the size limit.",
+    "placeholders": {
+      "maxSize": {"type": "String"}
+    }
+  },
+  "groupDmUnsupportedIconFormat": "Unsupported icon format",
+  "@groupDmUnsupportedIconFormat": {
+    "description": "Title when the selected group icon format is unsupported."
+  },
+  "groupDmUnsupportedIconFormatBody": "Unsupported file type.",
+  "@groupDmUnsupportedIconFormatBody": {
+    "description": "Body when the selected group icon format is unsupported."
+  },
+  "groupDmCouldntProcessImage": "Couldn't process image",
+  "@groupDmCouldntProcessImage": {
+    "description": "Title when a cropped group icon cannot be processed."
+  },
+  "groupDmFailedToProcessCroppedImage": "Failed to process the cropped image. Try again.",
+  "@groupDmFailedToProcessCroppedImage": {
+    "description": "Body when a cropped group icon cannot be processed."
+  },
+  "groupDmInvalidImage": "Invalid image",
+  "@groupDmInvalidImage": {
+    "description": "Title when the selected group icon image cannot be used."
+  },
+  "groupDmInvalidImageBody": "That image is invalid. Try another one.",
+  "@groupDmInvalidImageBody": {
+    "description": "Body when the selected group icon image cannot be used."
+  },
+  "groupDmAddFriends": "Add",
+  "@groupDmAddFriends": {
+    "description": "Button to add selected friends to a group DM."
+  },
+  "groupDmOrSendInvite": "or send an invite to a friend:",
+  "@groupDmOrSendInvite": {
+    "description": "Label above the invite link field in add friends to group."
+  },
+  "groupDmGenerateInviteLink": "Generate invite link",
+  "@groupDmGenerateInviteLink": {
+    "description": "Placeholder for the invite link field before generation."
+  },
+  "groupDmCreateInvite": "Create",
+  "@groupDmCreateInvite": {
+    "description": "Button to create a group DM invite link."
+  },
+  "groupDmInviteExpires24Hours": "Your invite expires in 24 hours",
+  "@groupDmInviteExpires24Hours": {
+    "description": "Note below the invite link field in add friends to group."
+  },
+  "groupDmAddFriendFailed": "Couldn't add this friend to the group. Please try again.",
+  "@groupDmAddFriendFailed": {
+    "description": "Error when adding a single friend to a group DM fails."
+  },
+  "groupDmAddFailed": "Couldn't add to group",
+  "@groupDmAddFailed": {
+    "description": "Title when adding friends to a group DM fails."
+  },
+  "groupDmGroupFull": "This group is full. Remove someone before adding more people.",
+  "@groupDmGroupFull": {
+    "description": "Error when the group DM has no remaining member slots."
+  },
+  "groupDmRateLimited": "You're going too fast. Wait a moment and try again.",
+  "@groupDmRateLimited": {
+    "description": "Error when add-friends requests are rate limited."
+  },
+  "groupDmCreateInviteFailed": "Couldn't create invite link",
+  "@groupDmCreateInviteFailed": {
+    "description": "Title when invite link generation fails."
+  },
+  "groupDmCreateInviteFailedBody": "Couldn't generate an invite link. Please try again.",
+  "@groupDmCreateInviteFailedBody": {
+    "description": "Body when invite link generation fails."
+  },
+  "groupDmCopyInviteFailed": "Failed to copy invite link",
+  "@groupDmCopyInviteFailed": {
+    "description": "Error when copying a group DM invite link fails."
+  },
+  "groupDmInvitesOwnerOnly": "Only the group owner can manage invites.",
+  "@groupDmInvitesOwnerOnly": {
+    "description": "Shown when a non-owner opens group invites management."
+  },
+  "groupDmNoInvitesCreated": "No invites created",
+  "@groupDmNoInvitesCreated": {
+    "description": "Empty state for group DM invites list."
+  },
+  "groupDmLoadingInvites": "Loading invites...",
+  "@groupDmLoadingInvites": {
+    "description": "Loading state for group DM invites list."
+  },
+  "groupDmInvitesLoadFailed": "Failed to load invites. Try again.",
+  "@groupDmInvitesLoadFailed": {
+    "description": "Inline error when group DM invites fail to load."
+  },
+  "groupDmInvitesRevokeConfirm": "Revoke this invite? Can't be undone.",
+  "@groupDmInvitesRevokeConfirm": {
+    "description": "Confirmation body when revoking a group DM invite."
+  },
+  "groupDmInviteRevoked": "Invite revoked",
+  "@groupDmInviteRevoked": {
+    "description": "Success toast after revoking a group DM invite."
+  },
+  "groupDmInviteCreatedByExpires": "Created by {name}. Expires in {time}.",
+  "@groupDmInviteCreatedByExpires": {
+    "description": "Mobile group invite row subtitle.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
   },
   "channelWelcomeHeading": "Welcome to {channelName}",
   "@channelWelcomeHeading": {

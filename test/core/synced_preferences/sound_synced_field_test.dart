@@ -8,7 +8,6 @@ void main() {
   group('SoundSyncedField', () {
     test('toProtoForPush preserves sound_overrides from wire', () {
       const local = SoundPreferencesState(
-        allSoundsDisabled: false,
         masterVolume: 80,
         disabledSounds: {'message': true},
       );

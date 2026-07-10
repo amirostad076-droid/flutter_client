@@ -5173,10 +5173,10 @@ class FluxerLocalizationsJa extends FluxerLocalizations {
   String get channelDetailsCopyLink => 'Copy Link';
 
   @override
-  String get channelDetailsAddFriendsToGroup => 'Add Friends to Group';
+  String get channelDetailsAddFriendsToGroup => 'Add friends to group';
 
   @override
-  String get channelDetailsGroupInvites => 'Group Invites';
+  String get channelDetailsGroupInvites => 'Group invites';
 
   @override
   String get channelDetailsEditChannel => 'Edit Channel';
@@ -5551,6 +5551,144 @@ class FluxerLocalizationsJa extends FluxerLocalizations {
 
   @override
   String get groupDmWelcomeAddFriends => 'Add friends to group';
+
+  @override
+  String get dmGroupInvites => 'Invites';
+
+  @override
+  String get groupDmEditTitle => 'Edit group';
+
+  @override
+  String get groupDmEditDetailsTooltip => 'Edit group details';
+
+  @override
+  String get groupDmGroupName => 'Group name';
+
+  @override
+  String get groupDmMyGroup => 'My group';
+
+  @override
+  String get groupDmGroupNameMaxLength =>
+      'Group name must not exceed 100 characters';
+
+  @override
+  String get groupDmGroupIcon => 'Group icon';
+
+  @override
+  String get groupDmUploadIcon => 'Upload icon';
+
+  @override
+  String get groupDmChangeIcon => 'Change icon';
+
+  @override
+  String get groupDmRemoveIcon => 'Remove icon';
+
+  @override
+  String get groupDmUpdated => 'Group updated';
+
+  @override
+  String get groupDmUpdateFailed => 'Couldn\'t update group. Try again.';
+
+  @override
+  String get groupDmAnimatedIconNotSupported =>
+      'Animated icons are not supported. Use a static image.';
+
+  @override
+  String get groupDmAnimatedIconNotSupportedTitle =>
+      'Animated icons are not supported';
+
+  @override
+  String get groupDmIconFileTooLargeTitle => 'Icon file is too large';
+
+  @override
+  String groupDmIconFileTooLargeBody(String maxSize) {
+    return 'Icon file is too large. Choose a file smaller than $maxSize.';
+  }
+
+  @override
+  String get groupDmUnsupportedIconFormat => 'Unsupported icon format';
+
+  @override
+  String get groupDmUnsupportedIconFormatBody => 'Unsupported file type.';
+
+  @override
+  String get groupDmCouldntProcessImage => 'Couldn\'t process image';
+
+  @override
+  String get groupDmFailedToProcessCroppedImage =>
+      'Failed to process the cropped image. Try again.';
+
+  @override
+  String get groupDmInvalidImage => 'Invalid image';
+
+  @override
+  String get groupDmInvalidImageBody =>
+      'That image is invalid. Try another one.';
+
+  @override
+  String get groupDmAddFriends => 'Add';
+
+  @override
+  String get groupDmOrSendInvite => 'or send an invite to a friend:';
+
+  @override
+  String get groupDmGenerateInviteLink => 'Generate invite link';
+
+  @override
+  String get groupDmCreateInvite => 'Create';
+
+  @override
+  String get groupDmInviteExpires24Hours => 'Your invite expires in 24 hours';
+
+  @override
+  String get groupDmAddFriendFailed =>
+      'Couldn\'t add this friend to the group. Please try again.';
+
+  @override
+  String get groupDmAddFailed => 'Couldn\'t add to group';
+
+  @override
+  String get groupDmGroupFull =>
+      'This group is full. Remove someone before adding more people.';
+
+  @override
+  String get groupDmRateLimited =>
+      'You\'re going too fast. Wait a moment and try again.';
+
+  @override
+  String get groupDmCreateInviteFailed => 'Couldn\'t create invite link';
+
+  @override
+  String get groupDmCreateInviteFailedBody =>
+      'Couldn\'t generate an invite link. Please try again.';
+
+  @override
+  String get groupDmCopyInviteFailed => 'Failed to copy invite link';
+
+  @override
+  String get groupDmInvitesOwnerOnly =>
+      'Only the group owner can manage invites.';
+
+  @override
+  String get groupDmNoInvitesCreated => 'No invites created';
+
+  @override
+  String get groupDmLoadingInvites => 'Loading invites...';
+
+  @override
+  String get groupDmInvitesLoadFailed => 'Failed to load invites. Try again.';
+
+  @override
+  String get groupDmInvitesRevokeConfirm =>
+      'Revoke this invite? Can\'t be undone.';
+
+  @override
+  String get groupDmInviteRevoked => 'Invite revoked';
+
+  @override
+  String groupDmInviteCreatedByExpires(String name, String time) {
+    return 'Created by $name. Expires in $time.';
+  }
 
   @override
   String channelWelcomeHeading(String channelName) {

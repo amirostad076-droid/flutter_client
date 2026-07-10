@@ -1618,7 +1618,7 @@ abstract class FluxerLocalizations {
   /// DM context menu action to edit a group DM.
   ///
   /// In en, this message translates to:
-  /// **'Edit Group'**
+  /// **'Edit group'**
   String get dmEditGroup;
 
   /// DM context menu action to invite user to a community.
@@ -9138,13 +9138,13 @@ abstract class FluxerLocalizations {
   /// Group DM menu action to add friends to the group.
   ///
   /// In en, this message translates to:
-  /// **'Add Friends to Group'**
+  /// **'Add friends to group'**
   String get channelDetailsAddFriendsToGroup;
 
   /// Group DM menu action to view group invites.
   ///
   /// In en, this message translates to:
-  /// **'Group Invites'**
+  /// **'Group invites'**
   String get channelDetailsGroupInvites;
 
   /// Channel details menu action to edit a guild channel.
@@ -9806,6 +9806,252 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Add friends to group'**
   String get groupDmWelcomeAddFriends;
+
+  /// Menu label for managing group DM invites.
+  ///
+  /// In en, this message translates to:
+  /// **'Invites'**
+  String get dmGroupInvites;
+
+  /// Title for the edit group DM modal or sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit group'**
+  String get groupDmEditTitle;
+
+  /// Tooltip on the desktop group DM header edit action.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit group details'**
+  String get groupDmEditDetailsTooltip;
+
+  /// Label for the group name field in edit group.
+  ///
+  /// In en, this message translates to:
+  /// **'Group name'**
+  String get groupDmGroupName;
+
+  /// Placeholder for the group name field in edit group.
+  ///
+  /// In en, this message translates to:
+  /// **'My group'**
+  String get groupDmMyGroup;
+
+  /// Validation error when group name is too long.
+  ///
+  /// In en, this message translates to:
+  /// **'Group name must not exceed 100 characters'**
+  String get groupDmGroupNameMaxLength;
+
+  /// Label for the group icon section in edit group.
+  ///
+  /// In en, this message translates to:
+  /// **'Group icon'**
+  String get groupDmGroupIcon;
+
+  /// Button to upload a group icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload icon'**
+  String get groupDmUploadIcon;
+
+  /// Button to change an existing group icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Change icon'**
+  String get groupDmChangeIcon;
+
+  /// Button to remove the group icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove icon'**
+  String get groupDmRemoveIcon;
+
+  /// Success toast after saving group changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Group updated'**
+  String get groupDmUpdated;
+
+  /// Error toast when group update fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t update group. Try again.'**
+  String get groupDmUpdateFailed;
+
+  /// Error when user selects an animated group icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Animated icons are not supported. Use a static image.'**
+  String get groupDmAnimatedIconNotSupported;
+
+  /// Title when user selects an animated group icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Animated icons are not supported'**
+  String get groupDmAnimatedIconNotSupportedTitle;
+
+  /// Title when the selected group icon exceeds the size limit.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon file is too large'**
+  String get groupDmIconFileTooLargeTitle;
+
+  /// Body when the selected group icon exceeds the size limit.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon file is too large. Choose a file smaller than {maxSize}.'**
+  String groupDmIconFileTooLargeBody(String maxSize);
+
+  /// Title when the selected group icon format is unsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsupported icon format'**
+  String get groupDmUnsupportedIconFormat;
+
+  /// Body when the selected group icon format is unsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsupported file type.'**
+  String get groupDmUnsupportedIconFormatBody;
+
+  /// Title when a cropped group icon cannot be processed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t process image'**
+  String get groupDmCouldntProcessImage;
+
+  /// Body when a cropped group icon cannot be processed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to process the cropped image. Try again.'**
+  String get groupDmFailedToProcessCroppedImage;
+
+  /// Title when the selected group icon image cannot be used.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid image'**
+  String get groupDmInvalidImage;
+
+  /// Body when the selected group icon image cannot be used.
+  ///
+  /// In en, this message translates to:
+  /// **'That image is invalid. Try another one.'**
+  String get groupDmInvalidImageBody;
+
+  /// Button to add selected friends to a group DM.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get groupDmAddFriends;
+
+  /// Label above the invite link field in add friends to group.
+  ///
+  /// In en, this message translates to:
+  /// **'or send an invite to a friend:'**
+  String get groupDmOrSendInvite;
+
+  /// Placeholder for the invite link field before generation.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate invite link'**
+  String get groupDmGenerateInviteLink;
+
+  /// Button to create a group DM invite link.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get groupDmCreateInvite;
+
+  /// Note below the invite link field in add friends to group.
+  ///
+  /// In en, this message translates to:
+  /// **'Your invite expires in 24 hours'**
+  String get groupDmInviteExpires24Hours;
+
+  /// Error when adding a single friend to a group DM fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add this friend to the group. Please try again.'**
+  String get groupDmAddFriendFailed;
+
+  /// Title when adding friends to a group DM fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add to group'**
+  String get groupDmAddFailed;
+
+  /// Error when the group DM has no remaining member slots.
+  ///
+  /// In en, this message translates to:
+  /// **'This group is full. Remove someone before adding more people.'**
+  String get groupDmGroupFull;
+
+  /// Error when add-friends requests are rate limited.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re going too fast. Wait a moment and try again.'**
+  String get groupDmRateLimited;
+
+  /// Title when invite link generation fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create invite link'**
+  String get groupDmCreateInviteFailed;
+
+  /// Body when invite link generation fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t generate an invite link. Please try again.'**
+  String get groupDmCreateInviteFailedBody;
+
+  /// Error when copying a group DM invite link fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to copy invite link'**
+  String get groupDmCopyInviteFailed;
+
+  /// Shown when a non-owner opens group invites management.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the group owner can manage invites.'**
+  String get groupDmInvitesOwnerOnly;
+
+  /// Empty state for group DM invites list.
+  ///
+  /// In en, this message translates to:
+  /// **'No invites created'**
+  String get groupDmNoInvitesCreated;
+
+  /// Loading state for group DM invites list.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading invites...'**
+  String get groupDmLoadingInvites;
+
+  /// Inline error when group DM invites fail to load.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load invites. Try again.'**
+  String get groupDmInvitesLoadFailed;
+
+  /// Confirmation body when revoking a group DM invite.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke this invite? Can\'t be undone.'**
+  String get groupDmInvitesRevokeConfirm;
+
+  /// Success toast after revoking a group DM invite.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite revoked'**
+  String get groupDmInviteRevoked;
+
+  /// Mobile group invite row subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Created by {name}. Expires in {time}.'**
+  String groupDmInviteCreatedByExpires(String name, String time);
 
   /// Heading on the start-of-channel welcome shown at the top of a guild channel's loaded message history and as its empty state. {channelName} already includes the leading # (e.g. #general).
   ///

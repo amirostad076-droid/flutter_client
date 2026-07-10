@@ -22,6 +22,8 @@ import 'package:fluxer_app/features/dm/domain/create_dm_restriction.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/presentation/create_dm_flow.dart';
+import 'package:fluxer_app/features/dm/presentation/edit_group_dm_flow.dart';
+import 'package:fluxer_app/features/dm/presentation/group_dm_invites_flow.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/dm_list_message_preview_row.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/group_dm_avatar.dart';
 import 'package:fluxer_app/features/dm/providers/dm_list_presence_provider.dart';
@@ -1023,8 +1025,9 @@ class _DMListState extends ConsumerState<DMList> {
           unawaited(ref.read(dmRepositoryProvider).pinDm(convo.id));
         }
       case _DmAction.editGroup:
-        // TODO(Elias): open edit group sheet
-        break;
+        unawaited(EditGroupDmFlow.show(context, dm: convo));
+      case _DmAction.showGroupInvites:
+        unawaited(GroupDmInvitesFlow.show(context, dm: convo));
       case _DmAction.removeFriend:
         if (!mounted) {
           break;
@@ -1386,6 +1389,7 @@ enum _DmAction {
   unmute,
   pinToggle,
   editGroup,
+  showGroupInvites,
   removeFriend,
   addFriend,
   acceptFriendRequest,
@@ -1435,6 +1439,13 @@ class _DmBottomSheet extends ConsumerWidget {
       l10n: l10n,
       currentUserId: ref.watch(currentUserIdProvider),
     );
+
+    final String? currentUserId = ref.watch(currentUserIdProvider);
+    final bool isGroupOwner =
+        convo.isGroup &&
+        convo.ownerId != null &&
+        currentUserId != null &&
+        convo.ownerId == currentUserId;
 
     void pop(Object action) => Navigator.of(context).pop(action);
 
@@ -1488,6 +1499,15 @@ class _DmBottomSheet extends ConsumerWidget {
             onTap: () => pop(_DmAction.editGroup),
           ),
         );
+        if (isGroupOwner) {
+          children.add(
+            FluxerBottomSheetMenuItem(
+              icon: PhosphorIconsFill.envelope,
+              label: l10n.dmGroupInvites,
+              onTap: () => pop(_DmAction.showGroupInvites),
+            ),
+          );
+        }
       } else {
         children.addAll([
           FluxerBottomSheetMenuItem(
