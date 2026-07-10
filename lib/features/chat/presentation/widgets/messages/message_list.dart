@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -160,7 +161,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   final MessageEdgeLoadTrigger _edgeLoadTrigger = MessageEdgeLoadTrigger();
   _MessageListOpenMode _openMode = _MessageListOpenMode.unresolved;
   String? _lastChannelId;
-  List<Message>? _lastAnchorMessages;
+  List<Object>? _lastAnchorItemKeys;
   ChatUnreadSummary? _cachedUnreadSummary;
   Object? _unreadSummaryKey;
   bool _useCompactScrollCache = true;
@@ -316,18 +317,63 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
   }
 
-  // Keeps the viewport anchored across data-end (newest) changes by snapshotting
+  Object _anchorItemKey(ChannelStreamItem item) {
+    switch (item.type) {
+      case ChannelStreamType.message:
+        return (item.type, item.singleMessage?.id);
+      case ChannelStreamType.messageGroupBlocked:
+      case ChannelStreamType.messageGroupSpammer:
+        return (item.type, item.groupKey);
+      case ChannelStreamType.divider:
+        final DateTime? date = item.dividerDate?.toLocal();
+        return (item.type, date?.year, date?.month, date?.day);
+    }
+  }
+
+  List<Object> _anchorItemKeysForStream(List<ChannelStreamItem> stream) =>
+      stream.map(_anchorItemKey).toList(growable: false);
+
+  List<Object> _anchorItemKeysForMessages(List<Message> messages) =>
+      _anchorItemKeysForStream(
+        createChannelStream(
+          messages: messages,
+          oldestUnreadMessageId: null,
+          context: ref.read(channelCollapseContextProvider),
+        ),
+      );
+
+  void _syncAnchorBaselineFromBuild(List<ChannelStreamItem> stream) {
+    if (_openMode != _MessageListOpenMode.bottom) {
+      return;
+    }
+    final List<Object> next = _anchorItemKeysForStream(stream);
+    final List<Object>? prev = _lastAnchorItemKeys;
+    if (listEquals(prev, next)) {
+      return;
+    }
+    _lastAnchorItemKeys = next;
+    if (prev == null) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _onScroll();
+      }
+    });
+  }
+
+  // Keeps the viewport anchored across render-leading changes by snapshotting
   // the reference item before the rebuild lays out. Runs from the messages
-  // listener, outside this widget's build phase, so markNeedsLayout is legal and
-  // the snapshot reflects the still-current layout.
-  void _applyChatAnchor(List<Message> next) {
-    final List<Message>? prev = _lastAnchorMessages;
-    _lastAnchorMessages = next;
+  // listener, outside this widget's build phase, so markNeedsLayout is legal.
+  void _applyChatAnchor(List<Message> messages) {
+    final List<Object> next = _anchorItemKeysForMessages(messages);
+    final List<Object>? prev = _lastAnchorItemKeys;
+    _lastAnchorItemKeys = next;
     if (_openMode == _MessageListOpenMode.bottom &&
         prev != null &&
         prev.isNotEmpty &&
         next.isNotEmpty) {
-      final LeadingEdgeDelta delta = computeLeadingEdgeDelta(prev, next);
+      final LeadingEdgeDelta delta = computeLeadingEdgeKeyDelta(prev, next);
       if (delta.addedNewest > 0) {
         // At the bottom (extentBefore <= fixedPositionOffset) the physics
         // follows; scrolled up it pins the visible message in place.
@@ -351,6 +397,16 @@ class _MessageListState extends ConsumerState<MessageList> {
             isNeedObserveSwitchShrinkWrap: false,
           ),
         );
+      } else if (listEquals(prev, next)) {
+        // A collapsed tail item can absorb a message without adding a child.
+        unawaited(
+          _chatObserver.standby(
+            mode: ChatScrollObserverHandleMode.specified,
+            refIndexType:
+                ChatScrollObserverRefIndexType.relativeIndexStartFromDisplaying,
+            isNeedObserveSwitchShrinkWrap: false,
+          ),
+        );
       }
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -370,7 +426,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       return;
     }
     _lastChannelId = channelId;
-    _lastAnchorMessages = null;
+    _lastAnchorItemKeys = null;
     _leadingSliverCtx = null;
     _trailingSliverCtx = null;
     _centerAnchorMessageId = null;
@@ -616,8 +672,8 @@ class _MessageListState extends ConsumerState<MessageList> {
 
   // A short unread block can't fill the viewport below _kUnreadOpenAnchor:
   // the viewport clamps maxScrollExtent to 0, leaving an unscrollable gap
-  // under the newest message. Once the open frame lays out, fall back to a
-  // bottom-anchored open. The NEW divider is per-tile, so it stays visible.
+  // under the newest message. Once the open frame lays out, switch to the real
+  // bottom list so subsequent appends use the ChatScrollObserver pinning path.
   void _scheduleUnreadUnderfillFallback() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted ||
@@ -633,14 +689,28 @@ class _MessageListState extends ConsumerState<MessageList> {
       if (_scrollController.position.maxScrollExtent > 0) {
         return;
       }
-      setState(() => _centerAnchorMessageId = null);
+      final List<Message> messages = ref.read(chatViewModelProvider).messages;
+      setState(() {
+        _openMode = _MessageListOpenMode.bottom;
+        _centerAnchorMessageId = null;
+        _lastAnchorItemKeys = _anchorItemKeysForMessages(messages);
+        _leadingSliverCtx = null;
+        _trailingSliverCtx = null;
+        _edgeLoadTrigger.reset();
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _scrollController.hasClients) {
+          _scrollController.jumpTo(_scrollController.position.minScrollExtent);
+          _syncReadViewport(ignoreJumpTarget: true);
+        }
+      });
     });
   }
 
   // Coordinates the latest-window replacement with its tail landing so the
   // reverse list never paints a clamped intermediate frame.
   void _landAtLatestTail(List<Message> next) {
-    _lastAnchorMessages = next;
+    _lastAnchorItemKeys = _anchorItemKeysForMessages(next);
     _edgeLoadTrigger.reset();
     if (_openMode == _MessageListOpenMode.unread) {
       // Center-split newest edge is only known after layout.
@@ -858,7 +928,7 @@ class _MessageListState extends ConsumerState<MessageList> {
           context,
           message: message,
           isNewDay: isNewDay,
-          visualUnreadId: visualUnreadId,
+          visualUnreadId: prependUnreadSeparator ? null : visualUnreadId,
           leadingGroupSpacing: leading,
           child: SystemMessage(
             key: ValueKey(message.id),
@@ -935,7 +1005,7 @@ class _MessageListState extends ConsumerState<MessageList> {
         context,
         message: message,
         isNewDay: isNewDay,
-        visualUnreadId: visualUnreadId,
+        visualUnreadId: prependUnreadSeparator ? null : visualUnreadId,
         leadingGroupSpacing: leading,
         child: RepaintBoundary(
           child: MessageItem(
@@ -1052,6 +1122,9 @@ class _MessageListState extends ConsumerState<MessageList> {
     required String? revealedCollapsedGroupKey,
   }) {
     final ChannelStreamItem item = stream[dataIndex];
+    final bool streamOwnsUnreadBoundary =
+        item.showUnreadDividerBefore ||
+        (dataIndex > 0 && stream[dataIndex - 1].dividerHasUnread);
     switch (item.type) {
       case ChannelStreamType.divider:
         if (item.dividerDate == null) {
@@ -1109,6 +1182,7 @@ class _MessageListState extends ConsumerState<MessageList> {
                   renderSettings: renderSettings,
                   blockedUserIds: blockedUserIds,
                   renderDaySeparator: false,
+                  prependUnreadSeparator: streamOwnsUnreadBoundary,
                 );
               },
             ),
@@ -1143,7 +1217,7 @@ class _MessageListState extends ConsumerState<MessageList> {
             renderSettings: renderSettings,
             blockedUserIds: blockedUserIds,
             renderDaySeparator: false,
-            prependUnreadSeparator: item.showUnreadDividerBefore,
+            prependUnreadSeparator: streamOwnsUnreadBoundary,
           ),
           show: item.showUnreadDividerBefore,
         );
@@ -1683,6 +1757,7 @@ class _MessageListState extends ConsumerState<MessageList> {
         _openMode = _MessageListOpenMode.bottom;
       }
     }
+    _syncAnchorBaselineFromBuild(channelStream);
     final int unreadCount = unreadSummary.displayUnreadCount;
     final bool liveNearBottom = _isNearLiveTail();
     final bool showUnreadBarEligible = shouldShowUnreadBar(

@@ -317,7 +317,7 @@ class ChatViewModel extends _$ChatViewModel {
         continue;
       }
       workingMessages = next;
-      if (!state.hasMoreNewerMessages) {
+      if (!state.hasMoreNewerMessages && _readViewportNearBottom) {
         final MessageWindowTrim trim = trimMessageWindow(
           next,
           keepNewest: true,
@@ -368,7 +368,9 @@ class ChatViewModel extends _$ChatViewModel {
     if (next != null) {
       var nextMessages = next;
       var droppedOlder = false;
-      if (ev is MessageCreated && !state.hasMoreNewerMessages) {
+      if (ev is MessageCreated &&
+          !state.hasMoreNewerMessages &&
+          _readViewportNearBottom) {
         final trim = trimMessageWindow(next, keepNewest: true);
         nextMessages = trim.messages;
         droppedOlder = trim.droppedOlder;
