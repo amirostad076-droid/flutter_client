@@ -184,7 +184,13 @@ _InlineLineGroup _parseInlineLineGroup(
     final nextLine = lines[startIndex + consumed];
     final trimmedNext = nextLine.trimLeft();
     final nextIsBlockStart = _isBlockStart(trimmedNext, features);
-    if (nextLine.trim().isEmpty || !nextIsBlockStart) {
+    final nextIsTableBlockStart = _isTableBlockStart(
+      lines,
+      startIndex + consumed,
+      features,
+    );
+    if (nextLine.trim().isEmpty ||
+        (!nextIsBlockStart && !nextIsTableBlockStart)) {
       buffer.write('\n');
     }
   }

@@ -240,6 +240,22 @@ before
 | A | 1 |''');
     });
 
+    test('does not add trailing newline before an adjacent table', () {
+      const String input = '''
+before
+| Header | Value |
+| --- | --- |
+| A | 1 |''';
+      final List<MessageContentSegment> segments = parseMessageContentStructure(
+        input,
+        features,
+      );
+      expect(segments, hasLength(2));
+      expect(segments[0], isA<MessageTextFlowSegment>());
+      expect((segments[0] as MessageTextFlowSegment).text, 'before');
+      expect(segments[1], isA<MessageBlockMarkdownSegment>());
+    });
+
     test('keeps single-line pipe text in text flow when not a table', () {
       const String input = '| not | table |';
       final List<MessageContentSegment> segments = parseMessageContentStructure(
