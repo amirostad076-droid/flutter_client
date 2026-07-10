@@ -8645,6 +8645,42 @@ abstract class FluxerLocalizations {
   /// **'Message contains attached media'**
   String get chatReplyAttachedMedia;
 
+  /// Collapsed summary label for consecutive messages from blocked users.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 blocked message} other{{count} blocked messages}}'**
+  String chatBlockedMessagesCollapsed(int count);
+
+  /// Collapsed summary label for consecutive messages from spammer-flagged users.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 potential spammer message} other{{count} potential spammer messages}}'**
+  String chatSpammerMessagesCollapsed(int count);
+
+  /// Reply preview placeholder when the referenced author is blocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply hidden because the original author is blocked.'**
+  String get chatReplyHiddenBlockedAuthor;
+
+  /// Reply preview placeholder when the referenced author is marked as a spammer.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply hidden because the original author is marked as a spammer.'**
+  String get chatReplyHiddenSpammerAuthor;
+
+  /// Developer menu option to locally mark a user as spam.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as spam locally'**
+  String get devMarkAsSpamLocally;
+
+  /// Developer menu option to ignore the server spammer flag for a user.
+  ///
+  /// In en, this message translates to:
+  /// **'Ignore spam flag'**
+  String get devIgnoreSpamFlag;
+
   /// Shown in the chat message list when the initial message history request fails. The user can retry from the same screen.
   ///
   /// In en, this message translates to:

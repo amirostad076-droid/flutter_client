@@ -6451,6 +6451,40 @@
   "@chatReplyAttachedMedia": {
     "description": "Label in the channel and chat reply preview."
   },
+  "chatBlockedMessagesCollapsed": "{count, plural, =1{1 blocked message} other{{count} blocked messages}}",
+  "@chatBlockedMessagesCollapsed": {
+    "description": "Collapsed summary label for consecutive messages from blocked users.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatSpammerMessagesCollapsed": "{count, plural, =1{1 potential spammer message} other{{count} potential spammer messages}}",
+  "@chatSpammerMessagesCollapsed": {
+    "description": "Collapsed summary label for consecutive messages from spammer-flagged users.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatReplyHiddenBlockedAuthor": "Reply hidden because the original author is blocked.",
+  "@chatReplyHiddenBlockedAuthor": {
+    "description": "Reply preview placeholder when the referenced author is blocked."
+  },
+  "chatReplyHiddenSpammerAuthor": "Reply hidden because the original author is marked as a spammer.",
+  "@chatReplyHiddenSpammerAuthor": {
+    "description": "Reply preview placeholder when the referenced author is marked as a spammer."
+  },
+  "devMarkAsSpamLocally": "Mark as spam locally",
+  "@devMarkAsSpamLocally": {
+    "description": "Developer menu option to locally mark a user as spam."
+  },
+  "devIgnoreSpamFlag": "Ignore spam flag",
+  "@devIgnoreSpamFlag": {
+    "description": "Developer menu option to ignore the server spammer flag for a user."
+  },
   "chatMessagesLoadError": "Couldn't load messages.",
   "@chatMessagesLoadError": {
     "description": "Shown in the chat message list when the initial message history request fails. The user can retry from the same screen."

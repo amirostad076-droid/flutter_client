@@ -5127,6 +5127,42 @@ class FluxerLocalizationsUk extends FluxerLocalizations {
       'Повідомлення містить вкладені медіафайли';
 
   @override
+  String chatBlockedMessagesCollapsed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count blocked messages',
+      one: '1 blocked message',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatSpammerMessagesCollapsed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count potential spammer messages',
+      one: '1 potential spammer message',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatReplyHiddenBlockedAuthor =>
+      'Reply hidden because the original author is blocked.';
+
+  @override
+  String get chatReplyHiddenSpammerAuthor =>
+      'Reply hidden because the original author is marked as a spammer.';
+
+  @override
+  String get devMarkAsSpamLocally => 'Mark as spam locally';
+
+  @override
+  String get devIgnoreSpamFlag => 'Ignore spam flag';
+
+  @override
   String get chatMessagesLoadError => 'Не вдалося завантажити повідомлення.';
 
   @override
