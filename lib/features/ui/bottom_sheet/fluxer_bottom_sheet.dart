@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/providers/obscuring_overlay_tracker_provider.dart';
@@ -393,11 +395,12 @@ class _FluxerDraggableScrollableSheetState
                     widget.onDismiss,
                   ),
                 ),
-                SizedBox(
-                  height: widget.bottomPadding > 0
-                      ? widget.bottomPadding
-                      : layout.s4,
-                ),
+                if (Platform.isAndroid)
+                  SizedBox(
+                    height: widget.bottomPadding > 0
+                        ? widget.bottomPadding
+                        : layout.s4,
+                  ),
               ],
             ),
           );
