@@ -4907,6 +4907,12 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get mediaViewerOpenInBrowser => '在浏览器中打开';
 
   @override
+  String get mediaViewerOptions => 'Media options';
+
+  @override
+  String get mediaViewerCopyLink => 'Copy link';
+
+  @override
   String get mediaViewerForward => '转发';
 
   @override

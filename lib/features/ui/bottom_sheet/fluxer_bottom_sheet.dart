@@ -124,7 +124,7 @@ class FluxerBottomSheet {
                     ),
                   ],
                   Flexible(child: builder(sheetContext, close)),
-                  if (reserveBottomInset)
+                  if (reserveBottomInset && Platform.isAndroid)
                     SizedBox(
                       height: bottomPadding > 0 ? bottomPadding : layout.s4,
                     ),

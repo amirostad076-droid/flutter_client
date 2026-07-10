@@ -5237,6 +5237,12 @@ class FluxerLocalizationsGa extends FluxerLocalizations {
   String get mediaViewerOpenInBrowser => 'Oscail sa bhrabhálaí';
 
   @override
+  String get mediaViewerOptions => 'Media options';
+
+  @override
+  String get mediaViewerCopyLink => 'Copy link';
+
+  @override
   String get mediaViewerForward => 'Ar aghaidh';
 
   @override

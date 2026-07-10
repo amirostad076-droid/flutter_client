@@ -8807,6 +8807,18 @@ abstract class FluxerLocalizations {
   /// **'Open in browser'**
   String get mediaViewerOpenInBrowser;
 
+  /// Title and accessibility label for the overflow menu in the mobile media viewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Media options'**
+  String get mediaViewerOptions;
+
+  /// Media viewer action that copies the media URL to the clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get mediaViewerCopyLink;
+
   /// Tooltip and accessibility label for the media viewer Forward action, which forwards the current attachment or embed.
   ///
   /// In en, this message translates to:

@@ -5246,6 +5246,12 @@ class FluxerLocalizationsHu extends FluxerLocalizations {
   String get mediaViewerOpenInBrowser => 'Megnyitás böngészőben';
 
   @override
+  String get mediaViewerOptions => 'Media options';
+
+  @override
+  String get mediaViewerCopyLink => 'Copy link';
+
+  @override
   String get mediaViewerForward => 'Továbbítás';
 
   @override

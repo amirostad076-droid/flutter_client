@@ -4990,6 +4990,12 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
   String get mediaViewerOpenInBrowser => '브라우저에서 열기';
 
   @override
+  String get mediaViewerOptions => 'Media options';
+
+  @override
+  String get mediaViewerCopyLink => 'Copy link';
+
+  @override
   String get mediaViewerForward => '전달';
 
   @override

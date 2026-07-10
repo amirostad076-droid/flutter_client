@@ -6591,6 +6591,14 @@
   "@mediaViewerOpenInBrowser": {
     "description": "Tooltip and accessibility label to open the current media item in an external browser."
   },
+  "mediaViewerOptions": "Media options",
+  "@mediaViewerOptions": {
+    "description": "Title and accessibility label for the overflow menu in the mobile media viewer."
+  },
+  "mediaViewerCopyLink": "Copy link",
+  "@mediaViewerCopyLink": {
+    "description": "Media viewer action that copies the media URL to the clipboard."
+  },
   "mediaViewerForward": "Forward",
   "@mediaViewerForward": {
     "description": "Tooltip and accessibility label for the media viewer Forward action, which forwards the current attachment or embed."

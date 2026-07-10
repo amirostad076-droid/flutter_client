@@ -5279,6 +5279,12 @@ class FluxerLocalizationsFr extends FluxerLocalizations {
   String get mediaViewerOpenInBrowser => 'Ouvrir dans le navigateur';
 
   @override
+  String get mediaViewerOptions => 'Media options';
+
+  @override
+  String get mediaViewerCopyLink => 'Copy link';
+
+  @override
   String get mediaViewerForward => 'Transférer';
 
   @override

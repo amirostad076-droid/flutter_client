@@ -5202,6 +5202,12 @@ class FluxerLocalizationsFa extends FluxerLocalizations {
   String get mediaViewerOpenInBrowser => 'باز کردن در مرورگر';
 
   @override
+  String get mediaViewerOptions => 'Media options';
+
+  @override
+  String get mediaViewerCopyLink => 'Copy link';
+
+  @override
   String get mediaViewerForward => 'ارسال';
 
   @override

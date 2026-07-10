@@ -5172,6 +5172,12 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
   String get mediaViewerOpenInBrowser => 'เปิดในเบราว์เซอร์';
 
   @override
+  String get mediaViewerOptions => 'Media options';
+
+  @override
+  String get mediaViewerCopyLink => 'Copy link';
+
+  @override
   String get mediaViewerForward => 'ส่งต่อ';
 
   @override

@@ -5243,6 +5243,12 @@ class FluxerLocalizationsPl extends FluxerLocalizations {
   String get mediaViewerOpenInBrowser => 'Otwórz w przeglądarce';
 
   @override
+  String get mediaViewerOptions => 'Media options';
+
+  @override
+  String get mediaViewerCopyLink => 'Copy link';
+
+  @override
   String get mediaViewerForward => 'Prześlij dalej';
 
   @override

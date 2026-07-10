@@ -5225,6 +5225,12 @@ class FluxerLocalizationsFi extends FluxerLocalizations {
   String get mediaViewerOpenInBrowser => 'Avaa selaimessa';
 
   @override
+  String get mediaViewerOptions => 'Media options';
+
+  @override
+  String get mediaViewerCopyLink => 'Copy link';
+
+  @override
   String get mediaViewerForward => 'Välitä';
 
   @override

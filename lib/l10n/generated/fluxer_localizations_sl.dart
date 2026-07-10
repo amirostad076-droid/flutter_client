@@ -5226,6 +5226,12 @@ class FluxerLocalizationsSl extends FluxerLocalizations {
   String get mediaViewerOpenInBrowser => 'Odpri v brskalniku';
 
   @override
+  String get mediaViewerOptions => 'Media options';
+
+  @override
+  String get mediaViewerCopyLink => 'Copy link';
+
+  @override
   String get mediaViewerForward => 'Posreduj';
 
   @override
