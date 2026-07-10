@@ -318,6 +318,14 @@ class _MessageItemState extends ConsumerState<MessageItem> {
             ),
           ),
         );
+        ref
+            .read(toastProvider.notifier)
+            .show(
+              FluxerToast(
+                message: FluxerLocalizations.of(context).copiedToClipboard,
+                variant: FluxerToastVariant.success,
+              ),
+            );
       case MessageAction.bookmark:
         final dao = ref.read(fluxerDatabaseProvider).savedMessageDao;
         final messageId = widget.message.id;
