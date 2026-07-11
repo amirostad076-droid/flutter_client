@@ -85,6 +85,7 @@ const Map<String, AppLocaleDisplayInfo> _appLocaleDisplayInfoByTag =
         name: 'Spanish (Latin America)',
         nativeName: 'Español (Latinoamérica)',
         languageCode: 'es',
+        countryCode: 'MX',
       ),
       'fi': AppLocaleDisplayInfo(
         name: 'Finnish',
