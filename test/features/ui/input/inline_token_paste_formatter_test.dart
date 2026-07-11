@@ -54,8 +54,9 @@ void main() {
     testWidgets('passes through single-character typing', (
       WidgetTester tester,
     ) async {
-      final ComposerMentionController controller =
-          await _pumpMentionController(tester);
+      final ComposerMentionController controller = await _pumpMentionController(
+        tester,
+      );
       final ComposerMentionPasteFormatter formatter =
           ComposerMentionPasteFormatter(controller: controller);
 
@@ -83,8 +84,9 @@ void main() {
     testWidgets('passes through IME autocomplete without post-frame mutation', (
       WidgetTester tester,
     ) async {
-      final ComposerMentionController controller =
-          await _pumpMentionController(tester);
+      final ComposerMentionController controller = await _pumpMentionController(
+        tester,
+      );
       final ComposerMentionPasteFormatter formatter =
           ComposerMentionPasteFormatter(controller: controller);
 
@@ -110,41 +112,43 @@ void main() {
       expect(controller.text, 'I am typ hello');
     });
 
-    testWidgets('does not duplicate mid-sentence autocomplete without composing', (
-      WidgetTester tester,
-    ) async {
-      final ComposerMentionController controller =
-          await _pumpMentionController(tester);
-      final ComposerMentionPasteFormatter formatter =
-          ComposerMentionPasteFormatter(controller: controller);
+    testWidgets(
+      'does not duplicate mid-sentence autocomplete without composing',
+      (WidgetTester tester) async {
+        final ComposerMentionController controller =
+            await _pumpMentionController(tester);
+        final ComposerMentionPasteFormatter formatter =
+            ComposerMentionPasteFormatter(controller: controller);
 
-      const TextEditingValue oldValue = TextEditingValue(
-        text: 'I am typ hel',
-        selection: TextSelection.collapsed(offset: 13),
-      );
-      const TextEditingValue newValue = TextEditingValue(
-        text: 'I am typ hello',
-        selection: TextSelection.collapsed(offset: 15),
-      );
+        const TextEditingValue oldValue = TextEditingValue(
+          text: 'I am typ hel',
+          selection: TextSelection.collapsed(offset: 13),
+        );
+        const TextEditingValue newValue = TextEditingValue(
+          text: 'I am typ hello',
+          selection: TextSelection.collapsed(offset: 15),
+        );
 
-      final TextEditingValue result = _applyFormatter(
-        formatter,
-        oldValue,
-        newValue,
-      );
+        final TextEditingValue result = _applyFormatter(
+          formatter,
+          oldValue,
+          newValue,
+        );
 
-      expect(result, newValue);
-      controller.value = result;
-      await tester.pump();
-      await tester.pump();
-      expect(controller.text, 'I am typ hello');
-    });
+        expect(result, newValue);
+        controller.value = result;
+        await tester.pump();
+        await tester.pump();
+        expect(controller.text, 'I am typ hello');
+      },
+    );
 
     testWidgets('chips pasted mention wire text once', (
       WidgetTester tester,
     ) async {
-      final ComposerMentionController controller =
-          await _pumpMentionController(tester);
+      final ComposerMentionController controller = await _pumpMentionController(
+        tester,
+      );
       final ComposerMentionPasteFormatter formatter =
           ComposerMentionPasteFormatter(controller: controller);
 
@@ -177,8 +181,9 @@ void main() {
     testWidgets('passes through IME autocomplete when composing is active', (
       WidgetTester tester,
     ) async {
-      final ComposerMentionController controller =
-          await _pumpMentionController(tester);
+      final ComposerMentionController controller = await _pumpMentionController(
+        tester,
+      );
       var attachCalled = false;
       final ComposerMessageLengthPasteFormatter formatter =
           ComposerMessageLengthPasteFormatter(

@@ -70,9 +70,11 @@ class CloudUploadController extends _$CloudUploadController {
     for (final XFile file in files) {
       final XFile resolved = await _ensureResolvableFile(file);
       final int length = await resolved.length();
-      final String contentType = FileUploadValidator.guessContentTypeFromName(
-        resolved.name,
-      );
+      final String contentType =
+          FileUploadValidator.resolveContentTypeForUpload(
+            filename: resolved.name,
+            mimeType: resolved.mimeType,
+          );
       created.add(
         PendingAttachment(
           id: _nextAttachmentId++,

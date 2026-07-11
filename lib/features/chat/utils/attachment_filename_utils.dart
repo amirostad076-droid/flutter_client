@@ -25,19 +25,34 @@ String sanitizeAttachmentFilename(String name, {String? mimeType}) {
   final String trimmed = name.trim();
   final String lower = trimmed.toLowerCase();
   final bool tainted = lower.contains('image_picker');
+  final String resolved;
   if (!tainted) {
-    return trimmed.isNotEmpty ? trimmed : _fallbackBasename(mimeType);
+    resolved = trimmed.isNotEmpty ? trimmed : _fallbackBasename(mimeType);
+  } else {
+    final String ext = _extensionFromFilename(trimmed);
+    final String fromMime = _extensionForMime(mimeType);
+    final String effectiveExt = ext.isNotEmpty ? ext : fromMime;
+    final bool asVideo =
+        _isVideoMime(mimeType) || _isVideoExtension(effectiveExt);
+    final String prefix = asVideo ? 'video' : 'image';
+    if (effectiveExt.isNotEmpty) {
+      resolved = '$prefix$effectiveExt';
+    } else {
+      resolved = asVideo ? 'video.mp4' : 'image.jpg';
+    }
   }
-  final String ext = _extensionFromFilename(trimmed);
+  return _ensureExtensionFromMime(resolved, mimeType);
+}
+
+String _ensureExtensionFromMime(String name, String? mimeType) {
+  if (_extensionFromFilename(name).isNotEmpty) {
+    return name;
+  }
   final String fromMime = _extensionForMime(mimeType);
-  final String effectiveExt = ext.isNotEmpty ? ext : fromMime;
-  final bool asVideo =
-      _isVideoMime(mimeType) || _isVideoExtension(effectiveExt);
-  final String prefix = asVideo ? 'video' : 'image';
-  if (effectiveExt.isNotEmpty) {
-    return '$prefix$effectiveExt';
+  if (fromMime.isNotEmpty) {
+    return '$name$fromMime';
   }
-  return asVideo ? 'video.mp4' : 'image.jpg';
+  return name;
 }
 
 String _extensionFromFilename(String name) {
