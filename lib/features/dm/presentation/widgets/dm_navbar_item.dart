@@ -122,9 +122,7 @@ class _DmNavbarItemState extends ConsumerState<DmNavbarItem>
         ? ref.watch(
             isUserTypingInChannelProvider(widget.channelId, widget.recipientId),
           )
-        : groupDm != null
-        ? ref.watch(dmAvatarIsTypingProvider(groupDm))
-        : false;
+        : groupDm != null && ref.watch(dmAvatarIsTypingProvider(groupDm));
     final bool showPresence = !isGroup && widget.recipientId != fluxerBotUserId;
     final String? recipientStatus = recipient?.status;
 

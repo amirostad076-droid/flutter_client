@@ -58,7 +58,7 @@ void main() {
       final GuildScrollIndicatorSelection? selection =
           resolveGuildScrollIndicator(
             layout: _layout([
-              _target(id: 'far-above', top: 0, bottom: 40, order: 0),
+              _target(id: 'far-above', top: 0, bottom: 40),
               _target(id: 'near-above', top: 80, bottom: 90, order: 1),
               _target(id: 'far-below', top: 500, bottom: 540, order: 2),
             ]),
@@ -74,7 +74,7 @@ void main() {
         final GuildScrollIndicatorSelection? selection =
             resolveGuildScrollIndicator(
               layout: _layout([
-                _target(id: 'near-unread', top: 80, bottom: 90, order: 0),
+                _target(id: 'near-unread', top: 80, bottom: 90),
                 _target(
                   id: 'far-mention',
                   top: 600,
@@ -93,7 +93,7 @@ void main() {
       final GuildScrollIndicatorSelection? selection =
           resolveGuildScrollIndicator(
             layout: _layout([
-              _target(id: 'above', top: 80, bottom: 90, order: 0),
+              _target(id: 'above', top: 80, bottom: 90),
               _target(id: 'below', top: 310, bottom: 320, order: 1),
             ], preferredEdge: GuildScrollIndicatorEdge.bottom),
           );
@@ -117,13 +117,13 @@ void main() {
     test(
       'selectGuildScrollIndicator returns only one edge when both exist',
       () {
-        final GuildScrollIndicatorCandidate top = (
+        const GuildScrollIndicatorCandidate top = (
           id: 'above',
           severity: GuildScrollIndicatorSeverity.unread,
           distance: 10,
           order: 0,
         );
-        final GuildScrollIndicatorCandidate bottom = (
+        const GuildScrollIndicatorCandidate bottom = (
           id: 'below',
           severity: GuildScrollIndicatorSeverity.unread,
           distance: 10,

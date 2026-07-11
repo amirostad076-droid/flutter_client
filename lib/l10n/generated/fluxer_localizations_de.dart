@@ -55,6 +55,108 @@ class FluxerLocalizationsDe extends FluxerLocalizations {
   String get splashIncidentHistory => 'Vorfallverlauf';
 
   @override
+  String get nagbarLearnMore => 'Learn more';
+
+  @override
+  String nagbarMaintenanceScheduled(String localizedTime, String duration) {
+    return 'Maintenance is scheduled for $localizedTime. Expected duration: $duration.';
+  }
+
+  @override
+  String nagbarMaintenanceInProgress(String duration) {
+    return 'Maintenance is in progress. Expected duration: $duration.';
+  }
+
+  @override
+  String get nagbarMaintenanceComplete => 'Maintenance is complete.';
+
+  @override
+  String nagbarUnclaimedAccountMessage(String displayName) {
+    return 'Hey $displayName, claim your account to prevent losing access.';
+  }
+
+  @override
+  String nagbarEmailVerificationMessage(String displayName) {
+    return 'Hey $displayName, please verify your email address.';
+  }
+
+  @override
+  String get nagbarOpenSettings => 'Open settings';
+
+  @override
+  String nagbarPremiumGracePeriod(String productName, String graceDate) {
+    return 'Your subscription failed to renew, but you still have access to $productName perks until $graceDate. Take action now or you\'ll lose all perks.';
+  }
+
+  @override
+  String nagbarPremiumExpired(String productName) {
+    return 'Your $productName subscription has expired. Renew now to keep your perks.';
+  }
+
+  @override
+  String get nagbarManageSubscription => 'Manage subscription';
+
+  @override
+  String nagbarPremiumOnboardingDefault(
+    String productFullName,
+    String productName,
+  ) {
+    return 'Welcome to $productFullName. Explore your $productName perks and manage your subscription.';
+  }
+
+  @override
+  String nagbarViewPremiumFeatures(String productName) {
+    return 'View $productName features';
+  }
+
+  @override
+  String get nagbarGiftInventoryOne =>
+      'You have a new gift code waiting in your gift inventory.';
+
+  @override
+  String nagbarGiftInventoryMany(int count) {
+    return 'You have $count new gift codes waiting in your gift inventory.';
+  }
+
+  @override
+  String get nagbarViewGiftInventory => 'View gift inventory';
+
+  @override
+  String get nagbarVisionaryMfa =>
+      'Enable two-factor authentication to protect your Visionary account.';
+
+  @override
+  String get nagbarEnableMfa => 'Enable 2FA';
+
+  @override
+  String get nagbarTermsAcceptance =>
+      'We\'ve updated our terms. Please review and accept them to continue.';
+
+  @override
+  String get nagbarReviewTerms => 'Review terms';
+
+  @override
+  String nagbarGuildMembershipCta(String communityName) {
+    return 'Join $communityName to chat with the team and stay up to date.';
+  }
+
+  @override
+  String nagbarJoinCommunity(String communityName) {
+    return 'Join $communityName';
+  }
+
+  @override
+  String get nagbarPushNotification =>
+      'Enable notifications so you don\'t miss messages and mentions.';
+
+  @override
+  String get nagbarEnableNotifications => 'Enable notifications';
+
+  @override
+  String get nagbarBillingPortalFailed =>
+      'Couldn\'t open the billing portal. Please try again in a moment.';
+
+  @override
   String get welcomeBack => 'Willkommen zurück';
 
   @override

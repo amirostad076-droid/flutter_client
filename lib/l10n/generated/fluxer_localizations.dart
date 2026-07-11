@@ -253,6 +253,153 @@ abstract class FluxerLocalizations {
   /// **'Incident history'**
   String get splashIncidentHistory;
 
+  /// CTA on maintenance and other nagbars that open an external link.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn more'**
+  String get nagbarLearnMore;
+
+  /// Maintenance nagbar before planned work begins.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance is scheduled for {localizedTime}. Expected duration: {duration}.'**
+  String nagbarMaintenanceScheduled(String localizedTime, String duration);
+
+  /// Maintenance nagbar while work is active.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance is in progress. Expected duration: {duration}.'**
+  String nagbarMaintenanceInProgress(String duration);
+
+  /// Maintenance nagbar after planned work finishes.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance is complete.'**
+  String get nagbarMaintenanceComplete;
+
+  /// Unclaimed account nagbar body.
+  ///
+  /// In en, this message translates to:
+  /// **'Hey {displayName}, claim your account to prevent losing access.'**
+  String nagbarUnclaimedAccountMessage(String displayName);
+
+  /// Email verification nagbar body.
+  ///
+  /// In en, this message translates to:
+  /// **'Hey {displayName}, please verify your email address.'**
+  String nagbarEmailVerificationMessage(String displayName);
+
+  /// Nagbar CTA that opens user settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get nagbarOpenSettings;
+
+  /// Premium grace period nagbar body.
+  ///
+  /// In en, this message translates to:
+  /// **'Your subscription failed to renew, but you still have access to {productName} perks until {graceDate}. Take action now or you\'ll lose all perks.'**
+  String nagbarPremiumGracePeriod(String productName, String graceDate);
+
+  /// Premium expired nagbar body.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {productName} subscription has expired. Renew now to keep your perks.'**
+  String nagbarPremiumExpired(String productName);
+
+  /// Nagbar CTA that opens the billing portal.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage subscription'**
+  String get nagbarManageSubscription;
+
+  /// Premium onboarding nagbar default body.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to {productFullName}. Explore your {productName} perks and manage your subscription.'**
+  String nagbarPremiumOnboardingDefault(
+    String productFullName,
+    String productName,
+  );
+
+  /// Premium onboarding nagbar CTA.
+  ///
+  /// In en, this message translates to:
+  /// **'View {productName} features'**
+  String nagbarViewPremiumFeatures(String productName);
+
+  /// Gift inventory nagbar when one unread gift exists.
+  ///
+  /// In en, this message translates to:
+  /// **'You have a new gift code waiting in your gift inventory.'**
+  String get nagbarGiftInventoryOne;
+
+  /// Gift inventory nagbar when multiple unread gifts exist.
+  ///
+  /// In en, this message translates to:
+  /// **'You have {count} new gift codes waiting in your gift inventory.'**
+  String nagbarGiftInventoryMany(int count);
+
+  /// Gift inventory nagbar CTA.
+  ///
+  /// In en, this message translates to:
+  /// **'View gift inventory'**
+  String get nagbarViewGiftInventory;
+
+  /// Visionary MFA nagbar body.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable two-factor authentication to protect your Visionary account.'**
+  String get nagbarVisionaryMfa;
+
+  /// Visionary MFA nagbar CTA.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable 2FA'**
+  String get nagbarEnableMfa;
+
+  /// Terms acceptance nagbar body.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ve updated our terms. Please review and accept them to continue.'**
+  String get nagbarTermsAcceptance;
+
+  /// Terms acceptance nagbar CTA.
+  ///
+  /// In en, this message translates to:
+  /// **'Review terms'**
+  String get nagbarReviewTerms;
+
+  /// Official community membership nagbar body.
+  ///
+  /// In en, this message translates to:
+  /// **'Join {communityName} to chat with the team and stay up to date.'**
+  String nagbarGuildMembershipCta(String communityName);
+
+  /// Official community membership nagbar CTA.
+  ///
+  /// In en, this message translates to:
+  /// **'Join {communityName}'**
+  String nagbarJoinCommunity(String communityName);
+
+  /// Push notification permission nagbar body.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable notifications so you don\'t miss messages and mentions.'**
+  String get nagbarPushNotification;
+
+  /// Push notification permission nagbar CTA.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable notifications'**
+  String get nagbarEnableNotifications;
+
+  /// Toast when opening the billing portal from a nagbar fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the billing portal. Please try again in a moment.'**
+  String get nagbarBillingPortalFailed;
+
   /// Greeting on the login screen; usable wherever returning users are welcomed.
   ///
   /// In en, this message translates to:
