@@ -74,6 +74,7 @@ class FluxerBottomSheet {
         enableDrag: false,
         isDismissible: isDismissible,
         elevation: 0,
+        useSafeArea: reserveBottomInset,
         builder: (sheetContext) {
           void close() =>
               Navigator.of(sheetContext, rootNavigator: useRootNavigator).pop();
@@ -163,6 +164,7 @@ class FluxerBottomSheet {
     double? maxHeight,
     bool disableTopPadding = false,
     bool isDismissible = true,
+    bool reserveBottomInset = true,
   }) {
     final layout = context.layout;
 
@@ -175,12 +177,12 @@ class FluxerBottomSheet {
         enableDrag: false,
         isDismissible: isDismissible,
         elevation: 0,
+        useSafeArea: reserveBottomInset,
         builder: (sheetContext) {
           void close() =>
               Navigator.of(sheetContext, rootNavigator: useRootNavigator).pop();
 
           final mediaQuery = MediaQuery.of(sheetContext);
-          final bottomPadding = mediaQuery.viewPadding.bottom;
           final bottomInset = mediaQuery.viewInsets.bottom;
           final hasHeader =
               title != null ||
@@ -210,7 +212,6 @@ class FluxerBottomSheet {
             leading: leading,
             trailing: trailing,
             onBack: onBack,
-            bottomPadding: bottomPadding,
             bottomInset: bottomInset,
             sheetContext: sheetContext,
             builder: builder,
@@ -306,7 +307,6 @@ class _FluxerDraggableScrollableSheet extends StatefulWidget {
     required this.leading,
     required this.trailing,
     required this.onBack,
-    required this.bottomPadding,
     required this.bottomInset,
     required this.sheetContext,
     required this.builder,
@@ -325,7 +325,6 @@ class _FluxerDraggableScrollableSheet extends StatefulWidget {
   final Widget? leading;
   final Widget? trailing;
   final VoidCallback? onBack;
-  final double bottomPadding;
   final double bottomInset;
   final BuildContext sheetContext;
   final FluxerScrollableBottomSheetBuilder builder;
@@ -655,10 +654,10 @@ class FluxerBottomSheetContent extends StatelessWidget {
     );
 
     if (!scrollable) {
-      return SafeArea(child: content);
+      return content;
     }
 
-    return SafeArea(child: SingleChildScrollView(child: content));
+    return SingleChildScrollView(child: content);
   }
 }
 
