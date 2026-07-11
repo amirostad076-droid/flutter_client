@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/providers/obscuring_overlay_tracker_provider.dart';
@@ -81,7 +79,6 @@ class FluxerBottomSheet {
               Navigator.of(sheetContext, rootNavigator: useRootNavigator).pop();
 
           final mediaQuery = MediaQuery.of(sheetContext);
-          final bottomPadding = mediaQuery.viewPadding.bottom;
           final topPadding = mediaQuery.viewPadding.top;
           final bottomInset = mediaQuery.viewInsets.bottom;
           final hasHeader =
@@ -124,10 +121,6 @@ class FluxerBottomSheet {
                     ),
                   ],
                   Flexible(child: builder(sheetContext, close)),
-                  if (reserveBottomInset && Platform.isAndroid)
-                    SizedBox(
-                      height: bottomPadding > 0 ? bottomPadding : layout.s4,
-                    ),
                 ],
               ),
             ),
@@ -395,12 +388,6 @@ class _FluxerDraggableScrollableSheetState
                     widget.onDismiss,
                   ),
                 ),
-                if (Platform.isAndroid)
-                  SizedBox(
-                    height: widget.bottomPadding > 0
-                        ? widget.bottomPadding
-                        : layout.s4,
-                  ),
               ],
             ),
           );
