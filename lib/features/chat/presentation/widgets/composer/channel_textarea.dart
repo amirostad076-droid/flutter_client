@@ -110,6 +110,8 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
   final _mediaPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
   final _stickerPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
 
+  bool _enterToSendEnabled = false;
+
   bool get _isDesktop =>
       !kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows);
 
@@ -117,7 +119,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
   void initState() {
     super.initState();
     _controller = ComposerMentionController(ref: ref);
-    _focusNode.onKeyEvent = _handleKeyEvent;
+    _focusNode.onKeyEvent = _handleComposerFieldKeyEvent;
     _controller.addListener(() {
       ref
           .read(chatViewModelProvider.notifier)
@@ -191,7 +193,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
   }
 
   /// Enter sends, Shift+Enter inserts newline.
-  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+  KeyEventResult _handleComposerFieldKeyEvent(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
       return KeyEventResult.ignored;
     }
@@ -213,7 +215,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       unawaited(_pasteScopeKey.currentState?.handleCut());
       return KeyEventResult.handled;
     }
-    if (!_isDesktop) {
+    if (!_enterToSendEnabled) {
       return KeyEventResult.ignored;
     }
     final KeyEventResult navResult = handleComposerAutocompleteKey(
@@ -223,8 +225,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     if (navResult == KeyEventResult.handled) {
       return navResult;
     }
-    if (event.logicalKey != LogicalKeyboardKey.enter) {
+    if (!isComposerSubmitKey(event.logicalKey)) {
       return KeyEventResult.ignored;
+    }
+    if (event is KeyRepeatEvent) {
+      return KeyEventResult.handled;
     }
     if (HardwareKeyboard.instance.isShiftPressed) {
       return KeyEventResult.ignored;
@@ -381,6 +386,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
 
   @override
   Widget build(BuildContext context) {
+    _enterToSendEnabled = _isDesktop || (kIsWeb && isWideLayout(context));
     ref
       ..listen<String>(
         chatViewModelProvider.select((state) => state.messageText),
