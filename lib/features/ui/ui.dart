@@ -51,6 +51,7 @@ export 'package:fluxer_app/features/ui/settings/fluxer_sheet_section_nav.dart';
 export 'package:fluxer_app/features/ui/slider/fluxer_slider.dart';
 export 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 export 'package:fluxer_app/features/ui/status_indicator/fluxer_status_indicator.dart';
+export 'package:fluxer_app/features/ui/status_indicator/fluxer_typing_status_indicator.dart';
 export 'package:fluxer_app/features/ui/switch_group/fluxer_switch_group.dart';
 export 'package:fluxer_app/features/ui/tabs/fluxer_segmented_tabs.dart';
 // Navigation

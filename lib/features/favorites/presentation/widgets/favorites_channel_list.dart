@@ -12,6 +12,8 @@ import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.d
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_unread_indicator.dart';
 import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
+import 'package:fluxer_app/features/channels/providers/channel_typing_provider.dart';
+import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/group_dm_avatar.dart';
 import 'package:fluxer_app/features/favorites/domain/resolved_favorite_entry.dart';
 import 'package:fluxer_app/features/favorites/presentation/widgets/favorites_channel_context_menu.dart';
@@ -426,9 +428,16 @@ class _FavoriteLeadingIcon extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dm = entry.dm;
     if (dm != null && dm.isGroup) {
-      return groupDmAvatarCluster(dm: dm, size: _avatarSize, status: null);
+      final bool isTyping = ref.watch(dmAvatarIsTypingProvider(dm));
+      return groupDmAvatarCluster(
+        dm: dm,
+        size: _avatarSize,
+        status: dm.groupStatus,
+        isTyping: isTyping,
+      );
     }
     if (dm != null) {
+      final bool isTyping = ref.watch(dmAvatarIsTypingProvider(dm));
       return FluxerAvatar.user(
         fallbackText: dm.displayName,
         userId: dm.recipientId,
@@ -439,6 +448,8 @@ class _FavoriteLeadingIcon extends ConsumerWidget {
                 hash: dm.recipientAvatar,
               ),
         status: dm.recipientStatus,
+        showStatus: shouldShowDmRecipientPresence(dm) || isTyping,
+        isTyping: isTyping,
         size: _avatarSize,
       );
     }

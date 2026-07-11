@@ -12,6 +12,7 @@ import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/channels/providers/channel_typing_provider.dart';
 import 'package:fluxer_app/features/channels/presentation/sheets/mute_duration_sheet.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_unread_indicator.dart';
 import 'package:fluxer_app/features/channels/utils/navigate_to_channel_content.dart';
@@ -753,6 +754,9 @@ class _DMListState extends ConsumerState<DMList> {
               children: [
                 Consumer(
                   builder: (context, ref, _) {
+                    final bool isTyping = ref.watch(
+                      dmAvatarIsTypingProvider(c),
+                    );
                     if (c.isGroup) {
                       final String? status = ref.watch(
                         dmListRecipientRowDataProvider.select(
@@ -768,6 +772,7 @@ class _DMListState extends ConsumerState<DMList> {
                         dm: c,
                         size: avatarSize,
                         status: status,
+                        isTyping: isTyping,
                       );
                     }
                     final bool showPresence = shouldShowDmRecipientPresence(c);
@@ -790,7 +795,8 @@ class _DMListState extends ConsumerState<DMList> {
                         animated: isSelected,
                       ),
                       status: status,
-                      showStatus: showPresence,
+                      showStatus: showPresence || isTyping,
+                      isTyping: isTyping,
                       size: avatarSize,
                     );
                   },
@@ -1681,6 +1687,7 @@ class _DmBottomSheet extends ConsumerWidget {
         final Map<String, DmListRecipientRowData> recipientRows =
             ref.watch(dmListRecipientRowDataProvider).value ??
             const <String, DmListRecipientRowData>{};
+        final bool isTyping = ref.watch(dmAvatarIsTypingProvider(convo));
         return SafeArea(
           bottom: Platform.isAndroid,
           child: Column(
@@ -1712,7 +1719,9 @@ class _DmBottomSheet extends ConsumerWidget {
                             ? recipientRows[convo.recipientId]?.status ??
                                   'offline'
                             : null,
-                        showStatus: shouldShowDmRecipientPresence(convo),
+                        showStatus:
+                            shouldShowDmRecipientPresence(convo) || isTyping,
+                        isTyping: isTyping,
                         size: 48,
                       ),
                 title: displayName,

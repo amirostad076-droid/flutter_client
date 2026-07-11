@@ -12,6 +12,7 @@ import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
+import 'package:fluxer_app/features/channels/providers/channel_typing_provider.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
@@ -606,11 +607,17 @@ class ChannelHeader extends ConsumerWidget {
         connectedVoiceGuildId: voice.guildId,
         connectedVoiceChannelId: voice.channelId,
       );
+      final bool isTyping = ref.watch(dmAvatarIsTypingProvider(dm));
       return Stack(
         clipBehavior: Clip.none,
         children: <Widget>[
           if (dm.isGroup)
-            groupDmAvatarCluster(dm: dm, size: 32, status: dm.groupStatus)
+            groupDmAvatarCluster(
+              dm: dm,
+              size: 32,
+              status: dm.groupStatus,
+              isTyping: isTyping,
+            )
           else
             FluxerAvatar.user(
               fallbackText: dm.recipientName,
@@ -623,7 +630,8 @@ class ChannelHeader extends ConsumerWidget {
               status: shouldShowDmRecipientPresence(dm)
                   ? dm.recipientStatus
                   : null,
-              showStatus: shouldShowDmRecipientPresence(dm),
+              showStatus: shouldShowDmRecipientPresence(dm) || isTyping,
+              isTyping: isTyping,
               size: 32,
             ),
           if (showE2eeBadge)
