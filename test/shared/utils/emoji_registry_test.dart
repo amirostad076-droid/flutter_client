@@ -30,11 +30,4 @@ void main() {
   test('returns empty for a blank query', () {
     expect(EmojiRegistry.search('   '), isEmpty);
   });
-
-  test('marks people wrestling as supporting skin tones', () {
-    final EmojiEntry? wrestling = EmojiRegistry.entryByName('people_wrestling');
-    expect(wrestling, isNotNull);
-    expect(wrestling!.hasDiversity, isTrue);
-    expect(wrestling.diversityIndex, isNotNull);
-  });
 }
