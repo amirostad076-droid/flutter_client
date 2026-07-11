@@ -770,6 +770,18 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           const Padding(padding: EdgeInsets.only(top: 4), child: EmbedTheme()),
         ),
       ),
+      if (msg.attachments.isNotEmpty)
+        AttachmentListRenderer(
+          attachments: msg.attachments,
+          inlineAttachmentMedia: inlineAttachmentMedia,
+          dimensionSize: attachmentSize,
+          revealSpoilers: revealSpoilers,
+          messageId: msg.id,
+          messageNonce: msg.clientNonce,
+          channelId: msg.channelId,
+          messageFlags: msg.flags,
+          videoActionScope: _videoActionScope,
+        ),
       if (renderEmbeds && !msg.suppressEmbeds)
         ...() {
           final EmbedGalleryIndex galleryIndex = EmbedGalleryIndex(msg.embeds);
@@ -797,18 +809,6 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                 );
               });
         }(),
-      if (msg.attachments.isNotEmpty)
-        AttachmentListRenderer(
-          attachments: msg.attachments,
-          inlineAttachmentMedia: inlineAttachmentMedia,
-          dimensionSize: attachmentSize,
-          revealSpoilers: revealSpoilers,
-          messageId: msg.id,
-          messageNonce: msg.clientNonce,
-          channelId: msg.channelId,
-          messageFlags: msg.flags,
-          videoActionScope: _videoActionScope,
-        ),
       if (msg.hasStickers)
         wrapPart(
           Padding(
