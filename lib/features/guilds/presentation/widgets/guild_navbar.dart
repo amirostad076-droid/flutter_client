@@ -123,7 +123,7 @@ class GuildNavbar extends ConsumerStatefulWidget {
 class _GuildNavbarState extends ConsumerState<GuildNavbar> {
   late final ScrollController _scrollController;
   final Map<String, GlobalKey> _itemKeys = <String, GlobalKey>{};
-  late final UnreadScrollIndicatorController _scrollIndicator;
+  late final GuildScrollIndicatorController _scrollIndicator;
   bool _restoring = false;
   bool _needsScrollClamp = false;
   GuildNavbarScrollStore? _scrollStore;
@@ -136,7 +136,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
     _needsScrollClamp = savedOffset > 0;
     _scrollController = ScrollController(initialScrollOffset: savedOffset)
       ..addListener(_persistScroll);
-    _scrollIndicator = UnreadScrollIndicatorController(
+    _scrollIndicator = GuildScrollIndicatorController(
       scrollController: _scrollController,
       itemKeys: _itemKeys,
       resolveSeverity: _resolveGuildScrollSeverity,
@@ -287,7 +287,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
     super.dispose();
   }
 
-  ScrollIndicatorSeverity? _resolveGuildScrollSeverity(String guildId) {
+  GuildScrollIndicatorSeverity? _resolveGuildScrollSeverity(String guildId) {
     final GuildReadStateEntry? unread = ref.read(
       guildReadStateProvider,
     )[guildId];
@@ -295,10 +295,10 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       return null;
     }
     if (unread.mentionCount > 0) {
-      return ScrollIndicatorSeverity.mention;
+      return GuildScrollIndicatorSeverity.mention;
     }
     if (unread.hasUnread) {
-      return ScrollIndicatorSeverity.unread;
+      return GuildScrollIndicatorSeverity.unread;
     }
     return null;
   }
@@ -391,7 +391,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       ),
       child: ScrollConfiguration(
         behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
-        child: UnreadScrollIndicatorLayer(
+        child: GuildScrollIndicatorLayer(
           controller: _scrollIndicator,
           label: l10n.scrollIndicatorNew,
           topInset: 8 + topPadding,
