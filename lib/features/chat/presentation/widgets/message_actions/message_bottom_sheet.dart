@@ -15,6 +15,8 @@ import 'package:fluxer_app/features/chat/providers/core/chat_providers.dart';
 import 'package:fluxer_app/features/chat/providers/messages/saved_message_provider.dart';
 import 'package:fluxer_app/features/chat/utils/message_action_permissions.dart';
 import 'package:fluxer_app/features/chat/utils/message_link.dart';
+import 'package:fluxer_app/features/messaging/data/saved_messages_repository.dart';
+import 'package:fluxer_app/features/messaging/providers/saved_messages_sync_provider.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
 import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
@@ -131,13 +133,22 @@ Future<void> dispatchMessageAction({
             ),
           );
     case MessageAction.bookmark:
-      final dao = ref.read(fluxerDatabaseProvider).savedMessageDao;
+      final SavedMessagesRepository repository = ref.read(
+        savedMessagesRepositoryProvider,
+      );
       final String messageId = message.id;
+      final String channelId = message.channelId;
       unawaited(() async {
-        if (await dao.isSaved(messageId)) {
-          await dao.removeSavedMessage(messageId);
+        if (await ref
+            .read(fluxerDatabaseProvider)
+            .savedMessageDao
+            .isSaved(messageId)) {
+          await repository.unsaveMessage(messageId);
         } else {
-          await dao.addSavedMessage(messageId);
+          await repository.saveMessage(
+            channelId: channelId,
+            messageId: messageId,
+          );
         }
       }());
     case MessageAction.pin:

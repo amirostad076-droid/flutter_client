@@ -47,7 +47,6 @@ import 'package:fluxer_app/features/voice/utils/call_actions.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/sheets/add_friend_sheet.dart';
 import 'package:fluxer_app/shared/widgets/debug_bottom_sheet.dart';
-import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class DMList extends ConsumerStatefulWidget {
@@ -162,11 +161,7 @@ class _DMListState extends ConsumerState<DMList> {
     final List<DmConversation> convos = ref.watch(
       dmViewModelProvider.select((DmViewState state) => state.conversations),
     );
-    final location = ref.watch(currentLocationProvider);
-    const mePrefix = '${RoutePaths.me}/';
-    final selectedId = location.startsWith(mePrefix)
-        ? location.substring(mePrefix.length)
-        : null;
+    final String? selectedId = ref.watch(activeChannelIdProvider);
 
     final isMobile = isMobileLayout(context);
     final pinnedIds = ref.watch(pinnedDmChannelIdsProvider).value ?? {};
@@ -196,8 +191,9 @@ class _DMListState extends ConsumerState<DMList> {
                 _buildMobileHeader(context),
                 Divider(color: context.colors.borderColor, height: 1),
               ] else ...[
-                _buildQuickSwitcher(context),
-                Divider(color: context.colors.borderColor, height: 1),
+                // TODO: fully setup
+                // _buildQuickSwitcher(context),
+                // Divider(color: context.colors.borderColor, height: 1),
                 Builder(
                   builder: (context) {
                     final location = ref.watch(currentLocationProvider);
@@ -216,7 +212,7 @@ class _DMListState extends ConsumerState<DMList> {
                             icon: PhosphorIconsFill.users,
                             label: 'Friends',
                             isSelected: isFriends,
-                            onTap: () => context.go(RoutePaths.me),
+                            onTap: () => navigateToDmFriendsContent(context),
                           ),
                           _buildNavButton(
                             context,
@@ -237,12 +233,12 @@ class _DMListState extends ConsumerState<DMList> {
                                   )
                                 : null,
                           ),
-                          _buildNavButton(
-                            context,
-                            icon: PhosphorIconsFill.skull,
-                            label: 'Plutonium',
-                            onTap: () {},
-                          ),
+                          // _buildNavButton(
+                          //   context,
+                          //   icon: PhosphorIconsFill.skull,
+                          //   label: 'Plutonium',
+                          //   onTap: () {},
+                          // ),
                         ],
                       ),
                     );

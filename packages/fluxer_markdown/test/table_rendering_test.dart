@@ -153,7 +153,7 @@ void main() {
       );
       expect(decoration.border?.top.color, _tableBorderColor);
       final Table table = tester.widget<Table>(find.byType(Table));
-      expect(table.border?.horizontalInside?.color, _tableBorderColor);
+      expect(table.border?.horizontalInside.color, _tableBorderColor);
     });
 
     testWidgets('embed context does not render table structure', (

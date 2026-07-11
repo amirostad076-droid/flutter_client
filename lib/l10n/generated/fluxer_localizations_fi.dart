@@ -6390,6 +6390,19 @@ class FluxerLocalizationsFi extends FluxerLocalizations {
   String get quickSwitcherBookmarksLabel => 'Kirjanmerkit';
 
   @override
+  String get savedMessagesEmptyTitle => 'No bookmarks';
+
+  @override
+  String get savedMessagesEmptyBody =>
+      'Bookmark messages to save them for later.';
+
+  @override
+  String get savedMessagesEndBody => 'There\'s nothing more to see here.';
+
+  @override
+  String get savedMessagesRemoveTooltip => 'Remove bookmark';
+
+  @override
   String get quickSwitcherMentionsLabel => 'Maininnat';
 
   @override

@@ -729,13 +729,13 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             ),
             const SizedBox(width: 4),
             if (!hasSendable) ...[
-              IconButton(
-                icon: const PhosphorIcon(PhosphorIconsFill.gift, size: 24),
-                color: context.colors.interactiveNormal,
-                onPressed: perms.isComposerEnabled ? () {} : null,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
+              // IconButton(
+              //   icon: const PhosphorIcon(PhosphorIconsFill.gift, size: 24),
+              //   color: context.colors.interactiveNormal,
+              //   onPressed: perms.isComposerEnabled ? () {} : null,
+              //   padding: EdgeInsets.zero,
+              //   constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              // ),
               if (perms.canShowEmbedControls)
                 FluxerEmojiPickerPopout(
                   key: _gifPickerKey,

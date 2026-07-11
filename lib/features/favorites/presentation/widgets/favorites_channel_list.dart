@@ -44,9 +44,7 @@ class FavoritesChannelList extends ConsumerWidget {
         ? const <String>{}
         : favoriteSettingsCollapsedCategoryIds(settings).toSet();
     final hideMuted = settings?.hideMuted ?? false;
-    final canReorder =
-        layoutModeOf(layoutReferenceExtentOf(MediaQuery.sizeOf(context))) ==
-        LayoutMode.desktop;
+    final canReorder = isWideLayout(context);
 
     if (groups.isEmpty) {
       return Center(

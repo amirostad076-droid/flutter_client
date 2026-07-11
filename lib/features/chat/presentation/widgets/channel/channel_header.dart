@@ -36,6 +36,7 @@ import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxer_app/features/notifications/presentation/inbox_popout.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/navigation/drawer_navigation_coordinator.dart';
 import 'package:fluxer_app/features/shell/navigation/shell_back_resolver.dart';
@@ -387,6 +388,7 @@ class ChannelHeader extends ConsumerWidget {
             ),
           ],
           const SizedBox(width: 8),
+          const Spacer(),
           if (dm != null && canStartDmCall(dm)) ...[
             FluxerButton.circle(
               icon: PhosphorIconsFill.phone,
@@ -411,7 +413,6 @@ class ChannelHeader extends ConsumerWidget {
             ),
             const SizedBox(width: 8),
           ],
-          const Spacer(),
           if (showMessageActions) ...[
             if (dm != null &&
                 dm.isGroup &&
@@ -502,14 +503,27 @@ class ChannelHeader extends ConsumerWidget {
                   ),
                 ),
               ),
-            _topBarIcon(
-              context,
-              PhosphorIconsFill.tray,
-              'Inbox',
-              onTap: () => ref
-                  .read(fluxerRouterProvider)
-                  .go(RoutePaths.notificationsPath),
-            ),
+            if (isWideLayout(context))
+              InboxPopoutButton(
+                anchorBuilder:
+                    (BuildContext context, bool isOpen, VoidCallback toggle) =>
+                        _topBarIcon(
+                          context,
+                          PhosphorIconsFill.tray,
+                          'Inbox',
+                          isActive: isOpen,
+                          onTap: toggle,
+                        ),
+              )
+            else
+              _topBarIcon(
+                context,
+                PhosphorIconsFill.tray,
+                'Inbox',
+                onTap: () => ref
+                    .read(fluxerRouterProvider)
+                    .go(RoutePaths.notificationsPath),
+              ),
           ],
         ],
       ),

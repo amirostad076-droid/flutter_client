@@ -10863,6 +10863,30 @@ abstract class FluxerLocalizations {
   /// **'Bookmarks'**
   String get quickSwitcherBookmarksLabel;
 
+  /// Empty-state title on the saved messages page.
+  ///
+  /// In en, this message translates to:
+  /// **'No bookmarks'**
+  String get savedMessagesEmptyTitle;
+
+  /// Empty-state body on the saved messages page.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmark messages to save them for later.'**
+  String get savedMessagesEmptyBody;
+
+  /// End-of-list body on the saved messages page.
+  ///
+  /// In en, this message translates to:
+  /// **'There\'s nothing more to see here.'**
+  String get savedMessagesEndBody;
+
+  /// Tooltip for removing a saved message bookmark.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove bookmark'**
+  String get savedMessagesRemoveTooltip;
+
   /// Quick switcher settings entry for mentions.
   ///
   /// In en, this message translates to:
