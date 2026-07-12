@@ -93,6 +93,7 @@ class ChatViewState {
   final int scrollToBottomSignal;
   final (String messageId, int version)? scrollToMessageSignal;
   final String? stickyUnreadMessageId;
+  final String? pendingAutoAckMessageId;
   final String? highlightedMessageId;
   final int jumpHighlightSequence;
   final String? revealedCollapsedGroupKey;
@@ -123,6 +124,7 @@ class ChatViewState {
     this.messageLoadFailed = false,
     this.scrollToMessageSignal,
     this.stickyUnreadMessageId,
+    this.pendingAutoAckMessageId,
     this.highlightedMessageId,
     this.jumpHighlightSequence = 0,
     this.revealedCollapsedGroupKey,
@@ -140,6 +142,7 @@ class ChatViewState {
     int? scrollToBottomSignal,
     Object? scrollToMessageSignal = _unset,
     Object? stickyUnreadMessageId = _unset,
+    Object? pendingAutoAckMessageId = _unset,
     Object? highlightedMessageId = _unset,
     Object? revealedCollapsedGroupKey = _unset,
     int? jumpHighlightSequence,
@@ -170,6 +173,9 @@ class ChatViewState {
       stickyUnreadMessageId: stickyUnreadMessageId == _unset
           ? this.stickyUnreadMessageId
           : stickyUnreadMessageId as String?,
+      pendingAutoAckMessageId: pendingAutoAckMessageId == _unset
+          ? this.pendingAutoAckMessageId
+          : pendingAutoAckMessageId as String?,
       highlightedMessageId: highlightedMessageId == _unset
           ? this.highlightedMessageId
           : highlightedMessageId as String?,
@@ -355,6 +361,7 @@ class ChatViewModel extends _$ChatViewModel {
     var droppedOlder = false;
     var shouldAck = false;
     var clearSticky = false;
+    String? ackWatermark;
     for (final MessageRealtimeEvent event in events) {
       if (event is! MessageCreated) {
         continue;
@@ -376,7 +383,12 @@ class ChatViewModel extends _$ChatViewModel {
         workingMessages = trim.messages;
         droppedOlder = droppedOlder || trim.droppedOlder;
       }
-      if (!event.snapshot.acknowledgedByGateway) {
+      if (event.snapshot.acknowledgedByGateway) {
+        final String messageId = event.event.message.id;
+        if (compareSnowflakeIds(messageId, ackWatermark) > 0) {
+          ackWatermark = messageId;
+        }
+      } else {
         shouldAck = true;
       }
       if (event.event.message.author.id == ref.read(currentUserIdProvider)) {
@@ -392,9 +404,14 @@ class ChatViewModel extends _$ChatViewModel {
       }
       return;
     }
+    var pendingAutoAckMessageId = state.pendingAutoAckMessageId;
+    if (compareSnowflakeIds(ackWatermark, pendingAutoAckMessageId) > 0) {
+      pendingAutoAckMessageId = ackWatermark;
+    }
     state = state.copyWith(
       messages: workingMessages,
       hasMoreMessages: droppedOlder || state.hasMoreMessages,
+      pendingAutoAckMessageId: pendingAutoAckMessageId,
     );
     if (clearSticky) {
       clearStickyUnread();
@@ -426,6 +443,13 @@ class ChatViewModel extends _$ChatViewModel {
         nextMessages = trim.messages;
         droppedOlder = trim.droppedOlder;
       }
+      var pendingAutoAckMessageId = state.pendingAutoAckMessageId;
+      if (ev is MessageCreated &&
+          ev.snapshot.acknowledgedByGateway &&
+          compareSnowflakeIds(ev.event.message.id, pendingAutoAckMessageId) >
+              0) {
+        pendingAutoAckMessageId = ev.event.message.id;
+      }
       state = state.copyWith(
         messages: nextMessages,
         editingMessage: clearEditing || clearComposerForDelete
@@ -437,6 +461,7 @@ class ChatViewModel extends _$ChatViewModel {
         replyingTo: clearComposerForDelete ? null : state.replyingTo,
         replyMentioning: !clearComposerForDelete && state.replyMentioning,
         hasMoreMessages: droppedOlder || state.hasMoreMessages,
+        pendingAutoAckMessageId: pendingAutoAckMessageId,
       );
       if (clearComposerForDelete) {
         unawaited(_flushComposerDraftSave());

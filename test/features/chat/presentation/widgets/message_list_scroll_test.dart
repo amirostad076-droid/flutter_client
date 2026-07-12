@@ -18,6 +18,7 @@ import 'package:fluxer_app/features/channels/providers/channel_list_view_model.d
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_item.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_list.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_list_overlay.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_list_pagination.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_list_unread_review.dart';
 import 'package:fluxer_app/features/chat/providers/channel/channel_message_permissions_provider.dart';
@@ -1081,6 +1082,164 @@ void main() {
     );
   });
 
+  group('live unread indicators', () {
+    testWidgets('acked append at bottom never renders unread indicators', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(420, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final _AroundAckMessageListHarness harness =
+          await _createBottomMessageListHarness();
+      await tester.pumpWidget(
+        _messageListApp(
+          database: harness.database,
+          chatViewModel: harness.chatViewModel,
+        ),
+      );
+      addTearDown(() async {
+        await _disposeMessageList(tester);
+        await tester.pumpAndSettle();
+      });
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+      final ScrollPosition position = _messageListScrollPosition(tester);
+      position.jumpTo(
+        position.minScrollExtent + kMessageListReadBottomThreshold + 100,
+      );
+      await tester.pump();
+      position.jumpTo(position.minScrollExtent);
+      await tester.pump();
+      await tester.pump();
+      expect(
+        position.pixels - position.minScrollExtent,
+        lessThanOrEqualTo(kMessageListReadBottomThreshold),
+      );
+      final ProviderContainer container = ProviderScope.containerOf(
+        tester.element(find.byType(MessageList)),
+      );
+      expect(container.read(chatReadViewportProvider).nearLoadedTail, isTrue);
+
+      harness.appendRealtimeMessage(acknowledgedByGateway: true);
+
+      for (var frame = 1; frame <= 5; frame += 1) {
+        await tester.pump();
+        expect(
+          find.byType(MessageListNewMessagesBar),
+          findsNothing,
+          reason: 'floating unread bar appeared on frame $frame',
+        );
+        expect(
+          find.text('NEW'),
+          findsNothing,
+          reason: 'inline NEW divider appeared on frame $frame',
+        );
+      }
+      await _disposeMessageList(tester);
+    });
+
+    testWidgets(
+      'unacked append while scrolled up keeps the unread bar visible',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(420, 640);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final _AroundAckMessageListHarness harness =
+            await _createBottomMessageListHarness();
+        await tester.pumpWidget(
+          _messageListApp(
+            database: harness.database,
+            chatViewModel: harness.chatViewModel,
+          ),
+        );
+        addTearDown(() async {
+          await _disposeMessageList(tester);
+          await tester.pumpAndSettle();
+        });
+        await tester.pump();
+        await tester.pump();
+        await tester.pump();
+        final ScrollPosition position = _messageListScrollPosition(tester);
+        position.jumpTo(
+          position.minScrollExtent + kMessageListReadBottomThreshold + 200,
+        );
+        await tester.pump();
+        await tester.pump();
+        expect(
+          position.pixels - position.minScrollExtent,
+          greaterThan(kMessageListReadBottomThreshold),
+        );
+        final ProviderContainer container = ProviderScope.containerOf(
+          tester.element(find.byType(MessageList)),
+        );
+        expect(
+          container.read(chatReadViewportProvider).nearLoadedTail,
+          isFalse,
+        );
+
+        harness.appendRealtimeMessage(acknowledgedByGateway: false);
+
+        for (var frame = 1; frame <= 5; frame += 1) {
+          await tester.pump();
+          expect(
+            find.byType(MessageListNewMessagesBar),
+            findsOneWidget,
+            reason: 'floating unread bar missing on frame $frame',
+          );
+        }
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets('manual unread rollback ignores the auto-ack watermark', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(420, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final _AroundAckMessageListHarness harness =
+          await _createBottomMessageListHarness();
+      await tester.pumpWidget(
+        _messageListApp(
+          database: harness.database,
+          chatViewModel: harness.chatViewModel,
+        ),
+      );
+      addTearDown(() async {
+        await _disposeMessageList(tester);
+        await tester.pumpAndSettle();
+      });
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+
+      harness.chatViewModel._testState = harness.chatViewModel._testState
+          .copyWith(pendingAutoAckMessageId: harness.newestLoadedId);
+      await harness.database.readStateDao.upsertReadState(
+        db.ReadStatesCompanion(
+          channelId: const Value<String>(_messageListChannelId),
+          lastMessageId: Value<String?>(harness.ackId),
+          manual: const Value<bool>(true),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+
+      final Finder unreadBar = find.byType(MessageListNewMessagesBar);
+      expect(unreadBar, findsOneWidget);
+      expect(tester.widget<MessageListNewMessagesBar>(unreadBar).count, 1);
+      await _disposeMessageList(tester);
+    });
+  });
+
   group('reveal round-trip visibility', () {
     testWidgets(
       'toggling visible off and on preserves list state and scroll offset',
@@ -1369,6 +1528,24 @@ class _AroundAckMessageListHarness {
     chatViewModel._testState = chatViewModel._testState.copyWith(
       messages: next,
     );
+  }
+
+  String appendRealtimeMessage({required bool acknowledgedByGateway}) {
+    final List<Message> next = List<Message>.of(
+      chatViewModel._testState.messages,
+    );
+    final DateTime timestamp = next.last.timestamp.add(
+      const Duration(minutes: 1),
+    );
+    final String id = _snowflakeForUtc(timestamp);
+    next.add(
+      _message(id: id, content: 'realtime message', timestamp: timestamp),
+    );
+    chatViewModel._testState = chatViewModel._testState.copyWith(
+      messages: next,
+      pendingAutoAckMessageId: acknowledgedByGateway ? id : null,
+    );
+    return id;
   }
 
   void prependOlderMessages({required int count}) {

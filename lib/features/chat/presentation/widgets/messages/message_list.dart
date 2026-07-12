@@ -11,6 +11,7 @@ import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
+import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/chat/data/chat_unread_summary.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
@@ -1700,6 +1701,11 @@ class _MessageListState extends ConsumerState<MessageList> {
         (ChatViewState s) => s.stickyUnreadMessageId,
       ),
     );
+    final String? pendingAutoAckId = ref.watch(
+      chatViewModelProvider.select(
+        (ChatViewState s) => s.pendingAutoAckMessageId,
+      ),
+    );
     final String? highlightedMessageId = ref.watch(
       chatViewModelProvider.select((ChatViewState s) => s.highlightedMessageId),
     );
@@ -1771,9 +1777,14 @@ class _MessageListState extends ConsumerState<MessageList> {
         ? const AsyncValue<drift_db.ReadState?>.data(null)
         : ref.watch(_messageListReadStateProvider(channelId));
     final drift_db.ReadState? readState = readStateAsync.asData?.value;
+    final String? effectiveAckId = readState?.manual ?? false
+        ? readState?.lastMessageId
+        : compareSnowflakeIds(pendingAutoAckId, readState?.lastMessageId) > 0
+        ? pendingAutoAckId
+        : readState?.lastMessageId;
     final ChatUnreadSummary unreadSummary = _unreadSummaryFor(
       messages: messages,
-      ackLastMessageId: readState?.lastMessageId,
+      ackLastMessageId: effectiveAckId,
       mentionCount: readState?.mentionCount ?? 0,
       currentUserId: currentUserId,
       channelLastMessageId: _channelLastMessageIdFor(channelId),
@@ -1817,13 +1828,18 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
     _syncAnchorBaselineFromBuild(channelStream);
     final int unreadCount = unreadSummary.displayUnreadCount;
-    final bool liveNearBottom = _isNearLiveTail();
+    final bool viewportNearTail = ref.watch(
+      chatReadViewportProvider.select(
+        (ChatReadViewportState s) =>
+            s.channelId == channelId && s.nearLoadedTail,
+      ),
+    );
+    final bool liveNearBottom = _isNearLiveTail() || viewportNearTail;
     final bool showUnreadBarEligible = shouldShowUnreadBar(
       hasUnread: unreadCount > 0,
       liveNearBottom: liveNearBottom,
       hasMoreNewerMessages: hasMoreNewerMessages,
       isManualReadState: readState?.manual ?? false,
-      stickyUnreadMessageId: stickyUnreadId,
     );
     final DateTime? unreadSince = _messageTimestamp(messages, visualUnreadId);
     final int chatFontSize = ref.watch(
