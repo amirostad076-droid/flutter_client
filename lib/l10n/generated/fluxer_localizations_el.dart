@@ -5691,7 +5691,7 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
   }
 
   @override
-  String get channelDetailsChannelSettingsTitle => 'Channel Settings';
+  String get channelDetailsChannelSettingsTitle => 'Channel settings';
 
   @override
   String get channelDetailsGroupSettingsTitle => 'Group Settings';
@@ -5712,10 +5712,457 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
   String get channelDetailsGroupInvites => 'Group invites';
 
   @override
-  String get channelDetailsEditChannel => 'Edit Channel';
+  String get channelDetailsEditChannel => 'Edit channel';
 
   @override
-  String get channelDetailsDeleteChannel => 'Delete Channel';
+  String get channelDetailsDeleteChannel => 'Delete channel';
+
+  @override
+  String get channelSettingsCategorySettingsTitle => 'Category settings';
+
+  @override
+  String get channelSettingsEditCategory => 'Edit category';
+
+  @override
+  String get channelSettingsTabOverview => 'Overview';
+
+  @override
+  String get channelSettingsTabPermissions => 'Permissions';
+
+  @override
+  String get channelSettingsTabInvites => 'Invites';
+
+  @override
+  String get channelSettingsTabWebhooks => 'Webhooks';
+
+  @override
+  String get channelSettingsDeleteChannel => 'Delete channel';
+
+  @override
+  String channelSettingsDeleteChannelConfirm(String channelName) {
+    return 'Are you sure you want to delete $channelName? This cannot be undone.';
+  }
+
+  @override
+  String channelSettingsDeleteCategoryConfirm(String categoryName) {
+    return 'Are you sure you want to delete $categoryName? This cannot be undone.';
+  }
+
+  @override
+  String get channelSettingsDeleteCategory => 'Delete category';
+
+  @override
+  String get channelSettingsChannelUpdated => 'Channel updated';
+
+  @override
+  String get channelSettingsChannelName => 'Channel name';
+
+  @override
+  String get channelSettingsCategoryName => 'Category name';
+
+  @override
+  String get channelSettingsMyCategory => 'My category';
+
+  @override
+  String get channelSettingsChannelNamePlaceholder => 'general';
+
+  @override
+  String get channelSettingsUrl => 'URL';
+
+  @override
+  String get channelSettingsUrlPlaceholder => 'https://example.com';
+
+  @override
+  String get channelSettingsTopic => 'Topic';
+
+  @override
+  String get channelSettingsTopicPlaceholder => 'Add a topic to this channel';
+
+  @override
+  String get channelSettingsInsertEmoji => 'Insert emoji';
+
+  @override
+  String get channelSettingsTopicTooLongTitle => 'Channel topic is too long.';
+
+  @override
+  String get channelSettingsTopicTooLongMessage =>
+      'Shorten the topic and try again.';
+
+  @override
+  String get channelSettingsSlowmode => 'Slowmode';
+
+  @override
+  String channelSettingsSlowmodeDescription(
+    String bypassSlowmodePermissionLabel,
+  ) {
+    return 'Wait between messages. \"$bypassSlowmodePermissionLabel\" can bypass it.';
+  }
+
+  @override
+  String get channelSettingsSlowmodeOff => 'Off';
+
+  @override
+  String channelSettingsSlowmodeSeconds(int seconds) {
+    return '$seconds seconds';
+  }
+
+  @override
+  String channelSettingsSlowmodeMinutes(int minutes) {
+    return '$minutes minutes';
+  }
+
+  @override
+  String channelSettingsSlowmodeHours(int hours) {
+    return '$hours hours';
+  }
+
+  @override
+  String channelSettingsSlowmodeOneMinute(int oneMinute) {
+    return '$oneMinute minute';
+  }
+
+  @override
+  String channelSettingsSlowmodeOneHour(int oneHour) {
+    return '$oneHour hour';
+  }
+
+  @override
+  String get channelSettingsVoiceQuality => 'Voice quality';
+
+  @override
+  String get channelSettingsVoiceQualityDescription =>
+      'Higher bitrate = better quality and higher bandwidth usage.';
+
+  @override
+  String channelSettingsVoiceQualityKbps(int kilobits) {
+    return '$kilobits kbps';
+  }
+
+  @override
+  String get channelSettingsParticipantLimit => 'Participant limit';
+
+  @override
+  String get channelSettingsParticipantLimitDescription =>
+      'Maximum members who can join at once. 0 means unlimited.';
+
+  @override
+  String channelSettingsParticipantLimitValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count participants',
+      one: '1 participant',
+      zero: '∞ No limit',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get channelSettingsConnectionLimit => 'Connection limit';
+
+  @override
+  String get channelSettingsConnectionLimitDescription =>
+      'Maximum active connections one member can keep in this channel.';
+
+  @override
+  String channelSettingsConnectionLimitValue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count connections',
+      one: '1 connection',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get channelSettingsVoiceRegion => 'Voice region';
+
+  @override
+  String get channelSettingsVoiceRegionDescription =>
+      'Select a voice region for this channel. Automatic uses the closest region.';
+
+  @override
+  String get channelSettingsVoiceRegionAutomatic => 'Automatic';
+
+  @override
+  String get channelSettingsVoiceRegionsLoadFailed =>
+      'Couldn\'t load voice regions';
+
+  @override
+  String get channelSettingsVoiceRegionsLoadFailedDescription =>
+      'Try again in a moment.';
+
+  @override
+  String get channelSettingsResetSlider => 'Reset slider to default value';
+
+  @override
+  String get channelSettingsAdvanced => 'Advanced';
+
+  @override
+  String get channelSettingsMatureContentOverride => 'Mature content override';
+
+  @override
+  String channelSettingsMatureContentSectionDescription(String scopeLevel) {
+    return 'Override the $scopeLevel-level setting for this channel. Mature content is shown behind a gate before entry.';
+  }
+
+  @override
+  String get channelSettingsMatureContentInherit => 'Inherit';
+
+  @override
+  String get channelSettingsMatureContentOn => 'On';
+
+  @override
+  String get channelSettingsMatureContentOff => 'Off';
+
+  @override
+  String get channelSettingsMatureContentOnDescription =>
+      'Marks this channel for mature content.';
+
+  @override
+  String get channelSettingsMatureContentOffDescription =>
+      'Leave this channel ungated for mature content.';
+
+  @override
+  String channelSettingsMatureContentInheritsOn(String inheritedSourceLabel) {
+    return 'Inherited from $inheritedSourceLabel: on';
+  }
+
+  @override
+  String channelSettingsMatureContentInheritsOff(String inheritedSourceLabel) {
+    return 'Inherited from $inheritedSourceLabel: off';
+  }
+
+  @override
+  String get channelSettingsMatureContentCategorySource => 'category';
+
+  @override
+  String get channelSettingsMatureContentCommunitySource => 'community';
+
+  @override
+  String get channelSettingsMatureContentCategoryScope => 'Category';
+
+  @override
+  String get channelSettingsMatureContentCommunityScope => 'Community';
+
+  @override
+  String get channelSettingsContentWarningToggle =>
+      'Show a content warning in this channel';
+
+  @override
+  String get channelSettingsContentWarningToggleDescription =>
+      'Turns on a consent prompt before entering this channel.';
+
+  @override
+  String get channelSettingsContentWarningText => 'Custom warning text';
+
+  @override
+  String get channelSettingsContentWarningDefault =>
+      'This contains sensitive content.';
+
+  @override
+  String channelSettingsPermissionsNeedManageChannels(
+    String manageChannelsPermissionLabel,
+  ) {
+    return 'You need the \"$manageChannelsPermissionLabel\" permission to edit these permissions.';
+  }
+
+  @override
+  String channelSettingsPermissionsNeedManageRoles(
+    String manageRolesPermissionLabel,
+  ) {
+    return 'You need the \"$manageRolesPermissionLabel\" permission to edit these permissions.';
+  }
+
+  @override
+  String get channelSettingsUnknownRole => 'Unknown role';
+
+  @override
+  String get channelSettingsUnknownUser => 'Unknown user';
+
+  @override
+  String get channelSettingsEveryoneRole => '@everyone';
+
+  @override
+  String get channelSettingsPermissionsAccessOverrides => 'Access overrides';
+
+  @override
+  String channelSettingsPermissionsEditAccessFor(String name) {
+    return 'Edit access for $name';
+  }
+
+  @override
+  String get channelSettingsPermissionsBackToOverrides => 'Back to overrides';
+
+  @override
+  String get channelSettingsPermissionsConfigureBaseAccess =>
+      'Configure base access for this channel';
+
+  @override
+  String get channelSettingsPermissionsConfigureRoleOverrides =>
+      'Configure overrides for this role';
+
+  @override
+  String get channelSettingsPermissionsConfigureMemberOverrides =>
+      'Configure overrides for this member';
+
+  @override
+  String get channelSettingsPermissionsSearchPlaceholder =>
+      'Search permissions…';
+
+  @override
+  String get channelSettingsPermissionsChannelAccessUpdated =>
+      'Channel access updated';
+
+  @override
+  String get channelSettingsPermissionsTitle => 'Access control';
+
+  @override
+  String get channelSettingsPermissionsSyncedWithParentPrefix =>
+      'This channel is synced with the parent category ';
+
+  @override
+  String get channelSettingsPermissionsSyncedWithParentSuffix => '.';
+
+  @override
+  String get channelSettingsPermissionsNotSyncedWithParentPrefix =>
+      'This channel is not synced with the parent category ';
+
+  @override
+  String get channelSettingsPermissionsNotSyncedWithParentSuffix => '.';
+
+  @override
+  String get channelSettingsPermissionsSyncWithCategory => 'Sync with category';
+
+  @override
+  String get channelSettingsPermissionsSyncedWithParentToast =>
+      'Channel synced with parent category';
+
+  @override
+  String get channelSettingsPermissionsAddOverride => 'Add override';
+
+  @override
+  String get channelSettingsPermissionsSearchRolesOrMembers =>
+      'Search roles or members…';
+
+  @override
+  String get channelSettingsPermissionsRolesAndMembers => 'Roles and members';
+
+  @override
+  String get channelSettingsDeleteInvite => 'Delete invite';
+
+  @override
+  String get channelSettingsDeleteInviteConfirm =>
+      'Delete this invite? Can\'t be undone.';
+
+  @override
+  String get channelSettingsCopyInviteCode => 'Copy invite code';
+
+  @override
+  String get channelSettingsCopyInviteUrl => 'Copy invite URL';
+
+  @override
+  String get channelSettingsWebhookCreated => 'Webhook created';
+
+  @override
+  String get channelSettingsWebhookCreateFailed => 'Failed to create webhook';
+
+  @override
+  String get channelSettingsCreateWebhook => 'Create webhook';
+
+  @override
+  String get channelSettingsInvitesDescription =>
+      'Manage invite links for this channel.';
+
+  @override
+  String get channelSettingsInvitesCreate => 'Create invite';
+
+  @override
+  String get channelSettingsInvitesEmpty => 'No invite links';
+
+  @override
+  String get channelSettingsInvitesEmptyDescription =>
+      'This channel doesn\'t have any invite links yet. Create one to invite people to this channel.';
+
+  @override
+  String get channelSettingsInvitesLoadFailedDescription =>
+      'There was an error loading the invite links for this channel. Try again.';
+
+  @override
+  String get channelSettingsWebhooksDescription =>
+      'Manage incoming webhooks that can post messages into this channel.';
+
+  @override
+  String get channelSettingsWebhooksEmpty => 'No webhooks';
+
+  @override
+  String get channelSettingsWebhooksEmptyDescription =>
+      'There are no webhooks configured for this channel. Create a webhook to allow external applications to post messages.';
+
+  @override
+  String get channelSettingsWebhooksUnsupported =>
+      'This channel does not support webhooks.';
+
+  @override
+  String channelSettingsWebhooksPermissionRequired(String permission) {
+    return 'You need the \"$permission\" permission to view and edit webhooks for this channel.';
+  }
+
+  @override
+  String get channelSettingsWebhooksLoadFailedTitle =>
+      'Failed to load webhooks';
+
+  @override
+  String get channelSettingsWebhooksLoadFailedDescription =>
+      'There was an error loading the webhooks for this channel. Try again.';
+
+  @override
+  String channelSettingsWebhooksCreatedBy(String creator, String date) {
+    return 'Created by $creator on $date';
+  }
+
+  @override
+  String get channelSettingsWebhooksUnknownUser => 'Unknown user';
+
+  @override
+  String get channelSettingsWebhooksAvatar => 'Avatar';
+
+  @override
+  String get channelSettingsWebhooksUploadImage => 'Upload image';
+
+  @override
+  String get channelSettingsWebhooksRemove => 'Remove';
+
+  @override
+  String get channelSettingsWebhooksName => 'Name';
+
+  @override
+  String get channelSettingsWebhooksNamePlaceholder => 'Webhook name';
+
+  @override
+  String get channelSettingsWebhooksChannel => 'Channel';
+
+  @override
+  String get channelSettingsWebhooksUrl => 'Webhook URL';
+
+  @override
+  String get channelSettingsWebhooksCopyUrl => 'Copy webhook URL';
+
+  @override
+  String get channelSettingsWebhooksDelete => 'Delete webhook';
+
+  @override
+  String get channelSettingsWebhooksDeleteFailed =>
+      'Couldn\'t delete this webhook';
+
+  @override
+  String get channelSettingsWebhooksDeleteConfirm =>
+      'Delete this webhook? Can\'t be undone.';
+
+  @override
+  String get channelSettingsWebhookTryAgainInAMoment =>
+      'Try again in a moment.';
 
   @override
   String get channelMenuOpenChat => 'Open chat';
@@ -7477,6 +7924,9 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
   String get permissionCategoryChannelAccess => 'Channel access';
 
   @override
+  String get permissionCategoryChannelManagement => 'Channel management';
+
+  @override
   String get permissionCategoryAudioVideo => 'Audio & video';
 
   @override
@@ -7512,6 +7962,45 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
 
   @override
   String get permissionManageChannels => 'Manage channels';
+
+  @override
+  String get permissionManageChannel => 'Manage channel';
+
+  @override
+  String get permissionManageChannelDescription =>
+      'Rename and edit this channel\'s settings.';
+
+  @override
+  String get permissionManagePermissions => 'Manage permissions';
+
+  @override
+  String get permissionManagePermissionsDescription =>
+      'Edit overwrites for roles and members in this channel.';
+
+  @override
+  String get permissionManageWebhooksChannelDescription =>
+      'Create, edit, or delete webhooks for this channel.';
+
+  @override
+  String get permissionViewChannelMembersChannelDescription =>
+      'See the member list for this channel.';
+
+  @override
+  String get permissionCreateInviteLinksChannelDescription =>
+      'Manage invite links for this channel.';
+
+  @override
+  String get permissionOverwriteDeny => 'Deny';
+
+  @override
+  String get permissionOverwriteInherit => 'Neutral (inherit)';
+
+  @override
+  String get permissionOverwriteAllow => 'Allow';
+
+  @override
+  String get permissionOverwriteSetAllHelp =>
+      'Use these buttons to quickly set all permissions.';
 
   @override
   String get permissionManageChannelsDescription =>

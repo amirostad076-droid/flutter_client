@@ -17,6 +17,8 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/utils/channel_jump_link.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
+import 'package:fluxer_app/features/channels/presentation/channel_settings/channel_settings_flow.dart';
+import 'package:fluxer_app/features/channels/presentation/delete_channel_flow.dart';
 import 'package:fluxer_app/features/channels/presentation/sheets/channel_notification_settings_sheet.dart';
 import 'package:fluxer_app/features/channels/presentation/sheets/mute_duration_sheet.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
@@ -3061,7 +3063,11 @@ Future<void> _showDetailsMoreSheet(
                 icon: PhosphorIconsBold.pencilSimple,
                 onTap: () {
                   close();
-                  _stubComingSoon(context, ref);
+                  if (channelId != null) {
+                    unawaited(
+                      ChannelSettingsFlow.show(context, channelId: channelId),
+                    );
+                  }
                 },
               ),
               FluxerBottomSheetMenuItem(
@@ -3070,7 +3076,13 @@ Future<void> _showDetailsMoreSheet(
                 isDanger: true,
                 onTap: () {
                   close();
-                  _stubComingSoon(context, ref);
+                  unawaited(
+                    DeleteChannelFlow.confirmAndDelete(
+                      context,
+                      ref,
+                      channel: channel,
+                    ),
+                  );
                 },
               ),
             ],
