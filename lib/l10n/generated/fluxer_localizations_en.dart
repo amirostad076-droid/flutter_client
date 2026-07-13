@@ -13858,7 +13858,7 @@ class FluxerLocalizationsEnGb extends FluxerLocalizationsEn {
 
   @override
   String get forwardCommentSlowmodeDisabled =>
-      'Comments are unavailable because a selected channel has slow mode enabled.';
+      'Comments are unavailable because a selected channel has slowmode enabled.';
 
   @override
   String get forwardDestinationNoSendPermission =>
@@ -13882,7 +13882,7 @@ class FluxerLocalizationsEnGb extends FluxerLocalizationsEn {
 
   @override
   String forwardDestinationSlowmodeCoolingDown(String remaining) {
-    return 'Slow mode - wait $remaining';
+    return 'Slowmode - wait $remaining';
   }
 
   @override
