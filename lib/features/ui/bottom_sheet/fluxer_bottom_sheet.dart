@@ -939,6 +939,7 @@ class FluxerBottomSheetMenuItem extends StatelessWidget {
   final VoidCallback onTap;
   final Widget? leading;
   final IconData? icon;
+  final Color? iconColor;
   final bool isDanger;
   final bool isSelected;
   final bool enabled;
@@ -951,6 +952,7 @@ class FluxerBottomSheetMenuItem extends StatelessWidget {
     this.hint,
     this.leading,
     this.icon,
+    this.iconColor,
     this.isDanger = false,
     this.isSelected = false,
     this.enabled = true,
@@ -1001,7 +1003,11 @@ class FluxerBottomSheetMenuItem extends StatelessWidget {
                       width: 20,
                       height: 20,
                       child: Center(
-                        child: PhosphorIcon(icon!, color: baseColor, size: 20),
+                        child: PhosphorIcon(
+                          icon!,
+                          color: iconColor ?? baseColor,
+                          size: 20,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),

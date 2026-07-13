@@ -660,7 +660,9 @@ class _ChannelTile extends ConsumerWidget {
       context,
       position: position,
       builder: (menuContext, close) => channelMenuGroupsToWidgets(
+        context: menuContext,
         groups: groups,
+        menuState: menuState,
         onAction: (ChannelMenuAction action) => _handleChannelMenuAction(
           action,
           menuContext: menuContext,
