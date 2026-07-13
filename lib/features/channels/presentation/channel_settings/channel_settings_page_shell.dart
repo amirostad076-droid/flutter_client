@@ -43,7 +43,9 @@ class ChannelSettingsPageShell extends StatelessWidget {
           icon: const PhosphorIcon(PhosphorIconsBold.arrowLeft),
           onPressed: () => context.pop(),
         ),
+        centerTitle: true,
         title: Text(channelSettingsTabTitle(l10n, tab)),
+        actions: const <Widget>[SizedBox(width: 48)],
       ),
       body: body,
     );

@@ -79,19 +79,23 @@ class ChannelSettingsNavPage extends ConsumerWidget {
                   icon: const PhosphorIcon(PhosphorIconsBold.arrowLeft),
                   onPressed: () => context.pop(),
                 ),
+                centerTitle: true,
                 title: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     ChannelIcon(type: channel.type, channel: channel),
                     const SizedBox(width: 8),
-                    Expanded(
+                    Flexible(
                       child: Text(
                         channel.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   ],
                 ),
+                actions: const <Widget>[SizedBox(width: 48)],
               ),
               body: FluxerSettingsNavList(
                 padding: EdgeInsets.fromLTRB(
