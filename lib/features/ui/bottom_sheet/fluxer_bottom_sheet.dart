@@ -360,9 +360,6 @@ class _FluxerBottomSheetInsetChild extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (bottomPadding <= 0) {
-      return child;
-    }
     return Padding(
       padding: EdgeInsets.only(bottom: bottomPadding),
       child: child,
