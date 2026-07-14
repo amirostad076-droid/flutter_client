@@ -141,7 +141,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 75;
+  int get schemaVersion => 76;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -746,6 +746,15 @@ class FluxerDatabase extends _$FluxerDatabase {
           columnName: 'voice_connection_limit',
         )) {
           await m.addColumn(channels, channels.voiceConnectionLimit);
+        }
+      }
+      if (from < 76) {
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'users',
+          columnName: 'mobile',
+        )) {
+          await m.addColumn(users, users.mobile);
         }
       }
     },

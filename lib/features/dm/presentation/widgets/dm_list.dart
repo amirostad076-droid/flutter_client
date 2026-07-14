@@ -776,17 +776,7 @@ class _DMListState extends ConsumerState<DMList> {
                       );
                     }
                     final bool showPresence = shouldShowDmRecipientPresence(c);
-                    final String? status = showPresence
-                        ? ref.watch(
-                            dmListRecipientRowDataProvider.select(
-                              (
-                                AsyncValue<Map<String, DmListRecipientRowData>>
-                                p,
-                              ) => p.value?[c.recipientId]?.status ?? 'offline',
-                            ),
-                          )
-                        : null;
-                    return FluxerAvatar.user(
+                    return FluxerAvatar.userPresence(
                       fallbackText: displayName,
                       userId: c.recipientId,
                       imageUrl: FluxerMediaUrl.userAvatar(
@@ -794,7 +784,6 @@ class _DMListState extends ConsumerState<DMList> {
                         hash: c.recipientAvatar,
                         animated: isSelected,
                       ),
-                      status: status,
                       showStatus: showPresence || isTyping,
                       isTyping: isTyping,
                       size: avatarSize,
@@ -1708,17 +1697,13 @@ class _DmBottomSheet extends ConsumerWidget {
                           color: context.colors.interactiveNormal,
                         ),
                       )
-                    : FluxerAvatar.user(
+                    : FluxerAvatar.userPresence(
                         fallbackText: displayName,
                         userId: convo.recipientId,
                         imageUrl: FluxerMediaUrl.userAvatar(
                           userId: convo.recipientId,
                           hash: convo.recipientAvatar,
                         ),
-                        status: shouldShowDmRecipientPresence(convo)
-                            ? recipientRows[convo.recipientId]?.status ??
-                                  'offline'
-                            : null,
                         showStatus:
                             shouldShowDmRecipientPresence(convo) || isTyping,
                         isTyping: isTyping,

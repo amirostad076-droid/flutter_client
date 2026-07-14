@@ -746,7 +746,7 @@ class _DetailsAvatar extends ConsumerWidget {
               .getUserById(currentUserId),
           builder: (context, snapshot) {
             final user = snapshot.data;
-            return FluxerAvatar.user(
+            return FluxerAvatar.userPresence(
               fallbackText:
                   user?.globalName ??
                   user?.username ??
@@ -759,7 +759,6 @@ class _DetailsAvatar extends ConsumerWidget {
                       hash: user!.avatar,
                     ),
               avatarColor: user?.avatarColor,
-              status: user?.status ?? 'online',
               size: _size,
             );
           },
@@ -772,7 +771,7 @@ class _DetailsAvatar extends ConsumerWidget {
           status: dm.groupStatus,
         );
       }
-      return FluxerAvatar.user(
+      return FluxerAvatar.userPresence(
         fallbackText: dm.displayNameWith(
           ref.watch(friendNicknameProvider(dm.recipientId)).value,
         ),
@@ -781,7 +780,6 @@ class _DetailsAvatar extends ConsumerWidget {
           userId: dm.recipientId,
           hash: dm.recipientAvatar,
         ),
-        status: dm.recipientStatus,
         size: _size,
       );
     }
@@ -1776,12 +1774,11 @@ class _SimpleMemberRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FluxerListRow(
-      leading: FluxerAvatar.user(
+      leading: FluxerAvatar.userPresence(
         fallbackText: name,
         userId: userId,
         imageUrl: avatarUrl,
         avatarColor: avatarColor,
-        status: status,
         size: 36,
       ),
       title: name,

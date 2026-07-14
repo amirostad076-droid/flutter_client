@@ -619,7 +619,7 @@ class ChannelHeader extends ConsumerWidget {
               isTyping: isTyping,
             )
           else
-            FluxerAvatar.user(
+            FluxerAvatar.userPresence(
               fallbackText: dm.recipientName,
               userId: dm.recipientId,
               imageUrl: FluxerMediaUrl.userAvatar(
@@ -627,9 +627,6 @@ class ChannelHeader extends ConsumerWidget {
                 hash: dm.recipientAvatar,
                 animated: true,
               ),
-              status: shouldShowDmRecipientPresence(dm)
-                  ? dm.recipientStatus
-                  : null,
               showStatus: shouldShowDmRecipientPresence(dm) || isTyping,
               isTyping: isTyping,
               size: 32,

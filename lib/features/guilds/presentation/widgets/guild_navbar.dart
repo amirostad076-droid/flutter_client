@@ -3226,10 +3226,10 @@ class _GuildListItemState extends State<_GuildListItem>
       padding: EdgeInsets.symmetric(horizontal: layout.s4, vertical: layout.s2),
       child: Row(
         children: [
-          FluxerAvatar.user(
+          FluxerAvatar.userPresence(
             imageUrl: recipient.avatarUrl,
             fallbackText: recipient.displayName,
-            status: recipient.status,
+            userId: recipient.id,
             size: 32,
           ),
           SizedBox(width: layout.s3),
