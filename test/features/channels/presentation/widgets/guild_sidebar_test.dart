@@ -522,7 +522,6 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      const String unreadChannelId = 'c20';
       final List<Channel> channels = List<Channel>.generate(
         20,
         (int index) => _channel('c${index + 1}', 'channel-${index + 1}'),
