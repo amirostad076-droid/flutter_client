@@ -66,6 +66,10 @@ class _DMListState extends ConsumerState<DMList> {
   }
 
   Future<void> _navigateToDmChannel(String channelId) async {
+    final String? userId = ref.read(currentUserIdProvider);
+    if (userId != null && channelId == userId) {
+      await ref.read(dmRepositoryProvider).ensurePersonalNotesChannel(userId);
+    }
     await navigateToDmChannelContent(
       context: context,
       ref: ref,

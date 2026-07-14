@@ -54,8 +54,11 @@ import 'package:fluxer_app/features/chat/utils/message_send_failure_messages.dar
 import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
 import 'package:fluxer_app/features/chat/utils/url_sanitization_utils.dart';
 import 'package:fluxer_app/features/chat/utils/voice_message_constants.dart';
+import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
+import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/guilds/services/guild_verification.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
+import 'package:fluxer_app/features/ui/input/inline_token_clipboard.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/fluxer_localizations_utils.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -713,8 +716,9 @@ class ChatViewModel extends _$ChatViewModel {
     if (channelId.isEmpty) {
       return;
     }
+    final String sanitizedContent = stripPrivateUseCharacters(content);
     final String? replyId = reply?.id;
-    final bool hasDraft = content.isNotEmpty || replyId != null;
+    final bool hasDraft = sanitizedContent.isNotEmpty || replyId != null;
     final dao = ref.read(fluxerDatabaseProvider).composerDraftDao;
     if (!hasDraft) {
       await dao.deleteDraft(channelId);
@@ -722,7 +726,7 @@ class ChatViewModel extends _$ChatViewModel {
     }
     await dao.upsertDraft(
       channelId: channelId,
-      content: content,
+      content: sanitizedContent,
       replyToMessageId: replyId,
     );
   }
@@ -745,7 +749,7 @@ class ChatViewModel extends _$ChatViewModel {
       );
       reply = dbMsg == null ? null : Message.fromRow(dbMsg);
     }
-    return (text: row.content, reply: reply);
+    return (text: stripPrivateUseCharacters(row.content), reply: reply);
   }
 
   Future<void> _restoreComposerDraftFromDb() async {
@@ -877,6 +881,18 @@ class ChatViewModel extends _$ChatViewModel {
     final int switchGeneration = ++_channelSwitchGeneration;
     bool isCurrentSwitch() => switchGeneration == _channelSwitchGeneration;
     try {
+      final String? currentUserId = ref.read(currentUserIdProvider);
+      if (isPersonalNotesChannelRoute(
+        channelId: channelId,
+        currentUserId: currentUserId,
+      )) {
+        await ref
+            .read(dmRepositoryProvider)
+            .ensurePersonalNotesChannel(channelId);
+        if (!isCurrentSwitch()) {
+          return;
+        }
+      }
       ref.read(chatReadViewportProvider.notifier).setActiveChannel(channelId);
       if (loadMessages) {
         _stickySnapshotArmed = true;

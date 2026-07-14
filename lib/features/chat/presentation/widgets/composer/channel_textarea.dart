@@ -60,6 +60,7 @@ import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart'
 import 'package:fluxer_app/features/guilds/services/guild_verification.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_confirm_sheet.dart';
+import 'package:fluxer_app/features/ui/input/inline_token_clipboard.dart';
 import 'package:fluxer_app/features/ui/input/inline_token_paste_formatter.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -83,6 +84,37 @@ const double _kMobileComposerSuffixHeight =
     _kMobileComposerSuffixButtonExtent;
 
 final RegExp _customEmojiIdPattern = RegExp(r'<a?:[^:]+:(\d+)>');
+
+final class _CustomEmojiSendContext {
+  const _CustomEmojiSendContext({
+    required this.markdownByName,
+    required this.knownIds,
+    required this.usableIds,
+  });
+  const _CustomEmojiSendContext.empty()
+    : markdownByName = const <String, String>{},
+      knownIds = const <String>{},
+      usableIds = const <String>{};
+
+  final Map<String, String> markdownByName;
+  final Set<String> knownIds;
+  final Set<String> usableIds;
+
+  String? lookupMarkdown(String nameLower) => markdownByName[nameLower];
+
+  bool blocksContent(String content) {
+    if (!content.contains('<') || knownIds.isEmpty) {
+      return false;
+    }
+    for (final RegExpMatch match in _customEmojiIdPattern.allMatches(content)) {
+      final String id = match.group(1)!;
+      if (knownIds.contains(id) && !usableIds.contains(id)) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
 
 /// The chat input bar at the bottom of the chat area.
 class ChannelTextarea extends ConsumerStatefulWidget {
@@ -112,6 +144,8 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
   final _stickerPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
 
   bool _enterToSendEnabled = false;
+  bool _isApplyingWireText = false;
+  String? _lastWireTextPushedToState;
 
   bool get _isDesktop =>
       !kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows);
@@ -121,11 +155,61 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     super.initState();
     _controller = ComposerMentionController(ref: ref);
     _focusNode.onKeyEvent = _handleComposerFieldKeyEvent;
-    _controller.addListener(() {
-      ref
-          .read(chatViewModelProvider.notifier)
-          .updateMessageText(_controller.toWireText());
-    });
+    _controller.addListener(_syncStateFromController);
+  }
+
+  void _syncStateFromController() {
+    if (_isApplyingWireText) {
+      return;
+    }
+    final String wire = stripPrivateUseCharacters(_controller.toWireText());
+    if (wire == _lastWireTextPushedToState) {
+      return;
+    }
+    _lastWireTextPushedToState = wire;
+    ref.read(chatViewModelProvider.notifier).updateMessageText(wire);
+  }
+
+  void _syncControllerFromStateIfNeeded() {
+    if (_isApplyingWireText) {
+      return;
+    }
+    final String messageText = ref.read(chatViewModelProvider).messageText;
+    if (messageText == _lastWireTextPushedToState) {
+      return;
+    }
+    final String wire = stripPrivateUseCharacters(messageText);
+    if (wire == _lastWireTextPushedToState ||
+        _controller.toWireText() == wire) {
+      _lastWireTextPushedToState = wire;
+      return;
+    }
+    unawaited(_applyWireTextFromState(wire));
+  }
+
+  Future<void> _applyWireTextFromState(String wire) async {
+    _isApplyingWireText = true;
+    try {
+      await _controller.applyWireText(wire);
+      _lastWireTextPushedToState = wire;
+    } finally {
+      _isApplyingWireText = false;
+    }
+  }
+
+  String _sendableWireText() =>
+      stripPrivateUseCharacters(_controller.toWireText());
+
+  void _showCorruptedCustomEmojiToast() {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    ref
+        .read(toastProvider.notifier)
+        .show(
+          FluxerToast(
+            message: l10n.composerEmojiUnavailable,
+            variant: FluxerToastVariant.warning,
+          ),
+        );
   }
 
   void _clearComposerForBlockedAccess() {
@@ -245,7 +329,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     if (!perms.isComposerEnabled) {
       return KeyEventResult.ignored;
     }
-    if (!composerHasSendableContent(ref, channelId, _controller.toWireText())) {
+    if (!composerHasSendableContent(ref, channelId, _sendableWireText())) {
       return KeyEventResult.ignored;
     }
     if (_isOverCharacterLimit(ref)) {
@@ -255,11 +339,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     return KeyEventResult.handled;
   }
 
-  int _composerContentLength() => _controller.toWireText().trim().length;
+  int _composerContentLength(String sendableWire) => sendableWire.trim().length;
 
   bool _isOverCharacterLimit(WidgetRef ref) {
     final int maxMessageLength = ref.read(maxMessageLengthProvider);
-    return _composerContentLength() > maxMessageLength;
+    return _composerContentLength(_sendableWireText()) > maxMessageLength;
   }
 
   void _showPlutoniumSheet(BuildContext context) {
@@ -391,12 +475,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     ref
       ..listen<String>(
         chatViewModelProvider.select((state) => state.messageText),
-        (_, String messageText) {
-          if (_controller.toWireText() == messageText) {
-            return;
-          }
-          unawaited(_controller.applyWireText(messageText));
-        },
+        (_, String _) => _syncControllerFromStateIfNeeded(),
       )
       ..listen<({String name, String surrogates})?>(
         pendingEmojiInsertProvider,
@@ -405,7 +484,12 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             return;
           }
           ref.read(pendingEmojiInsertProvider.notifier).consume();
-          _insertEmoji(pending.name, pending.surrogates);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) {
+              return;
+            }
+            _insertEmoji(pending.name, pending.surrogates);
+          });
         },
       )
       ..listen<FluxerSelectedGif?>(pendingGifSelectionProvider, (_, pending) {
@@ -645,11 +729,12 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     return ListenableBuilder(
       listenable: _controller,
       builder: (BuildContext context, Widget? child) {
-        final int contentLength = _composerContentLength();
+        final String sendableWire = _sendableWireText();
+        final int contentLength = _composerContentLength(sendableWire);
         final bool hasSendable = composerHasSendableContent(
           ref,
           channelId,
-          _controller.toWireText(),
+          sendableWire,
         );
         final bool isOverCharacterLimit = contentLength > maxMessageLength;
         return Row(
@@ -906,11 +991,12 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     return ListenableBuilder(
       listenable: _controller,
       builder: (BuildContext context, Widget? child) {
-        final int contentLength = _composerContentLength();
+        final String sendableWire = _sendableWireText();
+        final int contentLength = _composerContentLength(sendableWire);
         final bool hasSendable = composerHasSendableContent(
           ref,
           channelId,
-          _controller.toWireText(),
+          sendableWire,
         );
         final bool isOverCharacterLimit = contentLength > maxMessageLength;
         return Row(
@@ -1135,7 +1221,15 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final String channelId = ref.read(
       chatViewModelProvider.select((s) => s.channelId),
     );
-    final String wireText = _controller.toWireText();
+    final String rawWireText = _controller.toWireText();
+    final String wireText = _sendableWireText();
+    if (wireTextLostContentAfterSanitize(
+      rawWireText: rawWireText,
+      sanitizedWireText: wireText,
+    )) {
+      _showCorruptedCustomEmojiToast();
+      return;
+    }
     if (!composerHasSendableContent(ref, channelId, wireText)) {
       return;
     }
@@ -1173,6 +1267,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       return;
     }
 
+    final _CustomEmojiSendContext emojiContext = _readCustomEmojiSendContext(
+      channelId,
+    );
     final String innerContent = switch (command) {
       ComposerMeCommand(:final content) => content,
       ComposerSpoilerCommand(:final content) => content,
@@ -1182,7 +1279,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     };
     final String resolved = resolveTypedCustomEmojiShortcodes(
       innerContent,
-      _buildCustomEmojiLookup(channelId),
+      emojiContext.lookupMarkdown,
     );
     final String baseContent = switch (command) {
       ComposerMeCommand() => wrapMe(resolved),
@@ -1193,7 +1290,16 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     };
     final bool tts = command is ComposerTtsCommand;
 
-    if (_blocksOnUnusableEmoji(channelId, baseContent)) {
+    if (emojiContext.blocksContent(baseContent)) {
+      final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: l10n.composerEmojiUnavailable,
+              variant: FluxerToastVariant.warning,
+            ),
+          );
       return;
     }
     final bool proceed = await _confirmMentionsIfNeeded(channelId, baseContent);
@@ -1206,13 +1312,20 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     unawaited(vm.sendMessage(text: baseContent.trim(), tts: tts));
   }
 
-  String? Function(String) _buildCustomEmojiLookup(String channelId) {
+  _CustomEmojiSendContext _readCustomEmojiSendContext(String channelId) {
     final List<GuildEmojiEntry> allEmojis =
         ref.read(allGuildEmojisForPickerProvider).value ?? const [];
     if (allEmojis.isEmpty) {
-      return (_) => null;
+      return const _CustomEmojiSendContext.empty();
     }
-    final String? activeGuildId = ref.read(activeGuildIdProvider);
+    final String? currentUserId = ref.read(currentUserIdProvider);
+    final bool isDirectChat =
+        isPersonalNotesChannelRoute(
+          channelId: channelId,
+          currentUserId: currentUserId,
+        ) ||
+        findDmById(ref.read(dmViewModelProvider).conversations, channelId) !=
+            null;
     final bool hasGlobalEmojiAccess =
         ref.read(
           instanceFeatureEnabledProvider(LimitKeys.featureGlobalExpressions),
@@ -1220,60 +1333,27 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         channelMessagePermissionsForComposer(
           ref.read(channelMessagePermissionsProvider(channelId)),
         ).canUseExternalEmojis;
-    final Map<String, String> byName = <String, String>{};
-    for (final GuildEmojiEntry emoji in allEmojis) {
-      if (hasGlobalEmojiAccess || emoji.guildId == activeGuildId) {
-        byName.putIfAbsent(emoji.nameLower, () => emoji.markdown);
-      }
-    }
-    return (String nameLower) => byName[nameLower];
-  }
-
-  bool _blocksOnUnusableEmoji(String channelId, String content) {
-    if (!content.contains('<')) {
-      return false;
-    }
-    final List<GuildEmojiEntry> allEmojis =
-        ref.read(allGuildEmojisForPickerProvider).value ?? const [];
-    if (allEmojis.isEmpty) {
-      return false;
-    }
     final String? activeGuildId = ref.read(activeGuildIdProvider);
-    final bool hasGlobalEmojiAccess =
-        ref.read(
-          instanceFeatureEnabledProvider(LimitKeys.featureGlobalExpressions),
-        ) &&
-        channelMessagePermissionsForComposer(
-          ref.read(channelMessagePermissionsProvider(channelId)),
-        ).canUseExternalEmojis;
+    final Map<String, String> markdownByName = <String, String>{};
     final Set<String> knownIds = <String>{};
     final Set<String> usableIds = <String>{};
     for (final GuildEmojiEntry emoji in allEmojis) {
       knownIds.add(emoji.id);
-      if (hasGlobalEmojiAccess || emoji.guildId == activeGuildId) {
+      if (composerCanUseGuildEmoji(
+        emoji: emoji,
+        hasGlobalEmojiAccess: hasGlobalEmojiAccess,
+        isDirectChat: isDirectChat,
+        activeGuildId: activeGuildId,
+      )) {
         usableIds.add(emoji.id);
+        markdownByName.putIfAbsent(emoji.nameLower, () => emoji.markdown);
       }
     }
-    var blocked = false;
-    for (final RegExpMatch match in _customEmojiIdPattern.allMatches(content)) {
-      final String id = match.group(1)!;
-      if (knownIds.contains(id) && !usableIds.contains(id)) {
-        blocked = true;
-        break;
-      }
-    }
-    if (blocked) {
-      final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-      ref
-          .read(toastProvider.notifier)
-          .show(
-            FluxerToast(
-              message: l10n.composerEmojiUnavailable,
-              variant: FluxerToastVariant.warning,
-            ),
-          );
-    }
-    return blocked;
+    return _CustomEmojiSendContext(
+      markdownByName: markdownByName,
+      knownIds: knownIds,
+      usableIds: usableIds,
+    );
   }
 
   Future<bool> _confirmMentionsIfNeeded(
