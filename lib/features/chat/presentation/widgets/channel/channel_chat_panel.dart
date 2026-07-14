@@ -17,6 +17,10 @@ import 'package:fluxer_app/features/settings/providers/appearance_preferences_pr
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 
+const double _kChannelChatStatusRailMinHeight = 32;
+const double _kChannelChatStatusMessageInset =
+    _kChannelChatStatusRailMinHeight / 2;
+
 void listenChatViewModelErrors(WidgetRef ref) {
   ref.listen<String?>(
     chatViewModelProvider.select((ChatViewState s) => s.errorMessage),
@@ -137,52 +141,35 @@ class _ChannelChatPanelState extends ConsumerState<ChannelChatPanel> {
                         ),
                       ),
                     ),
-                    Positioned(
-                      left: 8,
-                      right: 8,
-                      bottom: 0,
-                      child: Row(
-                        spacing: 8,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: <Widget>[
-                          const Flexible(
-                            child: Padding(
-                              padding: EdgeInsets.only(bottom: 8),
-                              child: TypingIndicatorBar(),
-                            ),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: <Widget>[
-                              if (onClose != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 5),
-                                  child: Material(
-                                    color: context.colors.backgroundPrimary,
-                                    shape: const CircleBorder(),
-                                    child: FluxerSheetCloseButton(
-                                      onTap: onClose,
-                                    ),
-                                  ),
+                    if (onClose != null || showJumpToBottom)
+                      Positioned(
+                        right: 8,
+                        bottom: 0,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: <Widget>[
+                            if (onClose != null)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 5),
+                                child: Material(
+                                  color: context.colors.backgroundPrimary,
+                                  shape: const CircleBorder(),
+                                  child: FluxerSheetCloseButton(onTap: onClose),
                                 ),
-                              if (showJumpToBottom)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 10),
-                                  child: FluxerJumpToBottomButton(
-                                    enabled: !isSyncingMessages,
-                                    onTap: () => ref
-                                        .read(chatViewModelProvider.notifier)
-                                        .scrollToBottom(),
-                                  ),
+                              ),
+                            if (showJumpToBottom)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: FluxerJumpToBottomButton(
+                                  enabled: !isSyncingMessages,
+                                  onTap: () => ref
+                                      .read(chatViewModelProvider.notifier)
+                                      .scrollToBottom(),
                                 ),
-                              if (showNeko) const NekoSprite(),
-                              const SlowmodeIndicator(),
-                            ],
-                          ),
-                        ],
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
                     Positioned(
                       left: 0,
                       right: 0,
@@ -195,12 +182,19 @@ class _ChannelChatPanelState extends ConsumerState<ChannelChatPanel> {
                   ],
                 ),
               ),
-              RepaintBoundary(
-                child: ChannelTextarea(
-                  autocompletePanelHost: _composerAutocompletePanelHost,
-                  autocompletePanelScrollController:
-                      _composerAutocompletePanelScroll,
+              ChannelChatComposerBoundary(
+                composer: RepaintBoundary(
+                  child: ChannelTextarea(
+                    autocompletePanelHost: _composerAutocompletePanelHost,
+                    autocompletePanelScrollController:
+                        _composerAutocompletePanelScroll,
+                  ),
                 ),
+                leadingStatus: const TypingIndicatorBar(),
+                trailingStatuses: <Widget>[
+                  if (showNeko) const NekoSprite(),
+                  SlowmodeIndicator(leadingSpacing: showNeko ? 8 : 0),
+                ],
               ),
               if (isMobile && isPanelOpen)
                 const SizedBox(height: kCollapsedPanelHeight),
@@ -211,6 +205,60 @@ class _ChannelChatPanelState extends ConsumerState<ChannelChatPanel> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class ChannelChatComposerBoundary extends StatelessWidget {
+  const ChannelChatComposerBoundary({
+    required this.composer,
+    required this.leadingStatus,
+    required this.trailingStatuses,
+    super.key,
+  });
+
+  final Widget composer;
+  final Widget leadingStatus;
+  final List<Widget> trailingStatuses;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.only(top: _kChannelChatStatusMessageInset),
+          child: composer,
+        ),
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minHeight: _kChannelChatStatusRailMinHeight,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Row(
+                spacing: 8,
+                children: <Widget>[
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: leadingStatus,
+                    ),
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: trailingStatuses,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

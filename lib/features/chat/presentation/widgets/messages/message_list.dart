@@ -1321,7 +1321,7 @@ class _MessageListState extends ConsumerState<MessageList> {
                     ? _kMessageListCompactScrollCacheExtent
                     : _kMessageListScrollCacheExtent,
               ),
-              padding: const EdgeInsets.only(top: 8, bottom: 33),
+              padding: const EdgeInsets.only(top: 8),
               physics: chatPhysics,
               itemCount: stream.length + (startOfChannelHeader != null ? 1 : 0),
               addAutomaticKeepAlives: false,
@@ -1369,7 +1369,7 @@ class _MessageListState extends ConsumerState<MessageList> {
           ),
         if (isLoadingNewer)
           Positioned(
-            bottom: 33,
+            bottom: 8,
             left: 0,
             right: 0,
             child: Center(
@@ -1569,41 +1569,38 @@ class _MessageListState extends ConsumerState<MessageList> {
                   key: _unreadCenterKey,
                   child: const SizedBox.shrink(),
                 ),
-                SliverPadding(
-                  padding: const EdgeInsets.only(bottom: 33),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (BuildContext context, int index) {
-                        _trailingSliverCtx = context;
-                        return _centerStreamTile(
-                          context: context,
-                          stream: stream,
-                          dataIndex: splitIndex + index,
-                          visualUnreadId: visualUnreadId,
-                          highlightedMessageId: highlightedMessageId,
-                          currentUserId: currentUserId,
-                          isDmChannel: isDmChannel,
-                          guildId: guildId,
-                          channelPermissionBits: channelPermissionBits,
-                          channelCanSendMessages: channelCanSendMessages,
-                          channelCanAddReactions: channelCanAddReactions,
-                          channelCanPinMessage: channelCanPinMessage,
-                          channelCanManageMessages: channelCanManageMessages,
-                          renderSettings: renderSettings,
-                          blockedUserIds: blockedUserIds,
-                          revealedCollapsedGroupKey: revealedCollapsedGroupKey,
-                        );
-                      },
-                      childCount: stream.length - splitIndex,
-                      findChildIndexCallback: (Key key) =>
-                          _centerChildIndexForStream(
-                            key,
-                            stream,
-                            splitIndex,
-                            stream.length,
-                            reverse: false,
-                          ),
-                    ),
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (BuildContext context, int index) {
+                      _trailingSliverCtx = context;
+                      return _centerStreamTile(
+                        context: context,
+                        stream: stream,
+                        dataIndex: splitIndex + index,
+                        visualUnreadId: visualUnreadId,
+                        highlightedMessageId: highlightedMessageId,
+                        currentUserId: currentUserId,
+                        isDmChannel: isDmChannel,
+                        guildId: guildId,
+                        channelPermissionBits: channelPermissionBits,
+                        channelCanSendMessages: channelCanSendMessages,
+                        channelCanAddReactions: channelCanAddReactions,
+                        channelCanPinMessage: channelCanPinMessage,
+                        channelCanManageMessages: channelCanManageMessages,
+                        renderSettings: renderSettings,
+                        blockedUserIds: blockedUserIds,
+                        revealedCollapsedGroupKey: revealedCollapsedGroupKey,
+                      );
+                    },
+                    childCount: stream.length - splitIndex,
+                    findChildIndexCallback: (Key key) =>
+                        _centerChildIndexForStream(
+                          key,
+                          stream,
+                          splitIndex,
+                          stream.length,
+                          reverse: false,
+                        ),
                   ),
                 ),
               ],
@@ -1624,7 +1621,7 @@ class _MessageListState extends ConsumerState<MessageList> {
           ),
         if (isLoadingNewer)
           Positioned(
-            bottom: 33,
+            bottom: 8,
             left: 0,
             right: 0,
             child: Center(
