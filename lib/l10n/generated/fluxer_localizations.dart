@@ -295,6 +295,36 @@ abstract class FluxerLocalizations {
   /// **'Open settings'**
   String get nagbarOpenSettings;
 
+  /// Title for the system permission settings prompt modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable permission'**
+  String get systemPermissionSettingsTitle;
+
+  /// Primary action that opens the device app settings for a blocked permission.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get systemPermissionSettingsOpenSettings;
+
+  /// Body text when microphone access must be enabled in system settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluxer doesn\'t have access to your microphone. You can enable it in your device privacy settings.'**
+  String get systemPermissionMicrophoneMessage;
+
+  /// Body text when camera access must be enabled in system settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluxer doesn\'t have access to your camera. You can enable it in your device privacy settings.'**
+  String get systemPermissionCameraMessage;
+
+  /// Body text when notification permission must be enabled in system settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluxer doesn\'t have permission to send notifications. You can enable it in your device settings.'**
+  String get systemPermissionNotificationsMessage;
+
   /// Premium grace period nagbar body.
   ///
   /// In en, this message translates to:

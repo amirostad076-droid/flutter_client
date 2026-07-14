@@ -10,7 +10,9 @@ import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.da
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/fluxer_sfx_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_connection_provider.dart';
-import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/system_permissions/system_permission_kind.dart';
+import 'package:fluxer_app/core/system_permissions/system_permission_result.dart';
+import 'package:fluxer_app/core/system_permissions/system_permission_service.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
@@ -23,7 +25,6 @@ import 'package:fluxer_app/features/voice/providers/voice_screen_share_watch_til
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/services/voice_settings_applicator.dart';
 import 'package:fluxer_app/features/voice/utils/android_screen_share_background.dart';
-import 'package:fluxer_app/features/voice/utils/camera_permission.dart';
 import 'package:fluxer_app/features/voice/utils/channel_e2ee_status.dart';
 import 'package:fluxer_app/features/voice/utils/microphone_permission.dart';
 import 'package:fluxer_app/features/voice/utils/voice_camera_platform.dart';
@@ -357,13 +358,15 @@ class VoiceSession extends _$VoiceSession {
       return;
     }
     await _clearStaleVoiceSessionIfNeeded(channelId);
-    final bool micOk = await requestMicrophonePermissionForVoice();
+    final bool micOk = await _ensureSystemPermissionForVoice(
+      SystemPermissionKind.microphone,
+      deniedErrorCode: kVoiceSessionErrorMicPermission,
+    );
     if (!micOk) {
       talker.warning(
         '[Voice] Join aborted: microphone permission denied '
         '(channelId=$channelId).',
       );
-      state = state.copyWith(errorMessage: kVoiceSessionErrorMicPermission);
       return;
     }
     if (guildId != null) {
@@ -1036,12 +1039,22 @@ class VoiceSession extends _$VoiceSession {
     if (lp == null) {
       return;
     }
-    final bool camOk = await requestCameraPermissionForVoice();
-    if (!camOk || attempt != _connectGeneration) {
+    final SystemPermissionOutcome cameraOutcome = await requestSystemPermission(
+      SystemPermissionKind.camera,
+    );
+    if (cameraOutcome != SystemPermissionOutcome.granted ||
+        attempt != _connectGeneration) {
       if (attempt == _connectGeneration) {
-        state = state.copyWith(
-          errorMessage: kVoiceSessionErrorCameraPermission,
-        );
+        if (cameraOutcome == SystemPermissionOutcome.denied) {
+          state = state.copyWith(
+            errorMessage: kVoiceSessionErrorCameraPermission,
+          );
+        } else if (cameraOutcome == SystemPermissionOutcome.requiresSettings) {
+          await ensureSystemPermission(
+            resolveSystemPermissionContext(null),
+            SystemPermissionKind.camera,
+          );
+        }
       }
       return;
     }
@@ -1185,10 +1198,20 @@ class VoiceSession extends _$VoiceSession {
         );
   }
 
-  void reportMicrophonePermissionDenied() {
-    state = state.copyWith(
-      errorMessage: 'Microphone permission is required for voice.',
-    );
+  Future<bool> _ensureSystemPermissionForVoice(
+    SystemPermissionKind kind, {
+    required String deniedErrorCode,
+  }) async {
+    final SystemPermissionOutcome outcome = await requestSystemPermission(kind);
+    if (outcome == SystemPermissionOutcome.granted) {
+      return true;
+    }
+    if (outcome == SystemPermissionOutcome.requiresSettings) {
+      await ensureSystemPermission(resolveSystemPermissionContext(null), kind);
+      return false;
+    }
+    state = state.copyWith(errorMessage: deniedErrorCode);
+    return false;
   }
 
   void clearError() {
@@ -1297,11 +1320,11 @@ class VoiceSession extends _$VoiceSession {
       return;
     }
     if (nextVideo) {
-      final bool camOk = await requestCameraPermissionForVoice();
+      final bool camOk = await _ensureSystemPermissionForVoice(
+        SystemPermissionKind.camera,
+        deniedErrorCode: kVoiceSessionErrorCameraPermission,
+      );
       if (!camOk) {
-        state = state.copyWith(
-          errorMessage: kVoiceSessionErrorCameraPermission,
-        );
         return;
       }
     }
@@ -1512,11 +1535,10 @@ class VoiceSession extends _$VoiceSession {
     talker.warning(
       '[Voice] Screen-share audio requires microphone permission; requesting.',
     );
-    final bool granted = await requestMicrophonePermissionForVoice();
-    if (!granted) {
-      talker.warning('[Voice] Screen-share audio permission denied by user.');
-    }
-    return granted;
+    return _ensureSystemPermissionForVoice(
+      SystemPermissionKind.microphone,
+      deniedErrorCode: kVoiceSessionErrorScreenSharePermissionDenied,
+    );
   }
 
   String _classifyScreenShareException(Object error) {
@@ -1542,10 +1564,6 @@ class VoiceSession extends _$VoiceSession {
       return kVoiceSessionErrorScreenShareToggle;
     }
     return kVoiceSessionErrorScreenShareToggle;
-  }
-
-  void reportCameraPermissionDenied() {
-    state = state.copyWith(errorMessage: kVoiceSessionErrorCameraPermission);
   }
 
   Future<void> _applySelfVoiceState({

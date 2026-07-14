@@ -84,6 +84,24 @@ class FluxerLocalizationsCs extends FluxerLocalizations {
   String get nagbarOpenSettings => 'Open settings';
 
   @override
+  String get systemPermissionSettingsTitle => 'Enable permission';
+
+  @override
+  String get systemPermissionSettingsOpenSettings => 'Open settings';
+
+  @override
+  String get systemPermissionMicrophoneMessage =>
+      'Fluxer doesn\'t have access to your microphone. You can enable it in your device privacy settings.';
+
+  @override
+  String get systemPermissionCameraMessage =>
+      'Fluxer doesn\'t have access to your camera. You can enable it in your device privacy settings.';
+
+  @override
+  String get systemPermissionNotificationsMessage =>
+      'Fluxer doesn\'t have permission to send notifications. You can enable it in your device settings.';
+
+  @override
   String nagbarPremiumGracePeriod(String productName, String graceDate) {
     return 'Your subscription failed to renew, but you still have access to $productName perks until $graceDate. Take action now or you\'ll lose all perks.';
   }

@@ -112,6 +112,26 @@
   "@nagbarOpenSettings": {
     "description": "Nagbar CTA that opens user settings."
   },
+  "systemPermissionSettingsTitle": "Enable permission",
+  "@systemPermissionSettingsTitle": {
+    "description": "Title for the system permission settings prompt modal."
+  },
+  "systemPermissionSettingsOpenSettings": "Open settings",
+  "@systemPermissionSettingsOpenSettings": {
+    "description": "Primary action that opens the device app settings for a blocked permission."
+  },
+  "systemPermissionMicrophoneMessage": "Fluxer doesn't have access to your microphone. You can enable it in your device privacy settings.",
+  "@systemPermissionMicrophoneMessage": {
+    "description": "Body text when microphone access must be enabled in system settings."
+  },
+  "systemPermissionCameraMessage": "Fluxer doesn't have access to your camera. You can enable it in your device privacy settings.",
+  "@systemPermissionCameraMessage": {
+    "description": "Body text when camera access must be enabled in system settings."
+  },
+  "systemPermissionNotificationsMessage": "Fluxer doesn't have permission to send notifications. You can enable it in your device settings.",
+  "@systemPermissionNotificationsMessage": {
+    "description": "Body text when notification permission must be enabled in system settings."
+  },
   "nagbarPremiumGracePeriod": "Your subscription failed to renew, but you still have access to {productName} perks until {graceDate}. Take action now or you'll lose all perks.",
   "@nagbarPremiumGracePeriod": {
     "description": "Premium grace period nagbar body.",
