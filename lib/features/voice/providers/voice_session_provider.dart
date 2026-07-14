@@ -10,6 +10,7 @@ import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.da
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/fluxer_sfx_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_connection_provider.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/system_permissions/system_permission_kind.dart';
 import 'package:fluxer_app/core/system_permissions/system_permission_result.dart';
 import 'package:fluxer_app/core/system_permissions/system_permission_service.dart';
@@ -118,8 +119,8 @@ class VoiceSession extends _$VoiceSession {
           return;
         }
         unawaited(_onVoiceSettingsChanged(previous, next));
-      });
-    ref.read(voiceNoiseFilterProvider);
+      })
+      ..read(voiceNoiseFilterProvider);
     return const VoiceSessionState();
   }
 
