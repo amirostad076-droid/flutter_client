@@ -182,7 +182,7 @@ void main() {
       expect(find.text('Delete My Messages'), findsOneWidget);
       expect(find.text('Open link'), findsNothing);
       expect(find.text('Debug Channel'), findsNothing);
-      expect(find.text('Delete Channel'), findsNothing);
+      expect(find.text('Delete channel'), findsNothing);
 
       double dy(String label) => tester.getTopLeft(find.text(label)).dy;
       expect(dy('Copy Link'), lessThan(dy('Mute Channel')));
@@ -291,7 +291,7 @@ void main() {
       expect(dy('Mute Category'), lessThan(dy('Copy Category ID')));
     });
 
-    testWidgets('channel menu shows Delete Channel for managers', (
+    testWidgets('channel menu shows "Delete channel" for managers', (
       tester,
     ) async {
       _setMobileSurface(tester);
@@ -311,12 +311,12 @@ void main() {
 
       expect(find.text('Edit channel'), findsOneWidget);
       expect(find.text('Duplicate channel'), findsOneWidget);
-      expect(find.text('Delete Channel'), findsOneWidget);
+      expect(find.text('Delete channel'), findsOneWidget);
       double dy(String label) => tester.getTopLeft(find.text(label)).dy;
       expect(dy('Edit channel'), lessThan(dy('Duplicate channel')));
       expect(dy('Duplicate channel'), lessThan(dy('Copy Channel ID')));
-      expect(dy('Copy Channel ID'), lessThan(dy('Delete Channel')));
-      expect(dy('Delete Channel'), lessThan(dy('Delete My Messages')));
+      expect(dy('Copy Channel ID'), lessThan(dy('Delete channel')));
+      expect(dy('Delete channel'), lessThan(dy('Delete My Messages')));
     });
 
     testWidgets('edit channel opens channel settings', (tester) async {
