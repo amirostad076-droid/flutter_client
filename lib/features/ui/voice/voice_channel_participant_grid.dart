@@ -13,6 +13,7 @@ import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/features/ui/voice/fluxer_live_badge.dart';
 import 'package:fluxer_app/features/ui/voice/voice_participant_media_tile.dart';
 import 'package:fluxer_app/features/voice/providers/voice_active_speakers_provider.dart';
+import 'package:fluxer_app/features/voice/providers/voice_call_display_preferences_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_call_layout_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_channel_participants_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_screen_share_watch_tile_provider.dart';
@@ -50,15 +51,24 @@ List<_VoiceGridTileItem> _buildTileItems({
   required Room? room,
   required String? currentUserId,
   required String? localConnectionId,
+  required bool onlyShowVideos,
+  required bool showOwnCamera,
 }) {
   final List<_VoiceGridTileItem> tileItems = <_VoiceGridTileItem>[];
   for (final VoiceChannelParticipantData participant in participants) {
-    tileItems.add(
-      _VoiceGridTileItem(
-        data: participant,
-        source: VoiceParticipantTileSource.camera,
-      ),
-    );
+    final bool isOwnParticipant =
+        currentUserId != null && participant.userId == currentUserId;
+    final bool includeCameraTile = showOwnCamera || !isOwnParticipant;
+    final bool includeVideoParticipant =
+        !onlyShowVideos || participant.voice.selfVideo;
+    if (includeCameraTile && includeVideoParticipant) {
+      tileItems.add(
+        _VoiceGridTileItem(
+          data: participant,
+          source: VoiceParticipantTileSource.camera,
+        ),
+      );
+    }
     final Participant? liveKitParticipant = resolveVoiceParticipant(
       room: room,
       voice: participant.voice,
@@ -325,6 +335,9 @@ class _VoiceChannelParticipantGridState
       voiceActiveSpeakersProvider,
     );
     final VoiceCallLayoutState layout = ref.watch(voiceCallLayoutProvider);
+    final VoiceCallDisplayPreferencesState displayPreferences = ref.watch(
+      voiceCallDisplayPreferencesProvider,
+    );
     final AsyncValue<List<VoiceChannelParticipantData>> async = ref.watch(
       voiceChannelParticipantsProvider(participantKey),
     );
@@ -363,6 +376,8 @@ class _VoiceChannelParticipantGridState
             room: liveKit,
             currentUserId: me,
             localConnectionId: localConnectionId,
+            onlyShowVideos: displayPreferences.onlyShowVideos,
+            showOwnCamera: displayPreferences.showOwnCamera,
           ),
           liveKit,
           me,

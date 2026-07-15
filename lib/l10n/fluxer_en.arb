@@ -5898,6 +5898,26 @@
   "@voiceControlChat": {
     "description": "Label for the chat button in voice lobby and call control surfaces."
   },
+  "voicePanelSettingsSectionTitle": "Voice settings",
+  "@voicePanelSettingsSectionTitle": {
+    "description": "Section header for in-call voice settings in the expandable control panel."
+  },
+  "voicePanelUseEarpieceLabel": "Use earpiece",
+  "@voicePanelUseEarpieceLabel": {
+    "description": "Switch label to route voice call audio through the phone earpiece instead of the speaker."
+  },
+  "voicePanelOnlyShowVideosLabel": "Only show videos",
+  "@voicePanelOnlyShowVideosLabel": {
+    "description": "Switch label to hide voice participants who do not have their camera on."
+  },
+  "voicePanelOnlyShowVideosDescription": "Only show participants who have their camera on.",
+  "@voicePanelOnlyShowVideosDescription": {
+    "description": "Description for the only-show-videos switch in the voice call panel."
+  },
+  "voicePanelShowOwnCameraLabel": "Show my own camera",
+  "@voicePanelShowOwnCameraLabel": {
+    "description": "Switch label to show or hide the local camera tile in the voice call grid."
+  },
   "voiceTextChatShow": "Show chat",
   "@voiceTextChatShow": {
     "description": "Accessibility label for opening voice channel text chat."

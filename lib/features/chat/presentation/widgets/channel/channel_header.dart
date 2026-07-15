@@ -305,10 +305,15 @@ class ChannelHeader extends ConsumerWidget {
               onPressed: () => _openSearch(context, channel: channel),
             ),
           if (channel != null &&
-              channel.type == ChannelType.guildVoice &&
-              isMobileVoiceCameraPlatform()) ...<Widget>[
-            const SizedBox(width: 8),
-            const FlipCameraButton(),
+              channel.type == ChannelType.guildVoice) ...<Widget>[
+            ChatButton(
+              channelId: channel.id,
+              channelName: channel.name.isNotEmpty ? channel.name : null,
+            ),
+            if (isMobileVoiceCameraPlatform()) ...<Widget>[
+              const SizedBox(width: 8),
+              const FlipCameraButton(),
+            ],
           ],
         ],
       ),

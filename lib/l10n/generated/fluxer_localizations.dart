@@ -7798,6 +7798,36 @@ abstract class FluxerLocalizations {
   /// **'Chat'**
   String get voiceControlChat;
 
+  /// Section header for in-call voice settings in the expandable control panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice settings'**
+  String get voicePanelSettingsSectionTitle;
+
+  /// Switch label to route voice call audio through the phone earpiece instead of the speaker.
+  ///
+  /// In en, this message translates to:
+  /// **'Use earpiece'**
+  String get voicePanelUseEarpieceLabel;
+
+  /// Switch label to hide voice participants who do not have their camera on.
+  ///
+  /// In en, this message translates to:
+  /// **'Only show videos'**
+  String get voicePanelOnlyShowVideosLabel;
+
+  /// Description for the only-show-videos switch in the voice call panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Only show participants who have their camera on.'**
+  String get voicePanelOnlyShowVideosDescription;
+
+  /// Switch label to show or hide the local camera tile in the voice call grid.
+  ///
+  /// In en, this message translates to:
+  /// **'Show my own camera'**
+  String get voicePanelShowOwnCameraLabel;
+
   /// Accessibility label for opening voice channel text chat.
   ///
   /// In en, this message translates to:

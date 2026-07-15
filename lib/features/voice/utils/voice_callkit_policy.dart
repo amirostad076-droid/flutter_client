@@ -89,9 +89,7 @@ bool shouldMaintainBackgroundVoiceCallKit({
   return true;
 }
 
-bool shouldStartCallKitOnVoiceJoin({
-  required VoiceCallKitVoiceSnapshot voice,
-}) {
+bool shouldStartCallKitOnVoiceJoin({required VoiceCallKitVoiceSnapshot voice}) {
   return voice.isConnected;
 }
 

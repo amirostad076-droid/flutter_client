@@ -20,6 +20,7 @@ import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart'
 import 'package:fluxer_app/features/settings/providers/voice_settings_provider.dart';
 import 'package:fluxer_app/features/voice/domain/voice_settings_state.dart';
 import 'package:fluxer_app/features/voice/providers/screen_share_capability_provider.dart';
+import 'package:fluxer_app/features/voice/providers/voice_call_display_preferences_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_call_layout_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_noise_filter_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_screen_share_watch_tile_provider.dart';
@@ -1097,6 +1098,7 @@ class VoiceSession extends _$VoiceSession {
     );
     ref.read(voiceScreenShareWatchTileProvider.notifier).setActiveTileId(null);
     ref.read(voiceCallLayoutProvider.notifier).reset();
+    ref.read(voiceCallDisplayPreferencesProvider.notifier).reset();
     await disableAndroidScreenShareBackground();
     final String? channelId = state.channelId;
     final String? guildId = state.guildId;
@@ -1815,6 +1817,17 @@ class VoiceSession extends _$VoiceSession {
     );
   }
 
+  Future<void> _applyAudioOutputDevice(String outputDeviceId) async {
+    if (outputDeviceId == kDefaultVoiceDeviceId || outputDeviceId.isEmpty) {
+      return;
+    }
+    try {
+      await Helper.selectAudioOutput(outputDeviceId);
+    } on Object {
+      return;
+    }
+  }
+
   Future<void> _onVoiceSettingsChanged(
     VoiceSettingsState? previous,
     VoiceSettingsState next,
@@ -1823,6 +1836,11 @@ class VoiceSession extends _$VoiceSession {
       voiceSettingsApplicatorProvider,
     );
     await applicator.applySpeakerOutput(settings: next);
+    final bool outputDeviceChanged =
+        previous == null || previous.outputDeviceId != next.outputDeviceId;
+    if (outputDeviceChanged) {
+      await _applyAudioOutputDevice(next.outputDeviceId);
+    }
     final Room? room = state.liveKitRoom;
     if (room == null || !state.isConnected) {
       return;

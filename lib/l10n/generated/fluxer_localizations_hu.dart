@@ -4661,6 +4661,22 @@ class FluxerLocalizationsHu extends FluxerLocalizations {
   String get voiceControlChat => 'Csevegés';
 
   @override
+  String get voicePanelSettingsSectionTitle => 'Voice settings';
+
+  @override
+  String get voicePanelUseEarpieceLabel => 'Use earpiece';
+
+  @override
+  String get voicePanelOnlyShowVideosLabel => 'Only show videos';
+
+  @override
+  String get voicePanelOnlyShowVideosDescription =>
+      'Only show participants who have their camera on.';
+
+  @override
+  String get voicePanelShowOwnCameraLabel => 'Show my own camera';
+
+  @override
   String get voiceTextChatShow => 'Csevegés megjelenítése';
 
   @override
