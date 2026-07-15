@@ -29,6 +29,7 @@ import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
+import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
 import 'package:fluxer_app/features/guilds/data/guild_user_settings_repository.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
@@ -389,6 +390,15 @@ GoRouter _buildRouter({required Widget home}) {
   );
 }
 
+List<Override> _userPresenceOverrides(Iterable<Friend> friends) {
+  return <Override>[
+    for (final Friend friend in friends)
+      userPresenceProvider(
+        friend.id,
+      ).overrideWith((Ref ref) => Stream.value(null)),
+  ];
+}
+
 List<Override> _buildOverrides({
   required FluxerDatabase database,
   required _RecordingDmRepository repository,
@@ -399,6 +409,15 @@ List<Override> _buildOverrides({
   return <Override>[
     fluxerDatabaseProvider.overrideWithValue(database),
     dmRepositoryProvider.overrideWithValue(repository),
+    dmViewModelProvider.overrideWithValue(
+      DmViewState(
+        conversations: const <DmConversation>[],
+        friendsList: friends,
+        activeTab: FriendsTab.online,
+        searchQuery: '',
+      ),
+    ),
+    ..._userPresenceOverrides(friends),
     friendsListProvider.overrideWith((Ref ref) => Stream.value(friends)),
     userSettingsViewModelProvider.overrideWith(
       () => _StaticUserSettingsViewModel(settings),
@@ -446,14 +465,6 @@ List<Override> _buildDmListOverrides({required List<Friend> friends}) {
     ),
     guildListViewModelProvider.overrideWith(_EmptyGuildListViewModel.new),
     favoriteChannelsProvider.overrideWith((Ref ref) => Stream.value(const [])),
-    dmViewModelProvider.overrideWithValue(
-      DmViewState(
-        conversations: const <DmConversation>[],
-        friendsList: friends,
-        activeTab: FriendsTab.online,
-        searchQuery: '',
-      ),
-    ),
     currentUserIdProvider.overrideWithValue('1'),
   ];
 }

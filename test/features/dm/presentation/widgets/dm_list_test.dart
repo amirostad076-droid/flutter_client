@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart' show User;
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
@@ -22,6 +23,7 @@ import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
+import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
@@ -66,10 +68,7 @@ void main() {
 
       await tester.pumpWidget(
         _buildTestApp(
-          overrides: <Override>[
-            ..._buildOverrides(conversations: const <DmConversation>[]),
-            fluxerRouterProvider.overrideWithValue(router),
-          ],
+          overrides: _buildOverrides(conversations: const <DmConversation>[]),
           routerConfig: router,
         ),
       );
@@ -246,9 +245,10 @@ void main() {
       (tester) async {
         _setMobileSurface(tester);
 
-        final presence =
-            StreamController<Map<String, DmListRecipientRowData>>.broadcast();
-        addTearDown(presence.close);
+        final alicePresence = StreamController<User?>.broadcast();
+        final bobPresence = StreamController<User?>.broadcast();
+        addTearDown(alicePresence.close);
+        addTearDown(bobPresence.close);
 
         await tester.pumpWidget(
           _buildTestApp(
@@ -275,15 +275,16 @@ void main() {
                   lastMessageTime: _recentTime(),
                 ),
               ],
-              recipientRows: presence.stream,
+              userPresenceStreams: {
+                '200': alicePresence.stream,
+                '201': bobPresence.stream,
+              },
             ),
           ),
         );
 
-        presence.add(const {
-          '200': DmListRecipientRowData(status: 'online'),
-          '201': DmListRecipientRowData(status: 'online'),
-        });
+        alicePresence.add(_testUser(id: '200', status: 'online'));
+        bobPresence.add(_testUser(id: '201', status: 'online'));
         await tester.pumpAndSettle();
 
         FluxerAvatar avatarFor(String name) => tester.widget<FluxerAvatar>(
@@ -303,10 +304,8 @@ void main() {
         final aliceNameBefore = tester.widget<Text>(find.text('Alice'));
         final bobNameBefore = tester.widget<Text>(find.text('Bob'));
 
-        presence.add(const {
-          '200': DmListRecipientRowData(status: 'offline'),
-          '201': DmListRecipientRowData(status: 'online'),
-        });
+        alicePresence.add(_testUser(id: '200', status: 'offline'));
+        bobPresence.add(_testUser(id: '201', status: 'online'));
         await tester.pumpAndSettle();
 
         // Correctness: only Alice's avatar status flipped.
@@ -501,17 +500,54 @@ void _setMobileSurface(WidgetTester tester) {
   addTearDown(tester.view.resetDevicePixelRatio);
 }
 
+User _testUser({required String id, required String status}) {
+  return User(
+    id: id,
+    username: 'user$id',
+    discriminator: '0001',
+    bot: false,
+    system: false,
+    status: status,
+    mobile: false,
+  );
+}
+
+List<Override> _userPresenceOverrides(
+  Iterable<DmConversation> conversations, {
+  Map<String, Stream<User?>>? userPresenceStreams,
+}) {
+  final Set<String> userIds = <String>{};
+  for (final DmConversation conversation in conversations) {
+    if (conversation.isGroup) {
+      userIds.addAll(conversation.remoteRecipientIds);
+    } else if (!conversation.isPersonalNotes) {
+      userIds.add(conversation.recipientId);
+    }
+  }
+  return <Override>[
+    for (final String userId in userIds)
+      userPresenceProvider(userId).overrideWith(
+        (Ref ref) => userPresenceStreams?[userId] ?? Stream<User?>.value(null),
+      ),
+  ];
+}
+
 List<Override> _buildOverrides({
   required List<DmConversation> conversations,
   List<Friend> friendsList = const [],
   Set<String> pinnedIds = const <String>{},
   List<String> pinnedOrder = const <String>[],
   Stream<Map<String, DmListRecipientRowData>>? recipientRows,
+  Map<String, Stream<User?>>? userPresenceStreams,
   DmMessagePreviewMode dmMessagePreviewMode = DmMessagePreviewMode.all,
 }) {
   final db = openTestDatabase();
   return [
     fluxerDatabaseProvider.overrideWithValue(db),
+    ..._userPresenceOverrides(
+      conversations,
+      userPresenceStreams: userPresenceStreams,
+    ),
     dmListRecipientRowDataProvider.overrideWith(
       (ref) =>
           recipientRows ??
@@ -594,9 +630,31 @@ Widget _buildTestApp({
   GoRouter? routerConfig,
 }) {
   final colorTheme = buildDarkColorTheme();
+  final GoRouter router =
+      routerConfig ??
+      GoRouter(
+        initialLocation: '/channels/@me',
+        routes: <RouteBase>[
+          GoRoute(
+            path: '/channels/@me',
+            builder: (BuildContext context, GoRouterState state) {
+              return const Scaffold(body: DMList());
+            },
+          ),
+          GoRoute(
+            path: '/channels/@me/:channelId',
+            builder: (BuildContext context, GoRouterState state) {
+              return const Scaffold(body: DMList());
+            },
+          ),
+        ],
+      );
 
   return ProviderScope(
-    overrides: overrides,
+    overrides: <Override>[
+      fluxerRouterProvider.overrideWithValue(router),
+      ...overrides,
+    ],
     child: MaterialApp.router(
       localizationsDelegates: FluxerLocalizations.localizationsDelegates,
       supportedLocales: FluxerLocalizations.supportedLocales,
@@ -605,25 +663,7 @@ Widget _buildTestApp({
         textTheme: FluxerTextTheme.fromColors(colorTheme),
         layoutTheme: FluxerLayoutTheme.scaled(),
       ),
-      routerConfig:
-          routerConfig ??
-          GoRouter(
-            initialLocation: '/channels/@me',
-            routes: <RouteBase>[
-              GoRoute(
-                path: '/channels/@me',
-                builder: (BuildContext context, GoRouterState state) {
-                  return const Scaffold(body: DMList());
-                },
-              ),
-              GoRoute(
-                path: '/channels/@me/:channelId',
-                builder: (BuildContext context, GoRouterState state) {
-                  return const Scaffold(body: DMList());
-                },
-              ),
-            ],
-          ),
+      routerConfig: router,
     ),
   );
 }
