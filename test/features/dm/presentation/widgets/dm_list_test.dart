@@ -455,6 +455,34 @@ void main() {
       expect(find.textContaining('Sent an attachment'), findsOneWidget);
     });
 
+    testWidgets('ellipsizes long spoiled links in preview', (tester) async {
+      _setMobileSurface(tester);
+
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: _buildOverrides(
+            conversations: [
+              DmConversation(
+                id: '100',
+                type: 1,
+                recipientId: '200',
+                recipientName: 'Monty',
+                lastMessage:
+                    '||https://example.com/very/long/spoiled/link/path||',
+                lastMessageAuthorId: '200',
+                lastMessageAuthorName: 'Monty',
+                lastMessageTime: _recentTime(),
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(MessageMarkdown), findsOneWidget);
+    });
+
     testWidgets('shows system message plaintext for calls', (tester) async {
       _setMobileSurface(tester);
 
