@@ -15,6 +15,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/plutonium_upsell_b
 import 'package:fluxer_app/features/chat/providers/channel/channel_message_permissions_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/expression_picker_preferences_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/sticker_picker_provider.dart';
+import 'package:fluxer_app/features/chat/utils/inline_expression_panel_scroll_physics.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
@@ -488,6 +489,9 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
 
     return GridView.builder(
       controller: _scrollController,
+      physics: widget.scrollController != null
+          ? inlineExpressionPanelScrollPhysics()
+          : null,
       padding: _gridPadding.copyWith(top: 0, bottom: 4),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: _columns,
@@ -511,6 +515,9 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
 
     return CustomScrollView(
       controller: _scrollController,
+      physics: widget.scrollController != null
+          ? inlineExpressionPanelScrollPhysics()
+          : null,
       slivers: [
         const SliverToBoxAdapter(child: SizedBox(height: 4)),
         SliverPadding(

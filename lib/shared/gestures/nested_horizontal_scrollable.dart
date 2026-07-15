@@ -1,8 +1,8 @@
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
-/// Returns true when [globalPosition] hit tests an overflowing horizontal
-/// scroll viewport (wide markdown table) within [searchRoot].
+const Key kExpressionPanelShellGestureBlockKey = Key('chat-expression-sheet');
+
 bool isPointerOverOverflowingHorizontalScrollable(
   BuildContext searchRoot,
   Offset globalPosition, {
@@ -19,6 +19,46 @@ bool isPointerOverOverflowingHorizontalScrollable(
           searchRoot,
         ) !=
         null) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool isPointerOverDescendantWithKey(
+  BuildContext searchRoot,
+  Offset globalPosition, {
+  required Key key,
+  required int viewId,
+}) {
+  final Element rootElement = searchRoot as Element;
+  RenderObject? keyedRender;
+  void findKeyedElement(Element element) {
+    if (keyedRender != null) {
+      return;
+    }
+    if (element.widget.key == key) {
+      keyedRender = element.findRenderObject();
+      return;
+    }
+    element.visitChildren(findKeyedElement);
+  }
+
+  findKeyedElement(rootElement);
+  final RenderObject? resolvedKeyedRender = keyedRender;
+  if (resolvedKeyedRender == null) {
+    return false;
+  }
+  final HitTestResult result = HitTestResult();
+  WidgetsBinding.instance.hitTestInView(result, globalPosition, viewId);
+  for (final HitTestEntry entry in result.path) {
+    if (entry.target is! RenderObject) {
+      continue;
+    }
+    if (_isRenderDescendantOf(
+      entry.target as RenderObject,
+      resolvedKeyedRender,
+    )) {
       return true;
     }
   }

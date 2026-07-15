@@ -219,10 +219,18 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
     );
   }
 
-  bool _shouldDeferToHorizontalScroll(PointerDownEvent event) {
-    return isPointerOverOverflowingHorizontalScrollable(
+  bool _shouldDeferDrawerGesture(PointerDownEvent event) {
+    if (isPointerOverOverflowingHorizontalScrollable(
       context,
       event.position,
+      viewId: event.viewId,
+    )) {
+      return true;
+    }
+    return isPointerOverDescendantWithKey(
+      context,
+      event.position,
+      key: kExpressionPanelShellGestureBlockKey,
       viewId: event.viewId,
     );
   }
@@ -268,8 +276,7 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
                   _DrawerHorizontalDragRecognizer
                 >(
                   () => _DrawerHorizontalDragRecognizer(
-                    shouldDeferToHorizontalScroll:
-                        _shouldDeferToHorizontalScroll,
+                    shouldDeferDrawerGesture: _shouldDeferDrawerGesture,
                   ),
                   (recognizer) {
                     recognizer
@@ -302,18 +309,14 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
   }
 }
 
-/// Defers to nested horizontal scrollables (markdown tables) so table
-/// swipes do not open the shell drawer.
 class _DrawerHorizontalDragRecognizer extends HorizontalDragGestureRecognizer {
-  _DrawerHorizontalDragRecognizer({
-    required this.shouldDeferToHorizontalScroll,
-  });
+  _DrawerHorizontalDragRecognizer({required this.shouldDeferDrawerGesture});
 
-  final bool Function(PointerDownEvent event) shouldDeferToHorizontalScroll;
+  final bool Function(PointerDownEvent event) shouldDeferDrawerGesture;
 
   @override
   void addAllowedPointer(PointerDownEvent event) {
-    if (shouldDeferToHorizontalScroll(event)) {
+    if (shouldDeferDrawerGesture(event)) {
       resolve(GestureDisposition.rejected);
       return;
     }

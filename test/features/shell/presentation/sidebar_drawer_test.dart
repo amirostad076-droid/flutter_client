@@ -5,6 +5,7 @@ import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/shell/presentation/sidebar_drawer.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
 import 'package:fluxer_app/features/shell/providers/shell_popup_overlay_provider.dart';
+import 'package:fluxer_app/shared/gestures/nested_horizontal_scrollable.dart';
 import 'package:fluxer_markdown/src/widgets/fluxer_markdown.dart';
 import 'package:go_router/go_router.dart';
 
@@ -232,6 +233,41 @@ void main() {
     expect(scrollable.position.pixels, lessThan(before));
     expect(_sliderDx(tester), 0);
   });
+
+  testWidgets('ignores horizontal drag on the expression panel surface', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: '/channels/guild/channel',
+      routes: [
+        GoRoute(
+          path: '/channels/:guildId',
+          builder: (context, state) => _drawerHarnessWithExpressionPanel(),
+          routes: [
+            GoRoute(
+              path: ':channelId',
+              builder: (context, state) => _drawerHarnessWithExpressionPanel(),
+            ),
+          ],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    final container = _containerFor(router);
+
+    await tester.pumpWidget(
+      _buildDrawerApp(container: container, router: router),
+    );
+    await tester.pumpAndSettle();
+
+    final Offset panelCenter = tester.getCenter(
+      find.byKey(kExpressionPanelShellGestureBlockKey),
+    );
+    await tester.dragFrom(panelCenter, const Offset(200, 0));
+    await tester.pumpAndSettle();
+
+    expect(_sliderDx(tester), 0);
+  });
 }
 
 const _sliderKey = ValueKey<String>('slider');
@@ -275,6 +311,34 @@ Widget _drawerHarnessWithWideTable() {
       child: FluxerMarkdown(
         data: kWideMarkdownTable,
         config: kWideTableMarkdownConfig,
+      ),
+    ),
+  );
+}
+
+Widget _drawerHarnessWithExpressionPanel() {
+  return const SidebarDrawer(
+    revealDuration: Duration.zero,
+    snapBackDuration: Duration.zero,
+    base: ColoredBox(color: Colors.blue),
+    slider: SizedBox(
+      key: _sliderKey,
+      width: 400,
+      height: 600,
+      child: Stack(
+        children: <Widget>[
+          ColoredBox(color: Colors.red),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 200,
+            child: ColoredBox(
+              key: kExpressionPanelShellGestureBlockKey,
+              color: Colors.green,
+            ),
+          ),
+        ],
       ),
     ),
   );

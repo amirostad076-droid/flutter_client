@@ -2215,6 +2215,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  smart_keyboard_insets:
+    dependency: "direct main"
+    description:
+      name: smart_keyboard_insets
+      sha256: "4eaddd3b17ccdfe71d45c9e4a1301fb0851c3a1333377509b8ad3af9ad1553c5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
   source_gen:
     dependency: transitive
     description:

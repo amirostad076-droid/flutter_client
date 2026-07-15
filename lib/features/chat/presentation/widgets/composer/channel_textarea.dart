@@ -34,13 +34,16 @@ import 'package:fluxer_app/features/chat/providers/channel/channel_message_permi
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/guild/guild_composer_access_provider.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_length_limits_provider.dart';
+import 'package:fluxer_app/features/chat/providers/pickers/bottom_input_slot_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/emoji_picker_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/expression_panel_provider.dart';
+import 'package:fluxer_app/features/chat/providers/pickers/mobile_keyboard_metrics_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_blocked_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_indicator_shake_provider.dart';
 import 'package:fluxer_app/features/chat/providers/upload/cloud_upload_controller.dart';
 import 'package:fluxer_app/features/chat/service/composer_mention_controller.dart';
+import 'package:fluxer_app/features/chat/utils/bottom_input_slot_layout.dart';
 import 'package:fluxer_app/features/chat/utils/composer_command.dart';
 import 'package:fluxer_app/features/chat/utils/composer_emoji_resolution.dart';
 import 'package:fluxer_app/features/chat/utils/composer_message_length_paste_formatter.dart';
@@ -622,6 +625,15 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           channelId,
         )?.guildId ??
         '';
+    final bool isPanelOpen = ref.watch(expressionPanelProvider);
+    final double bottomSlotHeight = ref.watch(
+      bottomInputSlotProvider.select(
+        (BottomInputSlotState state) => state.slotHeight,
+      ),
+    );
+    final double composerSafeAreaPadding = MediaQuery.paddingOf(context).bottom;
+    final bool showComposerSafeBar =
+        composerSafeAreaPadding > 0 && bottomSlotHeight <= 0 && !isPanelOpen;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -672,7 +684,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           ),
         ),
         Container(
-          height: MediaQuery.paddingOf(context).bottom,
+          height: showComposerSafeBar ? composerSafeAreaPadding : 0,
           decoration: BoxDecoration(color: context.colors.chatInputBackground),
         ),
       ],
@@ -1422,7 +1434,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     BuildContext context,
     ChannelMessagePermissions perms,
   ) {
-    final isPanelOpen = ref.watch(expressionPanelProvider);
+    final bool isPanelOpen = ref.watch(expressionPanelProvider);
 
     return FluxerButton.ghost(
       icon: isPanelOpen ? PhosphorIconsFill.keyboard : PhosphorIconsFill.smiley,
@@ -1432,11 +1444,37 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           ? null
           : () {
               if (isPanelOpen) {
+                final MobileKeyboardMetricsState metrics = ref.read(
+                  mobileKeyboardMetricsProvider,
+                );
+                final double netPanel =
+                    ref.read(expressionPanelHeightProvider) ??
+                    bottomInputSlotAnchorHeight(
+                      anchoredKeyboardHeight: metrics.anchoredKeyboardHeight,
+                      fallbackHeight: metrics.fallbackKeyboardHeight,
+                      safeAreaBottom: metrics.safeAreaBottom,
+                    );
+                final double lockedHeight = netPanel;
+                ref
+                    .read(bottomInputSlotProvider.notifier)
+                    .beginKeyboardTransition(lockedHeight);
                 ref.read(expressionPanelProvider.notifier).close();
                 _focusNode.requestFocus();
               } else {
-                FocusScope.of(context).unfocus();
+                final MobileKeyboardMetricsState metrics = ref.read(
+                  mobileKeyboardMetricsProvider,
+                );
+                if (metrics.isKeyboardVisible) {
+                  final double grossLock = resolveTransitionLockHeight(
+                    liveKeyboardHeight: metrics.liveKeyboardHeight,
+                    anchorHeight: metrics.resolveAnchorHeight(),
+                  );
+                  ref
+                      .read(bottomInputSlotProvider.notifier)
+                      .beginPanelTransition(grossLock);
+                }
                 ref.read(expressionPanelProvider.notifier).open();
+                FocusScope.of(context).unfocus();
               }
             },
     );
