@@ -5,7 +5,10 @@ import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/shell/presentation/sidebar_drawer.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
 import 'package:fluxer_app/features/shell/providers/shell_popup_overlay_provider.dart';
+import 'package:fluxer_markdown/src/widgets/fluxer_markdown.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../shared/gestures/wide_markdown_table_test_helpers.dart';
 
 void main() {
   group('isSidebarDrawerLockedForLocation', () {
@@ -193,6 +196,42 @@ void main() {
 
     expect(find.byType(RepaintBoundary), findsAtLeastNWidgets(2));
   });
+
+  testWidgets('rightward drag on wide table scrolls table instead of drawer', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: '/channels/guild/channel',
+      routes: [
+        GoRoute(
+          path: '/channels/:guildId',
+          builder: (context, state) => _drawerHarnessWithWideTable(),
+          routes: [
+            GoRoute(
+              path: ':channelId',
+              builder: (context, state) => _drawerHarnessWithWideTable(),
+            ),
+          ],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    final container = _containerFor(router);
+
+    await tester.pumpWidget(
+      _buildDrawerApp(container: container, router: router),
+    );
+    await tester.pumpAndSettle();
+    final ScrollableState scrollable = tableScrollableState(tester);
+    expect(scrollable.position.maxScrollExtent, greaterThan(0));
+    scrollable.position.jumpTo(scrollable.position.maxScrollExtent / 2);
+    await tester.pump();
+    final double before = scrollable.position.pixels;
+    await tester.dragFrom(tableDragStart(tester), const Offset(120, 0));
+    await tester.pumpAndSettle();
+    expect(scrollable.position.pixels, lessThan(before));
+    expect(_sliderDx(tester), 0);
+  });
 }
 
 const _sliderKey = ValueKey<String>('slider');
@@ -221,6 +260,23 @@ Widget _drawerHarness() {
     snapBackDuration: Duration.zero,
     base: ColoredBox(color: Colors.blue),
     slider: ColoredBox(key: _sliderKey, color: Colors.red),
+  );
+}
+
+Widget _drawerHarnessWithWideTable() {
+  return const SidebarDrawer(
+    revealDuration: Duration.zero,
+    snapBackDuration: Duration.zero,
+    base: ColoredBox(color: Colors.blue),
+    slider: SizedBox(
+      key: _sliderKey,
+      width: 400,
+      height: 120,
+      child: FluxerMarkdown(
+        data: kWideMarkdownTable,
+        config: kWideTableMarkdownConfig,
+      ),
+    ),
   );
 }
 
