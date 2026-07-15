@@ -7792,6 +7792,54 @@ abstract class FluxerLocalizations {
   /// **'Disconnect'**
   String get voiceControlDisconnect;
 
+  /// Voice participant context menu item to open the user's profile.
+  ///
+  /// In en, this message translates to:
+  /// **'View profile'**
+  String get voiceParticipantMenuViewProfile;
+
+  /// Voice participant context menu item to pin a participant tile in focus layout.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus this person'**
+  String get voiceParticipantMenuFocus;
+
+  /// Voice participant context menu item to return to grid layout.
+  ///
+  /// In en, this message translates to:
+  /// **'Unfocus'**
+  String get voiceParticipantMenuUnfocus;
+
+  /// Voice participant context menu item to community-mute another member.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute'**
+  String get voiceParticipantMenuCommunityMute;
+
+  /// Voice participant context menu item to community-deafen another member.
+  ///
+  /// In en, this message translates to:
+  /// **'Deafen'**
+  String get voiceParticipantMenuCommunityDeafen;
+
+  /// Voice participant context menu slider label for per-user volume.
+  ///
+  /// In en, this message translates to:
+  /// **'User volume'**
+  String get voiceParticipantMenuUserVolume;
+
+  /// Voice participant context menu slider label for screen share audio volume.
+  ///
+  /// In en, this message translates to:
+  /// **'Stream volume'**
+  String get voiceParticipantMenuStreamVolume;
+
+  /// Toast shown when a voice participant moderation action fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t update that member. Please try again.'**
+  String get voiceParticipantModerationFailed;
+
   /// Label for the chat button in voice lobby and call control surfaces.
   ///
   /// In en, this message translates to:

@@ -33,6 +33,7 @@ import 'package:fluxer_app/features/voice/utils/voice_camera_platform.dart';
 import 'package:fluxer_app/features/voice/utils/voice_channel_join_guard.dart';
 import 'package:fluxer_app/features/voice/utils/voice_connection_voice_state.dart';
 import 'package:fluxer_app/features/voice/utils/voice_effective_audio_state.dart';
+import 'package:fluxer_app/features/voice/utils/voice_participant_volume_utils.dart';
 import 'package:fluxer_app/features/voice/voice_session_errors.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
@@ -1876,6 +1877,68 @@ class VoiceSession extends _$VoiceSession {
         cameraEnabled: vs?.selfVideo ?? false,
       );
     }
+    final bool participantVolumesChanged =
+        previous == null ||
+        previous.participantVolumes != next.participantVolumes;
+    final bool outputVolumeChanged =
+        previous == null || previous.outputVolume != next.outputVolume;
+    if (participantVolumesChanged || outputVolumeChanged) {
+      await applyAllParticipantVolumes();
+    }
+  }
+
+  Future<void> applyParticipantVolume(String userId) async {
+    final VoiceSettingsState settings = ref.read(voiceSettingsProvider);
+    await applyParticipantVolumeToRoom(
+      room: state.liveKitRoom,
+      userId: userId,
+      participantVolumePercent: defaultParticipantVolumeForUser(
+        participantVolumes: settings.participantVolumes,
+        userId: userId,
+      ),
+      outputVolumePercent: settings.outputVolume,
+    );
+  }
+
+  Future<void> applyAllParticipantVolumes() async {
+    final VoiceSettingsState settings = ref.read(voiceSettingsProvider);
+    await applyAllParticipantVolumesToRoom(
+      room: state.liveKitRoom,
+      participantVolumes: settings.participantVolumes,
+      outputVolumePercent: settings.outputVolume,
+    );
+  }
+
+  Future<void> _applyParticipantVolumeForPublication(
+    RemoteTrackPublication publication,
+  ) async {
+    if (publication.source != TrackSource.microphone) {
+      return;
+    }
+    final Participant participant = publication.participant;
+    final String? userId = parseUserIdFromParticipantIdentity(
+      participant.identity,
+    );
+    if (userId == null) {
+      return;
+    }
+    final Track? track = publication.track;
+    if (track is! RemoteAudioTrack) {
+      return;
+    }
+    final VoiceSettingsState settings = ref.read(voiceSettingsProvider);
+    try {
+      await applyParticipantVolumeToTrack(
+        track: track,
+        participantVolumePercent: defaultParticipantVolumeForUser(
+          participantVolumes: settings.participantVolumes,
+          userId: userId,
+        ),
+        outputVolumePercent: settings.outputVolume,
+      );
+    } on Object catch (error) {
+      talker.warning('[Voice] Failed to apply participant volume: $error');
+    }
   }
 
   CameraCaptureOptions _cameraCaptureOptions() {
@@ -1895,6 +1958,7 @@ class VoiceSession extends _$VoiceSession {
     }
     try {
       await publication.subscribe();
+      await _applyParticipantVolumeForPublication(publication);
     } on Object catch (e) {
       talker.warning('[Voice] Failed to subscribe remote track: $e');
     }

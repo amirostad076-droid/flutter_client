@@ -4643,6 +4643,31 @@ class FluxerLocalizationsCy extends FluxerLocalizations {
   String get voiceControlDisconnect => 'Datgysylltu';
 
   @override
+  String get voiceParticipantMenuViewProfile => 'View profile';
+
+  @override
+  String get voiceParticipantMenuFocus => 'Focus this person';
+
+  @override
+  String get voiceParticipantMenuUnfocus => 'Unfocus';
+
+  @override
+  String get voiceParticipantMenuCommunityMute => 'Mute';
+
+  @override
+  String get voiceParticipantMenuCommunityDeafen => 'Deafen';
+
+  @override
+  String get voiceParticipantMenuUserVolume => 'User volume';
+
+  @override
+  String get voiceParticipantMenuStreamVolume => 'Stream volume';
+
+  @override
+  String get voiceParticipantModerationFailed =>
+      'Couldn\'t update that member. Please try again.';
+
+  @override
   String get voiceControlChat => 'Sgwrs';
 
   @override
