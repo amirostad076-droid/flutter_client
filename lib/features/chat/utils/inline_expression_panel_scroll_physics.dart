@@ -15,6 +15,19 @@ ScrollPhysics inlineExpressionPanelScrollPhysics() {
   return AlwaysScrollableScrollPhysics(parent: parent);
 }
 
+ScrollPhysics inlineExpressionPanelContentScrollPhysics({
+  required bool isSheetExpanded,
+}) {
+  final ScrollPhysics parent = switch (defaultTargetPlatform) {
+    TargetPlatform.iOS || TargetPlatform.macOS => const BouncingScrollPhysics(),
+    _ => const ClampingScrollPhysics(),
+  };
+  if (!isSheetExpanded) {
+    return parent;
+  }
+  return AlwaysScrollableScrollPhysics(parent: parent);
+}
+
 bool inlineExpressionPanelScrollIsAtTop(ScrollMetrics metrics) {
   return metrics.pixels <=
       metrics.minScrollExtent + kInlineExpressionPanelScrollTopTolerance;

@@ -1,8 +1,6 @@
-import 'dart:async' show unawaited;
 import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/ui/voice/voice_channel_control_bar.dart';
@@ -10,10 +8,9 @@ import 'package:fluxer_app/features/ui/voice/voice_channel_control_panel_setting
 import 'package:fluxer_app/features/voice/providers/screen_share_capability_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
+import 'package:fluxer_app/shared/gestures/expandable_sheet_gestures.dart';
 
 const double _kExpandedSheetHeightFraction = 0.88;
-const double _kSnapVelocityThreshold = 650;
-const double _kSnapMidpointFraction = 0.42;
 const Key kVoiceControlSheetDragHandleKey = Key(
   'voice-control-sheet-drag-handle',
 );
@@ -183,17 +180,13 @@ class _VoiceChannelControlExpandableSheetState
     }
     final double collapsed = _collapsedHeight(context);
     final double expanded = _expandedHeight(context);
-    final double midpoint =
-        collapsed + ((expanded - collapsed) * _kSnapMidpointFraction);
     final double velocity = details.primaryVelocity ?? 0;
-    late final double target;
-    if (velocity < -_kSnapVelocityThreshold) {
-      target = expanded;
-    } else if (velocity > _kSnapVelocityThreshold) {
-      target = collapsed;
-    } else {
-      target = _height >= midpoint ? expanded : collapsed;
-    }
+    final double target = expandableSheetBinarySnapHeight(
+      currentHeight: _height,
+      velocity: velocity,
+      collapsedHeight: collapsed,
+      expandedHeight: expanded,
+    );
     final double previousHeight = _height;
     setState(() {
       _isDragging = false;
@@ -204,28 +197,10 @@ class _VoiceChannelControlExpandableSheetState
         _panelBodyVisible = true;
       }
     });
-    _playSnapHaptic(
-      collapsed: collapsed,
-      previousHeight: previousHeight,
-      targetHeight: target,
+    playExpandableSheetSnapHaptic(
+      wasExpanded: previousHeight > collapsed + 1,
+      isExpanded: target > collapsed + 1,
     );
-  }
-
-  void _playSnapHaptic({
-    required double collapsed,
-    required double previousHeight,
-    required double targetHeight,
-  }) {
-    final bool wasExpanded = previousHeight > collapsed + 1;
-    final bool isExpanded = targetHeight > collapsed + 1;
-    if (wasExpanded == isExpanded) {
-      return;
-    }
-    if (isExpanded) {
-      unawaited(HapticFeedback.mediumImpact());
-      return;
-    }
-    unawaited(HapticFeedback.lightImpact());
   }
 
   void _syncPanelBodyVisibility(BuildContext context) {
@@ -283,10 +258,10 @@ class _VoiceChannelControlExpandableSheetState
         lerpDouble(collapsedWidth, maxBarWidth, expansion) ?? maxBarWidth;
     final double barRadius = voiceChannelControlMorphingBarRadius(expansion);
     final bool showScrollBody = _panelBodyVisible;
-    final Duration animationDuration =
-        _isDragging || MediaQuery.disableAnimationsOf(context)
-        ? Duration.zero
-        : context.motion.slow;
+    final Duration animationDuration = expandableSheetSnapDuration(
+      context,
+      isDragging: _isDragging,
+    );
     final double collapsedBarInnerWidth =
         collapsedWidth - (kVoiceControlMorphingBarBorderWidth * 2);
     final double expandedBarInnerWidth =
@@ -330,7 +305,7 @@ class _VoiceChannelControlExpandableSheetState
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      _VoiceControlSheetDragTarget(
+                      ExpandableSheetDragTarget(
                         key: kVoiceControlSheetDragHeaderKey,
                         onVerticalDragUpdate: (DragUpdateDetails details) {
                           _onVerticalDragUpdate(context, details);
@@ -390,29 +365,6 @@ class _VoiceChannelControlExpandableSheetState
           ),
         ),
       ),
-    );
-  }
-}
-
-class _VoiceControlSheetDragTarget extends StatelessWidget {
-  const _VoiceControlSheetDragTarget({
-    required this.onVerticalDragUpdate,
-    required this.onVerticalDragEnd,
-    required this.child,
-    super.key,
-  });
-
-  final GestureDragUpdateCallback onVerticalDragUpdate;
-  final GestureDragEndCallback onVerticalDragEnd;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onVerticalDragUpdate: onVerticalDragUpdate,
-      onVerticalDragEnd: onVerticalDragEnd,
-      child: child,
     );
   }
 }

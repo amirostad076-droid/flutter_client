@@ -13,7 +13,6 @@ import 'package:fluxer_app/features/chat/providers/pickers/favorite_media_provid
 import 'package:fluxer_app/features/chat/providers/pickers/gif_provider.dart';
 import 'package:fluxer_app/features/chat/utils/gif_category_grid_layout.dart';
 import 'package:fluxer_app/features/chat/utils/gif_preview_playback_policy.dart';
-import 'package:fluxer_app/features/chat/utils/inline_expression_panel_scroll_physics.dart';
 import 'package:fluxer_app/features/chat/utils/klipy_utils.dart';
 import 'package:fluxer_app/features/chat/utils/media_proxy_url.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
@@ -727,7 +726,6 @@ class _CategoryGridState extends State<_CategoryGrid> {
 
         return SingleChildScrollView(
           controller: _scrollController,
-          physics: inlineExpressionPanelScrollPhysics(),
           child: SizedBox(
             height: contentHeight,
             child: Stack(
@@ -992,7 +990,6 @@ class _VirtualMasonryGridState extends State<_VirtualMasonryGrid> {
 
         return SingleChildScrollView(
           controller: _scrollController,
-          physics: inlineExpressionPanelScrollPhysics(),
           child: SizedBox(
             height: contentHeight,
             child: Stack(

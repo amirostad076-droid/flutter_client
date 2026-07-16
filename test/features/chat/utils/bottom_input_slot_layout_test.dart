@@ -302,6 +302,24 @@ void main() {
         ),
         InlineExpressionPanelSnapTarget.expanded,
       );
+      expect(
+        inlineExpressionPanelSnapTarget(
+          currentHeight: anchorHeight,
+          velocity: -700,
+          anchorHeight: anchorHeight,
+          expandedHeight: expandedHeight,
+        ),
+        InlineExpressionPanelSnapTarget.expanded,
+      );
+      expect(
+        inlineExpressionPanelSnapTarget(
+          currentHeight: anchorHeight + 20,
+          velocity: 700,
+          anchorHeight: anchorHeight,
+          expandedHeight: expandedHeight,
+        ),
+        InlineExpressionPanelSnapTarget.anchor,
+      );
     });
   });
 }

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet_drag.dart';
+import 'package:fluxer_app/shared/gestures/expandable_sheet_gestures.dart';
 
 enum BottomInputMode { none, keyboard, panelAnchored, panelExpanded }
 
@@ -12,7 +13,8 @@ const double kKeyboardHeightQuantizeThreshold = 1;
 const double kKeyboardAnchorPersistThreshold = 4;
 const double kInlineExpressionPanelAnchorMagneticFraction = 0.12;
 const double kInlineExpressionPanelDismissHeightFraction = 0.55;
-const double kInlineExpressionPanelExpandedSnapMidpointFraction = 0.42;
+const double kInlineExpressionPanelExpandedSnapMidpointFraction =
+    kExpandableSheetSnapMidpointFraction;
 
 const double kIosFallbackKeyboardHeight = 291;
 const double kAndroidFallbackKeyboardHeightFraction = 0.38;
@@ -113,7 +115,7 @@ InlineExpressionPanelSnapTarget inlineExpressionPanelSnapTarget({
   required double anchorHeight,
   required double expandedHeight,
   double dismissVelocity = kFluxerBottomSheetDismissVelocity,
-  double expandVelocity = -300,
+  double expandVelocity = -kExpandableSheetFlingVelocityThreshold,
 }) {
   final double magneticZone =
       anchorHeight * kInlineExpressionPanelAnchorMagneticFraction;

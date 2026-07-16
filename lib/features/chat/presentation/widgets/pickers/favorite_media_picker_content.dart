@@ -14,7 +14,6 @@ import 'package:fluxer_app/features/chat/providers/pickers/favorite_media_provid
 import 'package:fluxer_app/features/chat/utils/gif_media_selection.dart';
 import 'package:fluxer_app/features/chat/utils/gif_preview_playback_policy.dart';
 import 'package:fluxer_app/features/chat/utils/gif_preview_player_config.dart';
-import 'package:fluxer_app/features/chat/utils/inline_expression_panel_scroll_physics.dart';
 import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
 import 'package:fluxer_app/features/chat/utils/media_proxy_url.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
@@ -687,7 +686,6 @@ class _FavoriteMediaMasonryGridState extends State<_FavoriteMediaMasonryGrid> {
 
       return SingleChildScrollView(
         controller: _scrollController,
-        physics: inlineExpressionPanelScrollPhysics(),
         child: SizedBox(
           height: _layoutContentHeight,
           child: Stack(

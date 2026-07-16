@@ -17,7 +17,6 @@ import 'package:fluxer_app/features/chat/providers/channel/channel_message_permi
 import 'package:fluxer_app/features/chat/providers/pickers/emoji_picker_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/expression_picker_preferences_provider.dart';
 import 'package:fluxer_app/features/chat/utils/emoji_picker_rendering_policy.dart';
-import 'package:fluxer_app/features/chat/utils/inline_expression_panel_scroll_physics.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
@@ -743,9 +742,6 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
             : 0,
       ),
       controller: _scrollController,
-      physics: widget.scrollController != null
-          ? inlineExpressionPanelScrollPhysics()
-          : null,
       addAutomaticKeepAlives: false,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -787,9 +783,6 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
             : 0,
       ),
       controller: _scrollController,
-      physics: widget.scrollController != null
-          ? inlineExpressionPanelScrollPhysics()
-          : null,
       slivers: [
         const SliverToBoxAdapter(child: SizedBox(height: 4)),
         if (shouldBuildUpsell)

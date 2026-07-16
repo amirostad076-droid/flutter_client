@@ -128,8 +128,14 @@ class _ExpressionPanelContentState extends ConsumerState<ExpressionPanelContent>
               onGifSelect: widget.onGifSelect,
               onStickerSelect: widget.onStickerSelect,
               onFavoriteMemeSelect: widget.onFavoriteMemeSelect,
-              onTabChanged: (ExpressionPickerTab tab) =>
-                  setState(() => _selectedTab = tab),
+              onTabChanged: (ExpressionPickerTab tab) {
+                if (tab != _selectedTab) {
+                  if (widget.scrollController.hasClients) {
+                    widget.scrollController.jumpTo(0);
+                  }
+                  setState(() => _selectedTab = tab);
+                }
+              },
               initialTab: _selectedTab,
               showTabs: false,
               searchController: _searchController,
@@ -164,7 +170,14 @@ class _ExpressionPanelContentState extends ConsumerState<ExpressionPanelContent>
               final bool isActive = tab == _selectedTab;
               return Expanded(
                 child: GestureDetector(
-                  onTap: () => setState(() => _selectedTab = tab),
+                  onTap: () {
+                    if (tab != _selectedTab) {
+                      if (widget.scrollController.hasClients) {
+                        widget.scrollController.jumpTo(0);
+                      }
+                      setState(() => _selectedTab = tab);
+                    }
+                  },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
                     padding: const EdgeInsets.symmetric(

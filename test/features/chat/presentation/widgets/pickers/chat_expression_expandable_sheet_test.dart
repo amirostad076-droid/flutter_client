@@ -44,7 +44,7 @@ void main() {
 
     testWidgets('handle can be dragged repeatedly after snap', (tester) async {
       await _pumpSheet(tester, colorTheme: colorTheme);
-      final Finder dragTarget = find.byKey(kChatExpressionSheetDragHandleKey);
+      final Finder dragTarget = find.byKey(kChatExpressionSheetDragHeaderKey);
       final Finder sheet = find.byKey(kChatExpressionSheetKey);
       final double initialHeight = tester.getSize(sheet).height;
       final Offset dragStart = tester.getCenter(dragTarget);
@@ -78,7 +78,7 @@ void main() {
       tester,
     ) async {
       await _pumpSheet(tester, colorTheme: colorTheme);
-      final Finder dragTarget = find.byKey(kChatExpressionSheetDragHandleKey);
+      final Finder dragTarget = find.byKey(kChatExpressionSheetDragHeaderKey);
       final Finder sheet = find.byKey(kChatExpressionSheetKey);
       final double maxHeight =
           _kMobileViewport.height * kInlineExpressionPanelMaxScreenFraction;
@@ -111,7 +111,7 @@ void main() {
       final Finder list = find.byType(Scrollable).last;
       final double dockedHeight = tester.getSize(sheet).height;
       final Offset handleCenter = tester.getCenter(
-        find.byKey(kChatExpressionSheetDragHandleKey),
+        find.byKey(kChatExpressionSheetDragHeaderKey),
       );
       final TestGesture expandGesture = await tester.startGesture(handleCenter);
       await expandGesture.moveBy(const Offset(0, -220));
@@ -127,6 +127,85 @@ void main() {
       await collapseGesture.up();
       await tester.pumpAndSettle();
       expect(tester.getSize(sheet).height, closeTo(dockedHeight, 4));
+    });
+
+    testWidgets('fast upward flick on handle expands the sheet', (
+      tester,
+    ) async {
+      await _pumpSheet(tester, colorTheme: colorTheme);
+      final Finder sheet = find.byKey(kChatExpressionSheetKey);
+      final double dockedHeight = tester.getSize(sheet).height;
+      await tester.fling(
+        find.byKey(kChatExpressionSheetDragHeaderKey),
+        const Offset(0, -1200),
+        1000,
+      );
+      await tester.pumpAndSettle();
+      expect(tester.getSize(sheet).height, greaterThan(dockedHeight + 40));
+    });
+
+    testWidgets('fast downward flick near anchor docks instead of closing', (
+      tester,
+    ) async {
+      await _pumpSheet(tester, colorTheme: colorTheme);
+      final Finder sheet = find.byKey(kChatExpressionSheetKey);
+      final double dockedHeight = tester.getSize(sheet).height;
+      await tester.fling(
+        find.byKey(kChatExpressionSheetDragHeaderKey),
+        const Offset(0, 1200),
+        1000,
+      );
+      await tester.pumpAndSettle();
+      expect(tester.getSize(sheet).height, closeTo(dockedHeight, 4));
+    });
+
+    testWidgets('pull down at scroll top shrinks once per gesture', (
+      tester,
+    ) async {
+      await _pumpSheet(tester, colorTheme: colorTheme);
+      final Finder sheet = find.byKey(kChatExpressionSheetKey);
+      final Finder list = find.byType(Scrollable).last;
+      final Offset handleCenter = tester.getCenter(
+        find.byKey(kChatExpressionSheetDragHeaderKey),
+      );
+      final TestGesture expandGesture = await tester.startGesture(handleCenter);
+      await expandGesture.moveBy(const Offset(0, -220));
+      await expandGesture.up();
+      await tester.pumpAndSettle();
+      final double expandedHeight = tester.getSize(sheet).height;
+      final Offset listCenter = tester.getCenter(list);
+      final TestGesture collapseGesture = await tester.startGesture(listCenter);
+      await collapseGesture.moveBy(const Offset(0, 80));
+      await tester.pump();
+      final double midCollapseHeight = tester.getSize(sheet).height;
+      expect(midCollapseHeight, lessThan(expandedHeight - 20));
+      expect(midCollapseHeight, greaterThan(expandedHeight - 120));
+      await collapseGesture.moveBy(const Offset(0, 80));
+      await tester.pump();
+      final double afterSecondMove = tester.getSize(sheet).height;
+      expect(afterSecondMove, lessThan(midCollapseHeight));
+      await collapseGesture.up();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('close animates height before provider teardown', (
+      tester,
+    ) async {
+      await _pumpSheet(tester, colorTheme: colorTheme);
+      final Finder sheet = find.byKey(kChatExpressionSheetKey);
+      final ChatExpressionExpandableSheetState sheetState = tester.state(
+        find.byType(ChatExpressionExpandableSheet),
+      );
+      sheetState.closeForTest();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+      final double midCloseHeight = tester.getSize(sheet).height;
+      expect(midCloseHeight, lessThan(_kAnchorHeight));
+      expect(midCloseHeight, greaterThan(0));
+      expect(find.byKey(kChatExpressionSheetKey), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 150));
+      expect(find.byKey(kChatExpressionSheetKey), findsOneWidget);
+      await tester.pumpAndSettle();
     });
   });
 }
