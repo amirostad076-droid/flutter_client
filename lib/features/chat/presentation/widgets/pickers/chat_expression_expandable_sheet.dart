@@ -126,6 +126,8 @@ class ChatExpressionExpandableSheetState
 
   bool get _isExpanded => _height >= _expandedHeightCache - 1;
 
+  bool get _isDocked => (_height - widget.collapsedHeight).abs() < 1;
+
   void _refreshExpandedHeight() {
     final MediaQueryData mediaQuery = MediaQuery.of(context);
     final double screenHeight = mediaQuery.size.height;
@@ -289,16 +291,40 @@ class ChatExpressionExpandableSheetState
     _beginCloseAnimation();
   }
 
-  void _onEmojiSelect(String name, String surrogates) {
-    ref.read(pendingEmojiInsertProvider.notifier).emit(name, surrogates);
-    if (_isExpanded) {
+  void _snapToDockedIfNeeded() {
+    if (!_isDocked) {
       _snapToHeight(widget.collapsedHeight);
     }
+  }
+
+  void _onEmojiSelect(String name, String surrogates) {
+    ref.read(pendingEmojiInsertProvider.notifier).emit(name, surrogates);
+    _snapToDockedIfNeeded();
+  }
+
+  void _onGifSelect(FluxerSelectedGif selection) {
+    ref.read(pendingGifSelectionProvider.notifier).emit(selection);
+    _snapToDockedIfNeeded();
+  }
+
+  void _onStickerSelect(StickerEntry selection) {
+    ref.read(pendingStickerSelectionProvider.notifier).emit(selection);
+    _snapToDockedIfNeeded();
+  }
+
+  void _onFavoriteMemeSelect(FavoriteMemeSelection selection) {
+    ref.read(pendingFavoriteMemeSelectionProvider.notifier).emit(selection);
+    _snapToDockedIfNeeded();
   }
 
   @visibleForTesting
   void closeForTest() {
     _beginCloseAnimation();
+  }
+
+  @visibleForTesting
+  void onEmojiSelectForTest(String name, String surrogates) {
+    _onEmojiSelect(name, surrogates);
   }
 
   @override
@@ -382,14 +408,9 @@ class ChatExpressionExpandableSheetState
           onContentPointerEnd: _onContentPointerEnd,
           onClose: _closePanel,
           onEmojiSelect: _onEmojiSelect,
-          onGifSelect: (selection) =>
-              ref.read(pendingGifSelectionProvider.notifier).emit(selection),
-          onStickerSelect: (selection) => ref
-              .read(pendingStickerSelectionProvider.notifier)
-              .emit(selection),
-          onFavoriteMemeSelect: (selection) => ref
-              .read(pendingFavoriteMemeSelectionProvider.notifier)
-              .emit(selection),
+          onGifSelect: _onGifSelect,
+          onStickerSelect: _onStickerSelect,
+          onFavoriteMemeSelect: _onFavoriteMemeSelect,
           contentBuilder: widget.contentBuilder,
         ),
       ),
