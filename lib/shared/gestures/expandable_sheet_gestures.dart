@@ -54,6 +54,38 @@ void playExpandableSheetDismissHaptic() {
   unawaited(HapticFeedback.lightImpact());
 }
 
+bool expandableSheetIsPastCollapsedHeight({
+  required double currentHeight,
+  required double collapsedHeight,
+}) {
+  return currentHeight > collapsedHeight + 1;
+}
+
+bool? updateExpandableSheetDragHaptic({
+  required bool? wasPastCollapsed,
+  required double previousHeight,
+  required double currentHeight,
+  required double collapsedHeight,
+}) {
+  final bool wasPast =
+      wasPastCollapsed ??
+      expandableSheetIsPastCollapsedHeight(
+        currentHeight: previousHeight,
+        collapsedHeight: collapsedHeight,
+      );
+  final bool isPastCollapsed = expandableSheetIsPastCollapsedHeight(
+    currentHeight: currentHeight,
+    collapsedHeight: collapsedHeight,
+  );
+  if (wasPast != isPastCollapsed) {
+    playExpandableSheetSnapHaptic(
+      wasExpanded: wasPast,
+      isExpanded: isPastCollapsed,
+    );
+  }
+  return isPastCollapsed;
+}
+
 class ExpandableSheetDragTarget extends StatelessWidget {
   const ExpandableSheetDragTarget({
     required this.onVerticalDragUpdate,

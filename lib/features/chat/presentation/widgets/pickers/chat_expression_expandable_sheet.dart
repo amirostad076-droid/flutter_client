@@ -53,6 +53,7 @@ class ChatExpressionExpandableSheetState
   );
   late double _height;
   bool _isDragging = false;
+  bool? _dragWasPastCollapsed;
   bool _initialized = false;
   bool _isClosing = false;
   Timer? _closeTimer;
@@ -121,10 +122,25 @@ class ChatExpressionExpandableSheetState
   void _adjustSheetHeight(double deltaDy) {
     final double collapsed = _minHeight;
     final double expanded = _maxHeight;
+    final double previousHeight = _height;
+    final double nextHeight = (previousHeight - deltaDy).clamp(
+      collapsed,
+      expanded,
+    );
     setState(() {
       _isDragging = true;
-      _height = (_height - deltaDy).clamp(collapsed, expanded);
+      _height = nextHeight;
     });
+    _dragWasPastCollapsed = updateExpandableSheetDragHaptic(
+      wasPastCollapsed: _dragWasPastCollapsed,
+      previousHeight: previousHeight,
+      currentHeight: nextHeight,
+      collapsedHeight: collapsed,
+    );
+  }
+
+  void _resetDragHaptics() {
+    _dragWasPastCollapsed = null;
   }
 
   void _onHeaderDragUpdate(DragUpdateDetails details) {
@@ -164,7 +180,6 @@ class ChatExpressionExpandableSheetState
   }
 
   void _snapFromVelocity(double velocity) {
-    final bool wasExpanded = _isExpanded;
     final InlineExpressionPanelSnapTarget target =
         inlineExpressionPanelSnapTarget(
           currentHeight: _height,
@@ -176,22 +191,19 @@ class ChatExpressionExpandableSheetState
       case InlineExpressionPanelSnapTarget.close:
         _beginCloseAnimation();
       case InlineExpressionPanelSnapTarget.anchor:
-        _snapToHeight(widget.collapsedHeight, wasExpanded: wasExpanded);
+        _snapToHeight(widget.collapsedHeight);
       case InlineExpressionPanelSnapTarget.expanded:
-        _snapToHeight(_expandedHeight, wasExpanded: wasExpanded);
+        _snapToHeight(_expandedHeight);
     }
   }
 
-  void _snapToHeight(double target, {required bool wasExpanded}) {
+  void _snapToHeight(double target) {
     final double clampedTarget = target.clamp(_minHeight, _maxHeight);
     setState(() {
       _isDragging = false;
       _height = clampedTarget;
     });
-    playExpandableSheetSnapHaptic(
-      wasExpanded: wasExpanded,
-      isExpanded: clampedTarget >= _expandedHeight - 1,
-    );
+    _resetDragHaptics();
     if (clampedTarget <= widget.collapsedHeight + 1) {
       ref
           .read(bottomInputSlotProvider.notifier)
@@ -206,14 +218,13 @@ class ChatExpressionExpandableSheetState
 
   void _beginCloseAnimation() {
     _closeTimer?.cancel();
-    final bool wasExpanded = _isExpanded;
     setState(() {
       _isDragging = false;
       _isClosing = true;
       _height = 0;
     });
+    _resetDragHaptics();
     playExpandableSheetDismissHaptic();
-    playExpandableSheetSnapHaptic(wasExpanded: wasExpanded, isExpanded: false);
     _closeTimer = Timer(
       expandableSheetSnapDuration(context, isDragging: false),
       () {
@@ -322,7 +333,6 @@ class ChatExpressionExpandableSheetState
                                           if (_isExpanded) {
                                             _snapToHeight(
                                               widget.collapsedHeight,
-                                              wasExpanded: true,
                                             );
                                           }
                                         },

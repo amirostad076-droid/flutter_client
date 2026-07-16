@@ -106,6 +106,7 @@ class _VoiceChannelControlExpandableSheetState
   final ScrollController _scrollController = ScrollController();
   late double _height;
   bool _isDragging = false;
+  bool? _dragWasPastCollapsed;
   bool _initialized = false;
   bool _panelBodyVisible = false;
 
@@ -153,10 +154,25 @@ class _VoiceChannelControlExpandableSheetState
   void _adjustSheetHeight(BuildContext context, double deltaDy) {
     final double collapsed = _collapsedHeight(context);
     final double expanded = _expandedHeight(context);
+    final double previousHeight = _height;
+    final double nextHeight = (previousHeight - deltaDy).clamp(
+      collapsed,
+      expanded,
+    );
     setState(() {
       _isDragging = true;
-      _height = (_height - deltaDy).clamp(collapsed, expanded);
+      _height = nextHeight;
     });
+    _dragWasPastCollapsed = updateExpandableSheetDragHaptic(
+      wasPastCollapsed: _dragWasPastCollapsed,
+      previousHeight: previousHeight,
+      currentHeight: nextHeight,
+      collapsedHeight: collapsed,
+    );
+  }
+
+  void _resetDragHaptics() {
+    _dragWasPastCollapsed = null;
   }
 
   void _onVerticalDragUpdate(
@@ -187,7 +203,6 @@ class _VoiceChannelControlExpandableSheetState
       collapsedHeight: collapsed,
       expandedHeight: expanded,
     );
-    final double previousHeight = _height;
     setState(() {
       _isDragging = false;
       _height = target;
@@ -197,10 +212,7 @@ class _VoiceChannelControlExpandableSheetState
         _panelBodyVisible = true;
       }
     });
-    playExpandableSheetSnapHaptic(
-      wasExpanded: previousHeight > collapsed + 1,
-      isExpanded: target > collapsed + 1,
-    );
+    _resetDragHaptics();
   }
 
   void _syncPanelBodyVisibility(BuildContext context) {
