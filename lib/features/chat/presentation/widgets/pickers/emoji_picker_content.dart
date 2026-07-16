@@ -21,7 +21,7 @@ import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
-import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provider.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/emoji_image_cache.dart';
@@ -370,7 +370,10 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
   }
 
   _EmojiPickerData _watchPickerData() {
-    final guilds = ref.watch(guildListViewModelProvider).guilds;
+    final guilds = guildsForExpressionPicker(
+      organized: ref.watch(organizedGuildListProvider),
+      activeGuildId: ref.watch(activeGuildIdProvider),
+    );
     final activeGuildId = ref.watch(activeGuildIdProvider);
     final String? channelId = widget.channelId;
     final List<DmConversation> dmConversations = ref
@@ -428,8 +431,11 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
   }
 
   Map<Guild, List<GuildEmojiEntry>> _readGuildEmojisByGuild() {
-    final guilds = ref.read(guildListViewModelProvider).guilds;
     final activeGuildId = ref.read(activeGuildIdProvider);
+    final guilds = guildsForExpressionPicker(
+      organized: ref.read(organizedGuildListProvider),
+      activeGuildId: activeGuildId,
+    );
     final String? channelId = widget.channelId;
     final bool hasGlobalExpressions = ref.read(
       instanceFeatureEnabledProvider(LimitKeys.featureGlobalExpressions),

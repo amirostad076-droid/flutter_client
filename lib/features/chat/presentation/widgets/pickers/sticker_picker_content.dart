@@ -16,7 +16,7 @@ import 'package:fluxer_app/features/chat/providers/channel/channel_message_permi
 import 'package:fluxer_app/features/chat/providers/pickers/expression_picker_preferences_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
-import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provider.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/plutonium_upsell/fluxer_plutonium_upsell.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -171,7 +171,10 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
   }
 
   _StickerPickerData _watchPickerData() {
-    final guilds = ref.watch(guildListViewModelProvider).guilds;
+    final guilds = guildsForExpressionPicker(
+      organized: ref.watch(organizedGuildListProvider),
+      activeGuildId: ref.watch(activeGuildIdProvider),
+    );
     final activeGuildId = ref.watch(activeGuildIdProvider);
     final hasGlobalExpressions = ref.watch(
       instanceFeatureEnabledProvider(LimitKeys.featureGlobalExpressions),
@@ -227,8 +230,11 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
   }
 
   Map<Guild, List<StickerEntry>> _readStickersByGuild() {
-    final guilds = ref.read(guildListViewModelProvider).guilds;
     final activeGuildId = ref.read(activeGuildIdProvider);
+    final guilds = guildsForExpressionPicker(
+      organized: ref.read(organizedGuildListProvider),
+      activeGuildId: activeGuildId,
+    );
     final hasGlobalExpressions = ref.read(
       instanceFeatureEnabledProvider(LimitKeys.featureGlobalExpressions),
     );
