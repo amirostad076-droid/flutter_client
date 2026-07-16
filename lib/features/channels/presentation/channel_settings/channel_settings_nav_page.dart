@@ -2,18 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
-import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/domain/channel_settings_tab.dart';
+import 'package:fluxer_app/features/channels/presentation/channel_settings/channel_settings_gate.dart';
 import 'package:fluxer_app/features/channels/presentation/channel_settings/channel_settings_page_shell.dart';
 import 'package:fluxer_app/features/channels/presentation/delete_channel_flow.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
-import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/settings/fluxer_settings_nav_list.dart';
-import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -25,49 +22,25 @@ class ChannelSettingsNavPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-    final AsyncValue<Channel?> channelAsync = ref.watch(
-      channelByIdProvider(channelId),
-    );
-    final AsyncValue<int> permissionsAsync = ref.watch(
-      effectiveGuildChannelPermissionBitsProvider(channelId),
-    );
-    final Color backgroundColor = channelSettingsPageBackgroundColor(context);
-    return channelAsync.when(
-      loading: () => Scaffold(
-        backgroundColor: backgroundColor,
-        body: const Center(child: FluxerLoadingSpinner()),
-      ),
-      error: (Object error, StackTrace stackTrace) => Scaffold(
-        backgroundColor: backgroundColor,
-        body: Center(child: Text(error.toString())),
-      ),
-      data: (Channel? channel) {
-        if (channel == null) {
-          return Scaffold(
-            backgroundColor: backgroundColor,
-            body: Center(child: Text(l10n.comingSoon)),
-          );
-        }
-        return permissionsAsync.when(
-          loading: () => Scaffold(
-            backgroundColor: backgroundColor,
-            body: const Center(child: FluxerLoadingSpinner()),
-          ),
-          error: (Object error, StackTrace stackTrace) => Scaffold(
-            backgroundColor: backgroundColor,
-            body: Center(child: Text(error.toString())),
-          ),
-          data: (int permissions) {
+    return ChannelSettingsGate(
+      channelId: channelId,
+      builder:
+          (
+            BuildContext context,
+            WidgetRef ref,
+            Channel channel,
+            int permissions,
+          ) {
+            final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+            final Color backgroundColor = channelSettingsPageBackgroundColor(
+              context,
+            );
             final List<ChannelSettingsTab> visibleTabs =
                 visibleChannelSettingsTabs(
                   channel: channel,
                   permissions: permissions,
                 );
-            final bool canDelete = hasPermission(
-              permissions,
-              Permission.manageChannels,
-            );
+            final bool canDelete = canDeleteChannel(permissions: permissions);
             return Scaffold(
               backgroundColor: backgroundColor,
               appBar: AppBar(
@@ -137,8 +110,6 @@ class ChannelSettingsNavPage extends ConsumerWidget {
               ),
             );
           },
-        );
-      },
     );
   }
 }
@@ -178,13 +149,4 @@ List<FluxerSettingsNavGroup> _buildNavGroups({
   }
   flushGroup();
   return groups;
-}
-
-IconData channelSettingsTabIcon(ChannelSettingsTab tab) {
-  return switch (tab) {
-    ChannelSettingsTab.overview => PhosphorIconsFill.gear,
-    ChannelSettingsTab.permissions => PhosphorIconsFill.shield,
-    ChannelSettingsTab.invites => PhosphorIconsFill.ticket,
-    ChannelSettingsTab.webhooks => PhosphorIconsFill.webhooksLogo,
-  };
 }

@@ -100,4 +100,101 @@ void main() {
       );
     });
   });
+
+  group('canAccessChannelSettings', () {
+    test('returns true when any tab is visible', () {
+      expect(
+        canAccessChannelSettings(
+          channel: textChannel,
+          permissions: Permission.manageChannels.value,
+        ),
+        isTrue,
+      );
+    });
+
+    test('returns true when only delete is available', () {
+      expect(
+        canAccessChannelSettings(
+          channel: textChannel,
+          permissions: Permission.manageChannels.value,
+        ),
+        isTrue,
+      );
+      expect(
+        canDeleteChannel(permissions: Permission.manageChannels.value),
+        isTrue,
+      );
+    });
+
+    test('returns false without any settings access', () {
+      expect(
+        canAccessChannelSettings(channel: textChannel, permissions: 0),
+        isFalse,
+      );
+    });
+  });
+
+  group('canAccessChannelSettingsTab', () {
+    test('allows overview with manageChannels', () {
+      expect(
+        canAccessChannelSettingsTab(
+          channel: textChannel,
+          tab: ChannelSettingsTab.overview,
+          permissions: Permission.manageChannels.value,
+        ),
+        isTrue,
+      );
+    });
+
+    test('denies webhooks without manageWebhooks', () {
+      expect(
+        canAccessChannelSettingsTab(
+          channel: textChannel,
+          tab: ChannelSettingsTab.webhooks,
+          permissions: Permission.manageChannels.value,
+        ),
+        isFalse,
+      );
+    });
+
+    test('denies webhooks on link channels even with manageWebhooks', () {
+      expect(
+        canAccessChannelSettingsTab(
+          channel: linkChannel,
+          tab: ChannelSettingsTab.webhooks,
+          permissions:
+              Permission.manageChannels.value | Permission.manageWebhooks.value,
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('resolveChannelSettingsTab', () {
+    test('falls back to first visible tab', () {
+      expect(
+        resolveChannelSettingsTab(
+          requested: ChannelSettingsTab.webhooks,
+          visibleTabs: <ChannelSettingsTab>[
+            ChannelSettingsTab.overview,
+            ChannelSettingsTab.invites,
+          ],
+        ),
+        ChannelSettingsTab.overview,
+      );
+    });
+
+    test('keeps requested tab when visible', () {
+      expect(
+        resolveChannelSettingsTab(
+          requested: ChannelSettingsTab.invites,
+          visibleTabs: <ChannelSettingsTab>[
+            ChannelSettingsTab.overview,
+            ChannelSettingsTab.invites,
+          ],
+        ),
+        ChannelSettingsTab.invites,
+      );
+    });
+  });
 }

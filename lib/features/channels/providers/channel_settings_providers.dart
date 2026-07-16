@@ -1,7 +1,11 @@
+import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/domain/channel_overview_update.dart';
 import 'package:fluxer_app/features/channels/domain/channel_permission_overwrite_update.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxer_app/features/members/providers/member_providers.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -84,4 +88,39 @@ class ChannelSettingsActions extends _$ChannelSettingsActions {
 @riverpod
 Future<List<RtcRegionResponse>> channelRtcRegions(Ref ref, String channelId) {
   return ref.read(channelRepositoryProvider).listRtcRegions(channelId);
+}
+
+@riverpod
+Future<int?> channelSettingsPermissionBits(Ref ref, String channelId) async {
+  if (channelId.isEmpty) {
+    return 0;
+  }
+  final channelRow = await ref
+      .read(fluxerDatabaseProvider)
+      .channelDao
+      .getChannelById(channelId);
+  if (channelRow == null) {
+    return 0;
+  }
+  if (channelRow.guildId.isEmpty) {
+    return 0;
+  }
+  final String guildId = channelRow.guildId;
+  ref
+    ..watch(guildListViewModelProvider)
+    ..watch(currentUserMemberIdentityProvider(guildId))
+    ..watch(guildRolePermissionsIdentityProvider(guildId))
+    ..watch(channelPermissionCacheProvider);
+  final int? cachedBits = ref
+      .read(channelPermissionCacheProvider.notifier)
+      .getChannelBits(channelId);
+  if (cachedBits != null) {
+    return cachedBits;
+  }
+  await ref
+      .read(channelPermissionCacheProvider.notifier)
+      .rebuildChannel(channelId);
+  return ref
+      .read(channelPermissionCacheProvider.notifier)
+      .getChannelBits(channelId);
 }

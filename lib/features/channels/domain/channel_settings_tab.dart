@@ -1,7 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 enum ChannelSettingsTab { overview, permissions, invites, webhooks }
 
@@ -47,6 +49,63 @@ List<ChannelSettingsTab> visibleChannelSettingsTabs({
         .toList();
   }
   return tabs;
+}
+
+bool canDeleteChannel({required int permissions}) {
+  return hasPermission(permissions, Permission.manageChannels);
+}
+
+bool canAccessChannelSettings({
+  required Channel channel,
+  required int permissions,
+}) {
+  return visibleChannelSettingsTabs(
+        channel: channel,
+        permissions: permissions,
+      ).isNotEmpty ||
+      canDeleteChannel(permissions: permissions);
+}
+
+bool canAccessChannelSettingsTab({
+  required Channel channel,
+  required ChannelSettingsTab tab,
+  required int permissions,
+}) {
+  return visibleChannelSettingsTabs(
+    channel: channel,
+    permissions: permissions,
+  ).contains(tab);
+}
+
+ChannelSettingsTab resolveChannelSettingsTab({
+  required ChannelSettingsTab requested,
+  required List<ChannelSettingsTab> visibleTabs,
+}) {
+  if (visibleTabs.isEmpty) {
+    return requested;
+  }
+  if (visibleTabs.contains(requested)) {
+    return requested;
+  }
+  return visibleTabs.first;
+}
+
+IconData channelSettingsTabIcon(ChannelSettingsTab tab) {
+  return switch (tab) {
+    ChannelSettingsTab.overview => PhosphorIconsFill.gear,
+    ChannelSettingsTab.permissions => PhosphorIconsFill.shield,
+    ChannelSettingsTab.invites => PhosphorIconsFill.ticket,
+    ChannelSettingsTab.webhooks => PhosphorIconsFill.webhooksLogo,
+  };
+}
+
+String channelSettingsTabQuery(ChannelSettingsTab tab) {
+  return switch (tab) {
+    ChannelSettingsTab.overview => 'overview',
+    ChannelSettingsTab.permissions => 'permissions',
+    ChannelSettingsTab.invites => 'invites',
+    ChannelSettingsTab.webhooks => 'webhooks',
+  };
 }
 
 String channelSettingsTabLabel(
