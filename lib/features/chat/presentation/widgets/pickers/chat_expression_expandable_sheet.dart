@@ -4,9 +4,12 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
+import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/inline_expression_panel.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/bottom_input_slot_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/expression_panel_provider.dart';
+import 'package:fluxer_app/features/chat/providers/pickers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/chat/utils/bottom_input_slot_layout.dart';
 import 'package:fluxer_app/features/chat/utils/inline_expression_panel_layout.dart';
 import 'package:fluxer_app/features/chat/utils/inline_expression_panel_scroll_physics.dart';
@@ -18,8 +21,8 @@ const Key kChatExpressionSheetKey = kExpressionPanelShellGestureBlockKey;
 const Key kChatExpressionSheetDragHandleKey = Key(
   'chat-expression-sheet-drag-handle',
 );
-const Key kChatExpressionSheetDragHeaderKey = Key(
-  'chat-expression-sheet-drag-header',
+final GlobalKey kChatExpressionSheetDragHeaderKey = GlobalKey(
+  debugLabel: 'chat-expression-sheet-drag-header',
 );
 
 class ChatExpressionExpandableSheet extends ConsumerStatefulWidget {
@@ -51,8 +54,12 @@ class ChatExpressionExpandableSheetState
   final VelocityTracker _contentVelocityTracker = VelocityTracker.withKind(
     PointerDeviceKind.touch,
   );
-  late double _height;
-  bool _isDragging = false;
+  final VelocityTracker _headerVelocityTracker = VelocityTracker.withKind(
+    PointerDeviceKind.touch,
+  );
+  late final ValueNotifier<double> _heightNotifier;
+  late final ValueNotifier<bool> _isDraggingNotifier;
+  double _expandedHeightCache = 0;
   bool? _dragWasPastCollapsed;
   bool _initialized = false;
   bool _isClosing = false;
@@ -61,29 +68,65 @@ class ChatExpressionExpandableSheetState
   @override
   void initState() {
     super.initState();
-    _height = widget.collapsedHeight;
+    _heightNotifier = ValueNotifier<double>(widget.collapsedHeight);
+    _isDraggingNotifier = ValueNotifier<bool>(false);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _refreshExpandedHeight();
+    if (!_initialized) {
+      updateExpandableSheetHeight(
+        heightNotifier: _heightNotifier,
+        nextHeight: widget.collapsedHeight,
+      );
+      _initialized = true;
+    }
   }
 
   @override
   void didUpdateWidget(ChatExpressionExpandableSheet oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _refreshExpandedHeight();
     if (oldWidget.collapsedHeight != widget.collapsedHeight &&
         !_isExpanded &&
         (_height - oldWidget.collapsedHeight).abs() < 1) {
-      _height = widget.collapsedHeight;
+      updateExpandableSheetHeight(
+        heightNotifier: _heightNotifier,
+        nextHeight: widget.collapsedHeight,
+      );
     }
   }
 
   @override
   void dispose() {
     _closeTimer?.cancel();
+    _isDraggingNotifier.dispose();
+    _heightNotifier.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
+  double get _height => _heightNotifier.value;
+
   double get _minHeight => widget.collapsedHeight;
 
-  double get _expandedHeight {
+  double get _maxHeight => _expandedHeightCache;
+
+  double _totalHeightFor(double contentHeight) {
+    if (contentHeight <= 0) {
+      return 0;
+    }
+    return inlineExpressionPanelDockedTotalHeight(
+      contentHeight: contentHeight,
+      dragHandleHeight: widget.dragHandleHeight,
+    );
+  }
+
+  bool get _isExpanded => _height >= _expandedHeightCache - 1;
+
+  void _refreshExpandedHeight() {
     final MediaQueryData mediaQuery = MediaQuery.of(context);
     final double screenHeight = mediaQuery.size.height;
     final double totalExpanded = inlineExpressionPanelExpandedHeight(
@@ -94,29 +137,7 @@ class ChatExpressionExpandableSheetState
       topMargin: context.layout.s2,
       viewPaddingBottom: mediaQuery.viewPadding.bottom,
     ).clamp(0, screenHeight * kInlineExpressionPanelMaxScreenFraction);
-    return totalExpanded - widget.dragHandleHeight;
-  }
-
-  double get _maxHeight => _expandedHeight;
-
-  double get _totalHeight {
-    if (_height <= 0) {
-      return 0;
-    }
-    return inlineExpressionPanelDockedTotalHeight(
-      contentHeight: _height,
-      dragHandleHeight: widget.dragHandleHeight,
-    );
-  }
-
-  bool get _isExpanded => _height >= _expandedHeight - 1;
-
-  void _ensureInitialized() {
-    if (_initialized) {
-      return;
-    }
-    _height = widget.collapsedHeight;
-    _initialized = true;
+    _expandedHeightCache = totalExpanded - widget.dragHandleHeight;
   }
 
   void _adjustSheetHeight(double deltaDy) {
@@ -127,10 +148,16 @@ class ChatExpressionExpandableSheetState
       collapsed,
       expanded,
     );
-    setState(() {
-      _isDragging = true;
-      _height = nextHeight;
-    });
+    if (nextHeight == previousHeight && _isDraggingNotifier.value) {
+      return;
+    }
+    if (!_isDraggingNotifier.value) {
+      _isDraggingNotifier.value = true;
+    }
+    updateExpandableSheetHeight(
+      heightNotifier: _heightNotifier,
+      nextHeight: nextHeight,
+    );
     _dragWasPastCollapsed = updateExpandableSheetDragHaptic(
       wasPastCollapsed: _dragWasPastCollapsed,
       previousHeight: previousHeight,
@@ -143,12 +170,32 @@ class ChatExpressionExpandableSheetState
     _dragWasPastCollapsed = null;
   }
 
+  void _onHeaderDragStart(DragStartDetails details) {
+    _isDraggingNotifier.value = true;
+    _headerVelocityTracker.addPosition(
+      details.sourceTimeStamp ?? Duration.zero,
+      details.globalPosition,
+    );
+  }
+
   void _onHeaderDragUpdate(DragUpdateDetails details) {
+    _headerVelocityTracker.addPosition(
+      details.sourceTimeStamp ?? Duration.zero,
+      details.globalPosition,
+    );
     _adjustSheetHeight(details.delta.dy);
   }
 
+  double _resolveHeaderDragVelocity(DragEndDetails details) {
+    final double? primary = details.primaryVelocity;
+    if (primary != null) {
+      return primary;
+    }
+    return details.velocity.pixelsPerSecond.dy;
+  }
+
   void _onHeaderDragEnd(DragEndDetails details) {
-    _snapFromVelocity(details.primaryVelocity ?? 0);
+    _snapFromVelocity(_resolveHeaderDragVelocity(details));
   }
 
   void _onContentPointerDown(PointerDownEvent event) {
@@ -169,7 +216,7 @@ class ChatExpressionExpandableSheetState
   }
 
   void _onContentPointerEnd(PointerEvent event) {
-    if (!_isDragging) {
+    if (!_isDraggingNotifier.value) {
       return;
     }
     final double velocity = _contentVelocityTracker
@@ -185,7 +232,7 @@ class ChatExpressionExpandableSheetState
           currentHeight: _height,
           velocity: velocity,
           anchorHeight: widget.collapsedHeight,
-          expandedHeight: _expandedHeight,
+          expandedHeight: _expandedHeightCache,
         );
     switch (target) {
       case InlineExpressionPanelSnapTarget.close:
@@ -193,16 +240,17 @@ class ChatExpressionExpandableSheetState
       case InlineExpressionPanelSnapTarget.anchor:
         _snapToHeight(widget.collapsedHeight);
       case InlineExpressionPanelSnapTarget.expanded:
-        _snapToHeight(_expandedHeight);
+        _snapToHeight(_expandedHeightCache);
     }
   }
 
   void _snapToHeight(double target) {
     final double clampedTarget = target.clamp(_minHeight, _maxHeight);
-    setState(() {
-      _isDragging = false;
-      _height = clampedTarget;
-    });
+    updateExpandableSheetHeight(
+      heightNotifier: _heightNotifier,
+      nextHeight: clampedTarget,
+    );
+    _isDraggingNotifier.value = false;
     _resetDragHaptics();
     if (clampedTarget <= widget.collapsedHeight + 1) {
       ref
@@ -218,10 +266,10 @@ class ChatExpressionExpandableSheetState
 
   void _beginCloseAnimation() {
     _closeTimer?.cancel();
+    updateExpandableSheetHeight(heightNotifier: _heightNotifier, nextHeight: 0);
+    _isDraggingNotifier.value = false;
     setState(() {
-      _isDragging = false;
       _isClosing = true;
-      _height = 0;
     });
     _resetDragHaptics();
     playExpandableSheetDismissHaptic();
@@ -241,6 +289,13 @@ class ChatExpressionExpandableSheetState
     _beginCloseAnimation();
   }
 
+  void _onEmojiSelect(String name, String surrogates) {
+    ref.read(pendingEmojiInsertProvider.notifier).emit(name, surrogates);
+    if (_isExpanded) {
+      _snapToHeight(widget.collapsedHeight);
+    }
+  }
+
   @visibleForTesting
   void closeForTest() {
     _beginCloseAnimation();
@@ -251,116 +306,91 @@ class ChatExpressionExpandableSheetState
     if (widget.parentHeight <= 0 || widget.collapsedHeight <= 0) {
       return const SizedBox.shrink();
     }
-    _ensureInitialized();
     final colors = context.colors;
     final double homeIndicatorInset = inlineExpressionPanelHomeIndicatorInset(
       MediaQuery.of(context),
     );
-    final Duration animationDuration = expandableSheetSnapDuration(
-      context,
-      isDragging: _isDragging,
-    );
-    final Widget sheetBody = AnimatedContainer(
-      duration: animationDuration,
-      curve: Curves.easeOutCubic,
-      height: _totalHeight,
-      child: ClipRect(
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: colors.backgroundSecondary,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            boxShadow: const <BoxShadow>[
-              BoxShadow(
-                color: Color.fromRGBO(0, 0, 0, 0.15),
-                blurRadius: 12,
-                offset: Offset(0, -2),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: _totalHeight <= 0 || _isClosing
-                  ? const <Widget>[]
-                  : <Widget>[
-                      ExpandableSheetDragTarget(
-                        key: kChatExpressionSheetDragHeaderKey,
-                        onVerticalDragUpdate: _onHeaderDragUpdate,
-                        onVerticalDragEnd: _onHeaderDragEnd,
-                        child: SizedBox(
-                          key: kChatExpressionSheetDragHandleKey,
-                          height: widget.dragHandleHeight,
-                          width: double.infinity,
-                          child: const IgnorePointer(
-                            child: FluxerBottomSheetDragHandle(
-                              includeTopPadding: false,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Listener(
-                          behavior: HitTestBehavior.translucent,
-                          onPointerDown: _onContentPointerDown,
-                          onPointerMove: _onContentPointerMove,
-                          onPointerUp: _onContentPointerEnd,
-                          onPointerCancel: _onContentPointerEnd,
-                          child: ScrollConfiguration(
-                            behavior: ScrollConfiguration.of(context).copyWith(
-                              physics:
-                                  inlineExpressionPanelContentScrollPhysics(
-                                    isSheetExpanded: _isExpanded,
-                                  ),
-                            ),
-                            child: RepaintBoundary(
-                              child:
-                                  widget.contentBuilder?.call(
-                                    context,
-                                    _scrollController,
-                                  ) ??
-                                  ExpressionPanelContent(
-                                    scrollController: _scrollController,
-                                    onClose: _closePanel,
-                                    onEmojiSelect:
-                                        (String name, String surrogates) {
-                                          ref
-                                              .read(
-                                                pendingEmojiInsertProvider
-                                                    .notifier,
-                                              )
-                                              .emit(name, surrogates);
-                                          if (_isExpanded) {
-                                            _snapToHeight(
-                                              widget.collapsedHeight,
-                                            );
-                                          }
-                                        },
-                                    onGifSelect: (selection) => ref
-                                        .read(
-                                          pendingGifSelectionProvider.notifier,
-                                        )
-                                        .emit(selection),
-                                    onStickerSelect: (selection) => ref
-                                        .read(
-                                          pendingStickerSelectionProvider
-                                              .notifier,
-                                        )
-                                        .emit(selection),
-                                    onFavoriteMemeSelect: (selection) => ref
-                                        .read(
-                                          pendingFavoriteMemeSelectionProvider
-                                              .notifier,
-                                        )
-                                        .emit(selection),
-                                  ),
-                            ),
-                          ),
-                        ),
+    final Widget sheetBody = ExpandableSheetHeightBuilder(
+      heightNotifier: _heightNotifier,
+      isDraggingNotifier: _isDraggingNotifier,
+      sizeBuilder:
+          (
+            BuildContext context,
+            double height,
+            bool isDragging,
+            Widget shellChild,
+          ) {
+            return expandableSheetAnimatedSize(
+              context: context,
+              isDragging: isDragging,
+              height: _totalHeightFor(height),
+              child: ClipRect(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: colors.backgroundSecondary,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
+                    boxShadow: const <BoxShadow>[
+                      BoxShadow(
+                        color: Color.fromRGBO(0, 0, 0, 0.15),
+                        blurRadius: 12,
+                        offset: Offset(0, -2),
                       ),
                     ],
-            ),
-          ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
+                    child: height <= 0 || _isClosing
+                        ? const SizedBox.shrink()
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: <Widget>[
+                              ExpandableSheetDragTarget(
+                                key: kChatExpressionSheetDragHeaderKey,
+                                onVerticalDragStart: _onHeaderDragStart,
+                                onVerticalDragUpdate: _onHeaderDragUpdate,
+                                onVerticalDragEnd: _onHeaderDragEnd,
+                                child: SizedBox(
+                                  key: kChatExpressionSheetDragHandleKey,
+                                  height: widget.dragHandleHeight,
+                                  width: double.infinity,
+                                  child: const IgnorePointer(
+                                    child: FluxerBottomSheetDragHandle(
+                                      includeTopPadding: false,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(child: shellChild),
+                            ],
+                          ),
+                  ),
+                ),
+              ),
+            );
+          },
+      child: RepaintBoundary(
+        child: _ExpressionSheetBody(
+          heightNotifier: _heightNotifier,
+          expandedHeight: _expandedHeightCache,
+          scrollController: _scrollController,
+          onContentPointerDown: _onContentPointerDown,
+          onContentPointerMove: _onContentPointerMove,
+          onContentPointerEnd: _onContentPointerEnd,
+          onClose: _closePanel,
+          onEmojiSelect: _onEmojiSelect,
+          onGifSelect: (selection) =>
+              ref.read(pendingGifSelectionProvider.notifier).emit(selection),
+          onStickerSelect: (selection) => ref
+              .read(pendingStickerSelectionProvider.notifier)
+              .emit(selection),
+          onFavoriteMemeSelect: (selection) => ref
+              .read(pendingFavoriteMemeSelectionProvider.notifier)
+              .emit(selection),
+          contentBuilder: widget.contentBuilder,
         ),
       ),
     );
@@ -382,6 +412,134 @@ class ChatExpressionExpandableSheetState
           child: SizedBox(height: homeIndicatorInset),
         ),
       ],
+    );
+  }
+}
+
+class _ExpressionSheetBody extends StatefulWidget {
+  const _ExpressionSheetBody({
+    required this.heightNotifier,
+    required this.expandedHeight,
+    required this.scrollController,
+    required this.onContentPointerDown,
+    required this.onContentPointerMove,
+    required this.onContentPointerEnd,
+    required this.onClose,
+    required this.onEmojiSelect,
+    required this.onGifSelect,
+    required this.onStickerSelect,
+    required this.onFavoriteMemeSelect,
+    this.contentBuilder,
+  });
+
+  final ValueNotifier<double> heightNotifier;
+  final double expandedHeight;
+  final ScrollController scrollController;
+  final void Function(PointerDownEvent event) onContentPointerDown;
+  final void Function(PointerMoveEvent event) onContentPointerMove;
+  final void Function(PointerEvent event) onContentPointerEnd;
+  final VoidCallback onClose;
+  final void Function(String name, String surrogates) onEmojiSelect;
+  final ValueChanged<FluxerSelectedGif> onGifSelect;
+  final ValueChanged<StickerEntry> onStickerSelect;
+  final ValueChanged<FavoriteMemeSelection> onFavoriteMemeSelect;
+  final Widget Function(
+    BuildContext context,
+    ScrollController scrollController,
+  )?
+  contentBuilder;
+
+  @override
+  State<_ExpressionSheetBody> createState() => _ExpressionSheetBodyState();
+}
+
+class _ExpressionSheetBodyState extends State<_ExpressionSheetBody> {
+  late final ScrollPhysics _dockedScrollPhysics;
+  late final ScrollPhysics _expandedScrollPhysics;
+  late ScrollPhysics _scrollPhysics;
+  late bool _isSheetExpanded;
+
+  @override
+  void initState() {
+    super.initState();
+    _dockedScrollPhysics = inlineExpressionPanelContentScrollPhysics(
+      isSheetExpanded: false,
+    );
+    _expandedScrollPhysics = inlineExpressionPanelContentScrollPhysics(
+      isSheetExpanded: true,
+    );
+    _isSheetExpanded = _isExpandedHeight(widget.heightNotifier.value);
+    _scrollPhysics = _isSheetExpanded
+        ? _expandedScrollPhysics
+        : _dockedScrollPhysics;
+    widget.heightNotifier.addListener(_onHeightChanged);
+  }
+
+  @override
+  void didUpdateWidget(_ExpressionSheetBody oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.expandedHeight != widget.expandedHeight) {
+      final double height = widget.heightNotifier.value;
+      final bool nextExpanded = _isExpandedHeight(height);
+      if (nextExpanded != _isSheetExpanded) {
+        setState(() {
+          _isSheetExpanded = nextExpanded;
+          _scrollPhysics = nextExpanded
+              ? _expandedScrollPhysics
+              : _dockedScrollPhysics;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.heightNotifier.removeListener(_onHeightChanged);
+    super.dispose();
+  }
+
+  bool _isExpandedHeight(double height) {
+    return height >= widget.expandedHeight - 1;
+  }
+
+  void _onHeightChanged() {
+    final bool nextExpanded = _isExpandedHeight(widget.heightNotifier.value);
+    if (nextExpanded == _isSheetExpanded) {
+      return;
+    }
+    setState(() {
+      _isSheetExpanded = nextExpanded;
+      _scrollPhysics = nextExpanded
+          ? _expandedScrollPhysics
+          : _dockedScrollPhysics;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: widget.onContentPointerDown,
+      onPointerMove: widget.onContentPointerMove,
+      onPointerUp: widget.onContentPointerEnd,
+      onPointerCancel: widget.onContentPointerEnd,
+      child: ScrollConfiguration(
+        behavior: ScrollConfiguration.of(
+          context,
+        ).copyWith(physics: _scrollPhysics),
+        child: RepaintBoundary(
+          child:
+              widget.contentBuilder?.call(context, widget.scrollController) ??
+              ExpressionPanelContent(
+                scrollController: widget.scrollController,
+                onClose: widget.onClose,
+                onEmojiSelect: widget.onEmojiSelect,
+                onGifSelect: widget.onGifSelect,
+                onStickerSelect: widget.onStickerSelect,
+                onFavoriteMemeSelect: widget.onFavoriteMemeSelect,
+              ),
+        ),
+      ),
     );
   }
 }

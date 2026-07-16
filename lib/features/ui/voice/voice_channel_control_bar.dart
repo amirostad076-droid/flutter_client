@@ -117,6 +117,25 @@ double voiceChannelControlCollapsedFootprint(BuildContext context) {
       MediaQuery.viewPaddingOf(context).bottom;
 }
 
+const List<BoxShadow> kVoiceControlFloatingBarShadow = <BoxShadow>[
+  BoxShadow(
+    color: Color.fromRGBO(0, 0, 0, 0.22),
+    blurRadius: 18,
+    offset: Offset(0, 6),
+  ),
+];
+
+BoxDecoration voiceChannelControlMorphingSurfaceDecoration(
+  BuildContext context, {
+  required BorderRadius borderRadius,
+}) {
+  return BoxDecoration(
+    color: context.colors.backgroundFloating,
+    borderRadius: borderRadius,
+    border: Border.all(color: const Color(0x14FFFFFF)),
+  );
+}
+
 BoxDecoration voiceChannelControlFloatingDecoration(
   BuildContext context, {
   required BorderRadius borderRadius,
@@ -125,13 +144,7 @@ BoxDecoration voiceChannelControlFloatingDecoration(
     color: context.colors.backgroundFloating,
     borderRadius: borderRadius,
     border: Border.all(color: const Color(0x14FFFFFF)),
-    boxShadow: <BoxShadow>[
-      BoxShadow(
-        color: Colors.black.withValues(alpha: 0.22),
-        blurRadius: 18,
-        offset: const Offset(0, 6),
-      ),
-    ],
+    boxShadow: kVoiceControlFloatingBarShadow,
   );
 }
 
@@ -183,6 +196,7 @@ class VoiceChannelControlBarContent extends ConsumerWidget {
     this.style = VoiceChannelControlBarStyle.floating,
     this.barInnerWidth,
     this.expansion,
+    this.canScreenShare,
     super.key,
   });
 
@@ -193,6 +207,7 @@ class VoiceChannelControlBarContent extends ConsumerWidget {
   final VoiceChannelControlBarStyle style;
   final double? barInnerWidth;
   final double? expansion;
+  final bool? canScreenShare;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -204,9 +219,11 @@ class VoiceChannelControlBarContent extends ConsumerWidget {
     final bool isDeafened = selfVs?.selfDeaf ?? false;
     final bool isVideoOn = selfVs?.selfVideo ?? false;
     final bool isScreenSharing = selfVs?.selfStream ?? false;
-    final bool canScreenShare = ref
-        .watch(screenShareCapabilityProvider)
-        .maybeWhen(data: (bool value) => value, orElse: () => false);
+    final bool canScreenShare =
+        this.canScreenShare ??
+        ref
+            .watch(screenShareCapabilityProvider)
+            .maybeWhen(data: (bool value) => value, orElse: () => false);
     final bool isEmbedded = style == VoiceChannelControlBarStyle.embedded;
     final int buttonCount = voiceChannelControlButtonCount(
       canScreenShare: canScreenShare,

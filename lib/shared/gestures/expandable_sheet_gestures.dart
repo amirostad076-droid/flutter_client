@@ -61,6 +61,79 @@ bool expandableSheetIsPastCollapsedHeight({
   return currentHeight > collapsedHeight + 1;
 }
 
+void updateExpandableSheetHeight({
+  required ValueNotifier<double> heightNotifier,
+  required double nextHeight,
+}) {
+  if (heightNotifier.value == nextHeight) {
+    return;
+  }
+  heightNotifier.value = nextHeight;
+}
+
+class ExpandableSheetHeightBuilder extends StatelessWidget {
+  const ExpandableSheetHeightBuilder({
+    required this.heightNotifier,
+    required this.isDraggingNotifier,
+    required this.sizeBuilder,
+    required this.child,
+    super.key,
+  });
+
+  final ValueNotifier<double> heightNotifier;
+  final ValueNotifier<bool> isDraggingNotifier;
+  final Widget Function(
+    BuildContext context,
+    double height,
+    bool isDragging,
+    Widget child,
+  )
+  sizeBuilder;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge(<Listenable>[
+        heightNotifier,
+        isDraggingNotifier,
+      ]),
+      builder: (BuildContext context, Widget? stableChild) {
+        return sizeBuilder(
+          context,
+          heightNotifier.value,
+          isDraggingNotifier.value,
+          stableChild!,
+        );
+      },
+      child: child,
+    );
+  }
+}
+
+Widget expandableSheetAnimatedSize({
+  required BuildContext context,
+  required bool isDragging,
+  required double height,
+  required Widget child,
+  double? width,
+  BoxDecoration? decoration,
+  Clip clipBehavior = Clip.none,
+}) {
+  final Duration duration = isDragging
+      ? Duration.zero
+      : expandableSheetSnapDuration(context, isDragging: false);
+  return AnimatedContainer(
+    duration: duration,
+    curve: Curves.easeOutCubic,
+    width: width,
+    height: height,
+    decoration: decoration,
+    clipBehavior: decoration == null ? Clip.none : clipBehavior,
+    child: child,
+  );
+}
+
 bool? updateExpandableSheetDragHaptic({
   required bool? wasPastCollapsed,
   required double previousHeight,
@@ -91,9 +164,11 @@ class ExpandableSheetDragTarget extends StatelessWidget {
     required this.onVerticalDragUpdate,
     required this.onVerticalDragEnd,
     required this.child,
+    this.onVerticalDragStart,
     super.key,
   });
 
+  final GestureDragStartCallback? onVerticalDragStart;
   final GestureDragUpdateCallback onVerticalDragUpdate;
   final GestureDragEndCallback onVerticalDragEnd;
   final Widget child;
@@ -102,6 +177,7 @@ class ExpandableSheetDragTarget extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
+      onVerticalDragStart: onVerticalDragStart,
       onVerticalDragUpdate: onVerticalDragUpdate,
       onVerticalDragEnd: onVerticalDragEnd,
       child: child,

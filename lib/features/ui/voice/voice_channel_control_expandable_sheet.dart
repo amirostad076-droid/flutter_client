@@ -1,5 +1,6 @@
 import 'dart:ui' show lerpDouble;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -101,68 +102,128 @@ class VoiceChannelControlExpandableSheet extends ConsumerStatefulWidget {
       _VoiceChannelControlExpandableSheetState();
 }
 
+const ScrollPhysics _kVoicePanelScrollPhysics = AlwaysScrollableScrollPhysics(
+  parent: ClampingScrollPhysics(),
+);
+const ScrollPhysics _kVoicePanelHiddenScrollPhysics =
+    NeverScrollableScrollPhysics();
+
 class _VoiceChannelControlExpandableSheetState
     extends ConsumerState<VoiceChannelControlExpandableSheet> {
   final ScrollController _scrollController = ScrollController();
-  late double _height;
-  bool _isDragging = false;
+  final VelocityTracker _headerVelocityTracker = VelocityTracker.withKind(
+    PointerDeviceKind.touch,
+  );
+  late final ValueNotifier<double> _heightNotifier;
+  late final ValueNotifier<bool> _isDraggingNotifier;
+  double _collapsedHeightCache = 0;
+  double _expandedHeightCache = 0;
+  bool _canScreenShare = false;
   bool? _dragWasPastCollapsed;
   bool _initialized = false;
   bool _panelBodyVisible = false;
+  int _lastDragDirection = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _heightNotifier = ValueNotifier<double>(0);
+    _isDraggingNotifier = ValueNotifier<bool>(false);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _refreshLayoutMetrics();
+    _refreshScreenShareCapability();
+    if (!_initialized) {
+      updateExpandableSheetHeight(
+        heightNotifier: _heightNotifier,
+        nextHeight: _collapsedHeightCache,
+      );
+      _initialized = true;
+    }
+  }
+
+  @override
+  void didUpdateWidget(VoiceChannelControlExpandableSheet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.parentHeight != widget.parentHeight ||
+        oldWidget.parentWidth != widget.parentWidth) {
+      _refreshLayoutMetrics();
+    }
+  }
 
   @override
   void dispose() {
+    _isDraggingNotifier.dispose();
+    _heightNotifier.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
-  double _collapsedHeight(BuildContext context) {
-    return voiceChannelControlMorphingHeaderHeight();
-  }
+  double get _height => _heightNotifier.value;
 
-  double _expandedHeight(BuildContext context) {
+  void _refreshLayoutMetrics() {
+    _collapsedHeightCache = voiceChannelControlMorphingHeaderHeight();
     final double bottomInset = MediaQuery.viewPaddingOf(context).bottom;
     const double outerPadding = kVoiceControlBarVerticalPadding * 2;
     final double available = widget.parentHeight - bottomInset - outerPadding;
-    return (available * _kExpandedSheetHeightFraction).clamp(
-      _collapsedHeight(context),
+    _expandedHeightCache = (available * _kExpandedSheetHeightFraction).clamp(
+      _collapsedHeightCache,
       available,
     );
   }
 
-  double _expansionProgress(BuildContext context) {
-    final double collapsed = _collapsedHeight(context);
-    final double expanded = _expandedHeight(context);
-    if (expanded <= collapsed) {
+  void _refreshScreenShareCapability() {
+    final bool value = ref
+        .read(screenShareCapabilityProvider)
+        .maybeWhen(data: (bool canShare) => canShare, orElse: () => false);
+    if (value != _canScreenShare) {
+      _canScreenShare = value;
+    }
+  }
+
+  double _expansionFor(double height) {
+    if (_expandedHeightCache <= _collapsedHeightCache) {
       return 0;
     }
-    return ((_height - collapsed) / (expanded - collapsed)).clamp(0.0, 1.0);
+    return ((height - _collapsedHeightCache) /
+            (_expandedHeightCache - _collapsedHeightCache))
+        .clamp(0.0, 1.0);
   }
 
-  bool _isExpanded(BuildContext context) {
-    return _height > _collapsedHeight(context) + 1;
-  }
-
-  void _ensureInitialized(BuildContext context) {
-    if (_initialized) {
+  void _syncPanelBodyVisibility(double height) {
+    final bool shouldShow = expandableSheetIsPastCollapsedHeight(
+      currentHeight: height,
+      collapsedHeight: _collapsedHeightCache,
+    );
+    if (shouldShow == _panelBodyVisible) {
       return;
     }
-    _height = _collapsedHeight(context);
-    _initialized = true;
+    setState(() => _panelBodyVisible = shouldShow);
   }
 
-  void _adjustSheetHeight(BuildContext context, double deltaDy) {
-    final double collapsed = _collapsedHeight(context);
-    final double expanded = _expandedHeight(context);
+  void _adjustSheetHeight(double deltaDy) {
+    if (deltaDy != 0) {
+      _lastDragDirection = deltaDy > 0 ? 1 : -1;
+    }
+    final double collapsed = _collapsedHeightCache;
+    final double expanded = _expandedHeightCache;
     final double previousHeight = _height;
     final double nextHeight = (previousHeight - deltaDy).clamp(
       collapsed,
       expanded,
     );
-    setState(() {
-      _isDragging = true;
-      _height = nextHeight;
-    });
+    if (nextHeight == previousHeight && _isDraggingNotifier.value) {
+      return;
+    }
+    _isDraggingNotifier.value = true;
+    updateExpandableSheetHeight(
+      heightNotifier: _heightNotifier,
+      nextHeight: nextHeight,
+    );
+    _syncPanelBodyVisibility(nextHeight);
     _dragWasPastCollapsed = updateExpandableSheetDragHaptic(
       wasPastCollapsed: _dragWasPastCollapsed,
       previousHeight: previousHeight,
@@ -175,77 +236,83 @@ class _VoiceChannelControlExpandableSheetState
     _dragWasPastCollapsed = null;
   }
 
-  void _onVerticalDragUpdate(
-    BuildContext context,
-    DragUpdateDetails details, {
-    bool Function()? canDrag,
-  }) {
-    if (canDrag != null && !canDrag()) {
-      return;
-    }
-    _adjustSheetHeight(context, details.delta.dy);
+  void _onVerticalDragStart(DragStartDetails details) {
+    _headerVelocityTracker.addPosition(
+      details.sourceTimeStamp ?? Duration.zero,
+      details.globalPosition,
+    );
   }
 
-  void _onVerticalDragEnd(
-    BuildContext context,
-    DragEndDetails details, {
-    bool Function()? canDrag,
-  }) {
-    if (canDrag != null && !canDrag()) {
-      return;
+  void _onVerticalDragUpdate(DragUpdateDetails details) {
+    _headerVelocityTracker.addPosition(
+      details.sourceTimeStamp ?? Duration.zero,
+      details.globalPosition,
+    );
+    _adjustSheetHeight(details.delta.dy);
+  }
+
+  double _resolveHeaderDragVelocity(DragEndDetails details) {
+    final double? primary = details.primaryVelocity;
+    if (primary != null && primary != 0 && _lastDragDirection != 0) {
+      return primary.abs() * _lastDragDirection;
     }
-    final double collapsed = _collapsedHeight(context);
-    final double expanded = _expandedHeight(context);
-    final double velocity = details.primaryVelocity ?? 0;
+    final double trackedVelocity = _headerVelocityTracker
+        .getVelocity()
+        .pixelsPerSecond
+        .dy;
+    if (trackedVelocity != 0) {
+      return trackedVelocity;
+    }
+    final double velocityY = details.velocity.pixelsPerSecond.dy;
+    if (velocityY != 0) {
+      return velocityY;
+    }
+    return primary ?? 0;
+  }
+
+  void _onVerticalDragEnd(DragEndDetails details) {
+    final double collapsed = _collapsedHeightCache;
+    final double expanded = _expandedHeightCache;
+    final double velocity = _resolveHeaderDragVelocity(details);
     final double target = expandableSheetBinarySnapHeight(
       currentHeight: _height,
       velocity: velocity,
       collapsedHeight: collapsed,
       expandedHeight: expanded,
     );
+    updateExpandableSheetHeight(
+      heightNotifier: _heightNotifier,
+      nextHeight: target,
+    );
+    _isDraggingNotifier.value = false;
+    _lastDragDirection = 0;
     setState(() {
-      _isDragging = false;
-      _height = target;
-      if (target <= collapsed + 1) {
-        _panelBodyVisible = false;
-      } else {
-        _panelBodyVisible = true;
-      }
+      _panelBodyVisible = expandableSheetIsPastCollapsedHeight(
+        currentHeight: target,
+        collapsedHeight: collapsed,
+      );
     });
     _resetDragHaptics();
-  }
-
-  void _syncPanelBodyVisibility(BuildContext context) {
-    if (_isExpanded(context)) {
-      _panelBodyVisible = true;
-    }
   }
 
   bool _isPanelListAtTop() {
     return !_scrollController.hasClients || _scrollController.offset <= 0;
   }
 
-  void _onPanelPointerMove(BuildContext context, PointerMoveEvent event) {
+  void _onPanelPointerMove(PointerMoveEvent event) {
     if (!_panelBodyVisible || !_isPanelListAtTop()) {
       return;
     }
     if (event.delta.dy > 0) {
-      _adjustSheetHeight(context, event.delta.dy);
+      _adjustSheetHeight(event.delta.dy);
     }
   }
 
-  void _onPanelPointerEnd(BuildContext context, PointerEvent event) {
-    if (!_isDragging) {
+  void _onPanelPointerEnd(PointerEvent event) {
+    if (!_isDraggingNotifier.value) {
       return;
     }
-    _onVerticalDragEnd(context, DragEndDetails());
-  }
-
-  ScrollPhysics _panelScrollPhysics() {
-    if (!_panelBodyVisible) {
-      return const NeverScrollableScrollPhysics();
-    }
-    return const AlwaysScrollableScrollPhysics(parent: ClampingScrollPhysics());
+    _onVerticalDragEnd(DragEndDetails());
   }
 
   @override
@@ -253,27 +320,25 @@ class _VoiceChannelControlExpandableSheetState
     if (widget.parentHeight <= 0 || widget.parentWidth <= 0) {
       return const SizedBox.shrink();
     }
-    _ensureInitialized(context);
-    _syncPanelBodyVisibility(context);
-    final double expansion = _expansionProgress(context);
+    ref.listen(screenShareCapabilityProvider, (
+      AsyncValue<bool>? previous,
+      AsyncValue<bool> next,
+    ) {
+      final bool value = next.maybeWhen(
+        data: (bool canShare) => canShare,
+        orElse: () => false,
+      );
+      if (value != _canScreenShare && mounted) {
+        setState(() => _canScreenShare = value);
+      }
+    });
     final double maxBarWidth = widget.parentWidth - 16;
-    final bool canScreenShare = ref
-        .watch(screenShareCapabilityProvider)
-        .maybeWhen(data: (bool value) => value, orElse: () => false);
     final int buttonCount = voiceChannelControlButtonCount(
-      canScreenShare: canScreenShare,
+      canScreenShare: _canScreenShare,
     );
     final double collapsedWidth = voiceChannelControlMorphingCollapsedWidth(
       buttonCount: buttonCount,
     ).clamp(0, maxBarWidth);
-    final double barWidth =
-        lerpDouble(collapsedWidth, maxBarWidth, expansion) ?? maxBarWidth;
-    final double barRadius = voiceChannelControlMorphingBarRadius(expansion);
-    final bool showScrollBody = _panelBodyVisible;
-    final Duration animationDuration = expandableSheetSnapDuration(
-      context,
-      isDragging: _isDragging,
-    );
     final double collapsedBarInnerWidth =
         collapsedWidth - (kVoiceControlMorphingBarBorderWidth * 2);
     final double expandedBarInnerWidth =
@@ -291,91 +356,160 @@ class _VoiceChannelControlExpandableSheetState
           ),
           child: Align(
             alignment: Alignment.bottomCenter,
-            child: AnimatedContainer(
-              key: kVoiceControlMorphingBarKey,
-              duration: animationDuration,
-              curve: Curves.easeOutCubic,
-              width: barWidth,
-              height: _height,
-              decoration: voiceChannelControlFloatingDecoration(
-                context,
-                borderRadius: BorderRadius.circular(barRadius),
+            child: DecoratedBox(
+              decoration: const BoxDecoration(
+                boxShadow: kVoiceControlFloatingBarShadow,
               ),
-              clipBehavior: Clip.antiAlias,
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  final double barInnerWidth =
-                      constraints.maxWidth -
-                      (kVoiceControlMorphingBarBorderWidth * 2);
-                  final double widthExpansion =
-                      voiceChannelControlMorphingWidthExpansion(
-                        barInnerWidth: barInnerWidth,
-                        collapsedBarInnerWidth: collapsedBarInnerWidth,
-                        expandedBarInnerWidth: expandedBarInnerWidth,
+              child: ExpandableSheetHeightBuilder(
+                heightNotifier: _heightNotifier,
+                isDraggingNotifier: _isDraggingNotifier,
+                sizeBuilder:
+                    (
+                      BuildContext context,
+                      double height,
+                      bool isDragging,
+                      Widget stableSettings,
+                    ) {
+                      final double expansion = _expansionFor(height);
+                      final double barWidth =
+                          lerpDouble(collapsedWidth, maxBarWidth, expansion) ??
+                          maxBarWidth;
+                      final double barRadius =
+                          voiceChannelControlMorphingBarRadius(expansion);
+                      final BorderRadius borderRadius = BorderRadius.circular(
+                        barRadius,
                       );
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      ExpandableSheetDragTarget(
-                        key: kVoiceControlSheetDragHeaderKey,
-                        onVerticalDragUpdate: (DragUpdateDetails details) {
-                          _onVerticalDragUpdate(context, details);
-                        },
-                        onVerticalDragEnd: (DragEndDetails details) {
-                          _onVerticalDragEnd(context, details);
-                        },
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: <Widget>[
-                            const VoiceChannelControlSheetDragHandle(
-                              key: kVoiceControlSheetDragHandleKey,
-                            ),
-                            VoiceChannelControlBarContent(
-                              channelId: widget.channelId,
-                              guildId: widget.guildId,
-                              connectionId: widget.connectionId,
-                              isConnected: widget.isConnected,
-                              style: VoiceChannelControlBarStyle.embedded,
-                              barInnerWidth: barInnerWidth,
-                              expansion: widthExpansion,
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (showScrollBody)
-                        Expanded(
-                          child: Listener(
-                            behavior: HitTestBehavior.translucent,
-                            onPointerMove: (PointerMoveEvent event) {
-                              _onPanelPointerMove(context, event);
-                            },
-                            onPointerUp: (PointerUpEvent event) {
-                              _onPanelPointerEnd(context, event);
-                            },
-                            onPointerCancel: (PointerCancelEvent event) {
-                              _onPanelPointerEnd(context, event);
-                            },
-                            child: ListView(
-                              controller: _scrollController,
-                              physics: _panelScrollPhysics(),
-                              padding: EdgeInsets.zero,
-                              children: <Widget>[
-                                VoiceChannelControlPanelSettings(
-                                  channelId: widget.channelId,
+                      return KeyedSubtree(
+                        key: kVoiceControlMorphingBarKey,
+                        child: expandableSheetAnimatedSize(
+                          context: context,
+                          isDragging: isDragging,
+                          width: barWidth,
+                          height: height,
+                          child: DecoratedBox(
+                            decoration:
+                                voiceChannelControlMorphingSurfaceDecoration(
+                                  context,
+                                  borderRadius: borderRadius,
                                 ),
-                              ],
+                            child: ClipRRect(
+                              borderRadius: borderRadius,
+                              child: LayoutBuilder(
+                                builder: (BuildContext context, BoxConstraints constraints) {
+                                  final double measuredBarInnerWidth =
+                                      constraints.maxWidth -
+                                      (kVoiceControlMorphingBarBorderWidth * 2);
+                                  final double widthExpansion =
+                                      voiceChannelControlMorphingWidthExpansion(
+                                        barInnerWidth: measuredBarInnerWidth,
+                                        collapsedBarInnerWidth:
+                                            collapsedBarInnerWidth,
+                                        expandedBarInnerWidth:
+                                            expandedBarInnerWidth,
+                                      );
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: <Widget>[
+                                      ExpandableSheetDragTarget(
+                                        key: kVoiceControlSheetDragHeaderKey,
+                                        onVerticalDragStart:
+                                            _onVerticalDragStart,
+                                        onVerticalDragUpdate:
+                                            _onVerticalDragUpdate,
+                                        onVerticalDragEnd: _onVerticalDragEnd,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
+                                          children: <Widget>[
+                                            const VoiceChannelControlSheetDragHandle(
+                                              key:
+                                                  kVoiceControlSheetDragHandleKey,
+                                            ),
+                                            ClipRect(
+                                              child: VoiceChannelControlBarContent(
+                                                channelId: widget.channelId,
+                                                guildId: widget.guildId,
+                                                connectionId:
+                                                    widget.connectionId,
+                                                isConnected: widget.isConnected,
+                                                style:
+                                                    VoiceChannelControlBarStyle
+                                                        .embedded,
+                                                barInnerWidth:
+                                                    measuredBarInnerWidth,
+                                                expansion: widthExpansion,
+                                                canScreenShare: _canScreenShare,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      if (_panelBodyVisible)
+                                        Expanded(child: stableSettings),
+                                    ],
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),
-                    ],
-                  );
-                },
+                      );
+                    },
+                child: TickerMode(
+                  enabled: !_isDraggingNotifier.value,
+                  child: RepaintBoundary(
+                    child: _VoiceControlPanelSettingsBody(
+                      scrollController: _scrollController,
+                      channelId: widget.channelId,
+                      panelBodyVisible: _panelBodyVisible,
+                      onPointerMove: _onPanelPointerMove,
+                      onPointerEnd: _onPanelPointerEnd,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _VoiceControlPanelSettingsBody extends StatelessWidget {
+  const _VoiceControlPanelSettingsBody({
+    required this.scrollController,
+    required this.channelId,
+    required this.panelBodyVisible,
+    required this.onPointerMove,
+    required this.onPointerEnd,
+  });
+
+  final ScrollController scrollController;
+  final String? channelId;
+  final bool panelBodyVisible;
+  final void Function(PointerMoveEvent event) onPointerMove;
+  final void Function(PointerEvent event) onPointerEnd;
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerMove: onPointerMove,
+      onPointerUp: onPointerEnd,
+      onPointerCancel: onPointerEnd,
+      child: ListView(
+        controller: scrollController,
+        physics: panelBodyVisible
+            ? _kVoicePanelScrollPhysics
+            : _kVoicePanelHiddenScrollPhysics,
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          VoiceChannelControlPanelSettings(channelId: channelId),
+        ],
       ),
     );
   }
