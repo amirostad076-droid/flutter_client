@@ -67,7 +67,7 @@ void main() {
         topMargin: 8,
         viewPaddingBottom: 34,
       ),
-      675,
+      closeTo(675.2, 0.01),
     );
   });
 
