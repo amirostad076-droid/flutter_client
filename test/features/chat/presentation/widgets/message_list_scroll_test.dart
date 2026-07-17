@@ -367,6 +367,158 @@ void main() {
         await _disposeMessageList(tester);
       },
     );
+    testWidgets(
+      'async unread open publishes near-tail viewport geometry without a scroll',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(420, 672);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final _AroundAckMessageListHarness harness =
+            await _createAroundAckMessageListHarness(
+              ackIndex: 47,
+              startLoading: true,
+              retainMessagesWhileLoading: true,
+            );
+        await tester.pumpWidget(
+          _messageListApp(
+            database: harness.database,
+            chatViewModel: harness.chatViewModel,
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+        final ProviderContainer container = ProviderScope.containerOf(
+          tester.element(find.byType(MessageList)),
+        );
+        // Simulates a stale viewport left by an unread layout with no scroll
+        // callback; the production callback must republish geometry.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          container
+              .read(chatReadViewportProvider.notifier)
+              .updateViewport(
+                channelId: _messageListChannelId,
+                nearLoadedTail: false,
+                distanceFromBottom: double.infinity,
+                viewportHeight: 0,
+              );
+        });
+        harness.chatViewModel._testState = harness.chatViewModel._testState
+            .copyWith(messages: harness.messages, isLoading: false);
+        await tester.pump();
+        final ChatReadViewportState initialViewport = container.read(
+          chatReadViewportProvider,
+        );
+        expect(initialViewport.channelId, _messageListChannelId);
+        expect(initialViewport.nearLoadedTail, isTrue);
+        expect(harness.chatViewModel._loadNewerCallCount, 0);
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets(
+      'async unread open near the tail has scrollable geometry without a scroll',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(420, 1424);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final _AroundAckMessageListHarness harness =
+            await _createAroundAckMessageListHarness(
+              ackIndex: 47,
+              hasMoreNewerMessages: false,
+              startLoading: true,
+            );
+        await tester.pumpWidget(
+          _messageListApp(
+            database: harness.database,
+            chatViewModel: harness.chatViewModel,
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+        harness.chatViewModel._testState = harness.chatViewModel._testState
+            .copyWith(messages: harness.messages, isLoading: false);
+        await tester.pump();
+        await tester.pump();
+
+        final ScrollPosition position = _messageListScrollPosition(tester);
+        expect(find.text('NEW'), findsOneWidget);
+        final double trailingDistance =
+            position.maxScrollExtent - position.pixels;
+        expect(
+          position.maxScrollExtent,
+          greaterThan(0),
+          reason: 'trailing distance: $trailingDistance',
+        );
+        expect(
+          trailingDistance,
+          lessThanOrEqualTo(kMessageListReadBottomThreshold),
+          reason: 'trailing distance: $trailingDistance',
+        );
+        final ProviderContainer container = ProviderScope.containerOf(
+          tester.element(find.byType(MessageList)),
+        );
+        expect(container.read(chatReadViewportProvider).nearLoadedTail, isTrue);
+        expect(harness.chatViewModel._loadNewerCallCount, 0);
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets('async unread open stays away from tail without a scroll', (
+      WidgetTester tester,
+    ) async {
+      tester.view.physicalSize = const Size(420, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final _AroundAckMessageListHarness harness =
+          await _createAroundAckMessageListHarness(
+            ackIndex: 40,
+            messageCount: 55,
+            hasMoreNewerMessages: false,
+            startLoading: true,
+          );
+      await tester.pumpWidget(
+        _messageListApp(
+          database: harness.database,
+          chatViewModel: harness.chatViewModel,
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      harness.chatViewModel._testState = harness.chatViewModel._testState
+          .copyWith(messages: harness.messages, isLoading: false);
+      await tester.pump();
+      await tester.pump();
+
+      final ScrollPosition position = _messageListScrollPosition(tester);
+      final double trailingDistance =
+          position.maxScrollExtent - position.pixels;
+      final ProviderContainer container = ProviderScope.containerOf(
+        tester.element(find.byType(MessageList)),
+      );
+      final bool nearLoadedTail = container
+          .read(chatReadViewportProvider)
+          .nearLoadedTail;
+      final double viewportDistance = container
+          .read(chatReadViewportProvider)
+          .distanceFromBottom;
+      final int loadNewerCallCount = harness.chatViewModel._loadNewerCallCount;
+      await _disposeMessageList(tester);
+
+      expect(
+        trailingDistance,
+        greaterThan(kMessageListReadBottomThreshold),
+        reason: 'trailing distance: $trailingDistance',
+      );
+      expect(
+        nearLoadedTail,
+        isFalse,
+        reason: 'viewport distance: $viewportDistance',
+      );
+      expect(loadNewerCallCount, 0);
+    });
 
     testWidgets('a real upward drag toward newer messages loads newer', (
       WidgetTester tester,
@@ -1576,6 +1728,8 @@ Future<_AroundAckMessageListHarness> _createAroundAckMessageListHarness({
   bool hasMoreNewerMessages = true,
   bool readThroughNewest = false,
   String? newestAuthorId,
+  bool startLoading = false,
+  bool retainMessagesWhileLoading = false,
 }) async {
   assert(ackIndex > 0, 'ackIndex must leave one older message');
   assert(ackIndex < messageCount - 1, 'ackIndex must leave one newer message');
@@ -1619,13 +1773,15 @@ Future<_AroundAckMessageListHarness> _createAroundAckMessageListHarness({
   final _InstrumentedChatViewModel chatViewModel = _InstrumentedChatViewModel(
     ChatViewState(
       channelId: _messageListChannelId,
-      messages: messages,
+      messages: startLoading && !retainMessagesWhileLoading
+          ? const <Message>[]
+          : messages,
       replyingTo: null,
       replyMentioning: false,
       editingMessage: null,
       messageText: '',
       scrollToBottomSignal: 0,
-      isLoading: false,
+      isLoading: startLoading,
       isSyncingMessages: false,
       isLoadingMore: false,
       isLoadingNewer: false,

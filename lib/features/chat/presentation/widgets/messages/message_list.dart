@@ -766,6 +766,16 @@ class _MessageListState extends ConsumerState<MessageList> {
     });
   }
 
+  // An unread-center open has no scroll event to publish live-tail auto-ack geometry.
+  // Runs after underfill fallback, so a bottom-mode conversion makes it a no-op.
+  void _scheduleUnreadViewportSync() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _openMode == _MessageListOpenMode.unread) {
+        _syncReadViewportCenter();
+      }
+    });
+  }
+
   // Coordinates the latest-window replacement with its tail landing so the
   // reverse list never paints a clamped intermediate frame.
   void _landAtLatestTail(List<Message> next) {
@@ -1819,6 +1829,7 @@ class _MessageListState extends ConsumerState<MessageList> {
         _openMode = _MessageListOpenMode.unread;
         _centerAnchorMessageId = anchorId;
         _scheduleUnreadUnderfillFallback();
+        _scheduleUnreadViewportSync();
       } else {
         _openMode = _MessageListOpenMode.bottom;
       }
