@@ -17,6 +17,7 @@ import 'package:fluxer_app/features/channels/presentation/widgets/guild_sidebar.
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
+import 'package:fluxer_app/features/channels/providers/channel_settings_providers.dart';
 import 'package:fluxer_app/features/channels/providers/channel_sidebar_icon_connect_bits_provider.dart';
 import 'package:fluxer_app/features/channels/providers/guild_collapsed_categories_provider.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
@@ -990,6 +991,9 @@ List<Override> _buildOverrides({
       effectiveGuildChannelPermissionBitsProvider(
         channel.id,
       ).overrideWith((ref) => permissionBits[channel.id] ?? 0),
+      channelSettingsPermissionBitsProvider(
+        channel.id,
+      ).overrideWith((ref) async => permissionBits[channel.id] ?? 0),
       if (sidebarConnectBits.containsKey(channel.id))
         channelSidebarIconConnectBitsProvider(
           channel.id,
