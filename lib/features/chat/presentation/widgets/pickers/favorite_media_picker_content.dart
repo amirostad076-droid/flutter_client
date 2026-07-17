@@ -19,6 +19,7 @@ import 'package:fluxer_app/features/chat/utils/media_proxy_url.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
+import 'package:fluxer_app/shared/gestures/expandable_sheet_gestures.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart' as mkv;
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -44,6 +45,7 @@ class FavoriteMediaPickerContent extends ConsumerStatefulWidget {
     this.searchTopPadding,
     this.searchBottomPadding,
     this.onSearchActivated,
+    this.sheetDragHandlers,
     this.scrollController,
     super.key,
   });
@@ -53,6 +55,7 @@ class FavoriteMediaPickerContent extends ConsumerStatefulWidget {
   final double? searchTopPadding;
   final double? searchBottomPadding;
   final VoidCallback? onSearchActivated;
+  final ExpandableSheetDragHandlers? sheetDragHandlers;
   final ScrollController? scrollController;
 
   @override
@@ -152,13 +155,15 @@ class _FavoriteMediaPickerContentState
 
     return Column(
       children: [
-        PickerSearchInput(
-          controller: _searchController,
-          hintText: 'Search saved media',
-          horizontalPadding: widget.searchHorizontalPadding ?? 12,
-          topPadding: widget.searchTopPadding ?? 12,
-          bottomPadding: widget.searchBottomPadding ?? 8,
-          onActivated: widget.onSearchActivated,
+        _wrapSearchHeader(
+          PickerSearchInput(
+            controller: _searchController,
+            hintText: 'Search saved media',
+            horizontalPadding: widget.searchHorizontalPadding ?? 12,
+            topPadding: widget.searchTopPadding ?? 12,
+            bottomPadding: widget.searchBottomPadding ?? 8,
+            onActivated: widget.onSearchActivated,
+          ),
         ),
         _FilterPills(
           selected: _filter,
@@ -177,6 +182,14 @@ class _FavoriteMediaPickerContentState
         ),
       ],
     );
+  }
+
+  Widget _wrapSearchHeader(Widget child) {
+    final ExpandableSheetDragHandlers? handlers = widget.sheetDragHandlers;
+    if (handlers == null) {
+      return child;
+    }
+    return handlers.wrapChrome(child);
   }
 
   Widget _buildBody(List<FavoriteMeme> allMemes) {

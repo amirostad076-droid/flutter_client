@@ -133,6 +133,14 @@ class ChatExpressionExpandableSheetState
 
   bool get _isDocked => (_height - widget.collapsedHeight).abs() < 1;
 
+  ExpandableSheetDragHandlers get _sheetDragHandlers {
+    return ExpandableSheetDragHandlers(
+      onVerticalDragStart: _onHeaderDragStart,
+      onVerticalDragUpdate: _onHeaderDragUpdate,
+      onVerticalDragEnd: _onHeaderDragEnd,
+    );
+  }
+
   void _refreshExpandedHeight() {
     final MediaQueryData mediaQuery = MediaQuery.of(context);
     final double screenHeight = mediaQuery.size.height;
@@ -457,6 +465,7 @@ class ChatExpressionExpandableSheetState
           onContentPointerEnd: _onContentPointerEnd,
           onClose: _closePanel,
           onSearchActivated: _onSearchActivated,
+          sheetDragHandlers: _sheetDragHandlers,
           onEmojiSelect: _onEmojiSelect,
           onGifSelect: _onGifSelect,
           onStickerSelect: _onStickerSelect,
@@ -497,6 +506,7 @@ class _ExpressionSheetBody extends StatefulWidget {
     required this.onContentPointerEnd,
     required this.onClose,
     required this.onSearchActivated,
+    required this.sheetDragHandlers,
     required this.onEmojiSelect,
     required this.onGifSelect,
     required this.onStickerSelect,
@@ -512,6 +522,7 @@ class _ExpressionSheetBody extends StatefulWidget {
   final void Function(PointerEvent event) onContentPointerEnd;
   final VoidCallback onClose;
   final VoidCallback onSearchActivated;
+  final ExpandableSheetDragHandlers sheetDragHandlers;
   final void Function(String name, String surrogates) onEmojiSelect;
   final ValueChanged<FluxerSelectedGif> onGifSelect;
   final ValueChanged<StickerEntry> onStickerSelect;
@@ -607,6 +618,7 @@ class _ExpressionSheetBodyState extends State<_ExpressionSheetBody> {
                 scrollController: widget.scrollController,
                 onClose: widget.onClose,
                 onSearchActivated: widget.onSearchActivated,
+                sheetDragHandlers: widget.sheetDragHandlers,
                 onEmojiSelect: widget.onEmojiSelect,
                 onGifSelect: widget.onGifSelect,
                 onStickerSelect: widget.onStickerSelect,

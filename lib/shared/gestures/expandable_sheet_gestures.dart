@@ -159,6 +159,27 @@ bool? updateExpandableSheetDragHaptic({
   return isPastCollapsed;
 }
 
+class ExpandableSheetDragHandlers {
+  const ExpandableSheetDragHandlers({
+    required this.onVerticalDragUpdate,
+    required this.onVerticalDragEnd,
+    this.onVerticalDragStart,
+  });
+
+  final GestureDragStartCallback? onVerticalDragStart;
+  final GestureDragUpdateCallback onVerticalDragUpdate;
+  final GestureDragEndCallback onVerticalDragEnd;
+
+  Widget wrapChrome(Widget child) {
+    return ExpandableSheetDragTarget(
+      onVerticalDragStart: onVerticalDragStart,
+      onVerticalDragUpdate: onVerticalDragUpdate,
+      onVerticalDragEnd: onVerticalDragEnd,
+      child: child,
+    );
+  }
+}
+
 class ExpandableSheetDragTarget extends StatelessWidget {
   const ExpandableSheetDragTarget({
     required this.onVerticalDragUpdate,

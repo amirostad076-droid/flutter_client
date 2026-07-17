@@ -15,6 +15,7 @@ import 'package:fluxer_app/features/chat/providers/pickers/emoji_picker_provider
 import 'package:fluxer_app/features/chat/providers/pickers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/gestures/expandable_sheet_gestures.dart';
 
 enum ExpressionPickerTab { gifs, memes, stickers, emojis }
 
@@ -53,6 +54,7 @@ class ExpressionPicker extends ConsumerStatefulWidget {
     this.contentSearchTopPadding,
     this.contentSearchBottomPadding,
     this.onSearchActivated,
+    this.sheetDragHandlers,
     this.trackEmojiUsageOnSelect = true,
     super.key,
   });
@@ -81,6 +83,7 @@ class ExpressionPicker extends ConsumerStatefulWidget {
   final double? contentSearchTopPadding;
   final double? contentSearchBottomPadding;
   final VoidCallback? onSearchActivated;
+  final ExpandableSheetDragHandlers? sheetDragHandlers;
 
   /// Forwarded to [EmojiPickerContent.trackUsageOnSelect]. Set false when the
   /// picker drives reactions, which are tracked centrally in
@@ -270,6 +273,7 @@ class _ExpressionPickerState extends ConsumerState<ExpressionPicker> {
         searchTopPadding: widget.contentSearchTopPadding,
         searchBottomPadding: widget.contentSearchBottomPadding,
         onSearchActivated: widget.onSearchActivated,
+        sheetDragHandlers: widget.sheetDragHandlers,
       );
     }
     if (_selectedTab == ExpressionPickerTab.stickers) {
@@ -282,6 +286,7 @@ class _ExpressionPickerState extends ConsumerState<ExpressionPicker> {
         searchTopPadding: widget.contentSearchTopPadding,
         searchBottomPadding: widget.contentSearchBottomPadding,
         onSearchActivated: widget.onSearchActivated,
+        sheetDragHandlers: widget.sheetDragHandlers,
       );
     }
     return FavoriteMediaPickerContent(
@@ -291,6 +296,7 @@ class _ExpressionPickerState extends ConsumerState<ExpressionPicker> {
       searchTopPadding: widget.contentSearchTopPadding,
       searchBottomPadding: widget.contentSearchBottomPadding,
       onSearchActivated: widget.onSearchActivated,
+      sheetDragHandlers: widget.sheetDragHandlers,
     );
   }
 }
