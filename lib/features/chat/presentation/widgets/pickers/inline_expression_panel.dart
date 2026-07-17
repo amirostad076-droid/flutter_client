@@ -25,6 +25,7 @@ class ExpressionPanelContent extends ConsumerStatefulWidget {
     this.onGifSelect,
     this.onStickerSelect,
     this.onFavoriteMemeSelect,
+    this.onSearchActivated,
     super.key,
   });
 
@@ -34,6 +35,7 @@ class ExpressionPanelContent extends ConsumerStatefulWidget {
   final ValueChanged<FluxerSelectedGif>? onGifSelect;
   final ValueChanged<StickerEntry>? onStickerSelect;
   final ValueChanged<FavoriteMemeSelection>? onFavoriteMemeSelect;
+  final VoidCallback? onSearchActivated;
 
   @override
   ConsumerState<ExpressionPanelContent> createState() =>
@@ -120,6 +122,7 @@ class _ExpressionPanelContentState extends ConsumerState<ExpressionPanelContent>
               onSkinToneChanged: (String tone) =>
                   unawaited(ref.read(emojiSkinToneProvider.notifier).set(tone)),
               horizontalPadding: kExpressionPanelSearchHorizontalPadding,
+              onActivated: widget.onSearchActivated,
             ),
           Expanded(
             child: ExpressionPicker(
@@ -147,6 +150,7 @@ class _ExpressionPanelContentState extends ConsumerState<ExpressionPanelContent>
                   kExpressionPanelSearchHorizontalPadding,
               contentSearchTopPadding: kExpressionPanelSearchTopPadding,
               contentSearchBottomPadding: kExpressionPanelSearchBottomPadding,
+              onSearchActivated: widget.onSearchActivated,
             ),
           ),
         ],

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
@@ -21,6 +22,7 @@ const Key kChatExpressionSheetKey = kExpressionPanelShellGestureBlockKey;
 const Key kChatExpressionSheetDragHandleKey = Key(
   'chat-expression-sheet-drag-handle',
 );
+const double kExpressionSheetContentDragSlop = 8;
 final GlobalKey kChatExpressionSheetDragHeaderKey = GlobalKey(
   debugLabel: 'chat-expression-sheet-drag-header',
 );
@@ -63,6 +65,9 @@ class ChatExpressionExpandableSheetState
   bool? _dragWasPastCollapsed;
   bool _initialized = false;
   bool _isClosing = false;
+  bool _searchExpandScheduled = false;
+  bool _ignoreContentDrag = false;
+  double _contentDragSlopAccumulated = 0;
   Timer? _closeTimer;
 
   @override
@@ -75,8 +80,8 @@ class ChatExpressionExpandableSheetState
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _refreshExpandedHeight();
     if (!_initialized) {
+      _refreshExpandedHeight();
       updateExpandableSheetHeight(
         heightNotifier: _heightNotifier,
         nextHeight: widget.collapsedHeight,
@@ -134,12 +139,30 @@ class ChatExpressionExpandableSheetState
     final double totalExpanded = inlineExpressionPanelExpandedHeight(
       availableHeight: screenHeight * kInlineExpressionPanelMaxScreenFraction,
       screenHeight: screenHeight,
-      keyboardInset: mediaQuery.viewInsets.bottom,
+      keyboardInset: 0,
       topPadding: mediaQuery.viewPadding.top + kMobileChannelHeaderHeight,
       topMargin: context.layout.s2,
       viewPaddingBottom: mediaQuery.viewPadding.bottom,
     ).clamp(0, screenHeight * kInlineExpressionPanelMaxScreenFraction);
-    _expandedHeightCache = totalExpanded - widget.dragHandleHeight;
+    _expandedHeightCache = (totalExpanded - widget.dragHandleHeight).clamp(
+      widget.collapsedHeight,
+      screenHeight,
+    );
+  }
+
+  void _onSearchActivated() {
+    if (_isExpanded || _searchExpandScheduled) {
+      return;
+    }
+    _searchExpandScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _searchExpandScheduled = false;
+      if (!mounted || _isExpanded) {
+        return;
+      }
+      _refreshExpandedHeight();
+      _snapToHeight(_expandedHeightCache);
+    });
   }
 
   void _adjustSheetHeight(double deltaDy) {
@@ -202,9 +225,25 @@ class ChatExpressionExpandableSheetState
 
   void _onContentPointerDown(PointerDownEvent event) {
     _contentVelocityTracker.addPosition(event.timeStamp, event.position);
+    _contentDragSlopAccumulated = 0;
+    _ignoreContentDrag = _isPointerOverEditable(event);
+  }
+
+  bool _isPointerOverEditable(PointerEvent event) {
+    final HitTestResult result = HitTestResult();
+    WidgetsBinding.instance.hitTestInView(result, event.position, event.viewId);
+    for (final HitTestEntry entry in result.path) {
+      if (entry.target is RenderEditable) {
+        return true;
+      }
+    }
+    return false;
   }
 
   void _onContentPointerMove(PointerMoveEvent event) {
+    if (_ignoreContentDrag) {
+      return;
+    }
     _contentVelocityTracker.addPosition(event.timeStamp, event.position);
     if (!_isExpanded && event.delta.dy < 0) {
       return;
@@ -212,12 +251,22 @@ class ChatExpressionExpandableSheetState
     if (!inlineExpressionPanelControllerIsAtTop(_scrollController)) {
       return;
     }
-    if (event.delta.dy > 0) {
-      _adjustSheetHeight(event.delta.dy);
+    if (event.delta.dy <= 0) {
+      return;
     }
+    _contentDragSlopAccumulated += event.delta.dy;
+    if (_contentDragSlopAccumulated < kExpressionSheetContentDragSlop) {
+      return;
+    }
+    _adjustSheetHeight(event.delta.dy);
   }
 
   void _onContentPointerEnd(PointerEvent event) {
+    _contentDragSlopAccumulated = 0;
+    if (_ignoreContentDrag) {
+      _ignoreContentDrag = false;
+      return;
+    }
     if (!_isDraggingNotifier.value) {
       return;
     }
@@ -407,6 +456,7 @@ class ChatExpressionExpandableSheetState
           onContentPointerMove: _onContentPointerMove,
           onContentPointerEnd: _onContentPointerEnd,
           onClose: _closePanel,
+          onSearchActivated: _onSearchActivated,
           onEmojiSelect: _onEmojiSelect,
           onGifSelect: _onGifSelect,
           onStickerSelect: _onStickerSelect,
@@ -446,6 +496,7 @@ class _ExpressionSheetBody extends StatefulWidget {
     required this.onContentPointerMove,
     required this.onContentPointerEnd,
     required this.onClose,
+    required this.onSearchActivated,
     required this.onEmojiSelect,
     required this.onGifSelect,
     required this.onStickerSelect,
@@ -460,6 +511,7 @@ class _ExpressionSheetBody extends StatefulWidget {
   final void Function(PointerMoveEvent event) onContentPointerMove;
   final void Function(PointerEvent event) onContentPointerEnd;
   final VoidCallback onClose;
+  final VoidCallback onSearchActivated;
   final void Function(String name, String surrogates) onEmojiSelect;
   final ValueChanged<FluxerSelectedGif> onGifSelect;
   final ValueChanged<StickerEntry> onStickerSelect;
@@ -554,6 +606,7 @@ class _ExpressionSheetBodyState extends State<_ExpressionSheetBody> {
               ExpressionPanelContent(
                 scrollController: widget.scrollController,
                 onClose: widget.onClose,
+                onSearchActivated: widget.onSearchActivated,
                 onEmojiSelect: widget.onEmojiSelect,
                 onGifSelect: widget.onGifSelect,
                 onStickerSelect: widget.onStickerSelect,

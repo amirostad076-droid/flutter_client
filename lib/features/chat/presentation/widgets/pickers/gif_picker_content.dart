@@ -73,6 +73,7 @@ class GifPickerContent extends ConsumerStatefulWidget {
     this.searchHorizontalPadding,
     this.searchTopPadding,
     this.searchBottomPadding,
+    this.onSearchActivated,
     this.scrollController,
     super.key,
   });
@@ -83,6 +84,7 @@ class GifPickerContent extends ConsumerStatefulWidget {
   final double? searchHorizontalPadding;
   final double? searchTopPadding;
   final double? searchBottomPadding;
+  final VoidCallback? onSearchActivated;
   final ScrollController? scrollController;
 
   @override
@@ -253,6 +255,7 @@ class _GifPickerContentState extends ConsumerState<GifPickerContent> {
       topPadding: widget.searchTopPadding ?? layout.s3,
       bottomPadding: widget.searchBottomPadding ?? layout.s3,
       onSubmitted: _flushSearch,
+      onActivated: widget.onSearchActivated,
     );
   }
 

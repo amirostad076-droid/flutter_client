@@ -43,7 +43,7 @@ void main() {
     );
   });
 
-  test('caps expanded height to 75% of the screen', () {
+  test('caps expanded height to 80% of the screen', () {
     expect(
       inlineExpressionPanelExpandedHeight(
         availableHeight: 900,
@@ -53,7 +53,7 @@ void main() {
         topMargin: 8,
         viewPaddingBottom: 0,
       ),
-      600,
+      640,
     );
   });
 
@@ -67,7 +67,7 @@ void main() {
         topMargin: 8,
         viewPaddingBottom: 34,
       ),
-      633,
+      675,
     );
   });
 

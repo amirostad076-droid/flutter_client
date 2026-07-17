@@ -74,7 +74,7 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('panel height stays within anchor and 75% screen bounds', (
+    testWidgets('panel height stays within anchor and 80% screen bounds', (
       tester,
     ) async {
       await _pumpSheet(tester, colorTheme: colorTheme);

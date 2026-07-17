@@ -52,6 +52,7 @@ class ExpressionPicker extends ConsumerStatefulWidget {
     this.contentSearchHorizontalPadding,
     this.contentSearchTopPadding,
     this.contentSearchBottomPadding,
+    this.onSearchActivated,
     this.trackEmojiUsageOnSelect = true,
     super.key,
   });
@@ -79,6 +80,7 @@ class ExpressionPicker extends ConsumerStatefulWidget {
   final double? contentSearchHorizontalPadding;
   final double? contentSearchTopPadding;
   final double? contentSearchBottomPadding;
+  final VoidCallback? onSearchActivated;
 
   /// Forwarded to [EmojiPickerContent.trackUsageOnSelect]. Set false when the
   /// picker drives reactions, which are tracked centrally in
@@ -267,6 +269,7 @@ class _ExpressionPickerState extends ConsumerState<ExpressionPicker> {
         searchHorizontalPadding: widget.contentSearchHorizontalPadding,
         searchTopPadding: widget.contentSearchTopPadding,
         searchBottomPadding: widget.contentSearchBottomPadding,
+        onSearchActivated: widget.onSearchActivated,
       );
     }
     if (_selectedTab == ExpressionPickerTab.stickers) {
@@ -278,6 +281,7 @@ class _ExpressionPickerState extends ConsumerState<ExpressionPicker> {
         searchHorizontalPadding: widget.contentSearchHorizontalPadding,
         searchTopPadding: widget.contentSearchTopPadding,
         searchBottomPadding: widget.contentSearchBottomPadding,
+        onSearchActivated: widget.onSearchActivated,
       );
     }
     return FavoriteMediaPickerContent(
@@ -286,6 +290,7 @@ class _ExpressionPickerState extends ConsumerState<ExpressionPicker> {
       searchHorizontalPadding: widget.contentSearchHorizontalPadding,
       searchTopPadding: widget.contentSearchTopPadding,
       searchBottomPadding: widget.contentSearchBottomPadding,
+      onSearchActivated: widget.onSearchActivated,
     );
   }
 }

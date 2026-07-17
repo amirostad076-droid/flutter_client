@@ -42,6 +42,7 @@ class StickerPickerContent extends ConsumerStatefulWidget {
     this.searchHorizontalPadding,
     this.searchTopPadding,
     this.searchBottomPadding,
+    this.onSearchActivated,
     this.channelId,
     this.scrollController,
     super.key,
@@ -52,6 +53,7 @@ class StickerPickerContent extends ConsumerStatefulWidget {
   final double? searchHorizontalPadding;
   final double? searchTopPadding;
   final double? searchBottomPadding;
+  final VoidCallback? onSearchActivated;
   final String? channelId;
   final ScrollController? scrollController;
 
@@ -419,6 +421,7 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
           topPadding: widget.searchTopPadding ?? (widget.isMobile ? 8 : 12),
           bottomPadding:
               widget.searchBottomPadding ?? (widget.isMobile ? 4 : 12),
+          onActivated: widget.onSearchActivated,
         ),
         Expanded(child: _buildBody(context, colors, data)),
       ],

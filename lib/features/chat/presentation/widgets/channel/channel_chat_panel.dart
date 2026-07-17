@@ -135,8 +135,19 @@ class _ChannelChatPanelState extends ConsumerState<ChannelChatPanel> {
           double sheetContentHeight = 0;
           double dragHandleHeight = 0;
           if (isPanelOpen) {
-            final MobileKeyboardMetricsState metrics = ref.watch(
-              mobileKeyboardMetricsProvider,
+            final ({
+              double? anchoredKeyboardHeight,
+              double fallbackKeyboardHeight,
+              double safeAreaBottom,
+            })
+            panelMetrics = ref.watch(
+              mobileKeyboardMetricsProvider.select(
+                (MobileKeyboardMetricsState metrics) => (
+                  anchoredKeyboardHeight: metrics.anchoredKeyboardHeight,
+                  fallbackKeyboardHeight: metrics.fallbackKeyboardHeight,
+                  safeAreaBottom: metrics.safeAreaBottom,
+                ),
+              ),
             );
             final double slotHeight = ref.watch(
               bottomInputSlotProvider.select(
@@ -144,17 +155,21 @@ class _ChannelChatPanelState extends ConsumerState<ChannelChatPanel> {
               ),
             );
             final double panelAnchorHeight = bottomInputSlotAnchorHeight(
-              anchoredKeyboardHeight: metrics.anchoredKeyboardHeight,
-              fallbackHeight: metrics.fallbackKeyboardHeight,
-              safeAreaBottom: metrics.safeAreaBottom,
+              anchoredKeyboardHeight: panelMetrics.anchoredKeyboardHeight,
+              fallbackHeight: panelMetrics.fallbackKeyboardHeight,
+              safeAreaBottom: panelMetrics.safeAreaBottom,
             );
             dragHandleHeight = inlineExpressionPanelDragHandleHeight(
               bottomSpacing: context.layout.s2,
             );
+            final double grossAnchorHeight = inlineExpressionPanelAnchorHeight(
+              anchoredKeyboardHeight: panelMetrics.anchoredKeyboardHeight,
+              fallbackHeight: panelMetrics.fallbackKeyboardHeight,
+            );
             final double reservedHeight = resolvePanelReservedLayoutHeight(
               slotHeight: slotHeight,
               netAnchorHeight: panelAnchorHeight,
-              grossAnchorHeight: metrics.resolveAnchorHeight(),
+              grossAnchorHeight: grossAnchorHeight,
             );
             sheetContentHeight = inlineExpressionPanelDockedContentHeight(
               keyboardAnchorNet: reservedHeight,

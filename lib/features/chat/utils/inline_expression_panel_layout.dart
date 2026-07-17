@@ -4,7 +4,7 @@ const double kMobileChannelHeaderHeight = 64;
 const double kInlineExpressionPanelDragHandleHitHeight = 28;
 const double kInlineExpressionPanelDragHandleBottomSpacing = 8;
 
-const double kInlineExpressionPanelMaxScreenFraction = 0.75;
+const double kInlineExpressionPanelMaxScreenFraction = 0.80;
 
 double inlineExpressionPanelDragHandleHeight({
   double topPadding = 0,
