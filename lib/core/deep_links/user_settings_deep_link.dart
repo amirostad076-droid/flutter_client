@@ -1,3 +1,4 @@
+import 'package:fluxer_app/core/build/app_build_config.dart';
 import 'package:fluxer_app/core/deep_links/deep_link_path_policy.dart';
 import 'package:fluxer_app/features/settings/domain/user_settings_section.dart';
 
@@ -209,6 +210,9 @@ UserSettingsSection? mapUserSettingsDeepLinkToSection(
     case 'advanced_settings':
       return UserSettingsSection.advanced;
     case 'client_developer_settings':
+      if (!AppBuildConfig.isCanary) {
+        return null;
+      }
       return UserSettingsSection.developerTools;
     default:
       return null;

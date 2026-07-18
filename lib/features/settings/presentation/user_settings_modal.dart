@@ -39,6 +39,7 @@ import 'package:fluxer_app/features/settings/presentation/widgets/user_profile.d
 import 'package:fluxer_app/features/settings/presentation/widgets/user_security_login.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/settings/utils/user_settings_nav_l10n.dart';
+import 'package:fluxer_app/features/settings/utils/user_settings_staff_only_utils.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -404,6 +405,9 @@ class _MobileSettingsNavBodyState
   }
 
   void _openSettingsPage(UserSettingsSection section) {
+    if (!isUserSettingsStaffOnlySectionAvailable(section)) {
+      return;
+    }
     final l10n = FluxerLocalizations.of(context);
     final canDismiss = ValueNotifier<bool>(true);
     unawaited(
@@ -507,6 +511,9 @@ Widget _buildUserSettingsSectionContent({
   required UserSettingsSection section,
   ScrollController? scrollController,
 }) {
+  if (!isUserSettingsStaffOnlySectionAvailable(section)) {
+    return const SizedBox.shrink();
+  }
   switch (section) {
     case UserSettingsSection.profile:
       return FluxerSettingsSheet(

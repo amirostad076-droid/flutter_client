@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:fluxer_app/core/build/app_build_config.dart';
 import 'package:fluxer_app/features/settings/domain/user_settings_nav_group.dart';
 import 'package:fluxer_app/features/settings/domain/user_settings_section.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/settings_sidebar.dart';
 import 'package:fluxer_app/features/settings/utils/user_settings_nav_l10n.dart';
+import 'package:fluxer_app/features/settings/utils/user_settings_staff_only_utils.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -63,7 +65,7 @@ class UserSettingsDesktopNavEntry {
   }
 }
 
-const userSettingsDesktopNav = [
+const _userSettingsDesktopNavBeforeStaffOnly = [
   UserSettingsDesktopNavEntry.separator(UserSettingsNavGroup.yourAccount),
   UserSettingsDesktopNavEntry.link(
     UserSettingsSection.profile,
@@ -139,6 +141,9 @@ const userSettingsDesktopNav = [
     UserSettingsSection.applications,
     icon: PhosphorIconsFill.code,
   ),
+];
+
+const _userSettingsDesktopNavStaffOnly = [
   UserSettingsDesktopNavEntry.separator(UserSettingsNavGroup.staffOnly),
   UserSettingsDesktopNavEntry.link(
     UserSettingsSection.developerTools,
@@ -152,7 +157,9 @@ const userSettingsDesktopNav = [
     UserSettingsSection.featureFlags,
     icon: PhosphorIconsFill.flag,
   ),
-  UserSettingsDesktopNavEntry.separator(),
+];
+
+const _userSettingsDesktopNavAfterStaffOnly = [
   UserSettingsDesktopNavEntry.link(
     UserSettingsSection.whatsNew,
     icon: PhosphorIconsFill.megaphone,
@@ -160,7 +167,16 @@ const userSettingsDesktopNav = [
   UserSettingsDesktopNavEntry.logout(),
 ];
 
+List<UserSettingsDesktopNavEntry> get userSettingsDesktopNav => [
+  ..._userSettingsDesktopNavBeforeStaffOnly,
+  if (AppBuildConfig.isCanary) ..._userSettingsDesktopNavStaffOnly,
+  ..._userSettingsDesktopNavAfterStaffOnly,
+];
+
 int? indexForUserSettingsSection(UserSettingsSection section) {
+  if (!isUserSettingsStaffOnlySectionAvailable(section)) {
+    return null;
+  }
   for (var i = 0; i < userSettingsDesktopNav.length; i++) {
     if (userSettingsDesktopNav[i].section == section) {
       return i;
@@ -227,14 +243,15 @@ List<FluxerSettingsNavGroup> buildUserSettingsMobileNavGroups({
         ),
       ],
     ),
-    FluxerSettingsNavGroup(
-      label: userSettingsNavGroupLabel(l10n, UserSettingsNavGroup.staffOnly),
-      items: [
-        link(UserSettingsSection.developerTools, PhosphorIconsFill.code),
-        link(UserSettingsSection.limitsConfig, PhosphorIconsFill.flag),
-        link(UserSettingsSection.featureFlags, PhosphorIconsFill.flag),
-      ],
-    ),
+    if (AppBuildConfig.isCanary)
+      FluxerSettingsNavGroup(
+        label: userSettingsNavGroupLabel(l10n, UserSettingsNavGroup.staffOnly),
+        items: [
+          link(UserSettingsSection.developerTools, PhosphorIconsFill.code),
+          link(UserSettingsSection.limitsConfig, PhosphorIconsFill.flag),
+          link(UserSettingsSection.featureFlags, PhosphorIconsFill.flag),
+        ],
+      ),
     FluxerSettingsNavGroup(
       items: [
         link(UserSettingsSection.whatsNew, PhosphorIconsFill.megaphone),
