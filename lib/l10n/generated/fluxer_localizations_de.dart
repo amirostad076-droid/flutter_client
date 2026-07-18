@@ -6790,9 +6790,6 @@ class FluxerLocalizationsDe extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Geschenke & Codes';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Emoji-Pakete';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Datenschutz-Dashboard';
 
   @override
@@ -15014,9 +15011,6 @@ class FluxerLocalizationsDeCh extends FluxerLocalizationsDe {
 
   @override
   String get userSettingsNavGiftsAndCodes => 'Geschenke & Codes';
-
-  @override
-  String get userSettingsNavExpressionPacks => 'Emote-Pakete';
 
   @override
   String get userSettingsNavPrivacyDashboard => 'Datenschutz-Dashboard';

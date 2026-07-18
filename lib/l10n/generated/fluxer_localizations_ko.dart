@@ -6512,9 +6512,6 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => '선물 및 코드';
 
   @override
-  String get userSettingsNavExpressionPacks => '이모티콘 팩';
-
-  @override
   String get userSettingsNavPrivacyDashboard => '개인정보 대시보드';
 
   @override

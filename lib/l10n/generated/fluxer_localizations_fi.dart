@@ -6758,9 +6758,6 @@ class FluxerLocalizationsFi extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Lahjat ja koodit';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Ilmeikkäät paketit';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Tietosuojakeskus';
 
   @override

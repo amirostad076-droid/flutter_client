@@ -6738,9 +6738,6 @@ class FluxerLocalizationsNb extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Gaver og koder';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Uttrykkespakker';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Personverndashbord';
 
   @override

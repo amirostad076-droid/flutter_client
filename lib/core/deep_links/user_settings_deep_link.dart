@@ -25,7 +25,6 @@ const Set<String> _userSettingsTabTypes = {
   'component_gallery',
   'language',
   'keybinds',
-  'expression_packs',
   'linked_accounts',
 };
 
@@ -203,8 +202,6 @@ UserSettingsSection? mapUserSettingsDeepLinkToSection(
       return UserSettingsSection.languageAndTime;
     case 'keybinds':
       return UserSettingsSection.keybinds;
-    case 'expression_packs':
-      return UserSettingsSection.expressionPacks;
     case 'linked_accounts':
       return UserSettingsSection.connections;
     case 'applications':

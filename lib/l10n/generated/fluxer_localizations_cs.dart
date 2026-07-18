@@ -6747,9 +6747,6 @@ class FluxerLocalizationsCs extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Dárky a kódy';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Balíčky výrazů';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Přehled ochrany soukromí';
 
   @override

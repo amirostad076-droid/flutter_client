@@ -6794,9 +6794,6 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Δώρα & Κωδικοί';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Πακέτα Εκφράσεων';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Πίνακας Ελέγχου Απορρήτου';
 
   @override

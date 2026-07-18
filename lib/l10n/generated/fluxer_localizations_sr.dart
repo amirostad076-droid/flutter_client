@@ -6750,9 +6750,6 @@ class FluxerLocalizationsSr extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Pokloni i kodovi';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Paketi izraza';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Kontrolna tabla privatnosti';
 
   @override

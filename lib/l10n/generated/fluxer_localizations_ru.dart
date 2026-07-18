@@ -6768,9 +6768,6 @@ class FluxerLocalizationsRu extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Подарки и коды';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Наборы эмодзи';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Панель конфиденциальности';
 
   @override

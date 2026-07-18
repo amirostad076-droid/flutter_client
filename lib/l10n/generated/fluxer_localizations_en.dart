@@ -6716,9 +6716,6 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Gifts & Codes';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Expression Packs';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Privacy Dashboard';
 
   @override
@@ -14845,9 +14842,6 @@ class FluxerLocalizationsEnGb extends FluxerLocalizationsEn {
   String get userSettingsNavGiftsAndCodes => 'Gifts & Codes';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Expression Packs';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Privacy Dashboard';
 
   @override
@@ -21906,9 +21900,6 @@ class FluxerLocalizationsEnUs extends FluxerLocalizationsEn {
 
   @override
   String get userSettingsNavGiftsAndCodes => 'Gifts & Codes';
-
-  @override
-  String get userSettingsNavExpressionPacks => 'Expression Packs';
 
   @override
   String get userSettingsNavPrivacyDashboard => 'Privacy Dashboard';

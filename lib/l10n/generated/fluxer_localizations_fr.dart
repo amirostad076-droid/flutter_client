@@ -6812,9 +6812,6 @@ class FluxerLocalizationsFr extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Cadeaux et codes';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Packs d\'expressions';
-
-  @override
   String get userSettingsNavPrivacyDashboard =>
       'Tableau de bord de confidentialité';
 
@@ -15072,9 +15069,6 @@ class FluxerLocalizationsFrCa extends FluxerLocalizationsFr {
 
   @override
   String get userSettingsNavGiftsAndCodes => 'Cadeaux et codes';
-
-  @override
-  String get userSettingsNavExpressionPacks => 'Packs d\'expressions';
 
   @override
   String get userSettingsNavPrivacyDashboard =>

@@ -6758,9 +6758,6 @@ class FluxerLocalizationsSl extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Darila in kode';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Paketi izrazov';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Nadzorna plošča za zasebnost';
 
   @override

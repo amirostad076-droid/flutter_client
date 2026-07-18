@@ -6778,9 +6778,6 @@ class FluxerLocalizationsHu extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Ajándékok és kódok';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Emotikon csomagok';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Adatvédelmi irányítópult';
 
   @override

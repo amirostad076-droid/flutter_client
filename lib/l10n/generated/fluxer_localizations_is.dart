@@ -6735,9 +6735,6 @@ class FluxerLocalizationsIs extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Gjafir og kóðar';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Tjáningarpakkar';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Persónuverndarstýring';
 
   @override

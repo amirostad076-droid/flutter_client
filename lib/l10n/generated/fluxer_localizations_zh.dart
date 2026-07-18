@@ -6429,9 +6429,6 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => '礼物与兑换码';
 
   @override
-  String get userSettingsNavExpressionPacks => '表情包';
-
-  @override
   String get userSettingsNavPrivacyDashboard => '隐私仪表盘';
 
   @override
@@ -14181,9 +14178,6 @@ class FluxerLocalizationsZhHant extends FluxerLocalizationsZh {
 
   @override
   String get userSettingsNavGiftsAndCodes => '禮物與代碼';
-
-  @override
-  String get userSettingsNavExpressionPacks => '表情符號包';
 
   @override
   String get userSettingsNavPrivacyDashboard => '隱私權儀表板';

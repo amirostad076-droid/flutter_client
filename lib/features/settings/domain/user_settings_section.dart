@@ -3,7 +3,6 @@ enum UserSettingsSection {
   securityLogin,
   // fluxerPlutonium,
   // giftsAndCodes,
-  expressionPacks,
   privacyDashboard,
   authorizedApps,
   blockedUsers,

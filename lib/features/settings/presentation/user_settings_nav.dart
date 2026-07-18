@@ -82,10 +82,6 @@ const userSettingsDesktopNav = [
   //   icon: PhosphorIconsFill.gift,
   // ),
   UserSettingsDesktopNavEntry.link(
-    UserSettingsSection.expressionPacks,
-    icon: PhosphorIconsFill.sticker,
-  ),
-  UserSettingsDesktopNavEntry.link(
     UserSettingsSection.privacyDashboard,
     icon: PhosphorIconsFill.eyeSlash,
   ),
@@ -195,7 +191,6 @@ List<FluxerSettingsNavGroup> buildUserSettingsMobileNavGroups({
         link(UserSettingsSection.securityLogin, PhosphorIconsFill.shieldCheck),
         // link(UserSettingsSection.fluxerPlutonium, PhosphorIconsFill.crown),
         // link(UserSettingsSection.giftsAndCodes, PhosphorIconsFill.gift),
-        link(UserSettingsSection.expressionPacks, PhosphorIconsFill.sticker),
         link(UserSettingsSection.privacyDashboard, PhosphorIconsFill.eyeSlash),
         link(UserSettingsSection.authorizedApps, PhosphorIconsFill.robot),
         link(UserSettingsSection.blockedUsers, PhosphorIconsFill.prohibit),

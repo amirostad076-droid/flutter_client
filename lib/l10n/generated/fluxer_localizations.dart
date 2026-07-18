@@ -11388,12 +11388,6 @@ abstract class FluxerLocalizations {
   /// **'Gifts & Codes'**
   String get userSettingsNavGiftsAndCodes;
 
-  /// User settings navigation item for expression pack settings.
-  ///
-  /// In en, this message translates to:
-  /// **'Expression Packs'**
-  String get userSettingsNavExpressionPacks;
-
   /// User settings navigation item for the privacy dashboard.
   ///
   /// In en, this message translates to:

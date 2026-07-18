@@ -6525,9 +6525,6 @@ class FluxerLocalizationsJa extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'ギフトとコード';
 
   @override
-  String get userSettingsNavExpressionPacks => 'エクスプレッションパック';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'プライバシーダッシュボード';
 
   @override

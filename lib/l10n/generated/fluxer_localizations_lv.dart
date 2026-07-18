@@ -6751,9 +6751,6 @@ class FluxerLocalizationsLv extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Dāvanas un kodi';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Emociju komplekti';
-
-  @override
   String get userSettingsNavPrivacyDashboard =>
       'Privātuma informācijas panelis';
 

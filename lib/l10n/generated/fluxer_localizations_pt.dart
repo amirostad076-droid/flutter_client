@@ -6766,9 +6766,6 @@ class FluxerLocalizationsPt extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Presentes e códigos';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Pacotes de expressões';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Painel de privacidade';
 
   @override
@@ -14955,9 +14952,6 @@ class FluxerLocalizationsPtBr extends FluxerLocalizationsPt {
 
   @override
   String get userSettingsNavGiftsAndCodes => 'Presentes e Códigos';
-
-  @override
-  String get userSettingsNavExpressionPacks => 'Pacotes de Expressões';
 
   @override
   String get userSettingsNavPrivacyDashboard => 'Painel de Privacidade';

@@ -6748,9 +6748,6 @@ class FluxerLocalizationsTr extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Hediyeler ve Kodlar';
 
   @override
-  String get userSettingsNavExpressionPacks => 'İfade Paketleri';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Gizlilik Paneli';
 
   @override

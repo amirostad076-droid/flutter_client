@@ -6769,9 +6769,6 @@ class FluxerLocalizationsGa extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Bronntanais & Códanna';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Pacáistí Léirithe';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Painéal Príobháideachta';
 
   @override

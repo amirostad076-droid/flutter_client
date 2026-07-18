@@ -15,8 +15,6 @@ String userSettingsSectionLabel(
     //   return l10n.userSettingsNavFluxerPlutonium;
     // case UserSettingsSection.giftsAndCodes:
     //   return l10n.userSettingsNavGiftsAndCodes;
-    case UserSettingsSection.expressionPacks:
-      return l10n.userSettingsNavExpressionPacks;
     case UserSettingsSection.privacyDashboard:
       return l10n.userSettingsNavPrivacyDashboard;
     case UserSettingsSection.authorizedApps:

@@ -6756,9 +6756,6 @@ class FluxerLocalizationsSk extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Darčeky a kódy';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Balíky výrazov';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Panel ochrany osobných údajov';
 
   @override

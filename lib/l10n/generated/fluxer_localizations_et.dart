@@ -6734,9 +6734,6 @@ class FluxerLocalizationsEt extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Kingitused ja koodid';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Emotsioonipaketid';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Privaatsusjuhtpaneel';
 
   @override

@@ -6757,9 +6757,6 @@ class FluxerLocalizationsCy extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Rhoddion a Chodau';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Pecynnau Mynegiant';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Panel Preifatrwydd';
 
   @override

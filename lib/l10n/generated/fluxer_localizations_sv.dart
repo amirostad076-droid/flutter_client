@@ -6743,9 +6743,6 @@ class FluxerLocalizationsSv extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Gåvor och koder';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Uttryckspaket';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Sekretessinstrumentpanel';
 
   @override

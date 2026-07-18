@@ -6765,9 +6765,6 @@ class FluxerLocalizationsLt extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Dovanos ir kodai';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Išraiškos paketai';
-
-  @override
   String get userSettingsNavPrivacyDashboard =>
       'Privatumo informacijos suvestinė';
 

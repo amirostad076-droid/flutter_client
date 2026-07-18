@@ -6783,9 +6783,6 @@ class FluxerLocalizationsGl extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Agasallos e códigos';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Packs de expresións';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Panel de privacidade';
 
   @override

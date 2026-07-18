@@ -6737,9 +6737,6 @@ class FluxerLocalizationsDa extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Gaver og koder';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Udtrykspakker';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Privatlivsoverblik';
 
   @override

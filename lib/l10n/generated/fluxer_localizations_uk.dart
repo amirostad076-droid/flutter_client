@@ -6771,9 +6771,6 @@ class FluxerLocalizationsUk extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Подарунки та коди';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Пакети виразів';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Панель конфіденційності';
 
   @override

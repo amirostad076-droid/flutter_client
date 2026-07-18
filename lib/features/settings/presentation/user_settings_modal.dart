@@ -577,7 +577,6 @@ Widget _buildUserSettingsSectionContent({
       return scrollController == null
           ? const UserNotificationsSettings()
           : UserNotificationsSettings(scrollController: scrollController);
-    case UserSettingsSection.expressionPacks:
     case UserSettingsSection.keybinds:
     case UserSettingsSection.applications:
     case UserSettingsSection.developerTools:

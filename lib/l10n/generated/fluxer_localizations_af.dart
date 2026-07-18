@@ -6747,9 +6747,6 @@ class FluxerLocalizationsAf extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'Geskenke & Kodes';
 
   @override
-  String get userSettingsNavExpressionPacks => 'Uitdrukkingspakkette';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'Privaatheids Kontroleskerm';
 
   @override

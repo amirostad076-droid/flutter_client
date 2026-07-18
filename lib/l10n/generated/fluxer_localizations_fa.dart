@@ -6733,9 +6733,6 @@ class FluxerLocalizationsFa extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'هدیه‌ها و کدها';
 
   @override
-  String get userSettingsNavExpressionPacks => 'بسته‌های ابراز وجود';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'داشبورد حریم خصوصی';
 
   @override

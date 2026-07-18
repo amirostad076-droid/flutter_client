@@ -6697,9 +6697,6 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'ของขวัญและรหัส';
 
   @override
-  String get userSettingsNavExpressionPacks => 'ชุดอิโมติคอน';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'แดชบอร์ดความเป็นส่วนตัว';
 
   @override

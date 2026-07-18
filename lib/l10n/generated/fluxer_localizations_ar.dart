@@ -6701,9 +6701,6 @@ class FluxerLocalizationsAr extends FluxerLocalizations {
   String get userSettingsNavGiftsAndCodes => 'الهدايا والرموز';
 
   @override
-  String get userSettingsNavExpressionPacks => 'حزم التعبيرات';
-
-  @override
   String get userSettingsNavPrivacyDashboard => 'لوحة تحكم الخصوصية';
 
   @override
