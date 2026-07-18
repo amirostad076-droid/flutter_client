@@ -37,8 +37,8 @@ String userSettingsSectionLabel(
       return l10n.userSettingsNavAudioAndVideo;
     case UserSettingsSection.keybinds:
       return 'Keybinds';
-    case UserSettingsSection.soundsAndAlerts:
-      return l10n.userSettingsNavSoundsAndAlerts;
+    case UserSettingsSection.notifications:
+      return l10n.userSettingsNavNotifications;
     case UserSettingsSection.languageAndTime:
       return l10n.userSettingsNavLanguageAndTime;
     case UserSettingsSection.advanced:

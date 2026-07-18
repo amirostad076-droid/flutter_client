@@ -14,7 +14,7 @@ enum UserSettingsSection {
   messagesAndMedia,
   audioAndVideo,
   keybinds,
-  soundsAndAlerts,
+  notifications,
   languageAndTime,
   advanced,
   applications,

@@ -33,6 +33,7 @@ import 'package:fluxer_app/features/settings/presentation/widgets/user_language_
 import 'package:fluxer_app/features/settings/presentation/widgets/user_linked_devices.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_look_and_feel.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_messages_media.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/user_notifications_settings.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_privacy_dashboard.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_profile.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_security_login.dart';
@@ -572,9 +573,12 @@ Widget _buildUserSettingsSectionContent({
       return scrollController == null
           ? const UserAudioAndVideo()
           : UserAudioAndVideo(scrollController: scrollController);
+    case UserSettingsSection.notifications:
+      return scrollController == null
+          ? const UserNotificationsSettings()
+          : UserNotificationsSettings(scrollController: scrollController);
     case UserSettingsSection.expressionPacks:
     case UserSettingsSection.keybinds:
-    case UserSettingsSection.soundsAndAlerts:
     case UserSettingsSection.applications:
     case UserSettingsSection.developerTools:
     case UserSettingsSection.limitsConfig:

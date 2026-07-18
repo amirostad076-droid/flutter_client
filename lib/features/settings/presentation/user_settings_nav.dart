@@ -127,7 +127,7 @@ const userSettingsDesktopNav = [
     icon: PhosphorIconsFill.keyboard,
   ),
   UserSettingsDesktopNavEntry.link(
-    UserSettingsSection.soundsAndAlerts,
+    UserSettingsSection.notifications,
     icon: PhosphorIconsFill.bell,
   ),
   UserSettingsDesktopNavEntry.link(
@@ -216,7 +216,7 @@ List<FluxerSettingsNavGroup> buildUserSettingsMobileNavGroups({
           PhosphorIconsFill.chatCircle,
         ),
         link(UserSettingsSection.audioAndVideo, PhosphorIconsFill.microphone),
-        link(UserSettingsSection.soundsAndAlerts, PhosphorIconsFill.bell),
+        link(UserSettingsSection.notifications, PhosphorIconsFill.bell),
         link(UserSettingsSection.languageAndTime, PhosphorIconsFill.translate),
         link(UserSettingsSection.advanced, PhosphorIconsFill.flask),
       ],

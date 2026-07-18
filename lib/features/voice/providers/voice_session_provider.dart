@@ -17,7 +17,9 @@ import 'package:fluxer_app/core/system_permissions/system_permission_service.dar
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
+import 'package:fluxer_app/features/settings/providers/sound_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/voice_settings_provider.dart';
+import 'package:fluxer_app/features/settings/utils/sound_sfx_playback.dart';
 import 'package:fluxer_app/features/voice/domain/voice_settings_state.dart';
 import 'package:fluxer_app/features/voice/providers/screen_share_capability_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_call_display_preferences_provider.dart';
@@ -854,7 +856,11 @@ class VoiceSession extends _$VoiceSession {
         moveFromChannelId.isNotEmpty &&
         moveFromChannelId != resolvedChannelId) {
       unawaited(
-        ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.userMove),
+        playFluxerSoundEffect(
+          prefs: ref.read(soundPreferencesProvider),
+          sfx: ref.read(fluxerSfxProvider),
+          clip: FluxerSfxClip.userMove,
+        ),
       );
     }
     final String? e2eeKey = event.e2eeKey;
@@ -1082,7 +1088,11 @@ class VoiceSession extends _$VoiceSession {
         selfVideo: true,
       );
       unawaited(
-        ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.cameraOn),
+        playFluxerSoundEffect(
+          prefs: ref.read(soundPreferencesProvider),
+          sfx: ref.read(fluxerSfxProvider),
+          clip: FluxerSfxClip.cameraOn,
+        ),
       );
     } finally {
       _togglingVideo = false;
@@ -1095,7 +1105,11 @@ class VoiceSession extends _$VoiceSession {
     _cancelDeferredServerDisconnect();
     _startWithVideoAfterConnect = false;
     unawaited(
-      ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.voiceDisconnect),
+      playFluxerSoundEffect(
+        prefs: ref.read(soundPreferencesProvider),
+        sfx: ref.read(fluxerSfxProvider),
+        clip: FluxerSfxClip.voiceDisconnect,
+      ),
     );
     ref.read(voiceScreenShareWatchTileProvider.notifier).setActiveTileId(null);
     ref.read(voiceCallLayoutProvider.notifier).reset();
@@ -1278,9 +1292,11 @@ class VoiceSession extends _$VoiceSession {
     );
     if (playSound) {
       unawaited(
-        ref
-            .read(fluxerSfxProvider)
-            .playOneShot(isMuted ? FluxerSfxClip.mute : FluxerSfxClip.unmute),
+        playFluxerSoundEffect(
+          prefs: ref.read(soundPreferencesProvider),
+          sfx: ref.read(fluxerSfxProvider),
+          clip: isMuted ? FluxerSfxClip.mute : FluxerSfxClip.unmute,
+        ),
       );
     }
   }
@@ -1298,14 +1314,26 @@ class VoiceSession extends _$VoiceSession {
         selfDeaf: false,
         selfVideo: vs?.selfVideo ?? false,
       );
-      unawaited(ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.undeaf));
+      unawaited(
+        playFluxerSoundEffect(
+          prefs: ref.read(soundPreferencesProvider),
+          sfx: ref.read(fluxerSfxProvider),
+          clip: FluxerSfxClip.undeaf,
+        ),
+      );
     } else {
       await _applySelfVoiceState(
         selfMute: true,
         selfDeaf: true,
         selfVideo: vs?.selfVideo ?? false,
       );
-      unawaited(ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.deaf));
+      unawaited(
+        playFluxerSoundEffect(
+          prefs: ref.read(soundPreferencesProvider),
+          sfx: ref.read(fluxerSfxProvider),
+          clip: FluxerSfxClip.deaf,
+        ),
+      );
     }
   }
 
@@ -1349,11 +1377,11 @@ class VoiceSession extends _$VoiceSession {
         selfVideo: nextVideo,
       );
       unawaited(
-        ref
-            .read(fluxerSfxProvider)
-            .playOneShot(
-              nextVideo ? FluxerSfxClip.cameraOn : FluxerSfxClip.cameraOff,
-            ),
+        playFluxerSoundEffect(
+          prefs: ref.read(soundPreferencesProvider),
+          sfx: ref.read(fluxerSfxProvider),
+          clip: nextVideo ? FluxerSfxClip.cameraOn : FluxerSfxClip.cameraOff,
+        ),
       );
     } finally {
       _togglingVideo = false;
@@ -1499,13 +1527,13 @@ class VoiceSession extends _$VoiceSession {
         return;
       }
       unawaited(
-        ref
-            .read(fluxerSfxProvider)
-            .playOneShot(
-              nextSelfStream
-                  ? FluxerSfxClip.streamStart
-                  : FluxerSfxClip.streamStop,
-            ),
+        playFluxerSoundEffect(
+          prefs: ref.read(soundPreferencesProvider),
+          sfx: ref.read(fluxerSfxProvider),
+          clip: nextSelfStream
+              ? FluxerSfxClip.streamStart
+              : FluxerSfxClip.streamStop,
+        ),
       );
     } finally {
       _togglingScreenShare = false;
@@ -1799,7 +1827,11 @@ class VoiceSession extends _$VoiceSession {
     );
     SchedulerBinding.instance.addPostFrameCallback((_) {
       unawaited(
-        ref.read(fluxerSfxProvider).playOneShot(FluxerSfxClip.userJoin),
+        playFluxerSoundEffect(
+          prefs: ref.read(soundPreferencesProvider),
+          sfx: ref.read(fluxerSfxProvider),
+          clip: FluxerSfxClip.userJoin,
+        ),
       );
     });
     if (_pendingRingAfterConnect) {
@@ -2187,13 +2219,13 @@ class VoiceSession extends _$VoiceSession {
           'user_',
         );
         unawaited(
-          ref
-              .read(fluxerSfxProvider)
-              .playOneShot(
-                isUserParticipant
-                    ? FluxerSfxClip.userJoin
-                    : FluxerSfxClip.viewerJoin,
-              ),
+          playFluxerSoundEffect(
+            prefs: ref.read(soundPreferencesProvider),
+            sfx: ref.read(fluxerSfxProvider),
+            clip: isUserParticipant
+                ? FluxerSfxClip.userJoin
+                : FluxerSfxClip.viewerJoin,
+          ),
         );
       })
       ..on<ParticipantDisconnectedEvent>((ParticipantDisconnectedEvent evt) {
@@ -2207,13 +2239,13 @@ class VoiceSession extends _$VoiceSession {
           'user_',
         );
         unawaited(
-          ref
-              .read(fluxerSfxProvider)
-              .playOneShot(
-                isUserParticipant
-                    ? FluxerSfxClip.userLeave
-                    : FluxerSfxClip.viewerLeave,
-              ),
+          playFluxerSoundEffect(
+            prefs: ref.read(soundPreferencesProvider),
+            sfx: ref.read(fluxerSfxProvider),
+            clip: isUserParticipant
+                ? FluxerSfxClip.userLeave
+                : FluxerSfxClip.viewerLeave,
+          ),
         );
       });
   }

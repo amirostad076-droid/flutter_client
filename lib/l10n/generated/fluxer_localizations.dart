@@ -11742,11 +11742,359 @@ abstract class FluxerLocalizations {
   /// **'Don\'t ask when hiding my screen share'**
   String get audioAndVideoSkipHideOwnScreenshareConfirmLabel;
 
-  /// User settings navigation item for sounds and alert settings.
+  /// User settings navigation item for notification settings.
   ///
   /// In en, this message translates to:
-  /// **'Sounds & Alerts'**
-  String get userSettingsNavSoundsAndAlerts;
+  /// **'Notifications'**
+  String get userSettingsNavNotifications;
+
+  /// Notifications settings section title for general notification controls.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get notificationsGeneralSectionTitle;
+
+  /// Toggle label for enabling push or system notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable notifications'**
+  String get notificationsEnableNotificationsLabel;
+
+  /// Description for the enable notifications toggle on mobile.
+  ///
+  /// In en, this message translates to:
+  /// **'Get notified when you receive messages. You may need to allow notifications for {productName} in your device settings. For per-channel/per-community controls, open notification settings from a community\'s menu.'**
+  String notificationsEnableNotificationsDescription(String productName);
+
+  /// Toggle label for enabling desktop notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable desktop notifications'**
+  String get notificationsEnableDesktopNotificationsLabel;
+
+  /// Description for the enable desktop notifications toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses the OS notification center. For per-channel/per-community controls, right-click a community icon and open notification settings.'**
+  String get notificationsEnableDesktopNotificationsDescription;
+
+  /// Toggle label for enabling browser notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable browser notifications'**
+  String get notificationsEnableBrowserNotificationsLabel;
+
+  /// Description for the enable browser notifications toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Get notified when you receive messages. You may need to allow notifications in your browser settings. For per-channel/per-community controls, right-click a community icon and open notification settings.'**
+  String get notificationsEnableBrowserNotificationsDescription;
+
+  /// Label for push notification inactive timeout setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Push notification inactive timeout'**
+  String get notificationsPushInactiveTimeoutLabel;
+
+  /// Description for push notification inactive timeout setting.
+  ///
+  /// In en, this message translates to:
+  /// **'{productName} avoids sending push notifications to your mobile devices when you are at your computer. Choose how long you need to be inactive on desktop before you receive push notifications.'**
+  String notificationsPushInactiveTimeoutDescription(String productName);
+
+  /// Push notification inactive timeout option for one minute.
+  ///
+  /// In en, this message translates to:
+  /// **'{oneMinute} minute'**
+  String notificationsPushInactiveTimeoutOneMinute(int oneMinute);
+
+  /// Push notification inactive timeout option for multiple minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} minutes'**
+  String notificationsPushInactiveTimeoutMinutes(int minutes);
+
+  /// Notifications settings section title for reply mention preference.
+  ///
+  /// In en, this message translates to:
+  /// **'Mention preference'**
+  String get notificationsMentionPreferenceSectionTitle;
+
+  /// Accessibility label for the reply mention preference radio group.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply mention preference'**
+  String get notificationsReplyMentionPreferenceAriaLabel;
+
+  /// Mention preference option: no preference.
+  ///
+  /// In en, this message translates to:
+  /// **'No preference'**
+  String get notificationsMentionNoPreferenceName;
+
+  /// Description for the no preference mention option.
+  ///
+  /// In en, this message translates to:
+  /// **'Respect the sender\'s intent, with no warning when they toggle the @ mention'**
+  String get notificationsMentionNoPreferenceDescription;
+
+  /// Mention preference option: prefer @mention.
+  ///
+  /// In en, this message translates to:
+  /// **'Prefer @mention'**
+  String get notificationsMentionPreferMentionName;
+
+  /// Description for the prefer @mention option.
+  ///
+  /// In en, this message translates to:
+  /// **'Default replies to @mention you, and warn the sender if they disable it'**
+  String get notificationsMentionPreferMentionDescription;
+
+  /// Mention preference option: prefer no @mention.
+  ///
+  /// In en, this message translates to:
+  /// **'Prefer no @mention'**
+  String get notificationsMentionPreferNoMentionName;
+
+  /// Description for the prefer no @mention option.
+  ///
+  /// In en, this message translates to:
+  /// **'Default replies to omit the @mention, and warn the sender if they enable it'**
+  String get notificationsMentionPreferNoMentionDescription;
+
+  /// Notifications settings section title for sound controls.
+  ///
+  /// In en, this message translates to:
+  /// **'Sounds'**
+  String get notificationsSoundsSectionTitle;
+
+  /// Label for the master volume slider.
+  ///
+  /// In en, this message translates to:
+  /// **'Master volume'**
+  String get notificationsMasterVolumeLabel;
+
+  /// Description for the master volume slider.
+  ///
+  /// In en, this message translates to:
+  /// **'Sets the level for every sound effect. Per-sound overrides ignore this.'**
+  String get notificationsMasterVolumeDescription;
+
+  /// Accessibility label for resetting master volume to default.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to default volume'**
+  String get notificationsResetToDefaultVolume;
+
+  /// Toggle label for disabling all notification sounds.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable all notification sounds'**
+  String get notificationsDisableAllSoundsLabel;
+
+  /// Description for the disable all notification sounds toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your existing notification sound settings will be preserved.'**
+  String get notificationsDisableAllSoundsDescription;
+
+  /// Button label to reveal additional sound effect toggles.
+  ///
+  /// In en, this message translates to:
+  /// **'Show more sound effects'**
+  String get notificationsShowMoreSoundEffects;
+
+  /// Button label to hide additional sound effect toggles.
+  ///
+  /// In en, this message translates to:
+  /// **'Show fewer sound effects'**
+  String get notificationsShowFewerSoundEffects;
+
+  /// Button label to preview a notification sound.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview sound'**
+  String get notificationsPreviewSound;
+
+  /// Accordion title for per-sound volume overrides.
+  ///
+  /// In en, this message translates to:
+  /// **'Per-sound volume'**
+  String get notificationsPerSoundVolumeTitle;
+
+  /// Accordion description when no per-sound volume overrides exist.
+  ///
+  /// In en, this message translates to:
+  /// **'Set custom volumes for individual sounds. Sounds without an override follow the master volume.'**
+  String get notificationsPerSoundVolumeDescription;
+
+  /// Accordion description when per-sound volume overrides exist.
+  ///
+  /// In en, this message translates to:
+  /// **'Active custom sound volume overrides: {overrideCount}.'**
+  String notificationsPerSoundVolumeOverrideDescription(int overrideCount);
+
+  /// Status text when a sound follows the master volume.
+  ///
+  /// In en, this message translates to:
+  /// **'Following master • {effectiveValue}%'**
+  String notificationsFollowingMasterVolume(int effectiveValue);
+
+  /// Accessibility label for resetting a per-sound volume override.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset {label} to master volume'**
+  String notificationsResetSoundToMasterVolume(String label);
+
+  /// Button label to reset all per-sound volume overrides.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset all overrides'**
+  String get notificationsResetAllOverrides;
+
+  /// Accessibility label for muting a sound type.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute {label}'**
+  String notificationsMuteSound(String label);
+
+  /// Accessibility label for unmuting a sound type.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute {label}'**
+  String notificationsUnmuteSound(String label);
+
+  /// Sound toggle label for community message notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Community message notifications'**
+  String get notificationsSoundMessage;
+
+  /// Sound toggle label for direct message notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct message notifications'**
+  String get notificationsSoundDirectMessage;
+
+  /// Sound toggle label for current channel message notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Current channel message notifications'**
+  String get notificationsSoundSameChannelMessage;
+
+  /// Sound toggle label for voice mute.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice mute'**
+  String get notificationsSoundMute;
+
+  /// Sound toggle label for voice unmute.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice unmute'**
+  String get notificationsSoundUnmute;
+
+  /// Sound toggle label for voice deafen.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice deafen'**
+  String get notificationsSoundDeaf;
+
+  /// Sound toggle label for voice undeafen.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice undeafen'**
+  String get notificationsSoundUndeaf;
+
+  /// Sound toggle label for user joins channel.
+  ///
+  /// In en, this message translates to:
+  /// **'User joins channel'**
+  String get notificationsSoundUserJoin;
+
+  /// Sound toggle label for user leaves channel.
+  ///
+  /// In en, this message translates to:
+  /// **'User leaves channel'**
+  String get notificationsSoundUserLeave;
+
+  /// Sound toggle label for user moved channel.
+  ///
+  /// In en, this message translates to:
+  /// **'User moved channel'**
+  String get notificationsSoundUserMove;
+
+  /// Sound toggle label for viewer joins stream.
+  ///
+  /// In en, this message translates to:
+  /// **'Viewer joins stream'**
+  String get notificationsSoundViewerJoin;
+
+  /// Sound toggle label for viewer leaves stream.
+  ///
+  /// In en, this message translates to:
+  /// **'Viewer leaves stream'**
+  String get notificationsSoundViewerLeave;
+
+  /// Sound toggle label for voice disconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice disconnected'**
+  String get notificationsSoundVoiceDisconnect;
+
+  /// Sound toggle label for incoming call.
+  ///
+  /// In en, this message translates to:
+  /// **'Incoming call'**
+  String get notificationsSoundIncomingRing;
+
+  /// Sound toggle label for camera on.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera on'**
+  String get notificationsSoundCameraOn;
+
+  /// Sound toggle label for camera off.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera off'**
+  String get notificationsSoundCameraOff;
+
+  /// Sound toggle label for screen share start.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen share start'**
+  String get notificationsSoundScreenShareStart;
+
+  /// Sound toggle label for screen share stop.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen share stop'**
+  String get notificationsSoundScreenShareStop;
+
+  /// Toast shown when push inactive timeout sync fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t update push notification timeout. Try again.'**
+  String get notificationsAfkTimeoutSyncFailed;
+
+  /// Toast shown when mention preference update fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t update mention preference. Try again.'**
+  String get notificationsMentionPreferenceSyncFailed;
+
+  /// Banner title when OS notification permission is denied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications blocked'**
+  String get notificationsPermissionDeniedTitle;
+
+  /// Toast shown when enabling notifications fails because permission was denied.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t enable notifications. Allow notification permission to continue.'**
+  String get notificationsEnableNotificationsPermissionDenied;
 
   /// User settings navigation item for language and time settings.
   ///

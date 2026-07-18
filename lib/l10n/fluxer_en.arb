@@ -8809,9 +8809,295 @@
   "@audioAndVideoSkipHideOwnScreenshareConfirmLabel": {
     "description": "Toggle to skip confirmation when hiding own screen share during a call."
   },
-  "userSettingsNavSoundsAndAlerts": "Sounds & Alerts",
-  "@userSettingsNavSoundsAndAlerts": {
-    "description": "User settings navigation item for sounds and alert settings."
+  "userSettingsNavNotifications": "Notifications",
+  "@userSettingsNavNotifications": {
+    "description": "User settings navigation item for notification settings."
+  },
+  "notificationsGeneralSectionTitle": "General",
+  "@notificationsGeneralSectionTitle": {
+    "description": "Notifications settings section title for general notification controls."
+  },
+  "notificationsEnableNotificationsLabel": "Enable notifications",
+  "@notificationsEnableNotificationsLabel": {
+    "description": "Toggle label for enabling push or system notifications."
+  },
+  "notificationsEnableNotificationsDescription": "Get notified when you receive messages. You may need to allow notifications for {productName} in your device settings. For per-channel/per-community controls, open notification settings from a community's menu.",
+  "@notificationsEnableNotificationsDescription": {
+    "description": "Description for the enable notifications toggle on mobile.",
+    "placeholders": {
+      "productName": {
+        "type": "String",
+        "example": "Fluxer"
+      }
+    }
+  },
+  "notificationsEnableDesktopNotificationsLabel": "Enable desktop notifications",
+  "@notificationsEnableDesktopNotificationsLabel": {
+    "description": "Toggle label for enabling desktop notifications."
+  },
+  "notificationsEnableDesktopNotificationsDescription": "Uses the OS notification center. For per-channel/per-community controls, right-click a community icon and open notification settings.",
+  "@notificationsEnableDesktopNotificationsDescription": {
+    "description": "Description for the enable desktop notifications toggle."
+  },
+  "notificationsEnableBrowserNotificationsLabel": "Enable browser notifications",
+  "@notificationsEnableBrowserNotificationsLabel": {
+    "description": "Toggle label for enabling browser notifications."
+  },
+  "notificationsEnableBrowserNotificationsDescription": "Get notified when you receive messages. You may need to allow notifications in your browser settings. For per-channel/per-community controls, right-click a community icon and open notification settings.",
+  "@notificationsEnableBrowserNotificationsDescription": {
+    "description": "Description for the enable browser notifications toggle."
+  },
+  "notificationsPushInactiveTimeoutLabel": "Push notification inactive timeout",
+  "@notificationsPushInactiveTimeoutLabel": {
+    "description": "Label for push notification inactive timeout setting."
+  },
+  "notificationsPushInactiveTimeoutDescription": "{productName} avoids sending push notifications to your mobile devices when you are at your computer. Choose how long you need to be inactive on desktop before you receive push notifications.",
+  "@notificationsPushInactiveTimeoutDescription": {
+    "description": "Description for push notification inactive timeout setting.",
+    "placeholders": {
+      "productName": {
+        "type": "String",
+        "example": "Fluxer"
+      }
+    }
+  },
+  "notificationsPushInactiveTimeoutOneMinute": "{oneMinute} minute",
+  "@notificationsPushInactiveTimeoutOneMinute": {
+    "description": "Push notification inactive timeout option for one minute.",
+    "placeholders": {
+      "oneMinute": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "notificationsPushInactiveTimeoutMinutes": "{minutes} minutes",
+  "@notificationsPushInactiveTimeoutMinutes": {
+    "description": "Push notification inactive timeout option for multiple minutes.",
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "notificationsMentionPreferenceSectionTitle": "Mention preference",
+  "@notificationsMentionPreferenceSectionTitle": {
+    "description": "Notifications settings section title for reply mention preference."
+  },
+  "notificationsReplyMentionPreferenceAriaLabel": "Reply mention preference",
+  "@notificationsReplyMentionPreferenceAriaLabel": {
+    "description": "Accessibility label for the reply mention preference radio group."
+  },
+  "notificationsMentionNoPreferenceName": "No preference",
+  "@notificationsMentionNoPreferenceName": {
+    "description": "Mention preference option: no preference."
+  },
+  "notificationsMentionNoPreferenceDescription": "Respect the sender's intent, with no warning when they toggle the @ mention",
+  "@notificationsMentionNoPreferenceDescription": {
+    "description": "Description for the no preference mention option."
+  },
+  "notificationsMentionPreferMentionName": "Prefer @mention",
+  "@notificationsMentionPreferMentionName": {
+    "description": "Mention preference option: prefer @mention."
+  },
+  "notificationsMentionPreferMentionDescription": "Default replies to @mention you, and warn the sender if they disable it",
+  "@notificationsMentionPreferMentionDescription": {
+    "description": "Description for the prefer @mention option."
+  },
+  "notificationsMentionPreferNoMentionName": "Prefer no @mention",
+  "@notificationsMentionPreferNoMentionName": {
+    "description": "Mention preference option: prefer no @mention."
+  },
+  "notificationsMentionPreferNoMentionDescription": "Default replies to omit the @mention, and warn the sender if they enable it",
+  "@notificationsMentionPreferNoMentionDescription": {
+    "description": "Description for the prefer no @mention option."
+  },
+  "notificationsSoundsSectionTitle": "Sounds",
+  "@notificationsSoundsSectionTitle": {
+    "description": "Notifications settings section title for sound controls."
+  },
+  "notificationsMasterVolumeLabel": "Master volume",
+  "@notificationsMasterVolumeLabel": {
+    "description": "Label for the master volume slider."
+  },
+  "notificationsMasterVolumeDescription": "Sets the level for every sound effect. Per-sound overrides ignore this.",
+  "@notificationsMasterVolumeDescription": {
+    "description": "Description for the master volume slider."
+  },
+  "notificationsResetToDefaultVolume": "Reset to default volume",
+  "@notificationsResetToDefaultVolume": {
+    "description": "Accessibility label for resetting master volume to default."
+  },
+  "notificationsDisableAllSoundsLabel": "Disable all notification sounds",
+  "@notificationsDisableAllSoundsLabel": {
+    "description": "Toggle label for disabling all notification sounds."
+  },
+  "notificationsDisableAllSoundsDescription": "Your existing notification sound settings will be preserved.",
+  "@notificationsDisableAllSoundsDescription": {
+    "description": "Description for the disable all notification sounds toggle."
+  },
+  "notificationsShowMoreSoundEffects": "Show more sound effects",
+  "@notificationsShowMoreSoundEffects": {
+    "description": "Button label to reveal additional sound effect toggles."
+  },
+  "notificationsShowFewerSoundEffects": "Show fewer sound effects",
+  "@notificationsShowFewerSoundEffects": {
+    "description": "Button label to hide additional sound effect toggles."
+  },
+  "notificationsPreviewSound": "Preview sound",
+  "@notificationsPreviewSound": {
+    "description": "Button label to preview a notification sound."
+  },
+  "notificationsPerSoundVolumeTitle": "Per-sound volume",
+  "@notificationsPerSoundVolumeTitle": {
+    "description": "Accordion title for per-sound volume overrides."
+  },
+  "notificationsPerSoundVolumeDescription": "Set custom volumes for individual sounds. Sounds without an override follow the master volume.",
+  "@notificationsPerSoundVolumeDescription": {
+    "description": "Accordion description when no per-sound volume overrides exist."
+  },
+  "notificationsPerSoundVolumeOverrideDescription": "Active custom sound volume overrides: {overrideCount}.",
+  "@notificationsPerSoundVolumeOverrideDescription": {
+    "description": "Accordion description when per-sound volume overrides exist.",
+    "placeholders": {
+      "overrideCount": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "notificationsFollowingMasterVolume": "Following master • {effectiveValue}%",
+  "@notificationsFollowingMasterVolume": {
+    "description": "Status text when a sound follows the master volume.",
+    "placeholders": {
+      "effectiveValue": {
+        "type": "int",
+        "example": "100"
+      }
+    }
+  },
+  "notificationsResetSoundToMasterVolume": "Reset {label} to master volume",
+  "@notificationsResetSoundToMasterVolume": {
+    "description": "Accessibility label for resetting a per-sound volume override.",
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "example": "Voice mute"
+      }
+    }
+  },
+  "notificationsResetAllOverrides": "Reset all overrides",
+  "@notificationsResetAllOverrides": {
+    "description": "Button label to reset all per-sound volume overrides."
+  },
+  "notificationsMuteSound": "Mute {label}",
+  "@notificationsMuteSound": {
+    "description": "Accessibility label for muting a sound type.",
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "example": "Voice mute"
+      }
+    }
+  },
+  "notificationsUnmuteSound": "Unmute {label}",
+  "@notificationsUnmuteSound": {
+    "description": "Accessibility label for unmuting a sound type.",
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "example": "Voice mute"
+      }
+    }
+  },
+  "notificationsSoundMessage": "Community message notifications",
+  "@notificationsSoundMessage": {
+    "description": "Sound toggle label for community message notifications."
+  },
+  "notificationsSoundDirectMessage": "Direct message notifications",
+  "@notificationsSoundDirectMessage": {
+    "description": "Sound toggle label for direct message notifications."
+  },
+  "notificationsSoundSameChannelMessage": "Current channel message notifications",
+  "@notificationsSoundSameChannelMessage": {
+    "description": "Sound toggle label for current channel message notifications."
+  },
+  "notificationsSoundMute": "Voice mute",
+  "@notificationsSoundMute": {
+    "description": "Sound toggle label for voice mute."
+  },
+  "notificationsSoundUnmute": "Voice unmute",
+  "@notificationsSoundUnmute": {
+    "description": "Sound toggle label for voice unmute."
+  },
+  "notificationsSoundDeaf": "Voice deafen",
+  "@notificationsSoundDeaf": {
+    "description": "Sound toggle label for voice deafen."
+  },
+  "notificationsSoundUndeaf": "Voice undeafen",
+  "@notificationsSoundUndeaf": {
+    "description": "Sound toggle label for voice undeafen."
+  },
+  "notificationsSoundUserJoin": "User joins channel",
+  "@notificationsSoundUserJoin": {
+    "description": "Sound toggle label for user joins channel."
+  },
+  "notificationsSoundUserLeave": "User leaves channel",
+  "@notificationsSoundUserLeave": {
+    "description": "Sound toggle label for user leaves channel."
+  },
+  "notificationsSoundUserMove": "User moved channel",
+  "@notificationsSoundUserMove": {
+    "description": "Sound toggle label for user moved channel."
+  },
+  "notificationsSoundViewerJoin": "Viewer joins stream",
+  "@notificationsSoundViewerJoin": {
+    "description": "Sound toggle label for viewer joins stream."
+  },
+  "notificationsSoundViewerLeave": "Viewer leaves stream",
+  "@notificationsSoundViewerLeave": {
+    "description": "Sound toggle label for viewer leaves stream."
+  },
+  "notificationsSoundVoiceDisconnect": "Voice disconnected",
+  "@notificationsSoundVoiceDisconnect": {
+    "description": "Sound toggle label for voice disconnected."
+  },
+  "notificationsSoundIncomingRing": "Incoming call",
+  "@notificationsSoundIncomingRing": {
+    "description": "Sound toggle label for incoming call."
+  },
+  "notificationsSoundCameraOn": "Camera on",
+  "@notificationsSoundCameraOn": {
+    "description": "Sound toggle label for camera on."
+  },
+  "notificationsSoundCameraOff": "Camera off",
+  "@notificationsSoundCameraOff": {
+    "description": "Sound toggle label for camera off."
+  },
+  "notificationsSoundScreenShareStart": "Screen share start",
+  "@notificationsSoundScreenShareStart": {
+    "description": "Sound toggle label for screen share start."
+  },
+  "notificationsSoundScreenShareStop": "Screen share stop",
+  "@notificationsSoundScreenShareStop": {
+    "description": "Sound toggle label for screen share stop."
+  },
+  "notificationsAfkTimeoutSyncFailed": "Couldn't update push notification timeout. Try again.",
+  "@notificationsAfkTimeoutSyncFailed": {
+    "description": "Toast shown when push inactive timeout sync fails."
+  },
+  "notificationsMentionPreferenceSyncFailed": "Couldn't update mention preference. Try again.",
+  "@notificationsMentionPreferenceSyncFailed": {
+    "description": "Toast shown when mention preference update fails."
+  },
+  "notificationsPermissionDeniedTitle": "Notifications blocked",
+  "@notificationsPermissionDeniedTitle": {
+    "description": "Banner title when OS notification permission is denied."
+  },
+  "notificationsEnableNotificationsPermissionDenied": "Couldn't enable notifications. Allow notification permission to continue.",
+  "@notificationsEnableNotificationsPermissionDenied": {
+    "description": "Toast shown when enabling notifications fails because permission was denied."
   },
   "userSettingsNavLanguageAndTime": "Language & Time",
   "@userSettingsNavLanguageAndTime": {

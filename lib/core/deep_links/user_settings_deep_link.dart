@@ -198,7 +198,7 @@ UserSettingsSection? mapUserSettingsDeepLinkToSection(
     case 'voice_video':
       return UserSettingsSection.audioAndVideo;
     case 'notifications':
-      return UserSettingsSection.soundsAndAlerts;
+      return UserSettingsSection.notifications;
     case 'language':
       return UserSettingsSection.languageAndTime;
     case 'keybinds':
