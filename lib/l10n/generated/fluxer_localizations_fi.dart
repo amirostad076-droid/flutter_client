@@ -6779,7 +6779,7 @@ class FluxerLocalizationsFi extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Esteettömyys';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Viestit ja media';
+  String get userSettingsNavChat => 'Viestit ja media';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Ääni ja video';

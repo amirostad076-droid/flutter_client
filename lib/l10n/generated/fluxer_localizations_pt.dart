@@ -6787,7 +6787,7 @@ class FluxerLocalizationsPt extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Acessibilidade';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Mensagens e multimédia';
+  String get userSettingsNavChat => 'Mensagens e multimédia';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Áudio e vídeo';
@@ -14975,7 +14975,7 @@ class FluxerLocalizationsPtBr extends FluxerLocalizationsPt {
   String get userSettingsNavAccessibility => 'Acessibilidade';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Mensagens e Mídia';
+  String get userSettingsNavChat => 'Mensagens e Mídia';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Áudio e Vídeo';

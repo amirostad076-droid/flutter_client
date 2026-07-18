@@ -6533,7 +6533,7 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
   String get userSettingsNavAccessibility => '접근성';
 
   @override
-  String get userSettingsNavMessagesAndMedia => '메시지 및 미디어';
+  String get userSettingsNavChat => '메시지 및 미디어';
 
   @override
   String get userSettingsNavAudioAndVideo => '오디오 및 비디오';

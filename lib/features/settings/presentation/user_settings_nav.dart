@@ -117,7 +117,7 @@ const _userSettingsDesktopNavBeforeStaffOnly = [
     icon: PhosphorIconsFill.personSimpleCircle,
   ),
   UserSettingsDesktopNavEntry.link(
-    UserSettingsSection.messagesAndMedia,
+    UserSettingsSection.chat,
     icon: PhosphorIconsFill.chatCircle,
   ),
   UserSettingsDesktopNavEntry.link(
@@ -223,10 +223,7 @@ List<FluxerSettingsNavGroup> buildUserSettingsMobileNavGroups({
           UserSettingsSection.accessibility,
           PhosphorIconsFill.personSimpleCircle,
         ),
-        link(
-          UserSettingsSection.messagesAndMedia,
-          PhosphorIconsFill.chatCircle,
-        ),
+        link(UserSettingsSection.chat, PhosphorIconsFill.chatCircle),
         link(UserSettingsSection.audioAndVideo, PhosphorIconsFill.microphone),
         link(UserSettingsSection.languageAndTime, PhosphorIconsFill.translate),
         link(UserSettingsSection.advanced, PhosphorIconsFill.flask),

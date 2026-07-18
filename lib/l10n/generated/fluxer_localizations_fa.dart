@@ -6754,7 +6754,7 @@ class FluxerLocalizationsFa extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'دسترسی‌پذیری';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'پیام‌ها و رسانه';
+  String get userSettingsNavChat => 'پیام‌ها و رسانه';
 
   @override
   String get userSettingsNavAudioAndVideo => 'صدا و تصویر';

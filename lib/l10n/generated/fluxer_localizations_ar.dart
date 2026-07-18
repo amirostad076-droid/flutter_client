@@ -6722,7 +6722,7 @@ class FluxerLocalizationsAr extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'إمكانية الوصول';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'الرسائل والوسائط';
+  String get userSettingsNavChat => 'الرسائل والوسائط';
 
   @override
   String get userSettingsNavAudioAndVideo => 'الصوت والفيديو';

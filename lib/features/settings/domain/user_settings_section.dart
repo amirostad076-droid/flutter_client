@@ -10,7 +10,7 @@ enum UserSettingsSection {
   connections,
   lookAndFeel,
   accessibility,
-  messagesAndMedia,
+  chat,
   audioAndVideo,
   keybinds,
   notifications,

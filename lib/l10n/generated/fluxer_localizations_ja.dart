@@ -6546,7 +6546,7 @@ class FluxerLocalizationsJa extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'アクセシビリティ';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'メッセージとメディア';
+  String get userSettingsNavChat => 'メッセージとメディア';
 
   @override
   String get userSettingsNavAudioAndVideo => 'オーディオとビデオ';

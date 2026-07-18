@@ -6799,7 +6799,7 @@ class FluxerLocalizationsHu extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Kisegítő lehetőségek';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Üzenetek és média';
+  String get userSettingsNavChat => 'Üzenetek és média';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Hang és videó';

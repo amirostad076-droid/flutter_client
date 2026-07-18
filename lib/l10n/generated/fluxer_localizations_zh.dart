@@ -6450,7 +6450,7 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get userSettingsNavAccessibility => '辅助功能';
 
   @override
-  String get userSettingsNavMessagesAndMedia => '消息与媒体';
+  String get userSettingsNavChat => '消息与媒体';
 
   @override
   String get userSettingsNavAudioAndVideo => '音频与视频';
@@ -14201,7 +14201,7 @@ class FluxerLocalizationsZhHant extends FluxerLocalizationsZh {
   String get userSettingsNavAccessibility => '輔助功能';
 
   @override
-  String get userSettingsNavMessagesAndMedia => '訊息與媒體';
+  String get userSettingsNavChat => '訊息與媒體';
 
   @override
   String get userSettingsNavAudioAndVideo => '音訊與視訊';

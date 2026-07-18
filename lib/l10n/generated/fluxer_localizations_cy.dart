@@ -6778,7 +6778,7 @@ class FluxerLocalizationsCy extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Hygyrchedd';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Negeseuon a Chyfryngau';
+  String get userSettingsNavChat => 'Negeseuon a Chyfryngau';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Sain a Fideo';

@@ -194,7 +194,7 @@ UserSettingsSection? mapUserSettingsDeepLinkToSection(
     case 'accessibility':
       return UserSettingsSection.accessibility;
     case 'chat_settings':
-      return UserSettingsSection.messagesAndMedia;
+      return UserSettingsSection.chat;
     case 'voice_video':
       return UserSettingsSection.audioAndVideo;
     case 'notifications':

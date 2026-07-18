@@ -6782,7 +6782,7 @@ class FluxerLocalizationsIt extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Accessibilità';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Messaggi e media';
+  String get userSettingsNavChat => 'Messaggi e media';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Audio e video';

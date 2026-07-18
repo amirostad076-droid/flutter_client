@@ -6792,7 +6792,7 @@ class FluxerLocalizationsUk extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Доступність';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Повідомлення та медіа';
+  String get userSettingsNavChat => 'Повідомлення та медіа';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Аудіо та відео';

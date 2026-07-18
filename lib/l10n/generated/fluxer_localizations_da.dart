@@ -6758,7 +6758,7 @@ class FluxerLocalizationsDa extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Tilgængelighed';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Beskeder og medier';
+  String get userSettingsNavChat => 'Beskeder og medier';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Lyd og video';

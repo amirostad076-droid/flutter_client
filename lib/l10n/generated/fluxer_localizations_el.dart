@@ -6815,7 +6815,7 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Προσβασιμότητα';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Μηνύματα & Πολυμέσα';
+  String get userSettingsNavChat => 'Μηνύματα & Πολυμέσα';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Ήχος & Βίντεο';

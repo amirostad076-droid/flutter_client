@@ -6773,7 +6773,7 @@ class FluxerLocalizationsLv extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Pieejamība';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Ziņojumi un mediji';
+  String get userSettingsNavChat => 'Ziņojumi un mediji';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Audio un video';

@@ -6777,7 +6777,7 @@ class FluxerLocalizationsSk extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Prístupnosť';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Správy a médiá';
+  String get userSettingsNavChat => 'Správy a médiá';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Zvuk a video';

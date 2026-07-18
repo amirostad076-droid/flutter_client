@@ -11430,11 +11430,11 @@ abstract class FluxerLocalizations {
   /// **'Accessibility'**
   String get userSettingsNavAccessibility;
 
-  /// User settings navigation item for messages and media settings.
+  /// User settings navigation item for chat settings.
   ///
   /// In en, this message translates to:
-  /// **'Messages & Media'**
-  String get userSettingsNavMessagesAndMedia;
+  /// **'Chat'**
+  String get userSettingsNavChat;
 
   /// User settings navigation item for audio and video settings.
   ///

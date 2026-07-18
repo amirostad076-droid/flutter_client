@@ -6789,7 +6789,7 @@ class FluxerLocalizationsRu extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Специальные возможности';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Сообщения и медиа';
+  String get userSettingsNavChat => 'Сообщения и медиа';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Аудио и видео';

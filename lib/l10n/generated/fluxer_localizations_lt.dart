@@ -6787,7 +6787,7 @@ class FluxerLocalizationsLt extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Prieinamumas';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Žinutės ir medija';
+  String get userSettingsNavChat => 'Žinutės ir medija';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Garsas ir vaizdas';

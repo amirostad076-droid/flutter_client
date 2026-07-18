@@ -546,7 +546,7 @@ Widget _buildUserSettingsSectionContent({
       return scrollController == null
           ? const UserAccessibility()
           : UserAccessibility(scrollController: scrollController);
-    case UserSettingsSection.messagesAndMedia:
+    case UserSettingsSection.chat:
       return scrollController == null
           ? const UserMessagesMedia()
           : UserMessagesMedia(scrollController: scrollController);

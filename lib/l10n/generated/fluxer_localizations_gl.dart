@@ -6804,7 +6804,7 @@ class FluxerLocalizationsGl extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Accesibilidade';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Mensaxes e multimedia';
+  String get userSettingsNavChat => 'Mensaxes e multimedia';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Audio e vídeo';

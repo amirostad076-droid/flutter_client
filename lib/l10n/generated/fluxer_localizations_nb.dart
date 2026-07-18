@@ -6759,7 +6759,7 @@ class FluxerLocalizationsNb extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Tilgjengelighet';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Meldinger og medier';
+  String get userSettingsNavChat => 'Meldinger og medier';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Lyd og video';

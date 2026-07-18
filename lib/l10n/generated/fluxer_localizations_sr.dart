@@ -6771,7 +6771,7 @@ class FluxerLocalizationsSr extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Pristupačnost';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Poruke i mediji';
+  String get userSettingsNavChat => 'Poruke i mediji';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Audio i video';

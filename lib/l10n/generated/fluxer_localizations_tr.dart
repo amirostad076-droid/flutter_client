@@ -6769,7 +6769,7 @@ class FluxerLocalizationsTr extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Erişilebilirlik';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Mesajlar ve Medya';
+  String get userSettingsNavChat => 'Mesajlar ve Medya';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Ses ve Görüntü';

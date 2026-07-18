@@ -6790,7 +6790,7 @@ class FluxerLocalizationsGa extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Inrochtaineacht';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Teachtaireachtaí & Meáin';
+  String get userSettingsNavChat => 'Teachtaireachtaí & Meáin';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Fuaim & Físeán';

@@ -6834,7 +6834,7 @@ class FluxerLocalizationsFr extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Accessibilité';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Messages et médias';
+  String get userSettingsNavChat => 'Messages et médias';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Audio et vidéo';
@@ -15093,7 +15093,7 @@ class FluxerLocalizationsFrCa extends FluxerLocalizationsFr {
   String get userSettingsNavAccessibility => 'Accessibilité';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Messages et médias';
+  String get userSettingsNavChat => 'Messages et médias';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Audio et vidéo';

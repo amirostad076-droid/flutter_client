@@ -29,8 +29,8 @@ String userSettingsSectionLabel(
       return l10n.userSettingsNavLookAndFeel;
     case UserSettingsSection.accessibility:
       return l10n.userSettingsNavAccessibility;
-    case UserSettingsSection.messagesAndMedia:
-      return l10n.userSettingsNavMessagesAndMedia;
+    case UserSettingsSection.chat:
+      return l10n.userSettingsNavChat;
     case UserSettingsSection.audioAndVideo:
       return l10n.userSettingsNavAudioAndVideo;
     case UserSettingsSection.keybinds:

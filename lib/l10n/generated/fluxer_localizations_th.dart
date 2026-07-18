@@ -6718,7 +6718,7 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'การช่วยสำหรับการเข้าถึง';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'ข้อความและสื่อ';
+  String get userSettingsNavChat => 'ข้อความและสื่อ';
 
   @override
   String get userSettingsNavAudioAndVideo => 'เสียงและวิดีโอ';

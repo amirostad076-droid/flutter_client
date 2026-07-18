@@ -6768,7 +6768,7 @@ class FluxerLocalizationsAf extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Toeganklikheid';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Boodskappe & Media';
+  String get userSettingsNavChat => 'Boodskappe & Media';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Klank & Video';

@@ -6779,7 +6779,7 @@ class FluxerLocalizationsSl extends FluxerLocalizations {
   String get userSettingsNavAccessibility => 'Dostopnost';
 
   @override
-  String get userSettingsNavMessagesAndMedia => 'Sporočila in predstavnost';
+  String get userSettingsNavChat => 'Sporočila in predstavnost';
 
   @override
   String get userSettingsNavAudioAndVideo => 'Zvok in video';
