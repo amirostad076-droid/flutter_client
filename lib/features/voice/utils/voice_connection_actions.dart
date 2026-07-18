@@ -151,14 +151,6 @@ Future<void> joinVoiceChannelWithConfirmation({
         modalContext,
         otherDeviceCount: others.length,
       );
-  final BuildContext? postModalContext = _modalContext(context);
-  if (postModalContext == null) {
-    talker.warning(
-      '[Voice] Join aborted after multi-device modal: context unmounted '
-      '(channelId=$channelId).',
-    );
-    return;
-  }
   if (choice == null) {
     talker.info(
       '[Voice] Join cancelled from multi-device modal '
