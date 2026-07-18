@@ -107,6 +107,10 @@ const userSettingsDesktopNav = [
     icon: PhosphorIconsFill.paintBrush,
   ),
   UserSettingsDesktopNavEntry.link(
+    UserSettingsSection.notifications,
+    icon: PhosphorIconsFill.bell,
+  ),
+  UserSettingsDesktopNavEntry.link(
     UserSettingsSection.accessibility,
     icon: PhosphorIconsFill.personSimpleCircle,
   ),
@@ -121,10 +125,6 @@ const userSettingsDesktopNav = [
   UserSettingsDesktopNavEntry.link(
     UserSettingsSection.keybinds,
     icon: PhosphorIconsFill.keyboard,
-  ),
-  UserSettingsDesktopNavEntry.link(
-    UserSettingsSection.notifications,
-    icon: PhosphorIconsFill.bell,
   ),
   UserSettingsDesktopNavEntry.link(
     UserSettingsSection.languageAndTime,
@@ -202,6 +202,7 @@ List<FluxerSettingsNavGroup> buildUserSettingsMobileNavGroups({
       label: userSettingsNavGroupLabel(l10n, UserSettingsNavGroup.application),
       items: [
         link(UserSettingsSection.lookAndFeel, PhosphorIconsFill.paintBrush),
+        link(UserSettingsSection.notifications, PhosphorIconsFill.bell),
         link(
           UserSettingsSection.accessibility,
           PhosphorIconsFill.personSimpleCircle,
@@ -211,7 +212,6 @@ List<FluxerSettingsNavGroup> buildUserSettingsMobileNavGroups({
           PhosphorIconsFill.chatCircle,
         ),
         link(UserSettingsSection.audioAndVideo, PhosphorIconsFill.microphone),
-        link(UserSettingsSection.notifications, PhosphorIconsFill.bell),
         link(UserSettingsSection.languageAndTime, PhosphorIconsFill.translate),
         link(UserSettingsSection.advanced, PhosphorIconsFill.flask),
       ],
