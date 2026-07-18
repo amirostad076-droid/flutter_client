@@ -42,7 +42,10 @@ void main() {
       );
     });
 
-    test('uses net keyboard height below composer safe area', () {
+    test('uses full keyboard height while open (no safe-area netting)', () {
+      // Matches smart_keyboard_insets KeyboardPadding. Outer SafeArea already
+      // collapses bottom padding under the keyboard; netting a sticky
+      // safeAreaBottom would under-pad the spacer (issue #499).
       expect(
         resolveBottomInputSlotHeight(
           isPanelOpen: false,
@@ -54,7 +57,23 @@ void main() {
           isKeyboardVisible: true,
           safeAreaBottom: 34,
         ),
-        302,
+        336,
+      );
+    });
+
+    test('uses full keyboard height when safe area is zero (button nav)', () {
+      expect(
+        resolveBottomInputSlotHeight(
+          isPanelOpen: false,
+          transition: BottomInputTransition.idle,
+          lockedHeight: 0,
+          anchorHeight: 336,
+          panelHeight: 0,
+          liveKeyboardHeight: 336,
+          isKeyboardVisible: true,
+          safeAreaBottom: 0,
+        ),
+        336,
       );
     });
 
@@ -154,6 +173,129 @@ void main() {
           nextVisible: false,
         ),
         336,
+      );
+    });
+  });
+
+  group('resolveNativeImeOnlyHeight', () {
+    test(
+      'strips paired native safe area from Android gross keyboard height',
+      () {
+        // Device gap case: native 336 includes 34 systemBars → IME-only 302.
+        expect(
+          resolveNativeImeOnlyHeight(
+            nativeKeyboardHeight: 336,
+            nativeSafeAreaBottom: 34,
+          ),
+          302,
+        );
+      },
+    );
+
+    test('returns raw height when native safe area is zero', () {
+      expect(
+        resolveNativeImeOnlyHeight(
+          nativeKeyboardHeight: 336,
+          nativeSafeAreaBottom: 0,
+        ),
+        336,
+      );
+    });
+
+    test('returns zero for hidden native keyboard', () {
+      expect(
+        resolveNativeImeOnlyHeight(
+          nativeKeyboardHeight: 0,
+          nativeSafeAreaBottom: 34,
+        ),
+        0,
+      );
+    });
+  });
+
+  group('resolveDualSourceLiveKeyboardHeight', () {
+    test(
+      'gap case: normalized native matches viewInsets → slot 302 not 336',
+      () {
+        final double nativeIme = resolveNativeImeOnlyHeight(
+          nativeKeyboardHeight: 336,
+          nativeSafeAreaBottom: 34,
+        );
+        expect(nativeIme, 302);
+        expect(
+          resolveDualSourceLiveKeyboardHeight(
+            nativeHeight: nativeIme,
+            viewInsetsHeight: 302,
+          ),
+          302,
+        );
+        expect(
+          resolveBottomInputSlotHeight(
+            isPanelOpen: false,
+            transition: BottomInputTransition.idle,
+            lockedHeight: 0,
+            anchorHeight: 336,
+            panelHeight: 0,
+            liveKeyboardHeight: 302,
+            isKeyboardVisible: true,
+            safeAreaBottom: 0,
+          ),
+          302,
+        );
+      },
+    );
+
+    test(
+      'takes max in IME-only units so stale lower source cannot regress',
+      () {
+        expect(
+          resolveDualSourceLiveKeyboardHeight(
+            nativeHeight: 302,
+            viewInsetsHeight: 180,
+          ),
+          302,
+        );
+        expect(
+          resolveDualSourceLiveKeyboardHeight(
+            nativeHeight: 120,
+            viewInsetsHeight: 302,
+          ),
+          302,
+        );
+      },
+    );
+
+    test('collapses to zero when both sources report hidden', () {
+      expect(
+        resolveDualSourceLiveKeyboardHeight(
+          nativeHeight: 0,
+          viewInsetsHeight: 0,
+        ),
+        0,
+      );
+    });
+
+    test('allows close animation as both sources shrink', () {
+      expect(
+        resolveDualSourceLiveKeyboardHeight(
+          nativeHeight: 200,
+          viewInsetsHeight: 180,
+        ),
+        200,
+      );
+      expect(
+        resolveDualSourceLiveKeyboardHeight(
+          nativeHeight: 0,
+          viewInsetsHeight: 90,
+        ),
+        90,
+      );
+      expect(
+        resolveDualSourceLiveKeyboardHeight(
+          nativeHeight: 0,
+          viewInsetsHeight: 0,
+        ),
+        0,
       );
     });
   });

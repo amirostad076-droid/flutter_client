@@ -101,10 +101,8 @@ double resolveBottomInputSlotHeight({
     );
   }
   if (isKeyboardVisible && liveKeyboardHeight > 0) {
-    return bottomInputSlotContentHeight(
-      rawHeight: liveKeyboardHeight,
-      safeAreaBottom: safeAreaBottom,
-    );
+    // Already IME-only; pad fully. Outer SafeArea collapses under the keyboard.
+    return liveKeyboardHeight;
   }
   return 0;
 }
@@ -158,6 +156,30 @@ bool shouldEmitKeyboardHeightUpdate({
   }
   return (nextHeight - previousHeight).abs() >=
       kKeyboardHeightQuantizeThreshold;
+}
+
+/// Android native keyboardHeight includes systemBars; strip the same event's
+/// [nativeSafeAreaBottom] to IME-only units (do not use MediaQuery.padding).
+double resolveNativeImeOnlyHeight({
+  required double nativeKeyboardHeight,
+  required double nativeSafeAreaBottom,
+}) {
+  if (nativeKeyboardHeight <= 0) {
+    return 0;
+  }
+  if (nativeSafeAreaBottom <= 0) {
+    return nativeKeyboardHeight;
+  }
+  final double imeOnly = nativeKeyboardHeight - nativeSafeAreaBottom;
+  return imeOnly > 0 ? imeOnly : 0;
+}
+
+/// Max of IME-normalized native height and Flutter viewInsets.bottom.
+double resolveDualSourceLiveKeyboardHeight({
+  required double nativeHeight,
+  required double viewInsetsHeight,
+}) {
+  return math.max(nativeHeight, viewInsetsHeight);
 }
 
 bool shouldPersistKeyboardAnchor({

@@ -67,9 +67,21 @@ class MobileKeyboardMetrics extends _$MobileKeyboardMetrics {
   Timer? _persistDebounce;
   double _pendingPersistHeight = 0;
 
+  /// Last height reported by smart_keyboard_insets (0 when that source is hidden).
+  double _nativeKeyboardHeight = 0;
+
+  /// Last height reported by MediaQuery.viewInsets (0 when that source is hidden).
+  double _viewInsetsKeyboardHeight = 0;
+
+  /// Paired native systemBars inset for IME-only normalization.
+  double _nativeSafeAreaBottom = 0;
+
   @override
   MobileKeyboardMetricsState build() {
     ref.onDispose(_disposeListeners);
+    _nativeKeyboardHeight = 0;
+    _viewInsetsKeyboardHeight = 0;
+    _nativeSafeAreaBottom = 0;
     const MobileKeyboardMetricsState initialState = MobileKeyboardMetricsState(
       liveKeyboardHeight: 0,
       isKeyboardVisible: false,
@@ -77,13 +89,15 @@ class MobileKeyboardMetrics extends _$MobileKeyboardMetrics {
       fallbackKeyboardHeight: kIosFallbackKeyboardHeight,
       isPortrait: true,
     );
-    Future.microtask(() {
-      if (!ref.mounted) {
-        return;
-      }
-      unawaited(_loadPersistedAnchor());
-      _attachMetricsListener();
-    });
+    unawaited(
+      Future.microtask(() {
+        if (!ref.mounted) {
+          return;
+        }
+        unawaited(_loadPersistedAnchor());
+        _attachMetricsListener();
+      }),
+    );
     return initialState;
   }
 
@@ -101,6 +115,9 @@ class MobileKeyboardMetrics extends _$MobileKeyboardMetrics {
 
   Future<void> _loadPersistedAnchor() async {
     final SharedPreferences preferences = await SharedPreferences.getInstance();
+    if (!ref.mounted) {
+      return;
+    }
     final bool isPortrait = state.isPortrait;
     final double? stored = _readStoredAnchor(preferences, isPortrait);
     if (!ref.mounted || stored == null) {
@@ -124,16 +141,18 @@ class MobileKeyboardMetrics extends _$MobileKeyboardMetrics {
     if (kIsWeb || !(Platform.isIOS || Platform.isAndroid)) {
       return;
     }
-    _metricsSubscription?.cancel();
+    unawaited(_metricsSubscription?.cancel());
     _metricsSubscription = SmartKeyboardInsets.instance.metricsStream.listen(
-      _applyMetrics,
+      _applyNativeMetrics,
     );
     _metricsNotifierListener ??= () {
-      _applyMetrics(SmartKeyboardInsets.instance.metricsNotifier.value);
+      _applyNativeMetrics(SmartKeyboardInsets.instance.metricsNotifier.value);
     };
     SmartKeyboardInsets.instance.metricsNotifier.addListener(
       _metricsNotifierListener!,
     );
+    // Skip hidden bootstrap: iOS getCurrentMetrics is always hidden, and a late
+    // Future must not clobber live stream/viewInsets after focus.
     unawaited(
       SmartKeyboardInsets.instance.getCurrentMetrics().then((
         KeyboardMetrics metrics,
@@ -141,37 +160,59 @@ class MobileKeyboardMetrics extends _$MobileKeyboardMetrics {
         if (!ref.mounted) {
           return;
         }
-        _applyMetrics(metrics);
+        if (!metrics.isKeyboardVisible && metrics.keyboardHeight <= 0) {
+          return;
+        }
+        _applyNativeMetrics(metrics);
       }),
     );
   }
 
-  void _applyMetrics(KeyboardMetrics metrics) {
-    _applyKeyboardHeight(
-      nextHeight: metrics.keyboardHeight,
-      nextVisible: metrics.isKeyboardVisible,
-    );
+  void _applyNativeMetrics(KeyboardMetrics metrics) {
+    _nativeKeyboardHeight = metrics.isKeyboardVisible
+        ? metrics.keyboardHeight
+        : 0;
+    // Keep the paired native safeArea for IME normalization; do not write it
+    // into state (MediaQuery.padding is the slot-netting source when needed).
+    _nativeSafeAreaBottom = metrics.safeAreaBottom;
+    _commitMergedHeights();
   }
 
   void syncViewInsets(double bottomInset, {double? safeAreaBottom}) {
-    _applyKeyboardHeight(
-      nextHeight: bottomInset,
-      nextVisible: bottomInset > 0,
-      safeAreaBottom: safeAreaBottom,
-    );
+    _viewInsetsKeyboardHeight = bottomInset > 0 ? bottomInset : 0;
+    _commitMergedHeights(safeAreaBottom: safeAreaBottom);
   }
 
-  void _applyKeyboardHeight({
-    required double nextHeight,
-    required bool nextVisible,
-    double? safeAreaBottom,
+  /// Test entry: apply a native-style sample without the platform plugin.
+  @visibleForTesting
+  void debugApplyNativeMetrics({
+    required double keyboardHeight,
+    required bool isKeyboardVisible,
+    double nativeSafeAreaBottom = 0,
   }) {
+    _nativeKeyboardHeight = isKeyboardVisible ? keyboardHeight : 0;
+    _nativeSafeAreaBottom = nativeSafeAreaBottom;
+    _commitMergedHeights();
+  }
+
+  void _commitMergedHeights({double? safeAreaBottom}) {
     if (!ref.mounted) {
       return;
     }
+    // Android native height includes systemBars; normalize to IME-only before
+    // max-merge with Flutter viewInsets.bottom.
+    final double nativeImeOnly = resolveNativeImeOnlyHeight(
+      nativeKeyboardHeight: _nativeKeyboardHeight,
+      nativeSafeAreaBottom: _nativeSafeAreaBottom,
+    );
+    final double mergedHeight = resolveDualSourceLiveKeyboardHeight(
+      nativeHeight: nativeImeOnly,
+      viewInsetsHeight: _viewInsetsKeyboardHeight,
+    );
+    final bool nextVisible = mergedHeight > 0;
     final bool shouldEmit = shouldEmitKeyboardHeightUpdate(
       previousHeight: state.liveKeyboardHeight,
-      nextHeight: nextHeight,
+      nextHeight: mergedHeight,
       previousVisible: state.isKeyboardVisible,
       nextVisible: nextVisible,
     );
@@ -186,14 +227,14 @@ class MobileKeyboardMetrics extends _$MobileKeyboardMetrics {
     final double? previousAnchored = state.anchoredKeyboardHeight;
     final double resolvedAnchored = resolveNextAnchoredKeyboardHeight(
       currentAnchored: previousAnchored,
-      nextHeight: nextHeight,
+      nextHeight: mergedHeight,
       nextVisible: nextVisible,
     );
     final double? nextAnchored = resolvedAnchored > 0
         ? resolvedAnchored
         : previousAnchored;
     state = state.copyWith(
-      liveKeyboardHeight: nextHeight,
+      liveKeyboardHeight: mergedHeight,
       isKeyboardVisible: nextVisible,
       safeAreaBottom: resolvedSafeAreaBottom,
       anchoredKeyboardHeight: nextAnchored,
