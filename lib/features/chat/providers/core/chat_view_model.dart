@@ -1025,6 +1025,7 @@ class ChatViewModel extends _$ChatViewModel {
             channelId,
             limit: _kInitialPageSize,
             shouldApplyResult: isCurrentSwitch,
+            isDirectLatestLoad: false,
             preserveLoadedWindow: true,
           ).whenComplete(() {
             if (isCurrentSwitch() && state.channelId == channelId) {
@@ -1067,6 +1068,7 @@ class ChatViewModel extends _$ChatViewModel {
             _refreshMessagesFromNetwork(
               channelId,
               limit: _kInitialPageSize,
+              isDirectLatestLoad: true,
               shouldApplyResult: isCurrentSwitch,
             ).whenComplete(() {
               if (isCurrentSwitch() && state.channelId == channelId) {
@@ -1109,6 +1111,7 @@ class ChatViewModel extends _$ChatViewModel {
         showLoadingSpinner: true,
         limit: _kInitialPageSize,
         aroundMessageId: aroundUnreadId,
+        isDirectLatestLoad: aroundUnreadId == null,
         shouldApplyResult: isCurrentSwitch,
       );
     } finally {
@@ -1162,6 +1165,7 @@ class ChatViewModel extends _$ChatViewModel {
       await _refreshMessagesFromNetwork(
         channelId,
         limit: _kInitialPageSize,
+        isDirectLatestLoad: false,
         preserveLoadedWindow: state.messages.isNotEmpty,
       );
       if (state.channelId == channelId) {
@@ -1191,6 +1195,7 @@ class ChatViewModel extends _$ChatViewModel {
     await _refreshMessagesFromNetwork(
       channelId,
       targetMessageId: targetMessageId,
+      isDirectLatestLoad: false,
       showLoadingSpinner: true,
       shouldApplyResult: shouldApplyResult,
     );
@@ -1198,6 +1203,7 @@ class ChatViewModel extends _$ChatViewModel {
 
   Future<void> _refreshMessagesFromNetwork(
     String channelId, {
+    required bool isDirectLatestLoad,
     String? targetMessageId,
     String? aroundMessageId,
     bool showLoadingSpinner = false,
@@ -1280,7 +1286,13 @@ class ChatViewModel extends _$ChatViewModel {
               syncBaselineOldestId: syncBaselineOldestId,
             );
       final String? mergedServerTailId = newestServerBackedMessageId(merged);
+      // Only direct latest-page loads can prove that a short page reaches the
+      // live tail. Reconcile and around-window pages must still consult the
+      // channel pointer so detached windows remain detached.
+      final bool shouldConsultPointer =
+          !isDirectLatestLoad || page.messages.length >= limit;
       final bool hasMoreNewer =
+          shouldConsultPointer &&
           mergedServerTailId != null &&
           await _hasNewerMessagesThanChannel(mergedServerTailId);
       if (state.channelId != channelId || !shouldApply()) {
@@ -1583,7 +1595,10 @@ class ChatViewModel extends _$ChatViewModel {
             .where((m) => compareSnowflakeIds(m.id, _contiguity.newestId) <= 0)
             .toList();
         if (newerInRange.isNotEmpty) {
+          // Short cached ranges under verified contiguity are exhaustion, not
+          // an orphaned-pointer signal.
           final bool pageIndicatesMoreNewer =
+              newerInRange.length >= _kPageSize &&
               await _hasNewerMessagesThanChannel(newerInRange.last.id);
           if (state.channelId != channelId) {
             return;
@@ -1625,6 +1640,8 @@ class ChatViewModel extends _$ChatViewModel {
       if (state.channelId != channelId) {
         return;
       }
+      // Short network page seals the server tail; full pages re-check the
+      // channel pointer (orphaned high pointers must not keep hasMoreNewer).
       final bool pageIndicatesMoreNewer =
           page.messages.length >= _kPageSize &&
           await _hasNewerMessagesThanChannel(page.messages.last.id);
@@ -1757,6 +1774,24 @@ class ChatViewModel extends _$ChatViewModel {
     return compareSnowflakeIds(lastMessageId, messageId) > 0;
   }
 
+  /// Live-tail ack target: max(visibleTail, channel.lastMessageId) for web parity.
+  Future<String> _liveTailAckTargetId({
+    required String channelId,
+    required String visibleTailId,
+  }) async {
+    final db.Channel? channel = await ref
+        .read(fluxerDatabaseProvider)
+        .channelDao
+        .getChannelById(channelId);
+    final String? pointer = channel?.lastMessageId;
+    if (pointer == null || pointer.isEmpty) {
+      return visibleTailId;
+    }
+    return compareSnowflakeIds(pointer, visibleTailId) > 0
+        ? pointer
+        : visibleTailId;
+  }
+
   Future<void> ackCurrentChannel({bool force = false}) async {
     final channelId = state.channelId;
     if (!force && (state.isLoading || state.isSyncingMessages)) {
@@ -1826,9 +1861,18 @@ class ChatViewModel extends _$ChatViewModel {
         }
       }
       final repository = ref.read(readStateRepositoryProvider);
+      // Web acks the channel last_message_id pointer at live tail. Equal to the
+      // visible id normally; when the pointer is an orphaned high id, acking it
+      // clears stuck unread the way desktop does.
+      final String? ackTargetId = force
+          ? null
+          : await _liveTailAckTargetId(
+              channelId: channelId,
+              visibleTailId: visibleTailId!,
+            );
       final String? ackedMessageId = force
           ? await repository.applyLocalAckLatest(channelId)
-          : await repository.applyLocalAckUpTo(channelId, visibleTailId!);
+          : await repository.applyLocalAckUpTo(channelId, ackTargetId!);
       if (ackedMessageId != null) {
         ref
             .read(ackBatcherProvider)
@@ -2966,6 +3010,7 @@ class ChatViewModel extends _$ChatViewModel {
       if (page.messages.isEmpty) {
         return;
       }
+      // Around jumps consult the pointer: a short around page is not server tail.
       final bool hasMoreNewer = await _hasNewerMessagesThanChannel(
         page.messages.last.id,
       );
@@ -3056,7 +3101,11 @@ class ChatViewModel extends _$ChatViewModel {
     if (channelId.isEmpty) {
       return;
     }
-    await _refreshMessagesFromNetwork(channelId, showLoadingSpinner: true);
+    await _refreshMessagesFromNetwork(
+      channelId,
+      showLoadingSpinner: true,
+      isDirectLatestLoad: true,
+    );
   }
 
   Future<void> reloadCurrentChannel() async {
@@ -3068,6 +3117,7 @@ class ChatViewModel extends _$ChatViewModel {
       channelId,
       showLoadingSpinner: true,
       limit: _kInitialPageSize,
+      isDirectLatestLoad: true,
     );
   }
 

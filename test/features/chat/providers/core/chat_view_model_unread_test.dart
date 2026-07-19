@@ -2021,6 +2021,116 @@ void main() {
     expect(adapter.ackedMessageIds, <String>[state.messages.last.id]);
   });
 
+  test(
+    'at-tail ack with orphaned channel pointer acks the pointer id',
+    () async {
+      final db = openTestDatabase();
+      final String visibleTailId = _snowflakeForUtc(
+        DateTime.utc(2026, 5, 6, 12),
+      );
+      final String orphanedPointer = _snowflakeForUtc(
+        DateTime.utc(2026, 5, 6, 14),
+      );
+      final String priorAck = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          // Orphaned high pointer (no local message row for it).
+          lastMessageId: Value(orphanedPointer),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(priorAck),
+          mentionCount: const Value(0),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        initialMessages: <Map<String, Object?>>[
+          _messageJson(
+            id: visibleTailId,
+            channelId: 'channel-1',
+            authorId: 'other',
+          ),
+        ],
+      );
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      _setViewportActive(container, channelId: 'channel-1');
+      await _flushAsync();
+
+      // Latest-page jump seals server-tail (short page); orphaned pointer alone
+      // must not keep hasMoreNewer after that.
+      expect(await notifier.jumpToLatestMessages(), isTrue);
+      await _flushAsync();
+
+      final state = container.read(chatViewModelProvider);
+      expect(state.hasMoreNewerMessages, isFalse);
+      expect(state.messages.last.id, visibleTailId);
+
+      _updateViewport(container, nearLoadedTail: true);
+      await _flushAsync();
+
+      final readState = await db.readStateDao.getReadState('channel-1');
+      expect(readState?.lastMessageId, orphanedPointer);
+      expect(adapter.ackedMessageIds, <String>[orphanedPointer]);
+    },
+  );
+
+  test('not-at-tail with real newer history does not auto-ack', () async {
+    final db = openTestDatabase();
+    // Full latest-page (initial size 50) with pointer still ahead.
+    final List<String> historyIds = <String>[
+      for (var i = 0; i < 50; i++)
+        _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10, 0, i)),
+    ];
+    final String realNewerId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    final String priorAck = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 9));
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(realNewerId),
+      ),
+    );
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(priorAck),
+        mentionCount: const Value(0),
+      ),
+    );
+    final adapter = _ChatAdapter(
+      initialMessages: [
+        for (final String id in historyIds)
+          _messageJson(id: id, channelId: 'channel-1', authorId: 'other'),
+      ],
+    );
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel('channel-1');
+    _setViewportActive(container, channelId: 'channel-1');
+    await _flushAsync();
+
+    expect(container.read(chatViewModelProvider).hasMoreNewerMessages, isTrue);
+
+    _updateViewport(container, nearLoadedTail: true);
+    await _flushAsync();
+
+    final readState = await db.readStateDao.getReadState('channel-1');
+    expect(readState?.lastMessageId, priorAck);
+    expect(adapter.ackedMessageIds, isEmpty);
+  });
+
   test('a tail arriving during an in-flight ack is eventually acked', () async {
     final db = openTestDatabase();
     final String priorId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
@@ -2747,9 +2857,14 @@ void main() {
     'live message received while scrolled into history is dropped',
     () async {
       final db = openTestDatabase();
-      final olderId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
-      final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
-      final incomingId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+      // Full latest-page (initial size 50) while the channel pointer is still
+      // ahead: real newer messages remain.
+      final List<String> historyIds = <String>[
+        for (var i = 0; i < 50; i++)
+          _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10, 0, i)),
+      ];
+      final String latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      final String incomingId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
       await db.channelDao.upsertChannel(
         ChannelsCompanion.insert(
           id: 'channel-1',
@@ -2758,11 +2873,10 @@ void main() {
           lastMessageId: Value(latestId),
         ),
       );
-      // Channel's newest message is far ahead of the loaded page, so the
-      // window sits in history with hasMoreNewerMessages == true.
       final adapter = _ChatAdapter(
         initialMessages: [
-          _messageJson(id: olderId, channelId: 'channel-1', authorId: 'other'),
+          for (final String id in historyIds)
+            _messageJson(id: id, channelId: 'channel-1', authorId: 'other'),
         ],
       );
       final container = _container(db, adapter);
@@ -2774,7 +2888,7 @@ void main() {
 
       final loaded = container.read(chatViewModelProvider);
       expect(loaded.hasMoreNewerMessages, isTrue);
-      expect(loaded.messages.map((m) => m.id).toList(), [olderId]);
+      expect(loaded.messages.map((m) => m.id).toList(), historyIds);
 
       container
           .read(messageRealtimeBusProvider)
@@ -2801,7 +2915,7 @@ void main() {
             .messages
             .map((m) => m.id)
             .toList(),
-        [olderId],
+        historyIds,
       );
     },
   );
