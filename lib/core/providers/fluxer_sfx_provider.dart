@@ -1,12 +1,11 @@
 import 'dart:async';
 
 import 'package:drift/drift.dart' show CancellationException;
-import 'package:flutter/foundation.dart';
-import 'package:fluxer_app/core/platform/fluxer_platform.dart';
 import 'package:fluxer_app/core/audio/enums/fluxer_sfx_clip.dart';
 import 'package:fluxer_app/core/audio/fluxer_sfx.dart';
 import 'package:fluxer_app/core/audio/message_notification_sfx_scheduler.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/platform/fluxer_platform.dart';
 import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/obscuring_overlay_tracker_provider.dart';
