@@ -1,4 +1,3 @@
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 
@@ -6,7 +5,7 @@ import '../../helpers/open_test_database.dart';
 
 String _snowflakeForIndex(int index) {
   final int internal =
-      (DateTime.utc(2026, 1, 1).millisecondsSinceEpoch << 22) + (index << 10);
+      (DateTime.utc(2026).millisecondsSinceEpoch << 22) + (index << 10);
   return internal.toString();
 }
 
@@ -88,10 +87,7 @@ void main() {
         await db.messageDao.upsertMessages(batch.sublist(offset, end));
       }
       final Stopwatch stopwatch = Stopwatch()..start();
-      final List<Message> page = await db.messageDao.getMessages(
-        channelId,
-        limit: 50,
-      );
+      final List<Message> page = await db.messageDao.getMessages(channelId);
       stopwatch.stop();
       expect(page.length, 50);
       expect(page.last.content, 'message-${messageCount - 1}');

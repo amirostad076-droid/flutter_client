@@ -24,10 +24,7 @@ void main() {
     });
 
     test('reports desktop linux as desktop client platform', () {
-      expect(
-        resolveClientPlatform(TargetPlatform.linux, mobileFormFactor: false),
-        'desktop',
-      );
+      expect(resolveClientPlatform(TargetPlatform.linux), 'desktop');
     });
   });
 
@@ -44,10 +41,7 @@ void main() {
     });
 
     test('reports desktop form factor as desktop device class', () {
-      expect(
-        resolveDeviceClass(TargetPlatform.linux, mobileFormFactor: false),
-        'desktop',
-      );
+      expect(resolveDeviceClass(TargetPlatform.linux), 'desktop');
     });
   });
 

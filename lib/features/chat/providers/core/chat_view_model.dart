@@ -1220,7 +1220,7 @@ class ChatViewModel extends _$ChatViewModel {
     try {
       final String? effectiveAroundMessageId =
           targetMessageId ?? aroundMessageId;
-      int effectiveLimit = limit;
+      final int effectiveLimit = limit;
       final repo = ref.read(messageRepositoryProvider);
       MessageListLoadResult page;
       if (preserveLoadedWindow &&

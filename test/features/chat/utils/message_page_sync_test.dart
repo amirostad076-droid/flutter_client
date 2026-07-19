@@ -347,7 +347,7 @@ void main() {
           _message(_snowflakeForUtc(DateTime.utc(2026, 5, 10, 0, i))),
       ];
       final List<VisibleWindowReconcileParams> params =
-          reconcileParamsListForVisibleWindow(window: window, maxLimit: 100);
+          reconcileParamsListForVisibleWindow(window: window);
       expect(params.length, greaterThan(1));
       expect(params.first.aroundId, window.first.id);
       expect(params.last.aroundId, window.last.id);
@@ -433,14 +433,14 @@ void main() {
   });
 
   group('scale', () {
-    List<Message> _window(int count) => <Message>[
+    List<Message> window0(int count) => <Message>[
       for (int i = 0; i < count; i++)
         _message(_snowflakeForUtc(DateTime.utc(2026, 5, 10, 0, i))),
     ];
 
     test('mergeMessagesSorted keeps ordering for 1k messages', () {
-      final List<Message> current = _window(1000);
-      final List<Message> incoming = _window(1000);
+      final List<Message> current = window0(1000);
+      final List<Message> incoming = window0(1000);
       final List<Message> merged = mergeMessagesSorted(current, incoming);
       expect(merged.length, 1000);
       for (int i = 1; i < merged.length; i++) {
@@ -452,7 +452,7 @@ void main() {
     });
 
     test('reconcileStaleDeletionsInLoadedWindow handles 5k window', () {
-      final List<Message> window = _window(5000);
+      final List<Message> window = window0(5000);
       final String deletedId = window[2500].id;
       final List<Message> networkPage = window
           .where((Message message) => message.id != deletedId)
@@ -466,7 +466,7 @@ void main() {
     });
 
     test('networkPageStaleLocalIds handles large local sets', () {
-      final List<Message> window = _window(2000);
+      final List<Message> window = window0(2000);
       final String deletedId = window[100].id;
       final List<Message> networkPage = window
           .where((Message message) => message.id != deletedId)
