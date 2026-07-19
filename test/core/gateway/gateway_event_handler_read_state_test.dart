@@ -665,7 +665,7 @@ void main() {
   });
 
   test(
-    'bulk message delete updates last message and keeps mention count',
+    'bulk message delete leaves channel tail and keeps mention count',
     () async {
       final db = openTestDatabase();
       final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
@@ -709,7 +709,8 @@ void main() {
 
       final channel = await db.channelDao.getChannelById('channel-1');
       final readState = await db.readStateDao.getReadState('channel-1');
-      expect(channel?.lastMessageId, remainingId);
+      // Local cache is not used to rewrite the tail; READY heals orphans.
+      expect(channel?.lastMessageId, deletedId);
       expect(readState?.mentionCount, 1);
     },
   );
@@ -754,58 +755,57 @@ void main() {
     },
   );
 
-  test('guild plain unread clears when only message is deleted', () async {
-    final db = openTestDatabase();
-    final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
-    final messageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
-    await db.channelDao.upsertChannel(
-      ChannelsCompanion.insert(
-        id: 'channel-1',
-        guildId: 'guild-1',
-        name: 'general',
-      ),
-    );
-    final handler = GatewayEventHandler(database: db, currentUserId: 'me');
-
-    await handler.handle(
-      MessageCreateEvent(
-        message: _message(
-          id: messageId,
-          channelId: 'channel-1',
-          authorId: 'other',
+  test(
+    'guild plain unread keeps orphaned tail when only message is deleted',
+    () async {
+      final db = openTestDatabase();
+      final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      final messageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
         ),
-      ),
-    );
+      );
+      final handler = GatewayEventHandler(database: db, currentUserId: 'me');
 
-    final channelAfterCreate = await db.channelDao.getChannelById('channel-1');
-    expect(channelAfterCreate?.lastMessageId, messageId);
-    expect(
-      hasUnreadByReadState(
-        channelLastMessageId: messageId,
-        ackLastMessageId: ackId,
-        fallbackAckMs: 0,
-        mentionCount: 0,
-      ),
-      isTrue,
-    );
+      await handler.handle(
+        MessageCreateEvent(
+          message: _message(
+            id: messageId,
+            channelId: 'channel-1',
+            authorId: 'other',
+          ),
+        ),
+      );
 
-    await handler.handle(
-      MessageDeleteEvent(channelId: 'channel-1', messageId: messageId),
-    );
-    await pumpEventQueue();
+      final channelAfterCreate = await db.channelDao.getChannelById(
+        'channel-1',
+      );
+      expect(channelAfterCreate?.lastMessageId, messageId);
+      expect(
+        hasUnreadByReadState(
+          channelLastMessageId: messageId,
+          ackLastMessageId: ackId,
+          fallbackAckMs: 0,
+          mentionCount: 0,
+        ),
+        isTrue,
+      );
 
-    final channelAfterDelete = await db.channelDao.getChannelById('channel-1');
-    expect(channelAfterDelete?.lastMessageId, isNull);
-    expect(
-      hasUnreadByReadState(
-        channelLastMessageId: channelAfterDelete?.lastMessageId,
-        ackLastMessageId: ackId,
-        fallbackAckMs: 0,
-        mentionCount: 0,
-      ),
-      isFalse,
-    );
-  });
+      await handler.handle(
+        MessageDeleteEvent(channelId: 'channel-1', messageId: messageId),
+      );
+      await pumpEventQueue();
+
+      // Tail delete never rewrites lastMessageId from local cache; READY heals.
+      final channelAfterDelete = await db.channelDao.getChannelById(
+        'channel-1',
+      );
+      expect(channelAfterDelete?.lastMessageId, messageId);
+    },
+  );
 
   test(
     'dm stays hoisted and unread when its newest message is deleted',
@@ -1082,6 +1082,102 @@ void main() {
       expect(readState?.stickyUnreadMessageId, isNull);
     },
   );
+
+  test('READY bulk read states mix keep and clear manual sticky', () async {
+    final db = openTestDatabase();
+    final keepAck = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+    final stickyKeep = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    final clearAck = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+    final stickyClear = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    final advancedAck = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+    final plainAck = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+    final handler = GatewayEventHandler(database: db, currentUserId: 'me');
+
+    await handler.handle(_readyEvent());
+    await db.readStateDao.upsertReadStates([
+      ReadStatesCompanion(
+        channelId: const Value('keep'),
+        lastMessageId: Value(keepAck),
+        mentionCount: const Value(0),
+        manual: const Value(true),
+        stickyUnreadMessageId: Value(stickyKeep),
+      ),
+      ReadStatesCompanion(
+        channelId: const Value('clear'),
+        lastMessageId: Value(clearAck),
+        mentionCount: const Value(0),
+        manual: const Value(true),
+        stickyUnreadMessageId: Value(stickyClear),
+      ),
+    ]);
+
+    await handler.handle(
+      _readyEvent(
+        readStates: [
+          GatewayReadState(id: 'keep', lastMessageId: keepAck),
+          GatewayReadState(id: 'clear', lastMessageId: advancedAck),
+          GatewayReadState(
+            id: 'plain',
+            lastMessageId: plainAck,
+            mentionCount: 2,
+          ),
+        ],
+      ),
+    );
+
+    final keep = await db.readStateDao.getReadState('keep');
+    final clear = await db.readStateDao.getReadState('clear');
+    final plain = await db.readStateDao.getReadState('plain');
+    expect(keep?.manual, isTrue);
+    expect(keep?.stickyUnreadMessageId, stickyKeep);
+    expect(clear?.manual, isFalse);
+    expect(clear?.stickyUnreadMessageId, isNull);
+    expect(clear?.lastMessageId, advancedAck);
+    expect(plain?.lastMessageId, plainAck);
+    expect(plain?.mentionCount, 2);
+    expect(plain?.manual, isFalse);
+  });
+
+  test(
+    'READY duplicate channel ids fold forward and keep cleared manual',
+    () async {
+      final db = openTestDatabase();
+      final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      final stickyId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      final advancedAck = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+      final handler = GatewayEventHandler(database: db, currentUserId: 'me');
+
+      await handler.handle(_readyEvent());
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(ackId),
+          mentionCount: const Value(0),
+          manual: const Value(true),
+          stickyUnreadMessageId: Value(stickyId),
+        ),
+      );
+
+      // First occurrence advances past local ack (clears manual); second is
+      // the stale original ack. Fold-forward must not resurrect manual.
+      await handler.handle(
+        _readyEvent(
+          readStates: [
+            GatewayReadState(id: 'channel-1', lastMessageId: advancedAck),
+            GatewayReadState(id: 'channel-1', lastMessageId: ackId),
+          ],
+        ),
+      );
+
+      final readState = await db.readStateDao.getReadState('channel-1');
+      // Last payload entry wins lastMessageId (same as sequential upserts);
+      // fold-forward ensures the second merge sees manual already cleared.
+      expect(readState?.lastMessageId, ackId);
+      expect(readState?.manual, isFalse);
+      expect(readState?.stickyUnreadMessageId, isNull);
+    },
+  );
+
   test(
     'server ack does not double-count a mention still pending in the batcher',
     () async {
