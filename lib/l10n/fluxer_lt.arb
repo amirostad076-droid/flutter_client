@@ -9246,7 +9246,7 @@
         "description": "Duration label for multiple years in a call duration.",
         "placeholders": {
             "count": {
-                "type": "String"
+                "type": "int"
             }
         }
     },
@@ -9255,7 +9255,7 @@
         "description": "Duration label for multiple months in a call duration.",
         "placeholders": {
             "count": {
-                "type": "String"
+                "type": "int"
             }
         }
     },
@@ -9264,7 +9264,7 @@
         "description": "Duration label for multiple weeks in a call duration.",
         "placeholders": {
             "count": {
-                "type": "String"
+                "type": "int"
             }
         }
     },
@@ -9273,7 +9273,7 @@
         "description": "Duration label for multiple days in a call duration.",
         "placeholders": {
             "count": {
-                "type": "String"
+                "type": "int"
             }
         }
     },
@@ -9282,7 +9282,7 @@
         "description": "Duration label for multiple hours in a call duration.",
         "placeholders": {
             "count": {
-                "type": "String"
+                "type": "int"
             }
         }
     },
@@ -9291,7 +9291,7 @@
         "description": "Duration label for multiple minutes in a call duration.",
         "placeholders": {
             "count": {
-                "type": "String"
+                "type": "int"
             }
         }
     },
