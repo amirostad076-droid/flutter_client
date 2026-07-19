@@ -45,7 +45,6 @@ import 'package:fluxer_app/features/chat/service/composer_mention_controller.dar
 import 'package:fluxer_app/features/chat/utils/bottom_input_slot_layout.dart';
 import 'package:fluxer_app/features/chat/utils/composer_command.dart';
 import 'package:fluxer_app/features/chat/utils/composer_emoji_resolution.dart';
-import 'package:fluxer_app/features/chat/utils/composer_message_length_paste_formatter.dart';
 import 'package:fluxer_app/features/chat/utils/composer_sendable_content.dart';
 import 'package:fluxer_app/features/chat/utils/composer_upload_file.dart';
 import 'package:fluxer_app/features/chat/utils/composer_voice_button_visibility.dart';
@@ -63,7 +62,6 @@ import 'package:fluxer_app/features/guilds/services/guild_verification.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_confirm_sheet.dart';
 import 'package:fluxer_app/features/ui/input/inline_token_clipboard.dart';
-import 'package:fluxer_app/features/ui/input/inline_token_paste_formatter.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
@@ -380,24 +378,6 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     }
   }
 
-  List<TextInputFormatter> _messageLengthInputFormatters({
-    required int maxMessageLength,
-    required ChannelMessagePermissions perms,
-    required String channelId,
-  }) {
-    return <TextInputFormatter>[
-      ComposerMentionPasteFormatter(controller: _controller),
-      ComposerMessageLengthPasteFormatter(
-        controller: _controller,
-        maxLength: maxMessageLength,
-        canAttachOnExceed: () =>
-            perms.canShowAttachControls && perms.isAttachEnabled,
-        onPasteExceedsLimit: (String pastedText) =>
-            unawaited(_handlePasteExceedsLimit(pastedText, channelId)),
-      ),
-    ];
-  }
-
   Widget _buildComposerField({
     required BuildContext context,
     required String channelId,
@@ -424,6 +404,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       channelId: channelId,
       controller: _controller,
       isAttachEnabled: perms.isAttachEnabled,
+      maxMessageLength: maxMessageLength,
+      canAttachOnExceed: () =>
+          perms.canShowAttachControls && perms.isAttachEnabled,
+      onPasteExceedsLimit: (String pastedText) =>
+          unawaited(_handlePasteExceedsLimit(pastedText, channelId)),
       onValidationResult: _toastUploadValidation,
       builder: (BuildContext context, ComposerPasteScopeState pasteScope) {
         return Stack(
@@ -440,11 +425,6 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               textAlignVertical: textAlignVertical,
               textCapitalization: TextCapitalization.sentences,
               contextMenuBuilder: pasteScope.buildContextMenu,
-              inputFormatters: _messageLengthInputFormatters(
-                maxMessageLength: maxMessageLength,
-                perms: perms,
-                channelId: channelId,
-              ),
               onTap: () {
                 if (ref.read(expressionPanelProvider)) {
                   ref.read(expressionPanelProvider.notifier).close();

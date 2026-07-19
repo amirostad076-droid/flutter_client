@@ -93,6 +93,23 @@ Future<bool> cutInlineTokenSelection(TextEditingController controller) async {
   return true;
 }
 
+int projectedWireLengthAfterPaste(
+  InlineTokenTextEditingController controller,
+  String clipboardText,
+) {
+  final TextSelection selection = controller.selection;
+  if (!selection.isValid) {
+    return controller.toWireText().trim().length;
+  }
+  final String sanitized = stripPrivateUseCharacters(clipboardText);
+  final String beforeWire = controller.toWireTextRange(0, selection.start);
+  final String afterWire = controller.toWireTextRange(
+    selection.end,
+    controller.text.length,
+  );
+  return (beforeWire + sanitized + afterWire).trim().length;
+}
+
 Future<bool> pasteWireTextIntoInlineTokenController(
   TextEditingController controller,
   String clipboardText,

@@ -112,6 +112,9 @@ class ComposerMentionController extends InlineTokenTextEditingController {
     if (generation != _applyWireTextGeneration) {
       return;
     }
+    if (toWireText() == wire) {
+      return;
+    }
     replaceWireDisplay(
       displayText: bundle.display,
       tokens: bundle.tokens,
