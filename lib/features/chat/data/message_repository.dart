@@ -211,15 +211,16 @@ class MessageRepository {
     String? around,
   }) async {
     try {
-      final data = await _client.channels.listMessages(
-        channelId: channelId,
-        limit: limit.toString(),
-        before: before,
-        after: after,
-        around: around,
-      );
+      final List<MessageResponseSchema> data = await _client.channels
+          .listMessages(
+            channelId: channelId,
+            limit: limit.toString(),
+            before: before,
+            after: after,
+            around: around,
+          );
 
-      final embeddedReplyParents = <Message>[];
+      final List<Message> embeddedReplyParents = <Message>[];
       for (final sdk in data) {
         final referenced = sdk.referencedMessage;
         if (referenced != null) {
@@ -237,7 +238,7 @@ class MessageRepository {
         currentUserId: _currentUserId,
         channelId: channelId,
       );
-      final messages = data
+      final List<Message> messages = data
           .map(
             (sdk) =>
                 Message.fromSdk(sdk, currentUserId: _currentUserId).copyWith(
@@ -254,11 +255,17 @@ class MessageRepository {
           .reversed
           .toList();
 
+      final List<db.UsersCompanion> pageUsers = <db.UsersCompanion>[];
       for (final sdk in data) {
         if (sdk.webhookId == null) {
-          await _db.userDao.upsertUser(userFromPartialSdk(sdk.author));
+          pageUsers.add(userFromPartialSdk(sdk.author));
         }
-        await upsertMentionUsersFromSdk(_db, sdk.mentions);
+        for (final mention in sdk.mentions) {
+          pageUsers.add(userFromPartialSdk(mention));
+        }
+      }
+      if (pageUsers.isNotEmpty) {
+        await _db.userDao.upsertUsers(pageUsers);
       }
       await _db.messageDao.upsertMessages(
         messages.map((m) => m.toCompanion()).toList(),
