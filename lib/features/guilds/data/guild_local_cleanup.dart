@@ -3,9 +3,7 @@ import 'package:fluxer_app/core/database/fluxer_database.dart';
 Future<void> removeGuildFromLocalDb(FluxerDatabase db, String guildId) async {
   final channels = await db.channelDao.getChannels(guildId);
   final channelIds = channels.map((channel) => channel.id).toList();
-  for (final String channelId in channelIds) {
-    await db.messageDao.deleteMessagesForChannel(channelId);
-  }
+  await db.messageDao.deleteMessagesForChannels(channelIds);
   await db.readStateDao.deleteReadStatesForChannels(channelIds);
   await db.channelDao.deleteChannelsForGuild(guildId);
   await db.memberDao.deleteMembersForGuild(guildId);

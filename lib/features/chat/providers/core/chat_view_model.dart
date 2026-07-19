@@ -21,6 +21,7 @@ import 'package:fluxer_app/features/channels/data/unread_permission_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart';
 import 'package:fluxer_app/features/channels/providers/ack_batcher_provider.dart';
 import 'package:fluxer_app/features/channels/providers/read_state_repository_provider.dart';
+import 'package:fluxer_app/features/chat/data/message_repository.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/domain/message_upload_send_cancelled_exception.dart';
@@ -1217,24 +1218,35 @@ class ChatViewModel extends _$ChatViewModel {
       );
     }
     try {
-      String? effectiveAroundMessageId = targetMessageId ?? aroundMessageId;
+      final String? effectiveAroundMessageId =
+          targetMessageId ?? aroundMessageId;
       int effectiveLimit = limit;
+      final repo = ref.read(messageRepositoryProvider);
+      MessageListLoadResult page;
       if (preserveLoadedWindow &&
           state.messages.isNotEmpty &&
           effectiveAroundMessageId == null) {
-        final VisibleWindowReconcileParams? windowParams =
-            reconcileParamsForVisibleWindow(window: state.messages);
-        if (windowParams != null) {
-          effectiveAroundMessageId = windowParams.aroundId;
-          effectiveLimit = windowParams.limit;
+        final List<VisibleWindowReconcileParams> windowParamsList =
+            reconcileParamsListForVisibleWindow(window: state.messages);
+        if (windowParamsList.isNotEmpty) {
+          page = await _loadReconcilePages(
+            repo: repo,
+            channelId: channelId,
+            paramsList: windowParamsList,
+          );
+        } else {
+          page = await repo.loadMessagePage(
+            channelId: channelId,
+            limit: effectiveLimit,
+          );
         }
+      } else {
+        page = await repo.loadMessagePage(
+          channelId: channelId,
+          around: effectiveAroundMessageId,
+          limit: effectiveLimit,
+        );
       }
-      final repo = ref.read(messageRepositoryProvider);
-      final page = await repo.loadMessagePage(
-        channelId: channelId,
-        around: effectiveAroundMessageId,
-        limit: effectiveLimit,
-      );
       if (state.channelId != channelId || !shouldApply()) {
         return;
       }
@@ -1316,6 +1328,31 @@ class ChatViewModel extends _$ChatViewModel {
         errorMessage: hasCachedMessages ? 'Failed to sync messages' : null,
       );
     }
+  }
+
+  Future<MessageListLoadResult> _loadReconcilePages({
+    required MessageRepository repo,
+    required String channelId,
+    required List<VisibleWindowReconcileParams> paramsList,
+  }) async {
+    List<Message> networkMessages = const <Message>[];
+    List<Message> embeddedReplyParents = const <Message>[];
+    for (final VisibleWindowReconcileParams params in paramsList) {
+      final MessageListLoadResult result = await repo.loadMessagePage(
+        channelId: channelId,
+        around: params.aroundId,
+        limit: params.limit,
+      );
+      networkMessages = mergeMessagesSorted(networkMessages, result.messages);
+      embeddedReplyParents = mergeMessagesSorted(
+        embeddedReplyParents,
+        result.embeddedReplyParents,
+      );
+    }
+    return MessageListLoadResult(
+      messages: networkMessages,
+      embeddedReplyParents: embeddedReplyParents,
+    );
   }
 
   Future<bool> _channelHasNewUnreadMessages(String channelId) async {

@@ -190,8 +190,8 @@ class VisibleWindowReconcileParams {
   final int limit;
 }
 
-/// Network fetch anchor and page size that cover a scrolled-up in-memory window.
-VisibleWindowReconcileParams? reconcileParamsForVisibleWindow({
+/// Network fetch anchors that cover a scrolled-up in-memory window.
+List<VisibleWindowReconcileParams> reconcileParamsListForVisibleWindow({
   required List<Message> window,
   int minLimit = 30,
   int maxLimit = 100,
@@ -201,10 +201,50 @@ VisibleWindowReconcileParams? reconcileParamsForVisibleWindow({
       .where((Message message) => !isLocalOnlyMessage(message))
       .toList();
   if (serverBacked.isEmpty) {
+    return const <VisibleWindowReconcileParams>[];
+  }
+  if (serverBacked.length <= maxLimit) {
+    return <VisibleWindowReconcileParams>[
+      VisibleWindowReconcileParams(
+        aroundId: serverBacked[serverBacked.length ~/ 2].id,
+        limit: (serverBacked.length + padding).clamp(minLimit, maxLimit),
+      ),
+    ];
+  }
+  final int segmentCount = (serverBacked.length / maxLimit).ceil();
+  final int step = serverBacked.length ~/ segmentCount;
+  final List<VisibleWindowReconcileParams> params =
+      <VisibleWindowReconcileParams>[];
+  for (int i = 0; i < segmentCount; i++) {
+    final int index = i == segmentCount - 1
+        ? serverBacked.length - 1
+        : (i * step).clamp(0, serverBacked.length - 1);
+    params.add(
+      VisibleWindowReconcileParams(
+        aroundId: serverBacked[index].id,
+        limit: maxLimit,
+      ),
+    );
+  }
+  return params;
+}
+
+/// Network fetch anchor and page size that cover a scrolled-up in-memory window.
+VisibleWindowReconcileParams? reconcileParamsForVisibleWindow({
+  required List<Message> window,
+  int minLimit = 30,
+  int maxLimit = 100,
+  int padding = 20,
+}) {
+  final List<VisibleWindowReconcileParams> params =
+      reconcileParamsListForVisibleWindow(
+        window: window,
+        minLimit: minLimit,
+        maxLimit: maxLimit,
+        padding: padding,
+      );
+  if (params.isEmpty) {
     return null;
   }
-  return VisibleWindowReconcileParams(
-    aroundId: serverBacked[serverBacked.length ~/ 2].id,
-    limit: (serverBacked.length + padding).clamp(minLimit, maxLimit),
-  );
+  return params.first;
 }
