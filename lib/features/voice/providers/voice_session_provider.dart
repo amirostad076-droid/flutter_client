@@ -1543,7 +1543,9 @@ class VoiceSession extends _$VoiceSession {
     required bool shouldEnableScreenShare,
   }) async {
     final bool requiresCapturePermission =
-        Platform.isAndroid || Platform.isMacOS;
+        Platform.isAndroid ||
+        Platform.isMacOS ||
+        (Platform.isLinux && !isFluxerRuntimeMobileFormFactor);
     if (!shouldEnableScreenShare || !requiresCapturePermission) {
       return true;
     }

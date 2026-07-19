@@ -18,6 +18,9 @@ bool? _isRuntimeMobileFormFactor;
 bool get isFluxerNativeMobileOs =>
     !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
+/// Android and iOS use the system CallKit / connection service incoming UI
+bool get isNativeVoiceCallKitPlatform => isFluxerNativeMobileOs;
+
 bool _isFluxerDesktopClassOs() {
   return !kIsWeb &&
       (Platform.isLinux || Platform.isMacOS || Platform.isWindows);
@@ -79,3 +82,6 @@ bool get isFluxerDesktopOs =>
 
 bool get isFluxerMobileOs =>
     isFluxerNativeMobileOs || isFluxerRuntimeMobileFormFactor;
+
+bool get isFluxerLinuxMobileVoiceTarget =>
+    !kIsWeb && Platform.isLinux && isFluxerRuntimeMobileFormFactor;

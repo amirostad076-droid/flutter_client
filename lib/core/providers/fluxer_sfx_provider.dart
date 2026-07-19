@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:drift/drift.dart' show CancellationException;
 import 'package:flutter/foundation.dart';
+import 'package:fluxer_app/core/platform/fluxer_platform.dart';
 import 'package:fluxer_app/core/audio/enums/fluxer_sfx_clip.dart';
 import 'package:fluxer_app/core/audio/fluxer_sfx.dart';
 import 'package:fluxer_app/core/audio/message_notification_sfx_scheduler.dart';
@@ -122,15 +122,14 @@ void fluxerMessageSfxBinding(Ref ref) {
 void fluxerSfxIncomingRingBinding(Ref ref) {
   final FluxerSFX sfx = ref.read(fluxerSfxProvider);
   bool isIncomingRingPlaying = false;
-  final bool isMobileCallKitPlatform =
-      !kIsWeb && (Platform.isIOS || Platform.isAndroid);
+  final bool isNativeVoiceCallKitPlatform = isFluxerNativeMobileOs;
   void syncIncomingRingLoop() {
     final List<String> pending = ref.read(
       pendingIncomingVoiceChannelIdsProvider,
     );
     final bool isForeground = ref.read(appUiForegroundProvider);
     final bool shouldPlay = shouldPlayIncomingVoiceRingSfx(
-      isMobileCallKitPlatform: isMobileCallKitPlatform,
+      isNativeVoiceCallKitPlatform: isNativeVoiceCallKitPlatform,
       isForeground: isForeground,
       hasPendingIncoming: pending.isNotEmpty,
     );
