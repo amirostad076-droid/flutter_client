@@ -147,10 +147,25 @@ List<Message> reconcileStaleDeletionsInLoadedWindow({
         .map((Message message) => message.id),
     networkPage: networkPage,
   ).toSet();
-  final List<Message> retained = current
-      .where((Message message) => !staleIds.contains(message.id))
-      .toList();
-  return mergeMessagesSorted(retained, networkPage);
+  final Map<String, Message> networkById = <String, Message>{
+    for (final Message message in networkPage) message.id: message,
+  };
+  var changed = false;
+  final List<Message> updated = <Message>[];
+  for (final Message message in current) {
+    if (staleIds.contains(message.id)) {
+      changed = true;
+      continue;
+    }
+    final Message? networkMessage = networkById[message.id];
+    if (networkMessage != null && !message.isRenderEquivalent(networkMessage)) {
+      updated.add(networkMessage);
+      changed = true;
+    } else {
+      updated.add(message);
+    }
+  }
+  return changed ? updated : current;
 }
 
 /// True when the window's oldest message is strictly newer than the oldest
