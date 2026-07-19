@@ -81,6 +81,8 @@ const _kUnreadDateDividerHeight = 20.0;
 const _kMessageListScrollCacheExtent = 1200.0;
 const _kMessageListCompactScrollCacheExtent = 400.0;
 
+const _kMessageListStatusOverlayInset = 16.0;
+
 // Riverpod does not export the concrete auto-dispose family type.
 // Exposed for widget tests that hold read state in AsyncLoading.
 @visibleForTesting
@@ -336,7 +338,10 @@ class _MessageListState extends ConsumerState<MessageList> {
       position.pixels - position.minScrollExtent;
 
   double _centerTrailingDistance(ScrollPosition position) =>
-      (position.maxScrollExtent - position.pixels).clamp(0, double.infinity);
+      (position.maxScrollExtent -
+              position.pixels -
+              _kMessageListStatusOverlayInset)
+          .clamp(0, double.infinity);
 
   void _maybeLoadOlderCenter() {
     if (!_scrollController.hasClients ||
@@ -1888,7 +1893,10 @@ class _MessageListState extends ConsumerState<MessageList> {
                       ? _kMessageListCompactScrollCacheExtent
                       : _kMessageListScrollCacheExtent,
                 ),
-                padding: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.only(
+                  top: 8,
+                  bottom: _kMessageListStatusOverlayInset,
+                ),
                 physics: chatPhysics,
                 itemCount:
                     stream.length + (startOfChannelHeader != null ? 1 : 0),
@@ -1938,7 +1946,7 @@ class _MessageListState extends ConsumerState<MessageList> {
           ),
         if (isLoadingNewer)
           Positioned(
-            bottom: 8,
+            bottom: _kMessageListStatusOverlayInset,
             left: 0,
             right: 0,
             child: Center(
@@ -2175,6 +2183,9 @@ class _MessageListState extends ConsumerState<MessageList> {
                           ),
                     ),
                   ),
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: _kMessageListStatusOverlayInset),
+                  ),
                 ],
               ),
             ),
@@ -2194,7 +2205,7 @@ class _MessageListState extends ConsumerState<MessageList> {
           ),
         if (isLoadingNewer)
           Positioned(
-            bottom: 8,
+            bottom: _kMessageListStatusOverlayInset,
             left: 0,
             right: 0,
             child: Center(

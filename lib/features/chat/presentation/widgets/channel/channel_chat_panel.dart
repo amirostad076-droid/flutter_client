@@ -300,12 +300,9 @@ class ChannelChatComposerBoundary extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.only(top: _kChannelChatStatusMessageInset),
-          child: composer,
-        ),
+        composer,
         Positioned(
-          top: 0,
+          top: -_kChannelChatStatusMessageInset,
           left: 0,
           right: 0,
           child: ConstrainedBox(

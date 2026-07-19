@@ -629,13 +629,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         if (editingMessage != null)
           EditingInputBar(onCancel: chatNotifier.cancelEdit),
         ChannelAttachmentArea(channelId: channelId),
-        Container(
-          decoration: BoxDecoration(
-            color: context.colors.chatInputBackground,
-            border: Border(
-              top: BorderSide(color: context.colors.userAreaDividerColor),
-            ),
-          ),
+        Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: ComposerAutocompleteField(
             key: _composerFieldKey,
