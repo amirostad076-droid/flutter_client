@@ -73,6 +73,7 @@ dependencies:
       url: https://github.com/Niural/phosphor_flutter
   protobuf: ^6.0.0
   record: ^7.1.1
+  refresh_rate: ^1.0.2
   riverpod: ^3.2.1
   riverpod_annotation: ^4.0.2
   scrollview_observer: ^1.27.0
