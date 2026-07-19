@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -13,7 +12,7 @@ import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/premium/should_show_premium_commerce_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
-import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/core/platform/fluxer_platform.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/chat/domain/cloud_composer_attachments.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
@@ -150,8 +149,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
   bool _isApplyingWireText = false;
   String? _lastWireTextPushedToState;
 
-  bool get _isDesktop =>
-      !kIsWeb && (Platform.isLinux || Platform.isMacOS || Platform.isWindows);
+  bool get _isDesktop => isFluxerDesktopOs;
 
   @override
   void initState() {

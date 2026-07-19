@@ -5,7 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/audio/enums/fluxer_sfx_clip.dart';
-import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
+import 'package:fluxer_app/core/platform/fluxer_platform.dart';
 import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/fluxer_sfx_provider.dart';
@@ -486,7 +486,7 @@ class VoiceSession extends _$VoiceSession {
         selfDeaf: selfDeaf,
         selfVideo: false,
         selfStream: false,
-        isMobile: !Platform.isLinux && !Platform.isMacOS && !Platform.isWindows,
+        isMobile: isFluxerMobileOs,
       ),
     );
     talker.info(
@@ -1210,8 +1210,7 @@ class VoiceSession extends _$VoiceSession {
             selfVideo: false,
             selfStream: false,
             connectionId: connectionId,
-            isMobile:
-                !Platform.isLinux && !Platform.isMacOS && !Platform.isWindows,
+            isMobile: isFluxerMobileOs,
           ),
         );
   }
@@ -1622,8 +1621,7 @@ class VoiceSession extends _$VoiceSession {
             selfVideo: selfVideo,
             selfStream: selfStream,
             connectionId: connectionId,
-            isMobile:
-                !Platform.isLinux && !Platform.isMacOS && !Platform.isWindows,
+            isMobile: isFluxerMobileOs,
           ),
         );
     final EffectiveAudioState audio = computeEffectiveAudioState(
@@ -1677,8 +1675,7 @@ class VoiceSession extends _$VoiceSession {
             selfVideo: current?.selfVideo ?? false,
             selfStream: selfStream,
             connectionId: s.activeConnectionId,
-            isMobile:
-                !Platform.isLinux && !Platform.isMacOS && !Platform.isWindows,
+            isMobile: isFluxerMobileOs,
           ),
         );
   }
@@ -2277,8 +2274,7 @@ class VoiceSession extends _$VoiceSession {
             selfStream: current?.selfStream ?? false,
             viewerStreamKeys: viewerStreamKeys,
             connectionId: s.activeConnectionId,
-            isMobile:
-                !Platform.isLinux && !Platform.isMacOS && !Platform.isWindows,
+            isMobile: isFluxerMobileOs,
           ),
         );
   }

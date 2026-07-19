@@ -672,7 +672,7 @@ class GatewayEventHandler {
           bot: Value(event.user.bot ?? false),
           system: Value(event.user.system ?? false),
           status: Value(selfStatus),
-          mobile: Value(Platform.isAndroid || Platform.isIOS),
+          mobile: Value(isFluxerMobileClient),
           memberSince: Value(dateTimeFromUserSnowflakeOrNull(event.user.id)),
           bio: Value(event.user.bio),
           pronouns: Value(event.user.pronouns),
@@ -1014,7 +1014,7 @@ class GatewayEventHandler {
       userId,
       status: event.settings.status,
       customStatus: serializeCustomStatus(event.settings.customStatus),
-      mobile: Platform.isAndroid || Platform.isIOS,
+      mobile: isFluxerMobileClient,
     );
     onUserSettingsHydrate?.call(event.settings);
   }
