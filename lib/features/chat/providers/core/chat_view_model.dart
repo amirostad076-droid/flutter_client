@@ -11,6 +11,7 @@ import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_session_recovery_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/talker.dart';
@@ -254,12 +255,16 @@ class ChatViewModel extends _$ChatViewModel {
   Timer? _jumpHighlightTimer;
   final Set<String> _loadedUnreadBoundaryKeys = <String>{};
   final _WindowContiguity _contiguity = _WindowContiguity();
+  bool _contiguityTrusted = false;
   void Function()? _removeReadAckStateListener;
   bool _autoAckEligible = false;
   int _foregroundResyncGeneration = 0;
+  int _connectivityGapGeneration = 0;
   final Map<String, int> _lastReconciledGatewayGenerationByChannel =
       <String, int>{};
   final Map<String, int> _lastReconciledForegroundGenerationByChannel =
+      <String, int>{};
+  final Map<String, int> _lastReconciledConnectivityGapGenerationByChannel =
       <String, int>{};
   // Guards against duplicate sends when send is triggered repeatedly before an
   // in-flight send finishes its async preparation (e.g. while the app lags).
@@ -293,15 +298,23 @@ class ChatViewModel extends _$ChatViewModel {
         chatReadViewportProvider,
         (_, next) => _syncReadAckEligibility(next),
       )
+      ..listen<bool>(gatewayReadyProvider, (bool? previous, bool next) {
+        if ((previous ?? false) && !next) {
+          _connectivityGapGeneration++;
+          _invalidateMessageCacheTrust();
+        }
+      })
       ..listen<int>(gatewaySessionRecoveryProvider, (int? previous, int next) {
         if (next <= 0 || previous == next) {
           return;
         }
+        _invalidateMessageCacheTrust();
         _onSessionNeedsMessageResync();
       })
       ..listen<bool>(appUiForegroundProvider, (bool? previous, bool next) {
         if (previous == false && next) {
           _foregroundResyncGeneration++;
+          _invalidateMessageCacheTrust();
           _onSessionNeedsMessageResync();
         }
       })
@@ -1033,7 +1046,7 @@ class ChatViewModel extends _$ChatViewModel {
         final bool willRefresh = _shouldRefreshChannelFromNetwork(channelId);
         state = _switchedChannelState(
           channelId: channelId,
-          messages: cached,
+          messages: willRefresh ? const [] : cached,
           draft: draft,
           replyMentioning: replyMentioning,
           scrollToBottomSignal: state.scrollToBottomSignal,
@@ -1044,8 +1057,10 @@ class ChatViewModel extends _$ChatViewModel {
           hasMoreMessages: cached.length >= _kPageSize,
           hasMoreNewerMessages: false,
         );
-        _contiguity.invalidate();
-        _deferMessageReferencesLoaded(channelId: channelId, messages: cached);
+        _invalidateMessageCacheTrust();
+        if (!willRefresh) {
+          _deferMessageReferencesLoaded(channelId: channelId, messages: cached);
+        }
         if (willRefresh) {
           unawaited(
             _refreshMessagesFromNetwork(
@@ -1202,13 +1217,23 @@ class ChatViewModel extends _$ChatViewModel {
       );
     }
     try {
-      final String? effectiveAroundMessageId =
-          targetMessageId ?? aroundMessageId;
+      String? effectiveAroundMessageId = targetMessageId ?? aroundMessageId;
+      int effectiveLimit = limit;
+      if (preserveLoadedWindow &&
+          state.messages.isNotEmpty &&
+          effectiveAroundMessageId == null) {
+        final VisibleWindowReconcileParams? windowParams =
+            reconcileParamsForVisibleWindow(window: state.messages);
+        if (windowParams != null) {
+          effectiveAroundMessageId = windowParams.aroundId;
+          effectiveLimit = windowParams.limit;
+        }
+      }
       final repo = ref.read(messageRepositoryProvider);
       final page = await repo.loadMessagePage(
         channelId: channelId,
         around: effectiveAroundMessageId,
-        limit: limit,
+        limit: effectiveLimit,
       );
       if (state.channelId != channelId || !shouldApply()) {
         return;
@@ -1253,7 +1278,7 @@ class ChatViewModel extends _$ChatViewModel {
       // can be shorter than [limit] while older history still exists.
       final bool hasMoreOlder = preserveLoadedWindow
           ? state.hasMoreMessages
-          : page.messages.length >= limit ||
+          : page.messages.length >= effectiveLimit ||
                 (effectiveAroundMessageId != null && page.messages.isNotEmpty);
       state = state.copyWith(
         messages: merged,
@@ -1267,6 +1292,7 @@ class ChatViewModel extends _$ChatViewModel {
       if (!preserveLoadedWindow) {
         _contiguity.setVerified(channelId, page.messages);
       }
+      _contiguityTrusted = true;
       _notifyMessageReferencesLoaded(
         channelId: channelId,
         messages: merged,
@@ -1282,10 +1308,12 @@ class ChatViewModel extends _$ChatViewModel {
       if (state.channelId != channelId || !shouldApply()) {
         return;
       }
+      final bool hasCachedMessages = state.messages.isNotEmpty;
       state = state.copyWith(
         isLoading: false,
         isSyncingMessages: false,
-        messageLoadFailed: state.messages.isEmpty,
+        messageLoadFailed: !hasCachedMessages,
+        errorMessage: hasCachedMessages ? 'Failed to sync messages' : null,
       );
     }
   }
@@ -1378,7 +1406,9 @@ class ChatViewModel extends _$ChatViewModel {
     try {
       final repo = ref.read(messageRepositoryProvider);
       talker.debug('[ChatPagination] older request oldest=$requestedBeforeId');
-      if (_contiguity.verified &&
+      if (_contiguityTrusted &&
+          !_messagesNeedResync(channelId) &&
+          _contiguity.verified &&
           _contiguity.channelId == channelId &&
           canServeOlderFromCache(
             windowOldestId: requestedBeforeId,
@@ -1451,6 +1481,7 @@ class ChatViewModel extends _$ChatViewModel {
           if (page.messages.isNotEmpty) {
             _contiguity.extendOlder(channelId, page.messages.first.id);
           }
+          _contiguityTrusted = true;
           state = state.copyWith(
             messages: window.messages,
             isLoadingMore: false,
@@ -1496,7 +1527,9 @@ class ChatViewModel extends _$ChatViewModel {
     try {
       final repo = ref.read(messageRepositoryProvider);
       talker.debug('[ChatPagination] newer request newest=$requestedAfterId');
-      if (_contiguity.verified &&
+      if (_contiguityTrusted &&
+          !_messagesNeedResync(channelId) &&
+          _contiguity.verified &&
           _contiguity.channelId == channelId &&
           canServeNewerFromCache(
             windowNewestId: requestedAfterId,
@@ -1580,6 +1613,7 @@ class ChatViewModel extends _$ChatViewModel {
           if (page.messages.isNotEmpty) {
             _contiguity.extendNewer(channelId, page.messages.last.id);
           }
+          _contiguityTrusted = true;
           state = state.copyWith(
             messages: window.messages,
             isLoadingNewer: false,
@@ -1656,6 +1690,7 @@ class ChatViewModel extends _$ChatViewModel {
         hasMoreNewerMessages: false,
       );
       _contiguity.setVerified(channelId, page.messages);
+      _contiguityTrusted = true;
       _notifyMessageReferencesLoaded(
         channelId: channelId,
         messages: merged,
@@ -2744,6 +2779,18 @@ class ChatViewModel extends _$ChatViewModel {
     if (pending != null) {
       return pending;
     }
+    final int messageIndex = state.messages.indexWhere(
+      (Message message) => message.id == messageId,
+    );
+    final Message? deletedSnapshot = messageIndex == -1
+        ? null
+        : state.messages[messageIndex];
+    final List<Message>? optimisticallyRemoved = _removeIds(state.messages, {
+      messageId,
+    });
+    if (optimisticallyRemoved != null) {
+      state = state.copyWith(messages: optimisticallyRemoved);
+    }
     final Future<void> deleteFuture = () async {
       try {
         await ref
@@ -2751,7 +2798,14 @@ class ChatViewModel extends _$ChatViewModel {
             .deleteMessage(channelId: state.channelId, messageId: messageId);
       } on Exception catch (e) {
         debugPrint('[ChatViewModel] Failed to delete message: $e');
-        state = state.copyWith(errorMessage: 'Failed to delete message');
+        if (deletedSnapshot != null) {
+          state = state.copyWith(
+            messages: mergeMessagesSorted(state.messages, [deletedSnapshot]),
+            errorMessage: 'Failed to delete message',
+          );
+        } else {
+          state = state.copyWith(errorMessage: 'Failed to delete message');
+        }
       } finally {
         unawaited(_pendingDeleteFutures.remove(messageId));
       }
@@ -2887,6 +2941,7 @@ class ChatViewModel extends _$ChatViewModel {
         hasMoreNewerMessages: hasMoreNewer,
       );
       _contiguity.setVerified(channelId, page.messages);
+      _contiguityTrusted = true;
       _notifyMessageReferencesLoaded(
         channelId: channelId,
         messages: page.messages,
@@ -3426,6 +3481,10 @@ class ChatViewModel extends _$ChatViewModel {
         _foregroundResyncGeneration) {
       return true;
     }
+    if ((_lastReconciledConnectivityGapGenerationByChannel[channelId] ?? -1) <
+        _connectivityGapGeneration) {
+      return true;
+    }
     return false;
   }
 
@@ -3435,6 +3494,13 @@ class ChatViewModel extends _$ChatViewModel {
     );
     _lastReconciledForegroundGenerationByChannel[channelId] =
         _foregroundResyncGeneration;
+    _lastReconciledConnectivityGapGenerationByChannel[channelId] =
+        _connectivityGapGeneration;
+  }
+
+  void _invalidateMessageCacheTrust() {
+    _contiguity.invalidate();
+    _contiguityTrusted = false;
   }
 
   void _markChannelNetworkRefresh(String channelId) {

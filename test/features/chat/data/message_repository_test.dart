@@ -173,6 +173,29 @@ void main() {
     final row = await db.messageDao.getMessage(messageId);
     expect(row?.isMentioned, isTrue);
   });
+
+  test('deleteMessage removes local row when server returns 404', () async {
+    final db = openTestDatabase();
+    const messageId = '1501554121113600000';
+    await db.messageDao.upsertMessage(
+      MessagesCompanion.insert(
+        id: messageId,
+        channelId: 'channel-1',
+        authorId: 'other',
+        content: 'hello',
+        timestamp: DateTime.utc(2026, 5, 6, 12),
+      ),
+    );
+    final adapter = _DeleteMessageAdapter(statusCode: 404);
+    final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
+      ..httpClientAdapter = adapter;
+    final client = FluxerClient(dio, baseUrl: 'https://api.fluxer.app/v1');
+    final repo = MessageRepository(client, dio, db, 'me');
+
+    await repo.deleteMessage(channelId: 'channel-1', messageId: messageId);
+
+    expect(await db.messageDao.getMessage(messageId), isNull);
+  });
 }
 
 class _CountingAdapter implements HttpClientAdapter {
@@ -196,6 +219,27 @@ class _CountingAdapter implements HttpClientAdapter {
           Headers.contentTypeHeader: ['application/json'],
         },
       );
+    }
+    return ResponseBody.fromString('nf', 404);
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
+class _DeleteMessageAdapter implements HttpClientAdapter {
+  _DeleteMessageAdapter({required this.statusCode});
+
+  final int statusCode;
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    if (options.method == 'DELETE' && options.uri.path.contains('/messages/')) {
+      return ResponseBody.fromString('missing', statusCode);
     }
     return ResponseBody.fromString('nf', 404);
   }

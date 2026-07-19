@@ -768,8 +768,10 @@ class MessageRepository {
         channelId: channelId,
         messageId: messageId,
       );
+      await _db.messageDao.deleteMessages([messageId]);
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
+        await _db.messageDao.deleteMessages([messageId]);
         return;
       }
       throw Exception(e.response?.statusMessage ?? 'Failed to delete message');

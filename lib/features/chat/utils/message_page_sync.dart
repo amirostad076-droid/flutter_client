@@ -179,3 +179,32 @@ bool canServeNewerFromCache({
   }
   return compareSnowflakeIds(contigNewestId, windowNewestId) > 0;
 }
+
+class VisibleWindowReconcileParams {
+  const VisibleWindowReconcileParams({
+    required this.aroundId,
+    required this.limit,
+  });
+
+  final String aroundId;
+  final int limit;
+}
+
+/// Network fetch anchor and page size that cover a scrolled-up in-memory window.
+VisibleWindowReconcileParams? reconcileParamsForVisibleWindow({
+  required List<Message> window,
+  int minLimit = 30,
+  int maxLimit = 100,
+  int padding = 20,
+}) {
+  final List<Message> serverBacked = window
+      .where((Message message) => !isLocalOnlyMessage(message))
+      .toList();
+  if (serverBacked.isEmpty) {
+    return null;
+  }
+  return VisibleWindowReconcileParams(
+    aroundId: serverBacked[serverBacked.length ~/ 2].id,
+    limit: (serverBacked.length + padding).clamp(minLimit, maxLimit),
+  );
+}

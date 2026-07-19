@@ -319,6 +319,28 @@ void main() {
     });
   });
 
+  group('visible window reconcile params', () {
+    test('anchors around the middle server-backed row', () {
+      final String idOlder = _snowflakeForUtc(DateTime.utc(2026, 5, 9, 12));
+      final VisibleWindowReconcileParams? params =
+          reconcileParamsForVisibleWindow(
+            window: [_message(idOlder), _message(idA), _message(idB)],
+          );
+      expect(params, isNotNull);
+      expect(params!.aroundId, idA);
+      expect(params.limit, greaterThanOrEqualTo(30));
+    });
+
+    test('returns null when the window has only local-only rows', () {
+      expect(
+        reconcileParamsForVisibleWindow(
+          window: [_message(idA, deliveryState: MessageDeliveryState.sending)],
+        ),
+        isNull,
+      );
+    });
+  });
+
   group('mergeMessagesSorted referential reuse', () {
     test('keeps the existing instance when render-equivalent', () {
       final Message existing = _message(idB);

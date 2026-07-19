@@ -656,6 +656,7 @@ class GatewayEventHandler {
         await database.rtcRegionsDao.clearAll();
         await database.guildEmojiDao.clearAll();
         await database.guildStickerDao.clearAll();
+        await database.messageDao.clearAll();
       }
 
       // Gateway never echoes the current user's own presence back.
