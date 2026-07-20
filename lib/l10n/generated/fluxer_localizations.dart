@@ -12594,6 +12594,12 @@ abstract class FluxerLocalizations {
   /// **'This will notify {count} online members. Continue?'**
   String mentionConfirmHereBody(int count);
 
+  /// Body of the large role mention confirmation dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'This will notify {count} members with the {roleName} role. Continue?'**
+  String mentionConfirmRoleBody(int count, String roleName);
+
   /// Confirm button label on the mention confirmation dialog.
   ///
   /// In en, this message translates to:

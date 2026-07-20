@@ -5,12 +5,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/limits/instance_limit_provider.dart';
 import 'package:fluxer_app/core/limits/limit_key.dart';
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/platform/fluxer_platform.dart';
 import 'package:fluxer_app/core/premium/should_show_premium_commerce_provider.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -1345,11 +1347,6 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     String channelId,
     String content,
   ) async {
-    final bool mentionsEveryone = content.contains('@everyone');
-    final bool mentionsHere = content.contains('@here');
-    if (!mentionsEveryone && !mentionsHere) {
-      return true;
-    }
     final String? guildId = ref.read(activeGuildIdProvider);
     if (guildId == null || guildId.isEmpty) {
       return true;
@@ -1367,7 +1364,28 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final int bits = await ref.read(
       effectiveGuildChannelPermissionBitsProvider(channelId).future,
     );
-    if (!hasPermission(bits, Permission.mentionEveryone)) {
+    final bool canMentionEveryone = hasPermission(
+      bits,
+      Permission.mentionEveryone,
+    );
+    final bool mentionsEveryone = content.contains('@everyone');
+    final bool mentionsHere = content.contains('@here');
+    final db.FluxerDatabase database = ref.read(fluxerDatabaseProvider);
+    final List<db.Member> members = await database.memberDao.getMembers(
+      guildId,
+    );
+    final List<db.Role> roles = await database.roleDao.getRoles(guildId);
+    final Map<String, db.Role> roleById = <String, db.Role>{
+      for (final db.Role role in roles) role.id: role,
+    };
+    final LargeRoleMentionImpact? roleImpact = largestLargeRoleMentionImpact(
+      members: members,
+      roleById: roleById,
+      guildId: guildId,
+      content: content,
+      canMentionEveryone: canMentionEveryone,
+    );
+    if (!mentionsEveryone && !mentionsHere && roleImpact == null) {
       return true;
     }
     if (!mounted) {
@@ -1375,10 +1393,19 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     }
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     String? description;
-    if (mentionsEveryone && guild.memberCount > kMentionConfirmThreshold) {
+    if (canMentionEveryone &&
+        mentionsEveryone &&
+        guild.memberCount > kMentionConfirmThreshold) {
       description = l10n.mentionConfirmEveryoneBody(guild.memberCount);
-    } else if (mentionsHere && guild.onlineCount > kMentionConfirmThreshold) {
+    } else if (canMentionEveryone &&
+        mentionsHere &&
+        guild.onlineCount > kMentionConfirmThreshold) {
       description = l10n.mentionConfirmHereBody(guild.onlineCount);
+    } else if (roleImpact != null) {
+      description = l10n.mentionConfirmRoleBody(
+        roleImpact.memberCount,
+        roleImpact.roleName,
+      );
     }
     if (description == null) {
       return true;

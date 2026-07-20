@@ -9451,6 +9451,18 @@
       }
     }
   },
+  "mentionConfirmRoleBody": "This will notify {count} members with the {roleName} role. Continue?",
+  "@mentionConfirmRoleBody": {
+    "description": "Body of the large role mention confirmation dialog.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "roleName": {
+        "type": "String"
+      }
+    }
+  },
   "mentionConfirmButton": "Mention",
   "@mentionConfirmButton": {
     "description": "Confirm button label on the mention confirmation dialog."

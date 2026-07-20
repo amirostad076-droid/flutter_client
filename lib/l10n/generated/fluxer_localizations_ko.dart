@@ -7190,6 +7190,11 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
   }
 
   @override
+  String mentionConfirmRoleBody(int count, String roleName) {
+    return 'This will notify $count members with the $roleName role. Continue?';
+  }
+
+  @override
   String get mentionConfirmButton => '멘션';
 
   @override

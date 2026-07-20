@@ -1,13 +1,11 @@
 import 'package:dio/dio.dart';
-import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/features/members/providers/guild_member_chunk_waiter.dart';
 import 'package:fluxer_app/shared/services/guild_member_hydration_service.dart';
 import 'package:fluxer_dart/export.dart';
 
 class NoopGuildMemberHydrationService extends GuildMemberHydrationService {
-  NoopGuildMemberHydrationService({required FluxerDatabase database})
+  NoopGuildMemberHydrationService({required super.database})
     : super(
-        database: database,
         client: FluxerClient(
           Dio(BaseOptions(baseUrl: 'https://test.fluxer.invalid/v1')),
         ),
