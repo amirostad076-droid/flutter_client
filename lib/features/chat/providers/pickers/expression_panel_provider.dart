@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/pickers/expression_picker.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/sticker_picker_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -12,8 +13,34 @@ class ExpressionPanel extends _$ExpressionPanel {
   bool build() => false;
 
   void open() => state = true;
-  void close() => state = false;
+
+  void close() {
+    state = false;
+    ref.read(expressionPanelTabProvider.notifier).reset();
+    ref.read(expressionPanelContentFadeProvider.notifier).reset();
+  }
+
   void toggle() => state = !state;
+}
+
+@Riverpod(keepAlive: true)
+class ExpressionPanelTab extends _$ExpressionPanelTab {
+  @override
+  ExpressionPickerTab build() => ExpressionPickerTab.emojis;
+
+  void select(ExpressionPickerTab tab) => state = tab;
+
+  void reset() => state = ExpressionPickerTab.emojis;
+}
+
+@Riverpod(keepAlive: true)
+class ExpressionPanelContentFade extends _$ExpressionPanelContentFade {
+  @override
+  bool build() => false;
+
+  void markPlayed() => state = true;
+
+  void reset() => state = false;
 }
 
 @Riverpod()

@@ -633,29 +633,12 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         ChannelAttachmentArea(channelId: channelId),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: ComposerAutocompleteField(
-            key: _composerFieldKey,
-            controller: _controller,
-            focusNode: _focusNode,
+          child: _buildComposerInput(
+            context: context,
+            chatNotifier: chatNotifier,
+            perms: perms,
             channelId: channelId,
-            enabled: perms.isComposerEnabled,
-            renderMode: widget.autocompletePanelHost != null
-                ? AutocompleteRenderMode.inStack
-                : AutocompleteRenderMode.overlay,
-            panelHost: widget.autocompletePanelHost,
-            panelScrollController: widget.autocompletePanelScrollController,
-            child: ResponsiveLayout(
-              builder: (context, mode) {
-                switch (mode) {
-                  case LayoutMode.desktop:
-                    return _buildLargeLayout(context, chatNotifier, perms);
-                  case LayoutMode.tablet:
-                    return _buildLargeLayout(context, chatNotifier, perms);
-                  case LayoutMode.mobile:
-                    return _buildMobileLayout(context, chatNotifier, perms);
-                }
-              },
-            ),
+            isPanelOpen: isPanelOpen,
           ),
         ),
         Container(
@@ -957,6 +940,43 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         );
       },
     );
+  }
+
+  Widget _buildComposerInput({
+    required BuildContext context,
+    required ChatViewModel chatNotifier,
+    required ChannelMessagePermissions perms,
+    required String channelId,
+    required bool isPanelOpen,
+  }) {
+    final Widget composerField = ComposerAutocompleteField(
+      key: _composerFieldKey,
+      controller: _controller,
+      focusNode: _focusNode,
+      channelId: channelId,
+      enabled: perms.isComposerEnabled,
+      renderMode: widget.autocompletePanelHost != null
+          ? AutocompleteRenderMode.inStack
+          : AutocompleteRenderMode.overlay,
+      panelHost: widget.autocompletePanelHost,
+      panelScrollController: widget.autocompletePanelScrollController,
+      child: ResponsiveLayout(
+        builder: (BuildContext context, LayoutMode mode) {
+          switch (mode) {
+            case LayoutMode.desktop:
+              return _buildLargeLayout(context, chatNotifier, perms);
+            case LayoutMode.tablet:
+              return _buildLargeLayout(context, chatNotifier, perms);
+            case LayoutMode.mobile:
+              return _buildMobileLayout(context, chatNotifier, perms);
+          }
+        },
+      ),
+    );
+    if (!isMobileLayout(context) || !isPanelOpen) {
+      return composerField;
+    }
+    return ExcludeFocus(child: composerField);
   }
 
   Widget _buildMobileLayout(

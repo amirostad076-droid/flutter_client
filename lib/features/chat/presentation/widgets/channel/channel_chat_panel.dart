@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -262,7 +264,7 @@ class _ChannelChatPanelState extends ConsumerState<ChannelChatPanel> {
                   ),
                 ],
               ),
-              if (isPanelOpen && sheetContentHeight > 0)
+              if (isPanelOpen)
                 Positioned(
                   left: 0,
                   right: 0,
@@ -270,7 +272,10 @@ class _ChannelChatPanelState extends ConsumerState<ChannelChatPanel> {
                     MediaQuery.of(context),
                   ),
                   child: ChatExpressionExpandableSheet(
-                    collapsedHeight: sheetContentHeight,
+                    collapsedHeight: math.max(
+                      sheetContentHeight,
+                      kExpressionPanelMinContentHeight,
+                    ),
                     dragHandleHeight: dragHandleHeight,
                     parentHeight: constraints.maxHeight,
                   ),
