@@ -21,11 +21,13 @@ import 'package:fluxer_app/features/chat/providers/messages/message_realtime_pro
 import 'package:fluxer_app/features/chat/utils/message_page_sync.dart';
 import 'package:fluxer_app/features/chat/utils/message_send_failure_messages.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
+import 'package:fluxer_app/shared/services/guild_member_hydration_service.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
 
 import '../../../../helpers/message_realtime_test_helpers.dart';
+import '../../../../helpers/noop_guild_member_hydration_service.dart';
 import '../../../../helpers/open_test_database.dart';
 
 String _snowflakeForUtc(DateTime utc) {
@@ -452,6 +454,9 @@ ProviderContainer _container(FluxerDatabase db, _SendAdapter adapter) {
         });
         return batcher;
       }),
+      guildMemberHydrationServiceProvider.overrideWithValue(
+        NoopGuildMemberHydrationService(database: db),
+      ),
     ],
   );
 }
