@@ -4485,6 +4485,7 @@ class _GuildTooltipContent extends StatelessWidget {
     }
     final String formattedDate = DateFormat(
       'MMM d, y h:mm a',
+      l10n.localeName,
     ).format(muteEndTime!);
     return l10n.guildNavbarMutedUntil(formattedDate);
   }

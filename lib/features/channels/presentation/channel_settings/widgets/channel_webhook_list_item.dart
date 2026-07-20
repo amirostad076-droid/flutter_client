@@ -23,8 +23,8 @@ import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/display_name.dart';
 import 'package:fluxer_app/shared/utils/image_utils.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
+import 'package:fluxer_app/shared/utils/user_date_formatting.dart';
 import 'package:fluxer_dart/export.dart';
-import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class ChannelWebhookListItem extends ConsumerStatefulWidget {
@@ -235,7 +235,7 @@ class _ChannelWebhookListItemState
     final DateTime createdAt = dateTimeFromSnowflakeAsLocalOrNow(
       widget.webhook.id,
     );
-    final String createdDate = DateFormat.yMMMd().format(createdAt);
+    final String createdDate = formatUserMediumDate(createdAt, l10n.localeName);
     final String? avatarUrl = resolveWebhookAvatarUrl(
       webhookId: widget.webhook.id,
       avatar: _effectiveAvatar?.isEmpty ?? true ? null : _effectiveAvatar,

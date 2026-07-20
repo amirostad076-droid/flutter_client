@@ -800,7 +800,11 @@ class _MarkdownInlineRenderer {
       case FluxerGuildNavigationSyntax.tag:
         return _buildGuildNavigationMention(node, effectiveStyle);
       case FluxerTimestampSyntax.tag:
-        final timestampText = _formatTimestampText(node);
+        final timestampText = _formatTimestampText(
+          node,
+          localeName: Localizations.localeOf(context).toLanguageTag(),
+          formatter: config.timestampFormatter,
+        );
         if (timestampText == null) {
           return const TextSpan(text: '');
         }
@@ -1630,7 +1634,11 @@ class FluxerEmojiWidget extends StatelessWidget {
   }
 }
 
-String? _formatTimestampText(md.Element element) {
+String? _formatTimestampText(
+  md.Element element, {
+  required String localeName,
+  FluxerTimestampFormatter? formatter,
+}) {
   final unix = int.tryParse(element.textContent);
   if (unix == null) {
     return null;
@@ -1638,36 +1646,18 @@ String? _formatTimestampText(md.Element element) {
 
   final dt = DateTime.fromMillisecondsSinceEpoch(unix * 1000);
   final flag = element.attributes['flag'] ?? 'f';
-  return switch (flag) {
-    's' => DateFormat.yMd().add_Hm().format(dt),
-    'S' => DateFormat.yMd().add_Hms().format(dt),
-    't' => DateFormat.Hm().format(dt),
-    'T' => DateFormat.Hms().format(dt),
-    'd' => DateFormat.yMd().format(dt),
-    'D' => DateFormat.yMMMMd().format(dt),
-    'F' => DateFormat.yMMMMEEEEd().add_Hm().format(dt),
-    'R' => _relative(dt),
-    _ => DateFormat.yMMMMd().add_Hm().format(dt),
-  };
-}
-
-String _relative(DateTime dt) {
-  final diff = dt.difference(DateTime.now());
-  final abs = diff.abs();
-  final future = !diff.isNegative;
-  final String label;
-  if (abs.inSeconds < 60) {
-    label = '${abs.inSeconds} seconds';
-  } else if (abs.inMinutes < 60) {
-    label = '${abs.inMinutes} minutes';
-  } else if (abs.inHours < 24) {
-    label = '${abs.inHours} hours';
-  } else if (abs.inDays < 30) {
-    label = '${abs.inDays} days';
-  } else if (abs.inDays < 365) {
-    label = '${abs.inDays ~/ 30} months';
-  } else {
-    label = '${abs.inDays ~/ 365} years';
+  if (formatter != null) {
+    return formatter(dt, flag);
   }
-  return future ? 'in $label' : '$label ago';
+  return switch (flag) {
+    's' => DateFormat.yMd(localeName).add_Hm().format(dt),
+    'S' => DateFormat.yMd(localeName).add_Hms().format(dt),
+    't' => DateFormat.Hm(localeName).format(dt),
+    'T' => DateFormat.Hms(localeName).format(dt),
+    'd' => DateFormat.yMd(localeName).format(dt),
+    'D' => DateFormat.yMMMMd(localeName).format(dt),
+    'F' => DateFormat.yMMMMEEEEd(localeName).add_Hm().format(dt),
+    'R' => DateFormat.yMMMd(localeName).add_Hm().format(dt),
+    _ => DateFormat.yMMMMd(localeName).add_Hm().format(dt),
+  };
 }

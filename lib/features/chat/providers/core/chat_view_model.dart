@@ -62,7 +62,7 @@ import 'package:fluxer_app/features/guilds/services/guild_verification.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/features/ui/input/inline_token_clipboard.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
-import 'package:fluxer_app/l10n/fluxer_localizations_utils.dart';
+import 'package:fluxer_app/l10n/app_locale_provider.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/emoji_registry.dart';
 import 'package:fluxer_app/shared/utils/guild_member_prefetch.dart';
@@ -2279,9 +2279,7 @@ class ChatViewModel extends _$ChatViewModel {
     if (claimed.isEmpty) {
       return;
     }
-    final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
-      PlatformDispatcher.instance.locale,
-    );
+    final FluxerLocalizations l10n = ref.read(appLocalizationsProvider);
     final List<Attachment> optimisticAttachments =
         buildUploadingPlaceholderAttachments(
           claimed: claimed,
@@ -2439,9 +2437,7 @@ class ChatViewModel extends _$ChatViewModel {
     if (hasPendingAttachments) {
       uploadNotifier.claimForMessage(clientNonce);
     }
-    final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
-      PlatformDispatcher.instance.locale,
-    );
+    final FluxerLocalizations l10n = ref.read(appLocalizationsProvider);
     final List<Attachment> optimisticAttachments = hasPendingAttachments
         ? buildUploadingPlaceholderAttachments(
             claimed: pendingAttachments,
@@ -2662,9 +2658,7 @@ class ChatViewModel extends _$ChatViewModel {
       case _SendBlockReason.empty:
         return;
       case _SendBlockReason.noPermission:
-        final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
-          PlatformDispatcher.instance.locale,
-        );
+        final FluxerLocalizations l10n = ref.read(appLocalizationsProvider);
         ref
             .read(toastProvider.notifier)
             .show(
@@ -2678,9 +2672,7 @@ class ChatViewModel extends _$ChatViewModel {
         if (blockReason == null) {
           return;
         }
-        final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
-          PlatformDispatcher.instance.locale,
-        );
+        final FluxerLocalizations l10n = ref.read(appLocalizationsProvider);
         ref
             .read(toastProvider.notifier)
             .show(
@@ -2692,9 +2684,7 @@ class ChatViewModel extends _$ChatViewModel {
       case _SendBlockReason.slowmode:
         ref.read(slowmodeIndicatorShakeProvider.notifier).requestShake();
       case _SendBlockReason.channelNotReady:
-        final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
-          PlatformDispatcher.instance.locale,
-        );
+        final FluxerLocalizations l10n = ref.read(appLocalizationsProvider);
         ref
             .read(toastProvider.notifier)
             .show(
@@ -2707,9 +2697,7 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   void _showUnexpectedSendError() {
-    final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
-      PlatformDispatcher.instance.locale,
-    );
+    final FluxerLocalizations l10n = ref.read(appLocalizationsProvider);
     ref
         .read(toastProvider.notifier)
         .show(
@@ -2721,9 +2709,7 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   void _handleSendFailure(String optimisticMessageId, Object error) {
-    final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
-      PlatformDispatcher.instance.locale,
-    );
+    final FluxerLocalizations l10n = ref.read(appLocalizationsProvider);
     final String failedMessage = l10n.chatMessageFailedToSend;
     final int optimisticIndex = state.messages.indexWhere(
       (Message m) => m.id == optimisticMessageId,
@@ -2841,9 +2827,7 @@ class ChatViewModel extends _$ChatViewModel {
       state = state.copyWith(messages: nextMessages);
     } on Object catch (e) {
       debugPrint('[ChatViewModel] Retry failed: $e');
-      final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
-        PlatformDispatcher.instance.locale,
-      );
+      final FluxerLocalizations l10n = ref.read(appLocalizationsProvider);
       final String failedMessage = l10n.chatMessageFailedToSend;
       final List<Message> nextMessages = List<Message>.from(state.messages);
       final int latestIndex = nextMessages.indexWhere(
@@ -3242,9 +3226,7 @@ class ChatViewModel extends _$ChatViewModel {
         '[ChatViewModel] edit save noop messageId=${editingMessage.id}',
       );
       state = state.copyWith(editingMessage: null);
-      final FluxerLocalizations l10n = lookupFluxerLocalizationsWithFallback(
-        PlatformDispatcher.instance.locale,
-      );
+      final FluxerLocalizations l10n = ref.read(appLocalizationsProvider);
       ref
           .read(toastProvider.notifier)
           .show(

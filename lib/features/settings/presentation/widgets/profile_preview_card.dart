@@ -15,8 +15,8 @@ import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
+import 'package:fluxer_app/shared/utils/user_date_formatting.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
-import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const double _kBannerHeight = 100;
@@ -449,7 +449,7 @@ class _ProfilePreviewCardState extends State<ProfilePreviewCard> {
         ),
         const SizedBox(height: 4),
         Text(
-          DateFormat.yMMMd().format(date.toLocal()),
+          formatUserMediumDate(date.toLocal(), l10n.localeName),
           style: textStyles.bodySmall.copyWith(color: colors.textChat),
         ),
       ],

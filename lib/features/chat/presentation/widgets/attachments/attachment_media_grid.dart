@@ -362,7 +362,7 @@ class AttachmentMediaGrid extends StatelessWidget {
       return '';
     }
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-    final DateFormat dateFormat = DateFormat('dd MMM, yyyy');
+    final DateFormat dateFormat = DateFormat('dd MMM, yyyy', l10n.localeName);
     final String earliest = dateFormat.format(dates.first);
     final String latest = dateFormat.format(dates.last);
     if (earliest == latest) {

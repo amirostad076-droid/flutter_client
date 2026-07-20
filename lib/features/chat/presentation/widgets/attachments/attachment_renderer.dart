@@ -53,10 +53,11 @@ class AttachmentRenderer extends StatelessWidget {
     );
     final Widget content = _buildContent(renderState);
     final DateTime? expiresAt = attachment.expiresAt;
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     final String? expiryFootnoteText = expiresAt == null
         ? null
-        : FluxerLocalizations.of(context).chatAttachmentExpiresOn(
-            DateFormat('dd MMM, yyyy').format(expiresAt),
+        : l10n.chatAttachmentExpiresOn(
+            DateFormat('dd MMM, yyyy', l10n.localeName).format(expiresAt),
           );
     return Padding(
       padding: const EdgeInsets.only(top: 2),
