@@ -1594,11 +1594,11 @@ class ChatViewModel extends _$ChatViewModel {
         final newerInRange = cachedPage
             .where((m) => compareSnowflakeIds(m.id, _contiguity.newestId) <= 0)
             .toList();
-        if (newerInRange.isNotEmpty) {
-          // Short cached ranges under verified contiguity are exhaustion, not
-          // an orphaned-pointer signal.
+        if (newerInRange.isNotEmpty &&
+            newerInRange.length == cachedPage.length) {
+          // A partial cache page means the contiguity filter clipped verified-
+          // local rows; fall through to network instead of sealing the tail.
           final bool pageIndicatesMoreNewer =
-              newerInRange.length >= _kPageSize &&
               await _hasNewerMessagesThanChannel(newerInRange.last.id);
           if (state.channelId != channelId) {
             return;

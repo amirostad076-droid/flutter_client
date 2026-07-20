@@ -76,6 +76,17 @@ List<Map<String, Object?>> _channelMessages(
     ),
 ];
 
+MessagesCompanion _cachedMessage({
+  required String id,
+  required String channelId,
+}) => MessagesCompanion.insert(
+  id: id,
+  channelId: channelId,
+  authorId: 'other',
+  content: 'message $id',
+  timestamp: dateTimeFromUserSnowflakeOrNull(id)!,
+);
+
 void _emitCreatedMessage(ProviderContainer container, {required String id}) {
   container
       .read(messageRealtimeBusProvider)
@@ -577,6 +588,65 @@ void main() {
     expect(after.isSyncingMessages, isFalse);
   });
 
+  test(
+    'loadNewer keeps paging after a contiguity-truncated cache page',
+    () async {
+      final db = openTestDatabase();
+      final List<Map<String, Object?>> all = _channelMessages('channel-1', 500);
+      final String targetId = all[100]['id']! as String;
+      final String latestId = all.last['id']! as String;
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(latestId),
+        ),
+      );
+      for (final Map<String, Object?> message in all) {
+        await db.messageDao.upsertMessage(
+          _cachedMessage(id: message['id']! as String, channelId: 'channel-1'),
+        );
+      }
+      final adapter = _PaginatingAdapter(
+        messagesByChannel: {'channel-1': all},
+        pageLimit: 30,
+      );
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1', targetMessageId: targetId);
+      await _flushAsync();
+
+      var state = container.read(chatViewModelProvider);
+      expect(state.hasMoreNewerMessages, isTrue);
+
+      for (var i = 0; i < 8; i++) {
+        if (!state.hasMoreMessages) {
+          break;
+        }
+        await notifier.loadMore();
+        await _flushAsync();
+        state = container.read(chatViewModelProvider);
+      }
+      expect(state.hasMoreNewerMessages, isTrue);
+      expect(state.messages.length, lessThanOrEqualTo(kMaxLoadedMessages));
+
+      final String tailBefore = state.messages.last.id;
+      await notifier.loadNewer();
+      await _flushAsync();
+
+      final ChatViewState after = container.read(chatViewModelProvider);
+      expect(after.hasMoreNewerMessages, isTrue);
+      expect(
+        int.parse(after.messages.last.id),
+        greaterThan(int.parse(tailBefore)),
+      );
+      expect(adapter.afterFetchCount, greaterThan(0));
+    },
+  );
+
   test('refreshAfterSessionRecovery preserves a scrolled-up window', () async {
     final db = openTestDatabase();
     // Newest message far ahead so the loaded window stays in history.
@@ -669,6 +739,7 @@ class _PaginatingAdapter implements HttpClientAdapter {
   bool holdBeforeFetch = false;
   bool holdAroundFetch = false;
   int aroundFetchCount = 0;
+  int afterFetchCount = 0;
   Completer<void>? _beforeCompleter;
   Completer<void>? _aroundCompleter;
 
@@ -703,6 +774,7 @@ class _PaginatingAdapter implements HttpClientAdapter {
       final channelId = match.group(1)!;
       final all = messagesByChannel[channelId] ?? const [];
       final before = options.uri.queryParameters['before'];
+      final after = options.uri.queryParameters['after'];
       final around = options.uri.queryParameters['around'];
       if (around != null) {
         aroundFetchCount++;
@@ -723,6 +795,12 @@ class _PaginatingAdapter implements HttpClientAdapter {
         page = older.length <= pageLimit
             ? older
             : older.sublist(older.length - pageLimit);
+      } else if (after != null) {
+        afterFetchCount++;
+        final newer = all
+            .where((m) => _compare(m['id']! as String, after) > 0)
+            .toList();
+        page = newer.length <= pageLimit ? newer : newer.sublist(0, pageLimit);
       } else if (around != null) {
         final aroundIndex = all.indexWhere((m) => m['id'] == around);
         if (aroundIndex == -1) {

@@ -440,6 +440,9 @@ class _MessageListState extends ConsumerState<MessageList> {
         prev.isNotEmpty &&
         next.isNotEmpty) {
       final LeadingEdgeDelta delta = computeLeadingEdgeKeyDelta(prev, next);
+      if (delta.isUnchanged && !listEquals(prev, next)) {
+        _edgeLoadTrigger.reset();
+      }
       if (delta.addedNewest > 0) {
         final bool nearTail = _isLiveNearBottom();
         // Near-tail appends must reveal newest even when no viewport shrink
@@ -1347,6 +1350,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       }
       // Cancellation defers the publish to ScrollEnd or the replacement jump.
       if (naturalCompletion) {
+        _edgeLoadTrigger.reset();
         _publishReadViewportAfterJumpSettle();
       }
     }
