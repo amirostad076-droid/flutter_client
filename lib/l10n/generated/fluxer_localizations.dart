@@ -7600,6 +7600,18 @@ abstract class FluxerLocalizations {
   /// **'Do nothing, I don\'t want to join'**
   String get voiceConnectionConfirmDoNothing;
 
+  /// Title for the modal shown when a voice join attempt fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t Join Voice'**
+  String get voiceJoinFailedTitle;
+
+  /// Shown when switch-to-this-device times out waiting for other sessions to leave.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t disconnect your other devices. Try again in a moment.'**
+  String get voiceMultiDeviceDisconnectFailed;
+
   /// Empty state body when viewing a guild voice channel while not in the call.
   ///
   /// In en, this message translates to:

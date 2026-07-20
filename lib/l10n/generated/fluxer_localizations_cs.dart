@@ -4519,6 +4519,13 @@ class FluxerLocalizationsCs extends FluxerLocalizations {
       'Nedělat nic, nechci se připojit';
 
   @override
+  String get voiceJoinFailedTitle => 'Couldn\'t Join Voice';
+
+  @override
+  String get voiceMultiDeviceDisconnectFailed =>
+      'Couldn\'t disconnect your other devices. Try again in a moment.';
+
+  @override
   String get voiceChannelEmptyDescription =>
       'Toto je hlasový kanál. Připojte se a začněte mluvit!';
 

@@ -330,12 +330,16 @@ class VoiceSession extends _$VoiceSession {
 
   Room? get _room => state.liveKitRoom;
 
+  void reportJoinError(String errorMessage) {
+    state = state.copyWith(errorMessage: errorMessage);
+  }
+
   /// Joins a voice channel; the gateway responds with [VoiceServerUpdateEvent],
   /// which is forwarded to [handleVoiceServerUpdate].
   ///
   /// [ringSilently] (with [startOutgoingCall]): POST
   /// ring with an empty recipient list.
-  Future<void> connectToVoiceChannel({
+  Future<bool> connectToVoiceChannel({
     required String? guildId,
     required String channelId,
     bool startOutgoingCall = false,
@@ -344,13 +348,34 @@ class VoiceSession extends _$VoiceSession {
     bool initialSelfMute = false,
     bool initialSelfDeaf = false,
     bool initialSelfVideo = false,
+    bool forceJoin = false,
   }) async {
     _startWithVideoAfterConnect = false;
     talker.info(
       '[Voice] Join requested (guildId=$guildId, channelId=$channelId, '
-      'startOutgoingCall=$startOutgoingCall).',
+      'startOutgoingCall=$startOutgoingCall, forceJoin=$forceJoin).',
     );
-    if (_shouldSkipDuplicateJoin(channelId)) {
+    if (forceJoin) {
+      await _clearStaleVoiceSessionIfNeeded(channelId);
+      if (_hasLiveConnectionToChannel(channelId)) {
+        talker.info(
+          '[Voice] Force join skipped: already live on channelId=$channelId.',
+        );
+        return true;
+      }
+      if (voiceSessionIsJoinInFlight(
+        state: state,
+        channelId: channelId,
+        expectedChannelId: _expectedChannelId,
+        liveKitConnectInFlight: _connectLiveKitInFlight != null,
+      )) {
+        talker.warning(
+          '[Voice] Force join: clearing in-flight session for '
+          'channelId=$channelId.',
+        );
+        await leaveVoice(endCall: false);
+      }
+    } else if (_shouldSkipDuplicateJoin(channelId)) {
       if (_hasLiveConnectionToChannel(channelId)) {
         talker.info(
           '[Voice] Join skipped: already connected to channelId=$channelId.',
@@ -361,9 +386,11 @@ class VoiceSession extends _$VoiceSession {
           'channelId=$channelId.',
         );
       }
-      return;
+      return false;
     }
-    await _clearStaleVoiceSessionIfNeeded(channelId);
+    if (!forceJoin) {
+      await _clearStaleVoiceSessionIfNeeded(channelId);
+    }
     final bool micOk = await _ensureSystemPermissionForVoice(
       SystemPermissionKind.microphone,
       deniedErrorCode: kVoiceSessionErrorMicPermission,
@@ -373,7 +400,7 @@ class VoiceSession extends _$VoiceSession {
         '[Voice] Join aborted: microphone permission denied '
         '(channelId=$channelId).',
       );
-      return;
+      return false;
     }
     if (guildId != null) {
       int? permissionBits = ref
@@ -402,16 +429,17 @@ class VoiceSession extends _$VoiceSession {
         state = state.copyWith(
           errorMessage: kVoiceSessionErrorNoConnectPermission,
         );
-        return;
+        return false;
       }
     }
     final DateTime now = DateTime.now();
-    if (_lastConnectRequestAt != null &&
+    if (!forceJoin &&
+        _lastConnectRequestAt != null &&
         now.difference(_lastConnectRequestAt!) < const Duration(seconds: 1)) {
       talker.warning(
         '[Voice] Connect request throttled (< 1s since last attempt).',
       );
-      return;
+      return false;
     }
     final GatewayConnection gateway = ref.read(gatewayConnectionProvider);
     if (gateway.state != GatewayState.connected) {
@@ -426,7 +454,7 @@ class VoiceSession extends _$VoiceSession {
             'Chat is reconnecting. Please wait until you are online, then try '
             'again.',
       );
-      return;
+      return false;
     }
     _lastConnectRequestAt = now;
     _startWithVideoAfterConnect = initialSelfVideo;
@@ -518,9 +546,10 @@ class VoiceSession extends _$VoiceSession {
         clearActiveConnectionId: true,
         clearRoom: true,
       );
-      return;
+      return false;
     }
     _armConnectWatchdog(_connectGeneration);
+    return true;
   }
 
   void handleVoiceServerUpdate(VoiceServerUpdateEvent event) {

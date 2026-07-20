@@ -5756,6 +5756,14 @@
   "@voiceConnectionConfirmDoNothing": {
     "description": "Dismiss the dialog without joining voice."
   },
+  "voiceJoinFailedTitle": "Couldn't Join Voice",
+  "@voiceJoinFailedTitle": {
+    "description": "Title for the modal shown when a voice join attempt fails."
+  },
+  "voiceMultiDeviceDisconnectFailed": "Couldn't disconnect your other devices. Try again in a moment.",
+  "@voiceMultiDeviceDisconnectFailed": {
+    "description": "Shown when switch-to-this-device times out waiting for other sessions to leave."
+  },
   "voiceChannelEmptyDescription": "This is a voice channel. Connect to start talking!",
   "@voiceChannelEmptyDescription": {
     "description": "Empty state body when viewing a guild voice channel while not in the call."

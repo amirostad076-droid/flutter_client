@@ -4543,6 +4543,13 @@ class FluxerLocalizationsHu extends FluxerLocalizations {
       'Ne csinálj semmit, nem akarok csatlakozni';
 
   @override
+  String get voiceJoinFailedTitle => 'Couldn\'t Join Voice';
+
+  @override
+  String get voiceMultiDeviceDisconnectFailed =>
+      'Couldn\'t disconnect your other devices. Try again in a moment.';
+
+  @override
   String get voiceChannelEmptyDescription =>
       'Ez egy hangcsatorna. Csatlakozz, hogy beszélhess!';
 

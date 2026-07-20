@@ -4528,6 +4528,13 @@ class FluxerLocalizationsCy extends FluxerLocalizations {
       'Peidio gwneud dim, nid wyf am ymuno';
 
   @override
+  String get voiceJoinFailedTitle => 'Couldn\'t Join Voice';
+
+  @override
+  String get voiceMultiDeviceDisconnectFailed =>
+      'Couldn\'t disconnect your other devices. Try again in a moment.';
+
+  @override
   String get voiceChannelEmptyDescription =>
       'Dyma sianel lais. Cysylltwch i ddechrau siarad!';
 

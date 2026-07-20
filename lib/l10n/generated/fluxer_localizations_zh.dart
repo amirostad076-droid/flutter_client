@@ -4279,6 +4279,13 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get voiceConnectionConfirmDoNothing => '什么都不做，我不想加入';
 
   @override
+  String get voiceJoinFailedTitle => 'Couldn\'t Join Voice';
+
+  @override
+  String get voiceMultiDeviceDisconnectFailed =>
+      'Couldn\'t disconnect your other devices. Try again in a moment.';
+
+  @override
   String get voiceChannelEmptyDescription => '这是一个语音频道。连接后即可开始交谈！';
 
   @override

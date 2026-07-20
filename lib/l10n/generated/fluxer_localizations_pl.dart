@@ -4540,6 +4540,13 @@ class FluxerLocalizationsPl extends FluxerLocalizations {
       'Nie rób nic, nie chcę dołączać';
 
   @override
+  String get voiceJoinFailedTitle => 'Couldn\'t Join Voice';
+
+  @override
+  String get voiceMultiDeviceDisconnectFailed =>
+      'Couldn\'t disconnect your other devices. Try again in a moment.';
+
+  @override
   String get voiceChannelEmptyDescription =>
       'To jest kanał głosowy. Połącz się, aby zacząć rozmawiać!';
 

@@ -4508,6 +4508,13 @@ class FluxerLocalizationsFa extends FluxerLocalizations {
       'کاری انجام ندهید، نمی‌خواهم ملحق شوم';
 
   @override
+  String get voiceJoinFailedTitle => 'Couldn\'t Join Voice';
+
+  @override
+  String get voiceMultiDeviceDisconnectFailed =>
+      'Couldn\'t disconnect your other devices. Try again in a moment.';
+
+  @override
   String get voiceChannelEmptyDescription =>
       'این یک کانال صوتی است. برای شروع صحبت کردن وصل شوید!';
 

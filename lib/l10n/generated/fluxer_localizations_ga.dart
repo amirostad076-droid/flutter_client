@@ -4539,6 +4539,13 @@ class FluxerLocalizationsGa extends FluxerLocalizations {
       'Ná déan rud ar bith, níl mé ag iarraidh ceangal';
 
   @override
+  String get voiceJoinFailedTitle => 'Couldn\'t Join Voice';
+
+  @override
+  String get voiceMultiDeviceDisconnectFailed =>
+      'Couldn\'t disconnect your other devices. Try again in a moment.';
+
+  @override
   String get voiceChannelEmptyDescription =>
       'Is cainéal guth é seo. Ceangail chun tosú ag caint!';
 

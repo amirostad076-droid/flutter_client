@@ -4522,6 +4522,13 @@ class FluxerLocalizationsTr extends FluxerLocalizations {
       'Hiçbir şey yapma, katılmak istemiyorum';
 
   @override
+  String get voiceJoinFailedTitle => 'Couldn\'t Join Voice';
+
+  @override
+  String get voiceMultiDeviceDisconnectFailed =>
+      'Couldn\'t disconnect your other devices. Try again in a moment.';
+
+  @override
   String get voiceChannelEmptyDescription =>
       'Bu bir sesli kanal. Konuşmaya başlamak için bağlanın!';
 

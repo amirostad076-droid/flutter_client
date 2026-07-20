@@ -4569,6 +4569,13 @@ class FluxerLocalizationsSk extends FluxerLocalizations {
       'Nerobiť nič, nechcem sa pripojiť';
 
   @override
+  String get voiceJoinFailedTitle => 'Couldn\'t Join Voice';
+
+  @override
+  String get voiceMultiDeviceDisconnectFailed =>
+      'Couldn\'t disconnect your other devices. Try again in a moment.';
+
+  @override
   String get voiceChannelEmptyDescription =>
       'Toto je hlasový kanál. Pripojte sa a začnite hovoriť!';
 

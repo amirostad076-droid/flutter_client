@@ -4527,6 +4527,13 @@ class FluxerLocalizationsSl extends FluxerLocalizations {
       'Ne naredi nič, ne želim se pridružiti';
 
   @override
+  String get voiceJoinFailedTitle => 'Couldn\'t Join Voice';
+
+  @override
+  String get voiceMultiDeviceDisconnectFailed =>
+      'Couldn\'t disconnect your other devices. Try again in a moment.';
+
+  @override
   String get voiceChannelEmptyDescription =>
       'To je glasovni kanal. Povežite se, da začnete govoriti!';
 

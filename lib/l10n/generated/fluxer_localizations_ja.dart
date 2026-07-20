@@ -4364,6 +4364,13 @@ class FluxerLocalizationsJa extends FluxerLocalizations {
   String get voiceConnectionConfirmDoNothing => '何もしない（参加しない）';
 
   @override
+  String get voiceJoinFailedTitle => 'Couldn\'t Join Voice';
+
+  @override
+  String get voiceMultiDeviceDisconnectFailed =>
+      'Couldn\'t disconnect your other devices. Try again in a moment.';
+
+  @override
   String get voiceChannelEmptyDescription => 'これはボイスチャンネルです。話すには接続してください！';
 
   @override

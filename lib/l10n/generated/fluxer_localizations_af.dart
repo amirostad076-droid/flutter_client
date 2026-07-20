@@ -4521,6 +4521,13 @@ class FluxerLocalizationsAf extends FluxerLocalizations {
       'Moenie iets doen nie, ek wil nie aansluit nie';
 
   @override
+  String get voiceJoinFailedTitle => 'Couldn\'t Join Voice';
+
+  @override
+  String get voiceMultiDeviceDisconnectFailed =>
+      'Couldn\'t disconnect your other devices. Try again in a moment.';
+
+  @override
   String get voiceChannelEmptyDescription =>
       'Dit is \'n stemkanaal. Koppel om te begin praat!';
 

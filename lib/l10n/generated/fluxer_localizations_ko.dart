@@ -4352,6 +4352,13 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
   String get voiceConnectionConfirmDoNothing => '아무것도 안 함, 참여하고 싶지 않음';
 
   @override
+  String get voiceJoinFailedTitle => 'Couldn\'t Join Voice';
+
+  @override
+  String get voiceMultiDeviceDisconnectFailed =>
+      'Couldn\'t disconnect your other devices. Try again in a moment.';
+
+  @override
   String get voiceChannelEmptyDescription => '음성 채널입니다. 대화를 시작하려면 연결하세요!';
 
   @override

@@ -4558,6 +4558,13 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
       'Να μην γίνει τίποτα, δεν θέλω να συνδεθώ';
 
   @override
+  String get voiceJoinFailedTitle => 'Couldn\'t Join Voice';
+
+  @override
+  String get voiceMultiDeviceDisconnectFailed =>
+      'Couldn\'t disconnect your other devices. Try again in a moment.';
+
+  @override
   String get voiceChannelEmptyDescription =>
       'Αυτό είναι ένα φωνητικό κανάλι. Συνδεθείτε για να αρχίσετε να μιλάτε!';
 

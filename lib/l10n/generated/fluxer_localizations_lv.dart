@@ -4520,6 +4520,13 @@ class FluxerLocalizationsLv extends FluxerLocalizations {
       'Neko nedarīt, es nevēlos pievienoties';
 
   @override
+  String get voiceJoinFailedTitle => 'Couldn\'t Join Voice';
+
+  @override
+  String get voiceMultiDeviceDisconnectFailed =>
+      'Couldn\'t disconnect your other devices. Try again in a moment.';
+
+  @override
   String get voiceChannelEmptyDescription =>
       'Šis ir balss kanāls. Savienojieties, lai sāktu runāt!';
 
