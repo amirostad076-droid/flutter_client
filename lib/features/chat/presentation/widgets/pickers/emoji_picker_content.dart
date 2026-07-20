@@ -262,7 +262,7 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
   void _onEmojiSelected(EmojiEntry emoji) {
     final hasTone = widget.skinTone.isNotEmpty && emoji.hasDiversity;
     final surrogates = hasTone
-        ? emoji.surrogates + widget.skinTone
+        ? EmojiRegistry.resolveSkinToneSurrogates(emoji, widget.skinTone)
         : emoji.surrogates;
     if (widget.trackUsageOnSelect) {
       unawaited(

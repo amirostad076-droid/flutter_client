@@ -5,13 +5,13 @@ import 'dart:ui' as ui;
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:fluxer_app/core/media/fluxer_media_cdn.dart';
 import 'package:fluxer_app/shared/utils/emoji_utils.dart';
 
 const _kSpriteSize = 32;
 const _kNonDiversitySpritesPerRow = 42;
 const _kDiversitySpritesPerRow = 10;
-const _kSpriteBase = 'https://fluxerstatic.com/emoji';
-const _kSpriteVersion = '2';
+const _kSpriteVersion = '3';
 
 const Map<String, String> _kSpriteSheetNames = {
   'default': 'spritesheet-emoji',
@@ -23,7 +23,7 @@ const Map<String, String> _kSpriteSheetNames = {
 };
 
 String _buildSpriteSheetUrl(String name) =>
-    '$_kSpriteBase/$name@2x.png?v=$_kSpriteVersion';
+    '$fluxerStaticCdn/emoji/$name@2x.png?v=$_kSpriteVersion';
 
 String _spriteSheetKeyForSkinTone(String? skinTone) {
   if (skinTone == null || skinTone.isEmpty) {
