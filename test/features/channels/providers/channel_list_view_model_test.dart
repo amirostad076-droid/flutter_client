@@ -22,9 +22,11 @@ void main() {
         channelRepositoryProvider.overrideWithValue(
           _FakeChannelRepository(controllers),
         ),
-        channelPermissionCacheProvider.overrideWithValue(<String, int>{
-          'c1': Permission.viewChannel.value,
-        }),
+        channelPermissionCacheProvider.overrideWithValue(
+          ChannelPermissionCaches(
+            effective: <String, int>{'c1': Permission.viewChannel.value},
+          ),
+        ),
       ],
     );
     addTearDown(container.dispose);

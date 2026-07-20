@@ -461,7 +461,7 @@ class _ChannelTile extends ConsumerWidget {
         .value;
     final int? effectivePermissionBits = ref.watch(
       channelPermissionCacheProvider.select(
-        (Map<String, int> map) => map[channel.id],
+        (ChannelPermissionCaches caches) => caches[channel.id],
       ),
     );
 

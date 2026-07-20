@@ -5,8 +5,8 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/audio/enums/fluxer_sfx_clip.dart';
-import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
+import 'package:fluxer_app/core/permissions/channel_permission_reads.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/platform/fluxer_platform.dart';
 import 'package:fluxer_app/core/providers/fluxer_sfx_provider.dart';
@@ -110,9 +110,9 @@ class VoiceSession extends _$VoiceSession {
   VoiceSessionState build() {
     ref
       ..onDispose(_teardownOnDispose)
-      ..listen<Map<String, int>>(channelPermissionCacheProvider, (
-        Map<String, int>? _,
-        Map<String, int> _,
+      ..listen<ChannelPermissionCaches>(channelPermissionCacheProvider, (
+        ChannelPermissionCaches? _,
+        ChannelPermissionCaches _,
       ) {
         unawaited(_onChannelPermissionsChanged());
       })
@@ -410,18 +410,21 @@ class VoiceSession extends _$VoiceSession {
         await ref
             .read(channelPermissionCacheProvider.notifier)
             .rebuildChannel(channelId);
+        if (!ref.mounted) {
+          return false;
+        }
         permissionBits = ref
             .read(channelPermissionCacheProvider.notifier)
             .getChannelBits(channelId);
       }
-      final int? localConnectBits = await ref.read(
-        channelLocalGuildChannelPermissionBitsProvider(channelId).future,
+      final int localConnectBits = await readLocalGuildChannelPermissionBitsRef(
+        ref: ref,
+        channelId: channelId,
       );
-      if ((localConnectBits ?? permissionBits) != null &&
-          !hasPermission(
-            localConnectBits ?? permissionBits!,
-            Permission.connect,
-          )) {
+      if (!ref.mounted) {
+        return false;
+      }
+      if (!hasPermission(localConnectBits, Permission.connect)) {
         talker.warning(
           '[Voice] Join aborted: missing Connect permission '
           '(channelId=$channelId, guildId=$guildId).',
@@ -1159,7 +1162,16 @@ class VoiceSession extends _$VoiceSession {
     if (channelId != null) {
       _clearOutgoingCallInitiator(channelId);
     }
-    await _disconnectRoomOnly(guildId: guildId, connectionId: connectionId);
+    if (connectionId != null && guildId != null) {
+      _sendVoiceDisconnectState(guildId: guildId, connectionId: connectionId);
+    } else if (channelId != null) {
+      _sendVoiceLeaveChannelState(guildId: guildId);
+    }
+    await _disconnectRoomOnly(
+      guildId: guildId,
+      connectionId: connectionId,
+      skipGatewayDisconnect: true,
+    );
     state = const VoiceSessionState();
     if (endCall && channelId != null) {
       try {
@@ -1205,6 +1217,7 @@ class VoiceSession extends _$VoiceSession {
   Future<void> _disconnectRoomOnly({
     String? guildId,
     String? connectionId,
+    bool skipGatewayDisconnect = false,
   }) async {
     _detachRoomEventsListener();
     _detachLocalParticipantListener();
@@ -1215,10 +1228,12 @@ class VoiceSession extends _$VoiceSession {
     if (roomToDisconnect == null) {
       return;
     }
-    _sendVoiceDisconnectState(
-      guildId: guildId ?? sessionState.guildId,
-      connectionId: connectionId ?? sessionState.activeConnectionId,
-    );
+    if (!skipGatewayDisconnect) {
+      _sendVoiceDisconnectState(
+        guildId: guildId ?? sessionState.guildId,
+        connectionId: connectionId ?? sessionState.activeConnectionId,
+      );
+    }
     state = state.copyWith(clearRoom: true, clearE2eeKey: true);
     await _disconnectAndDisposeRoom(roomToDisconnect);
   }
@@ -1240,6 +1255,21 @@ class VoiceSession extends _$VoiceSession {
             selfVideo: false,
             selfStream: false,
             connectionId: connectionId,
+            isMobile: isFluxerMobileOs,
+          ),
+        );
+  }
+
+  void _sendVoiceLeaveChannelState({required String? guildId}) {
+    ref
+        .read(gatewayConnectionProvider)
+        .updateVoiceState(
+          GatewayVoiceStateUpdate(
+            guildId: guildId,
+            selfMute: false,
+            selfDeaf: false,
+            selfVideo: false,
+            selfStream: false,
             isMobile: isFluxerMobileOs,
           ),
         );

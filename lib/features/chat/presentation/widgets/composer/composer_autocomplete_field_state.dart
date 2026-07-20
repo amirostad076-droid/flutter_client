@@ -62,7 +62,7 @@ class ComposerAutocompleteFieldState
   ProviderSubscription<AsyncValue<Map<String, db.Role>>>?
   _guildRolesSubscription;
   String? _guildRolesWatchGuildId;
-  ProviderSubscription<Map<String, int>>? _channelPermissionSubscription;
+  ProviderSubscription<ChannelPermissionCaches>? _channelPermissionSubscription;
   String? _channelPermissionWatchChannelId;
 
   String get _channelId => widget.channelId ?? '';
@@ -207,8 +207,9 @@ class ComposerAutocompleteFieldState
     if (cached != null) {
       return cached;
     }
-    return ref.read(
-      effectiveGuildChannelPermissionBitsProvider(_channelId).future,
+    return readEffectiveGuildChannelPermissionBits(
+      container: ref.container,
+      channelId: _channelId,
     );
   }
 
@@ -256,7 +257,7 @@ class ComposerAutocompleteFieldState
     _channelPermissionWatchChannelId = channelId;
     _channelPermissionSubscription = ref.listenManual(
       channelPermissionCacheProvider,
-      (Map<String, int>? previous, Map<String, int> next) {
+      (ChannelPermissionCaches? previous, ChannelPermissionCaches next) {
         if (!mounted) {
           return;
         }

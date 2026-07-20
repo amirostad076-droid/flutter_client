@@ -10,6 +10,7 @@ import 'package:fluxer_app/core/limits/instance_limit_provider.dart';
 import 'package:fluxer_app/core/limits/limit_key.dart';
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
+import 'package:fluxer_app/core/permissions/channel_permission_reads.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
@@ -3340,8 +3341,9 @@ Future<bool> _canUnpinMessage(
     return true;
   }
   try {
-    final bits = await ref.read(
-      effectiveGuildChannelPermissionBitsProvider(channelId).future,
+    final int bits = await readEffectiveGuildChannelPermissionBits(
+      container: ref.container,
+      channelId: channelId,
     );
     return hasPermission(bits, Permission.pinMessages) ||
         hasPermission(bits, Permission.manageMessages);

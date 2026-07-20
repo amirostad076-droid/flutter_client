@@ -13,6 +13,7 @@ import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/modal/fluxer_modal.dart';
 import 'package:fluxer_app/features/voice/presentation/widgets/voice_connection_confirm_modal.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
+import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/voice_session_errors.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_dart/gateway.dart';
@@ -21,6 +22,7 @@ const Duration _kOtherDeviceDisconnectTimeout = Duration(seconds: 3);
 const Duration _kOtherDeviceDisconnectPollInterval = Duration(
   milliseconds: 100,
 );
+const Duration _kPostDeviceSwitchSettleDelay = Duration(milliseconds: 250);
 
 enum VoiceJoinResult { cancelled, succeeded, failed }
 
@@ -174,6 +176,18 @@ Future<bool> _waitForOtherConnectionsCleared({
   return false;
 }
 
+Future<void> _prepareForVoiceJoinAfterDeviceSwitch({
+  required ProviderContainer container,
+  required String? guildId,
+}) async {
+  final VoiceSession notifier = container.read(voiceSessionProvider.notifier);
+  final VoiceSessionState session = container.read(voiceSessionProvider);
+  if (session.isInVoice || session.isConnecting) {
+    await notifier.leaveVoice(endCall: false);
+  }
+  await Future<void>.delayed(_kPostDeviceSwitchSettleDelay);
+}
+
 Future<VoiceJoinResult> joinVoiceChannelWithConfirmation({
   required WidgetRef ref,
   required String? guildId,
@@ -298,6 +312,10 @@ Future<VoiceJoinResult> joinVoiceChannelWithConfirmation({
         return VoiceJoinResult.failed;
       }
     }
+    await _prepareForVoiceJoinAfterDeviceSwitch(
+      container: container,
+      guildId: guildId,
+    );
   }
   final bool joined = await _connectToVoiceChannel(
     container: container,

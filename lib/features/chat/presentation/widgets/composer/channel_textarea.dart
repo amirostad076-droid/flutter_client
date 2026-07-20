@@ -8,7 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/limits/instance_limit_provider.dart';
 import 'package:fluxer_app/core/limits/limit_key.dart';
-import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
+import 'package:fluxer_app/core/permissions/channel_permission_reads.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/platform/fluxer_platform.dart';
 import 'package:fluxer_app/core/premium/should_show_premium_commerce_provider.dart';
@@ -1361,8 +1361,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     if (guild == null) {
       return true;
     }
-    final int bits = await ref.read(
-      effectiveGuildChannelPermissionBitsProvider(channelId).future,
+    final int bits = await readEffectiveGuildChannelPermissionBits(
+      container: ref.container,
+      channelId: channelId,
     );
     final bool canMentionEveryone = hasPermission(
       bits,
