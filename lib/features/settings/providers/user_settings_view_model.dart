@@ -3,8 +3,8 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
-import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/constants/media_proxy_sizes.dart';
+import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/premium/current_user_entitlements_provider.dart';
@@ -355,7 +355,7 @@ class UserSettingsViewState {
     return switch (guildAvatarMode) {
       GuildAssetMode.unset => true,
       GuildAssetMode.custom =>
-        editedGuildAvatarBase64 != null ? false : guildAvatarCleared,
+        !(editedGuildAvatarBase64 != null) && guildAvatarCleared,
       GuildAssetMode.inherit => avatarCleared,
     };
   }
@@ -367,7 +367,7 @@ class UserSettingsViewState {
     return switch (guildBannerMode) {
       GuildAssetMode.unset => true,
       GuildAssetMode.custom =>
-        editedGuildBannerBase64 != null ? false : guildBannerCleared,
+        !(editedGuildBannerBase64 != null) && guildBannerCleared,
       GuildAssetMode.inherit => bannerCleared,
     };
   }
@@ -408,7 +408,6 @@ class UserSettingsViewState {
       userId: userId,
       type: GuildMemberMediaType.avatar,
       hash: hash,
-      size: MediaProxySizes.avatarProfile,
     );
   }
 

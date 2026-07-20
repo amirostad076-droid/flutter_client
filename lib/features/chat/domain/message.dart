@@ -7,6 +7,7 @@ import 'package:fluxer_app/features/chat/utils/attachment_display_utils.dart';
 import 'package:fluxer_app/features/chat/utils/url_sanitization_utils.dart';
 import 'package:fluxer_app/features/chat/utils/voice_message_constants.dart';
 import 'package:fluxer_app/shared/utils/guild_user_display.dart';
+import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_dart/export.dart';
 
 enum EmbedType { rich, image, gifv, link, video }
@@ -834,6 +835,7 @@ class Message {
   final bool isPinned;
   final bool isMentioned;
   final List<String> mentionedUserIds;
+  final List<String> supplementalUserIds;
   final List<MessageChannelMention> mentionChannels;
   final int type;
   final int flags;
@@ -867,6 +869,7 @@ class Message {
     this.isPinned = false,
     this.isMentioned = false,
     this.mentionedUserIds = const [],
+    this.supplementalUserIds = const [],
     this.mentionChannels = const [],
     this.type = 0,
     this.flags = 0,
@@ -913,6 +916,7 @@ class Message {
       mentionedUserIds: sdk.mentions
           .map((user) => user.id)
           .toList(growable: false),
+      supplementalUserIds: supplementalUserIdsFromSdk(sdk.users),
       mentionChannels: parseMessageChannelMentions(sdk.mentionChannels),
       type: sdk.type.json ?? 0,
       flags: sdk.flags,
@@ -954,6 +958,7 @@ class Message {
       mentionedUserIds: sdk.mentions
           .map((user) => user.id)
           .toList(growable: false),
+      supplementalUserIds: supplementalUserIdsFromSdk(sdk.users),
       mentionChannels: parseMessageChannelMentions(sdk.mentionChannels),
       type: sdk.type.json ?? 0,
       flags: sdk.flags,
@@ -1000,6 +1005,7 @@ class Message {
       mentionedUserIds: sdk.mentions
           .map((user) => user.id)
           .toList(growable: false),
+      supplementalUserIds: supplementalUserIdsFromSdk(sdk.users),
       mentionChannels: parseMessageChannelMentions(sdk.mentionChannels),
       type: sdk.type.json ?? 0,
       flags: sdk.flags,
@@ -1048,6 +1054,7 @@ class Message {
       mentionedUserIds: sdk.mentions
           .map((user) => user.id)
           .toList(growable: false),
+      supplementalUserIds: supplementalUserIdsFromSdk(sdk.users),
       mentionChannels: parseMessageChannelMentions(sdk.mentionChannels),
       type: sdk.type.json ?? 0,
       flags: sdk.flags,
@@ -1291,6 +1298,7 @@ class Message {
     bool? isPinned,
     bool? isMentioned,
     List<String>? mentionedUserIds,
+    List<String>? supplementalUserIds,
     List<MessageChannelMention>? mentionChannels,
     int? type,
     int? flags,
@@ -1324,6 +1332,7 @@ class Message {
       isPinned: isPinned ?? this.isPinned,
       isMentioned: isMentioned ?? this.isMentioned,
       mentionedUserIds: mentionedUserIds ?? this.mentionedUserIds,
+      supplementalUserIds: supplementalUserIds ?? this.supplementalUserIds,
       mentionChannels: mentionChannels ?? this.mentionChannels,
       type: type ?? this.type,
       flags: flags ?? this.flags,
@@ -1367,6 +1376,9 @@ class Message {
       isPinned: incoming.isPinned,
       isMentioned: incoming.isMentioned,
       mentionedUserIds: incoming.mentionedUserIds,
+      supplementalUserIds: incoming.supplementalUserIds.isNotEmpty
+          ? incoming.supplementalUserIds
+          : supplementalUserIds,
       mentionChannels: incoming.mentionChannels.isNotEmpty
           ? incoming.mentionChannels
           : mentionChannels,

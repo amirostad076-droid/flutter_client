@@ -1408,6 +1408,7 @@ class GatewayEventHandler {
         database.userDao.upsertUser(userFromPartialSdk(event.message.author)),
       );
       unawaited(upsertMentionUsersFromSdk(database, event.message.mentions));
+      unawaited(upsertSupplementalUsersFromSdk(database, event.message.users));
     }
 
     final ReadStateIncomingMessageDecision decision =
@@ -1739,6 +1740,7 @@ class GatewayEventHandler {
         database.userDao.upsertUser(userFromPartialSdk(event.message.author)),
       );
       unawaited(upsertMentionUsersFromSdk(database, event.message.mentions));
+      unawaited(upsertSupplementalUsersFromSdk(database, event.message.users));
     }
     await database.messageDao.upsertMessage(
       msg.copyWith(isMentioned: mentionsCurrentUser).toCompanion(),

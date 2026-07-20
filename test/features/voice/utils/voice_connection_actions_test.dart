@@ -8,7 +8,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/platform/fluxer_platform.dart';
 import 'package:fluxer_app/core/providers/gateway_connection_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
-import 'package:fluxer_app/core/router/shell_navigator_keys.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme.dart';
@@ -259,11 +258,11 @@ Future<VoiceJoinResult?> _runJoinFromHarness(
   WidgetTester tester, {
   required _RecordingGateway gateway,
   required _RecordingVoiceSession voiceSession,
+  required Future<void> Function(WidgetTester tester) afterModalOpens,
   Map<String, VoiceState>? initialVoiceStates,
   void Function(WidgetRef ref, GatewayVoiceStateUpdate update)?
   onVoiceStateUpdate,
   bool popBranchAfterModalOpens = false,
-  required Future<void> Function(WidgetTester tester) afterModalOpens,
 }) async {
   final GlobalKey<NavigatorState> branchNavigatorKey =
       GlobalKey<NavigatorState>();

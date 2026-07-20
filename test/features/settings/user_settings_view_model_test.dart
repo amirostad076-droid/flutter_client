@@ -136,8 +136,6 @@ void main() {
         selectedGuildId: '10',
         guildAvatar: 'guild_avatar',
         guildBanner: 'guild_banner',
-        guildAvatarMode: GuildAssetMode.inherit,
-        guildBannerMode: GuildAssetMode.inherit,
       );
 
       expect(state.previewAvatarUrl, contains('/avatars/1/global_avatar.webp'));

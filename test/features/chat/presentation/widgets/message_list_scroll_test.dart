@@ -4311,9 +4311,7 @@ class _PagingInstrumentedChatViewModel extends _InstrumentedChatViewModel {
   _PagingInstrumentedChatViewModel(
     super.initialState, {
     required List<List<Message>> newerPages,
-  }) : _newerPages = newerPages
-           .map((List<Message> page) => List<Message>.from(page))
-           .toList();
+  }) : _newerPages = newerPages.map(List<Message>.from).toList();
 
   final List<List<Message>> _newerPages;
 

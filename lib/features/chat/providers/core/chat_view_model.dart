@@ -538,13 +538,13 @@ class ChatViewModel extends _$ChatViewModel {
           messages: messages,
           embeddedReplyParents: embeddedReplyParents,
         );
-    unawaited(_prefetchMessageAuthors(channelId, messages));
   }
 
-  Future<void> _prefetchMessageAuthors(
+  Future<void> _hydrateGuildMembersForMessages(
     String channelId,
-    List<Message> messages,
-  ) async {
+    List<Message> messages, {
+    List<Message> embeddedReplyParents = const <Message>[],
+  }) async {
     if (messages.isEmpty) {
       return;
     }
@@ -556,10 +556,28 @@ class ChatViewModel extends _$ChatViewModel {
     if (guildId == null || guildId.isEmpty) {
       return;
     }
-    await prefetchGuildMembersForMessages(
+    await hydrateGuildMembersForMessages(
       ref: ref,
       guildId: guildId,
       messages: messages,
+      embeddedReplyParents: embeddedReplyParents,
+    );
+  }
+
+  Future<void> _onMessageBatchLoaded({
+    required String channelId,
+    required List<Message> messages,
+    List<Message> embeddedReplyParents = const <Message>[],
+  }) async {
+    await _hydrateGuildMembersForMessages(
+      channelId,
+      messages,
+      embeddedReplyParents: embeddedReplyParents,
+    );
+    _notifyMessageReferencesLoaded(
+      channelId: channelId,
+      messages: messages,
+      embeddedReplyParents: embeddedReplyParents,
     );
   }
 
@@ -1127,14 +1145,14 @@ class ChatViewModel extends _$ChatViewModel {
     required List<Message> messages,
     List<Message>? embeddedReplyParents,
   }) {
-    scheduleMicrotask(() {
+    scheduleMicrotask(() async {
       if (state.channelId != channelId) {
         return;
       }
-      _notifyMessageReferencesLoaded(
+      await _onMessageBatchLoaded(
         channelId: channelId,
         messages: messages,
-        embeddedReplyParents: embeddedReplyParents ?? const [],
+        embeddedReplyParents: embeddedReplyParents ?? const <Message>[],
       );
     });
   }
@@ -1295,6 +1313,14 @@ class ChatViewModel extends _$ChatViewModel {
           shouldConsultPointer &&
           mergedServerTailId != null &&
           await _hasNewerMessagesThanChannel(mergedServerTailId);
+      if (state.channelId != channelId || !shouldApply()) {
+        return;
+      }
+      await _hydrateGuildMembersForMessages(
+        channelId,
+        merged,
+        embeddedReplyParents: page.embeddedReplyParents,
+      );
       if (state.channelId != channelId || !shouldApply()) {
         return;
       }
@@ -1496,9 +1522,11 @@ class ChatViewModel extends _$ChatViewModel {
                 hasMoreMessages: window.hasMoreOlder,
                 hasMoreNewerMessages: window.hasMoreNewer,
               );
-              _notifyMessageReferencesLoaded(
-                channelId: channelId,
-                messages: olderInRange,
+              unawaited(
+                _onMessageBatchLoaded(
+                  channelId: channelId,
+                  messages: olderInRange,
+                ),
               );
               return;
           }
@@ -1541,10 +1569,12 @@ class ChatViewModel extends _$ChatViewModel {
             '[ChatPagination] older loaded count=${page.messages.length} '
             'hasMore=${window.hasMoreOlder}',
           );
-          _notifyMessageReferencesLoaded(
-            channelId: channelId,
-            messages: page.messages,
-            embeddedReplyParents: page.embeddedReplyParents,
+          unawaited(
+            _onMessageBatchLoaded(
+              channelId: channelId,
+              messages: page.messages,
+              embeddedReplyParents: page.embeddedReplyParents,
+            ),
           );
       }
     } on Exception catch (e) {
@@ -1625,9 +1655,11 @@ class ChatViewModel extends _$ChatViewModel {
                 hasMoreMessages: window.hasMoreOlder,
                 hasMoreNewerMessages: window.hasMoreNewer,
               );
-              _notifyMessageReferencesLoaded(
-                channelId: channelId,
-                messages: window.messages,
+              unawaited(
+                _onMessageBatchLoaded(
+                  channelId: channelId,
+                  messages: window.messages,
+                ),
               );
               return;
           }
@@ -1678,10 +1710,12 @@ class ChatViewModel extends _$ChatViewModel {
             '[ChatPagination] newer loaded count=${page.messages.length} '
             'hasMore=${window.hasMoreNewer}',
           );
-          _notifyMessageReferencesLoaded(
-            channelId: channelId,
-            messages: window.messages,
-            embeddedReplyParents: page.embeddedReplyParents,
+          unawaited(
+            _onMessageBatchLoaded(
+              channelId: channelId,
+              messages: window.messages,
+              embeddedReplyParents: page.embeddedReplyParents,
+            ),
           );
       }
     } on Exception catch (e) {
@@ -1738,13 +1772,21 @@ class ChatViewModel extends _$ChatViewModel {
         pendingLocal,
         page.messages,
       );
+      _contiguity.setVerified(channelId, page.messages);
+      _contiguityTrusted = true;
+      await _hydrateGuildMembersForMessages(
+        channelId,
+        merged,
+        embeddedReplyParents: page.embeddedReplyParents,
+      );
+      if (state.channelId != channelId) {
+        return false;
+      }
       state = state.copyWith(
         messages: merged,
         hasMoreMessages: page.messages.length >= _kPageSize,
         hasMoreNewerMessages: false,
       );
-      _contiguity.setVerified(channelId, page.messages);
-      _contiguityTrusted = true;
       _notifyMessageReferencesLoaded(
         channelId: channelId,
         messages: merged,
@@ -3013,6 +3055,14 @@ class ChatViewModel extends _$ChatViewModel {
       // Around jumps consult the pointer: a short around page is not server tail.
       final bool hasMoreNewer = await _hasNewerMessagesThanChannel(
         page.messages.last.id,
+      );
+      if (state.channelId != channelId) {
+        return;
+      }
+      await _hydrateGuildMembersForMessages(
+        channelId,
+        page.messages,
+        embeddedReplyParents: page.embeddedReplyParents,
       );
       if (state.channelId != channelId) {
         return;

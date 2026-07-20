@@ -255,17 +255,22 @@ class MessageRepository {
           .reversed
           .toList();
 
-      final List<db.UsersCompanion> pageUsers = <db.UsersCompanion>[];
+      final Map<String, db.UsersCompanion> pageUsersById =
+          <String, db.UsersCompanion>{};
       for (final sdk in data) {
         if (sdk.webhookId == null) {
-          pageUsers.add(userFromPartialSdk(sdk.author));
+          pageUsersById[sdk.author.id] = userFromPartialSdk(sdk.author);
         }
         for (final mention in sdk.mentions) {
-          pageUsers.add(userFromPartialSdk(mention));
+          pageUsersById[mention.id] = userFromPartialSdk(mention);
+        }
+        for (final UserPartialResponse user
+            in sdk.users ?? const <UserPartialResponse>[]) {
+          pageUsersById[user.id] = userFromPartialSdk(user);
         }
       }
-      if (pageUsers.isNotEmpty) {
-        await _db.userDao.upsertUsers(pageUsers);
+      if (pageUsersById.isNotEmpty) {
+        await upsertUsersCompanions(_db, pageUsersById.values);
       }
       await _db.messageDao.upsertMessages(
         messages.map((m) => m.toCompanion()).toList(),
@@ -330,6 +335,7 @@ class MessageRepository {
         await _db.userDao.upsertUser(userFromPartialSdk(sdk.author));
       }
       await upsertMentionUsersFromSdk(_db, sdk.mentions);
+      await upsertSupplementalUsersFromSdk(_db, sdk.users);
       final message = Message.fromSdk(sdk, currentUserId: _currentUserId)
           .copyWith(
             isMentioned: await resolveMessageMentionsUser(
@@ -451,6 +457,7 @@ class MessageRepository {
                   const [],
             ),
             mentionedUserIds: _mentionedUserIdsFromJson(map),
+            supplementalUserIds: _supplementalUserIdsFromJson(map),
             type: (map['type'] as int?) ?? 0,
             flags: (map['flags'] as int?) ?? 0,
           ),
@@ -470,6 +477,7 @@ class MessageRepository {
             _db,
             map['mentions'] as List<dynamic>?,
           );
+          await upsertMentionUsersFromJson(_db, map['users'] as List<dynamic>?);
         }
       } on Object catch (e) {
         talker.warning('[MessageRepo] Skipping message: $e');
@@ -529,6 +537,18 @@ class MessageRepository {
       for (final mention in mentions)
         if (mention is Map<String, dynamic> && mention['id'] != null)
           mention['id'].toString(),
+    ];
+  }
+
+  List<String> _supplementalUserIdsFromJson(Map<String, dynamic> map) {
+    final users = map['users'] as List<dynamic>?;
+    if (users == null) {
+      return const [];
+    }
+    return [
+      for (final user in users)
+        if (user is Map<String, dynamic> && user['id'] != null)
+          user['id'].toString(),
     ];
   }
 
