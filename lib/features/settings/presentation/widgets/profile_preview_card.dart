@@ -59,7 +59,7 @@ class _ProfilePreviewCardState extends State<ProfilePreviewCard> {
   }
 
   Uint8List? _avatarBytes() {
-    final uri = widget.state.editedAvatarBase64;
+    final uri = widget.state.previewAvatarBase64;
     if (!identical(uri, _lastAvatarUri)) {
       _lastAvatarUri = uri;
       _cachedAvatarBytes = _decodeDataUri(uri);
@@ -68,7 +68,7 @@ class _ProfilePreviewCardState extends State<ProfilePreviewCard> {
   }
 
   Uint8List? _bannerBytes() {
-    final uri = widget.state.editedBannerBase64;
+    final uri = widget.state.previewBannerBase64;
     if (!identical(uri, _lastBannerUri)) {
       _lastBannerUri = uri;
       _cachedBannerBytes = _decodeDataUri(uri);
@@ -287,7 +287,8 @@ class _ProfilePreviewCardState extends State<ProfilePreviewCard> {
   double _bannerHeight(UserSettingsViewState s, double width) {
     final bannerBytes = _bannerBytes();
     final showBanner =
-        !s.bannerCleared && (bannerBytes != null || s.bannerUrl != null);
+        !s.previewBannerCleared &&
+        (bannerBytes != null || s.previewBannerUrl != null);
     return showBanner ? width / _kBannerAspectRatio : _kBannerHeight;
   }
 
@@ -300,9 +301,9 @@ class _ProfilePreviewCardState extends State<ProfilePreviewCard> {
     double headerH,
   ) {
     final bannerBytes = _bannerBytes();
-    final bannerUrl = s.bannerUrl;
+    final bannerUrl = s.previewBannerUrl;
     final showBanner =
-        !s.bannerCleared && (bannerBytes != null || bannerUrl != null);
+        !s.previewBannerCleared && (bannerBytes != null || bannerUrl != null);
 
     Widget bannerContent;
     if (showBanner && bannerBytes != null) {
@@ -323,7 +324,8 @@ class _ProfilePreviewCardState extends State<ProfilePreviewCard> {
 
     final avatarBytes = _avatarBytes();
     final hasAvatar =
-        !s.avatarCleared && (avatarBytes != null || s.avatarUrl != null);
+        !s.previewAvatarCleared &&
+        (avatarBytes != null || s.previewAvatarUrl != null);
 
     return SizedBox(
       height: headerH,
@@ -356,7 +358,9 @@ class _ProfilePreviewCardState extends State<ProfilePreviewCard> {
                       ),
                     )
                   : FluxerAvatar.user(
-                      imageUrl: s.avatarCleared ? null : s.avatarUrl,
+                      imageUrl: s.previewAvatarCleared
+                          ? null
+                          : s.previewAvatarUrl,
                       fallbackText: _effectiveDisplayName(),
                       avatarColor: s.avatarColor,
                       userId: s.userId,

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
+import 'package:fluxer_app/core/constants/media_proxy_sizes.dart';
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/premium/current_user_entitlements_provider.dart';
@@ -323,6 +324,110 @@ class UserSettingsViewState {
 
   String? get bannerUrl {
     return FluxerMediaUrl.userBanner(userId: userId, hash: banner);
+  }
+
+  String? get previewAvatarBase64 {
+    if (!isPerGuildProfile) {
+      return editedAvatarBase64;
+    }
+    return switch (guildAvatarMode) {
+      GuildAssetMode.unset => null,
+      GuildAssetMode.custom => editedGuildAvatarBase64,
+      GuildAssetMode.inherit => editedAvatarBase64,
+    };
+  }
+
+  String? get previewBannerBase64 {
+    if (!isPerGuildProfile) {
+      return editedBannerBase64;
+    }
+    return switch (guildBannerMode) {
+      GuildAssetMode.unset => null,
+      GuildAssetMode.custom => editedGuildBannerBase64,
+      GuildAssetMode.inherit => editedBannerBase64,
+    };
+  }
+
+  bool get previewAvatarCleared {
+    if (!isPerGuildProfile) {
+      return avatarCleared;
+    }
+    return switch (guildAvatarMode) {
+      GuildAssetMode.unset => true,
+      GuildAssetMode.custom =>
+        editedGuildAvatarBase64 != null ? false : guildAvatarCleared,
+      GuildAssetMode.inherit => avatarCleared,
+    };
+  }
+
+  bool get previewBannerCleared {
+    if (!isPerGuildProfile) {
+      return bannerCleared;
+    }
+    return switch (guildBannerMode) {
+      GuildAssetMode.unset => true,
+      GuildAssetMode.custom =>
+        editedGuildBannerBase64 != null ? false : guildBannerCleared,
+      GuildAssetMode.inherit => bannerCleared,
+    };
+  }
+
+  String? get previewAvatarUrl {
+    if (!isPerGuildProfile) {
+      return avatarUrl;
+    }
+    return switch (guildAvatarMode) {
+      GuildAssetMode.unset => null,
+      GuildAssetMode.custom => _previewGuildAvatarUrl(),
+      GuildAssetMode.inherit => avatarUrl,
+    };
+  }
+
+  String? get previewBannerUrl {
+    if (!isPerGuildProfile) {
+      return bannerUrl;
+    }
+    return switch (guildBannerMode) {
+      GuildAssetMode.unset => null,
+      GuildAssetMode.custom => _previewGuildBannerUrl(),
+      GuildAssetMode.inherit => bannerUrl,
+    };
+  }
+
+  String? _previewGuildAvatarUrl() {
+    if (editedGuildAvatarBase64 != null || guildAvatarCleared) {
+      return null;
+    }
+    final String? guildId = selectedGuildId;
+    final String? hash = guildAvatar;
+    if (guildId == null || hash == null) {
+      return null;
+    }
+    return FluxerMediaUrl.guildMemberMedia(
+      guildId: guildId,
+      userId: userId,
+      type: GuildMemberMediaType.avatar,
+      hash: hash,
+      size: MediaProxySizes.avatarProfile,
+    );
+  }
+
+  String? _previewGuildBannerUrl() {
+    if (editedGuildBannerBase64 != null || guildBannerCleared) {
+      return null;
+    }
+    final String? guildId = selectedGuildId;
+    final String? hash = guildBanner;
+    if (guildId == null || hash == null) {
+      return null;
+    }
+    return FluxerMediaUrl.guildMemberMedia(
+      guildId: guildId,
+      userId: userId,
+      type: GuildMemberMediaType.banner,
+      hash: hash,
+      size: MediaProxySizes.profileBannerModal,
+    );
   }
 
   DateTime get resolvedMemberSince {
