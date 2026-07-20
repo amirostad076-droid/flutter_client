@@ -79,6 +79,7 @@ class AppStartup extends _$AppStartup {
     final authRepository = ref.read(authRepositoryProvider);
     debugPrint('[AppStartup] Database obtained, migrating legacy tokens…');
     await authRepository.migrateLegacyTokens();
+    await authRepository.pruneTokenlessSessions();
     debugPrint('[AppStartup] Querying session…');
 
     var session = await authRepository.getActiveSession();
