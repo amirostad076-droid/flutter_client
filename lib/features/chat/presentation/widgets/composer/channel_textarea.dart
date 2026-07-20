@@ -430,7 +430,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               contextMenuBuilder: pasteScope.buildContextMenu,
               onTap: () {
                 if (ref.read(expressionPanelProvider)) {
-                  ref.read(expressionPanelProvider.notifier).close();
+                  _closeExpressionPanelAndFocusComposer();
                 }
               },
             ),
@@ -1451,6 +1451,34 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     return confirmed ?? false;
   }
 
+  void _closeExpressionPanelAndFocusComposer() {
+    if (!ref.read(expressionPanelProvider)) {
+      return;
+    }
+    if (isMobileLayout(context)) {
+      final MobileKeyboardMetricsState metrics = ref.read(
+        mobileKeyboardMetricsProvider,
+      );
+      final double netPanel =
+          ref.read(expressionPanelHeightProvider) ??
+          bottomInputSlotAnchorHeight(
+            anchoredKeyboardHeight: metrics.anchoredKeyboardHeight,
+            fallbackHeight: metrics.fallbackKeyboardHeight,
+            safeAreaBottom: metrics.safeAreaBottom,
+          );
+      ref
+          .read(bottomInputSlotProvider.notifier)
+          .beginKeyboardTransition(netPanel);
+    }
+    ref.read(expressionPanelProvider.notifier).close();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _focusNode.requestFocus();
+    });
+  }
+
   Widget _buildMobilePickerButton(
     BuildContext context,
     ChannelMessagePermissions perms,
@@ -1465,22 +1493,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           ? null
           : () {
               if (isPanelOpen) {
-                final MobileKeyboardMetricsState metrics = ref.read(
-                  mobileKeyboardMetricsProvider,
-                );
-                final double netPanel =
-                    ref.read(expressionPanelHeightProvider) ??
-                    bottomInputSlotAnchorHeight(
-                      anchoredKeyboardHeight: metrics.anchoredKeyboardHeight,
-                      fallbackHeight: metrics.fallbackKeyboardHeight,
-                      safeAreaBottom: metrics.safeAreaBottom,
-                    );
-                final double lockedHeight = netPanel;
-                ref
-                    .read(bottomInputSlotProvider.notifier)
-                    .beginKeyboardTransition(lockedHeight);
-                ref.read(expressionPanelProvider.notifier).close();
-                _focusNode.requestFocus();
+                _closeExpressionPanelAndFocusComposer();
               } else {
                 final MobileKeyboardMetricsState metrics = ref.read(
                   mobileKeyboardMetricsProvider,

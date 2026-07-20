@@ -11,6 +11,7 @@ import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/inline_expression_panel.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/bottom_input_slot_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/expression_panel_provider.dart';
+import 'package:fluxer_app/features/chat/providers/pickers/mobile_keyboard_metrics_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/chat/utils/bottom_input_slot_layout.dart';
 import 'package:fluxer_app/features/chat/utils/inline_expression_panel_layout.dart';
@@ -78,9 +79,7 @@ class ChatExpressionExpandableSheetState
   @override
   void initState() {
     super.initState();
-    _heightNotifier = ValueNotifier<double>(
-      _effectiveCollapsedHeight(widget.collapsedHeight),
-    );
+    _heightNotifier = ValueNotifier<double>(0);
     _isDraggingNotifier = ValueNotifier<bool>(false);
     _searchFocusNode = FocusNode();
     _searchFocusNode.addListener(_onSearchFocusChanged);
@@ -95,10 +94,32 @@ class ChatExpressionExpandableSheetState
     super.didChangeDependencies();
     if (!_initialized) {
       _refreshExpandedHeight();
-      updateExpandableSheetHeight(
-        heightNotifier: _heightNotifier,
-        nextHeight: _effectiveCollapsedHeight(widget.collapsedHeight),
+      final double target = _effectiveCollapsedHeight(widget.collapsedHeight);
+      final MobileKeyboardMetricsState metrics = ref.read(
+        mobileKeyboardMetricsProvider,
       );
+      final BottomInputTransition transition = ref.read(
+        bottomInputSlotProvider.select(
+          (BottomInputSlotState state) => state.transition,
+        ),
+      );
+      final bool shouldAnimateOpen =
+          !metrics.isKeyboardVisible &&
+          transition == BottomInputTransition.idle &&
+          target > widget.dragHandleHeight;
+      if (shouldAnimateOpen) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) {
+            return;
+          }
+          _snapToHeight(target);
+        });
+      } else {
+        updateExpandableSheetHeight(
+          heightNotifier: _heightNotifier,
+          nextHeight: target,
+        );
+      }
       _initialized = true;
     }
   }
@@ -207,7 +228,16 @@ class ChatExpressionExpandableSheetState
     _searchExpandScheduled = true;
     _lockedCollapsedHeight ??= _height;
     _refreshExpandedHeight();
-    _snapToHeightInstant(_expandedHeightCache);
+    final bool keyboardVisible = ref.read(
+      mobileKeyboardMetricsProvider.select(
+        (MobileKeyboardMetricsState metrics) => metrics.isKeyboardVisible,
+      ),
+    );
+    if (keyboardVisible) {
+      _snapToHeightInstant(_expandedHeightCache);
+    } else {
+      _snapToHeight(_expandedHeightCache);
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _searchExpandScheduled = false;
       if (!mounted || !ref.read(expressionPanelProvider)) {
@@ -509,7 +539,19 @@ class ChatExpressionExpandableSheetState
                                 ),
                               ),
                             ),
-                            Expanded(child: shellChild),
+                            Expanded(
+                              child: ClipRect(
+                                child: OverflowBox(
+                                  alignment: Alignment.topCenter,
+                                  maxHeight: double.infinity,
+                                  child: SizedBox(
+                                    height: math.max(height, _minHeight),
+                                    width: double.infinity,
+                                    child: shellChild,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
