@@ -41,6 +41,7 @@ import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/message_list_overlay.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/message_list_pagination.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_list_skeleton.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/message_list_unread_review.dart';
 import 'package:fluxer_app/features/chat/presentation/'
@@ -2274,12 +2275,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     if (expectedChannelId != null &&
         expectedChannelId.isNotEmpty &&
         channelId != expectedChannelId) {
-      return Center(
-        child: ChatLoadingSpinner(
-          reason: ChatSpinnerReason.panelNotReady,
-          color: context.colors.brandPrimary,
-        ),
-      );
+      return MessageListSkeleton(channelId: expectedChannelId);
     }
     final String? stickyUnreadId = ref.watch(
       chatViewModelProvider.select(
@@ -2493,12 +2489,7 @@ class _MessageListState extends ConsumerState<MessageList> {
             final Widget body;
             if (_openMode == _MessageListOpenMode.unresolved ||
                 (isLoading && messages.isEmpty)) {
-              body = Center(
-                child: ChatLoadingSpinner(
-                  reason: ChatSpinnerReason.listLoading,
-                  color: context.colors.brandPrimary,
-                ),
-              );
+              body = MessageListSkeleton(channelId: channelId);
             } else if (messageLoadFailed && messages.isEmpty) {
               final FluxerLocalizations l10n = FluxerLocalizations.of(context);
               body = Center(
