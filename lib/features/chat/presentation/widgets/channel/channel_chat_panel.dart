@@ -98,9 +98,16 @@ class _ChannelChatPanelState extends ConsumerState<ChannelChatPanel> {
     final bool isSyncingMessages = ref.watch(
       chatViewModelProvider.select((ChatViewState s) => s.isSyncingMessages),
     );
+    final bool isLoadingMore = ref.watch(
+      chatViewModelProvider.select((ChatViewState s) => s.isLoadingMore),
+    );
+    final bool isLoadingNewer = ref.watch(
+      chatViewModelProvider.select((ChatViewState s) => s.isLoadingNewer),
+    );
     final bool isActiveReadChannel =
         effectiveChannelId.isNotEmpty &&
         readViewport.channelId == effectiveChannelId;
+    final bool isBusy = isLoadingMore || isLoadingNewer || isSyncingMessages;
     final bool showJumpToBottom =
         widget.loadMessages &&
         shouldShowJumpToBottomButton(
@@ -228,7 +235,8 @@ class _ChannelChatPanelState extends ConsumerState<ChannelChatPanel> {
                                   Padding(
                                     padding: const EdgeInsets.only(bottom: 10),
                                     child: FluxerJumpToBottomButton(
-                                      enabled: !isSyncingMessages,
+                                      enabled: !isBusy,
+                                      isLoading: isSyncingMessages,
                                       onTap: () => ref
                                           .read(chatViewModelProvider.notifier)
                                           .scrollToBottom(),

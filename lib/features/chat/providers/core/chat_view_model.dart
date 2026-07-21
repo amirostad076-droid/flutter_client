@@ -74,6 +74,7 @@ part 'chat_view_model.g.dart';
 
 const _kPageSize = 30;
 const _kInitialPageSize = 50;
+const _kJumpToPresentPageSize = 50;
 const Duration _kChannelNetworkRefreshTtl = Duration(seconds: 30);
 const _kReadAckMinInterval = Duration(seconds: 1);
 const _kDraftSaveDebounce = Duration(milliseconds: 400);
@@ -1755,14 +1756,20 @@ class ChatViewModel extends _$ChatViewModel {
       scrollToBottom();
       return true;
     }
-    if (state.isSyncingMessages || state.isLoading) {
+    if (state.isSyncingMessages ||
+        state.isLoading ||
+        state.isLoadingMore ||
+        state.isLoadingNewer) {
       return false;
     }
     state = state.copyWith(isSyncingMessages: true);
     try {
       final page = await ref
           .read(messageRepositoryProvider)
-          .loadMessagePage(channelId: channelId);
+          .loadMessagePage(
+            channelId: channelId,
+            limit: _kJumpToPresentPageSize,
+          );
       if (state.channelId != channelId) {
         return false;
       }
@@ -1785,7 +1792,7 @@ class ChatViewModel extends _$ChatViewModel {
       }
       state = state.copyWith(
         messages: merged,
-        hasMoreMessages: page.messages.length >= _kPageSize,
+        hasMoreMessages: page.messages.length >= _kJumpToPresentPageSize,
         hasMoreNewerMessages: false,
       );
       _notifyMessageReferencesLoaded(
