@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/chat_fullscreen_video_launch_context.dart';
@@ -11,10 +10,9 @@ import 'package:fluxer_app/features/chat/presentation/sheets/forward_message_she
 import 'package:fluxer_app/features/chat/presentation/widgets/message_actions/message_bottom_sheet.dart';
 import 'package:fluxer_app/features/chat/utils/attachment_display_utils.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
-import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
-import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
+import 'package:fluxer_app/shared/utils/clipboard_utils.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 Future<void> showMobileMediaOptionsSheet({
@@ -73,7 +71,7 @@ class _MobileMediaOptionsSheetBody extends ConsumerWidget {
         FluxerBottomSheetMenuItem(
           icon: PhosphorIconsRegular.link,
           label: l10n.mediaViewerCopyLink,
-          onTap: () => unawaited(_copyLink(context, ref, linkUrl)),
+          onTap: () => unawaited(_copyLink(context, linkUrl)),
         ),
       if (linkUrl.isNotEmpty)
         FluxerBottomSheetMenuItem(
@@ -117,24 +115,9 @@ class _MobileMediaOptionsSheetBody extends ConsumerWidget {
     );
   }
 
-  Future<void> _copyLink(
-    BuildContext context,
-    WidgetRef ref,
-    String linkUrl,
-  ) async {
-    final String toastMessage = FluxerLocalizations.of(
-      context,
-    ).copiedToClipboard;
+  Future<void> _copyLink(BuildContext context, String linkUrl) async {
     onCloseSheet();
-    await Clipboard.setData(ClipboardData(text: linkUrl));
-    ref
-        .read(toastProvider.notifier)
-        .show(
-          FluxerToast(
-            message: toastMessage,
-            variant: FluxerToastVariant.success,
-          ),
-        );
+    await copyToClipboard(context: context, value: linkUrl);
   }
 
   Future<void> _openLink(BuildContext context, String linkUrl) async {

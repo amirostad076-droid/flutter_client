@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
@@ -63,6 +62,7 @@ import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/features/voice/utils/voice_e2ee_display.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/external_links/external_url_launcher.dart';
+import 'package:fluxer_app/shared/utils/clipboard_utils.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:go_router/go_router.dart';
@@ -762,11 +762,14 @@ class _ChannelTile extends ConsumerWidget {
       case ChannelMenuAction.copyLink:
         close();
         unawaited(
-          _copyToClipboard(ref, channelLink(channel.id, channel.guildId)),
+          copyToClipboard(
+            context: menuContext,
+            value: channelLink(channel.id, channel.guildId),
+          ),
         );
       case ChannelMenuAction.copyRedirectLink:
         close();
-        unawaited(_copyToClipboard(ref, channel.url!));
+        unawaited(copyToClipboard(context: menuContext, value: channel.url!));
       case ChannelMenuAction.mute:
         unawaited(
           _openChannelMuteSheet(
@@ -819,7 +822,7 @@ class _ChannelTile extends ConsumerWidget {
         );
       case ChannelMenuAction.copyChannelId:
         close();
-        unawaited(_copyToClipboard(ref, channel.id));
+        unawaited(copyToClipboard(context: menuContext, value: channel.id));
       case ChannelMenuAction.deleteChannel:
         close();
         unawaited(_confirmDeleteChannel(menuContext, ref));
@@ -1223,9 +1226,9 @@ class _CategoryHeader extends ConsumerWidget {
       case CategoryMenuAction.copyCategoryId:
         close();
         unawaited(
-          _copyToClipboard(
-            ref,
-            category.id,
+          copyToClipboard(
+            context: menuContext,
+            value: category.id,
             message: FluxerLocalizations.of(menuContext).categoryIdCopied,
           ),
         );
@@ -1308,22 +1311,6 @@ ReadStateRepository _readStateRepository(WidgetRef ref) => ReadStateRepository(
   ref.read(fluxerClientProvider),
   ref.read(fluxerDatabaseProvider),
 );
-
-Future<void> _copyToClipboard(
-  WidgetRef ref,
-  String value, {
-  String? message,
-}) async {
-  await Clipboard.setData(ClipboardData(text: value));
-  ref
-      .read(toastProvider.notifier)
-      .show(
-        FluxerToast(
-          message: message ?? 'Copied to clipboard',
-          variant: FluxerToastVariant.success,
-        ),
-      );
-}
 
 Future<ChannelOverridesMuteConfig?> _loadChannelMuteConfig(
   WidgetRef ref,

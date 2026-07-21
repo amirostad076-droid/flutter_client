@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
@@ -19,9 +18,8 @@ import 'package:fluxer_app/features/messaging/data/saved_messages_repository.dar
 import 'package:fluxer_app/features/messaging/providers/saved_messages_sync_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
-import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
-import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/utils/clipboard_utils.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 enum MessageAction {
@@ -112,31 +110,22 @@ Future<void> dispatchMessageAction({
     case MessageAction.deleteFailed:
       callbacks.onDeleteFailed?.call();
     case MessageAction.copyText:
-      unawaited(Clipboard.setData(ClipboardData(text: message.content)));
+      unawaited(copyToClipboard(context: context, value: message.content));
     case MessageAction.copyMessageId:
-      unawaited(Clipboard.setData(ClipboardData(text: message.id)));
+      unawaited(copyToClipboard(context: context, value: message.id));
     case MessageAction.copyMessageLink:
       final String? guildId =
           previewRoleGuildId ?? ref.read(activeGuildIdProvider);
       unawaited(
-        Clipboard.setData(
-          ClipboardData(
-            text: messageLink(
-              channelId: message.channelId,
-              messageId: message.id,
-              guildId: guildId,
-            ),
+        copyToClipboard(
+          context: context,
+          value: messageLink(
+            channelId: message.channelId,
+            messageId: message.id,
+            guildId: guildId,
           ),
         ),
       );
-      ref
-          .read(toastProvider.notifier)
-          .show(
-            FluxerToast(
-              message: FluxerLocalizations.of(context).copiedToClipboard,
-              variant: FluxerToastVariant.success,
-            ),
-          );
     case MessageAction.bookmark:
       final SavedMessagesRepository repository = ref.read(
         savedMessagesRepositoryProvider,
