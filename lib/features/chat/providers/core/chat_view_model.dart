@@ -24,6 +24,7 @@ import 'package:fluxer_app/features/channels/providers/read_state_repository_pro
 import 'package:fluxer_app/features/chat/data/message_repository.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/domain/message_attachment_update.dart';
 import 'package:fluxer_app/features/chat/domain/message_upload_send_cancelled_exception.dart';
 import 'package:fluxer_app/features/chat/domain/message_window.dart';
 import 'package:fluxer_app/features/chat/domain/pending_attachment.dart';
@@ -2919,6 +2920,117 @@ class ChatViewModel extends _$ChatViewModel {
     }();
     _pendingDeleteFutures[messageId] = deleteFuture;
     return deleteFuture;
+  }
+
+  Future<void> deleteMessageAttachment({
+    required String messageId,
+    required String attachmentId,
+  }) async {
+    if (state.channelId.isEmpty) {
+      return;
+    }
+    final int messageIndex = state.messages.indexWhere(
+      (Message message) => message.id == messageId,
+    );
+    if (messageIndex == -1) {
+      return;
+    }
+    final Message message = state.messages[messageIndex];
+    Attachment? attachment;
+    for (final Attachment candidate in message.attachments) {
+      if (candidate.id == attachmentId) {
+        attachment = candidate;
+        break;
+      }
+    }
+    if (attachment == null) {
+      return;
+    }
+    final Message updatedMessage = message.copyWith(
+      attachments: message.attachments
+          .where((Attachment a) => a.id != attachmentId)
+          .toList(),
+    );
+    final List<Message> optimisticMessages = List<Message>.from(state.messages);
+    optimisticMessages[messageIndex] = updatedMessage;
+    state = state.copyWith(messages: optimisticMessages);
+    try {
+      await ref
+          .read(messageRepositoryProvider)
+          .deleteAttachment(
+            channelId: state.channelId,
+            messageId: messageId,
+            attachmentId: attachmentId,
+          );
+    } on Exception catch (e) {
+      debugPrint('[ChatViewModel] Failed to delete attachment: $e');
+      final List<Message> rollback = List<Message>.from(state.messages);
+      rollback[messageIndex] = message;
+      state = state.copyWith(
+        messages: rollback,
+        errorMessage: 'Failed to delete attachment',
+      );
+    }
+  }
+
+  Future<void> editAttachmentAltText({
+    required String messageId,
+    required String attachmentId,
+    required String? description,
+  }) async {
+    if (state.channelId.isEmpty) {
+      return;
+    }
+    final int messageIndex = state.messages.indexWhere(
+      (Message message) => message.id == messageId,
+    );
+    if (messageIndex == -1) {
+      return;
+    }
+    final Message message = state.messages[messageIndex];
+    final List<MessageAttachmentUpdate> updates = message.attachments.map((
+      Attachment attachment,
+    ) {
+      if (attachment.id == attachmentId) {
+        return MessageAttachmentUpdate.withDescription(
+          id: attachment.id,
+          description: description,
+        );
+      }
+      return MessageAttachmentUpdate(id: attachment.id);
+    }).toList();
+    final List<Attachment> updatedAttachments = message.attachments.map((
+      Attachment attachment,
+    ) {
+      if (attachment.id == attachmentId) {
+        return attachment.copyWithDescription(description);
+      }
+      return attachment;
+    }).toList();
+    final Message updatedMessage = message.copyWith(
+      attachments: updatedAttachments,
+    );
+    final List<Message> optimisticMessages = List<Message>.from(state.messages);
+    optimisticMessages[messageIndex] = updatedMessage;
+    state = state.copyWith(messages: optimisticMessages);
+    try {
+      await ref
+          .read(messageRepositoryProvider)
+          .editMessageAttachments(
+            channelId: state.channelId,
+            messageId: messageId,
+            content: message.content,
+            attachmentUpdates: updates,
+          );
+    } on Exception catch (e) {
+      debugPrint('[ChatViewModel] Failed to edit attachment alt text: $e');
+      final List<Message> rollback = List<Message>.from(state.messages);
+      rollback[messageIndex] = message;
+      state = state.copyWith(
+        messages: rollback,
+        errorMessage: 'Failed to edit attachment alt text',
+      );
+    }
   }
 
   void startReply(Message message) {

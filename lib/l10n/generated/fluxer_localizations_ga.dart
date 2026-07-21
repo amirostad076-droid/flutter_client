@@ -4385,6 +4385,28 @@ class FluxerLocalizationsGa extends FluxerLocalizations {
       'Ná taispeáin réamhamhairc teachtaireachtaí i liosta DM';
 
   @override
+  String get accessibilityMediaButtonsGroupTitle => 'Media Buttons';
+
+  @override
+  String get accessibilityMediaButtonsGroupDescription =>
+      'Customize which buttons appear on media attachments and embeds.';
+
+  @override
+  String get accessibilityShowMediaDeleteButtonLabel => 'Show delete button';
+
+  @override
+  String get accessibilityShowMediaDownloadButtonLabel =>
+      'Show download button';
+
+  @override
+  String get accessibilityShowMediaFavoriteButtonLabel =>
+      'Show favorite button';
+
+  @override
+  String get accessibilityShowSuppressEmbedsButtonLabel =>
+      'Show suppress embeds button';
+
+  @override
   String get dmListSentAnAttachment => 'Sheol ceanglóir';
 
   @override
@@ -5397,6 +5419,12 @@ class FluxerLocalizationsGa extends FluxerLocalizations {
   @override
   String get chatMessageDeleteConfirmDescription =>
       'An bhfuil tú cinnte gur mhaith leat an teachtaireacht seo a scriosadh?';
+
+  @override
+  String get chatMessageDeleteAttachment => 'Delete Attachment';
+
+  @override
+  String get chatMessageEditAttachmentAltText => 'Edit Alt Text';
 
   @override
   String get chatMessageMore => 'Tuilleadh';

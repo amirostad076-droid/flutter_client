@@ -4404,6 +4404,28 @@ class FluxerLocalizationsEs extends FluxerLocalizations {
       'No mostrar vistas previas de mensajes en la lista de MD';
 
   @override
+  String get accessibilityMediaButtonsGroupTitle => 'Media Buttons';
+
+  @override
+  String get accessibilityMediaButtonsGroupDescription =>
+      'Customize which buttons appear on media attachments and embeds.';
+
+  @override
+  String get accessibilityShowMediaDeleteButtonLabel => 'Show delete button';
+
+  @override
+  String get accessibilityShowMediaDownloadButtonLabel =>
+      'Show download button';
+
+  @override
+  String get accessibilityShowMediaFavoriteButtonLabel =>
+      'Show favorite button';
+
+  @override
+  String get accessibilityShowSuppressEmbedsButtonLabel =>
+      'Show suppress embeds button';
+
+  @override
   String get dmListSentAnAttachment => 'Envió un archivo adjunto';
 
   @override
@@ -5422,6 +5444,12 @@ class FluxerLocalizationsEs extends FluxerLocalizations {
   @override
   String get chatMessageDeleteConfirmDescription =>
       '¿Estás seguro de que quieres eliminar este mensaje?';
+
+  @override
+  String get chatMessageDeleteAttachment => 'Delete Attachment';
+
+  @override
+  String get chatMessageEditAttachmentAltText => 'Edit Alt Text';
 
   @override
   String get chatMessageMore => 'Más';

@@ -290,6 +290,7 @@ class Attachment {
   final String id;
   final String filename;
   final String? title;
+  final String? description;
   final String url;
   final String? proxyUrl;
   final String? contentType;
@@ -309,6 +310,7 @@ class Attachment {
     required this.filename,
     required this.url,
     this.title,
+    this.description,
     this.proxyUrl,
     this.contentType,
     this.placeholder,
@@ -328,6 +330,7 @@ class Attachment {
       id: sdk.id,
       filename: sdk.filename,
       title: sdk.title,
+      description: sdk.description,
       url: sdk.url ?? '',
       proxyUrl: sdk.proxyUrl,
       size: sdk.size,
@@ -349,6 +352,7 @@ class Attachment {
       id: json['id'] as String? ?? '',
       filename: json['filename'] as String? ?? '',
       title: json['title'] as String?,
+      description: json['description'] as String?,
       url: json['url'] as String? ?? '',
       proxyUrl: (json['proxy_url'] as String?) ?? (json['proxyUrl'] as String?),
       size: json['size'] as int?,
@@ -369,6 +373,7 @@ class Attachment {
     'id': id,
     'filename': filename,
     'title': title,
+    'description': description,
     'url': url,
     'proxy_url': proxyUrl,
     'size': size,
@@ -383,6 +388,28 @@ class Attachment {
     if (duration != null) 'duration': duration,
     if (waveform != null) 'waveform': waveform,
   };
+
+  Attachment copyWithDescription(String? description) {
+    return Attachment(
+      id: id,
+      filename: filename,
+      title: title,
+      description: description,
+      url: url,
+      proxyUrl: proxyUrl,
+      contentType: contentType,
+      placeholder: placeholder,
+      size: size,
+      width: width,
+      height: height,
+      flags: flags,
+      nsfw: nsfw,
+      expired: expired,
+      expiresAt: expiresAt,
+      duration: duration,
+      waveform: waveform,
+    );
+  }
 
   bool get isAudio {
     final String normalizedType = contentType?.toLowerCase() ?? '';
@@ -894,7 +921,7 @@ class Message {
       authorAvatarColor: sdk.author.avatarColor,
       authorIsBot: sdk.author.bot ?? false,
       authorIsSystem: sdk.author.system ?? false,
-      authorPublicFlags: sdk.author.flags ?? 0,
+      authorPublicFlags: sdk.author.flags,
       webhookId: sdk.webhookId,
       content: sdk.content,
       timestamp: sdk.timestamp,
@@ -943,7 +970,7 @@ class Message {
       authorAvatarColor: sdk.author.avatarColor,
       authorIsBot: sdk.author.bot ?? false,
       authorIsSystem: sdk.author.system ?? false,
-      authorPublicFlags: sdk.author.flags ?? 0,
+      authorPublicFlags: sdk.author.flags,
       webhookId: sdk.webhookId,
       content: sdk.content,
       timestamp: sdk.timestamp,
@@ -984,7 +1011,7 @@ class Message {
       authorAvatarColor: sdk.author.avatarColor,
       authorIsBot: sdk.author.bot ?? false,
       authorIsSystem: sdk.author.system ?? false,
-      authorPublicFlags: sdk.author.flags ?? 0,
+      authorPublicFlags: sdk.author.flags,
       webhookId: sdk.webhookId,
       content: sdk.content,
       timestamp: sdk.timestamp,
@@ -1032,7 +1059,7 @@ class Message {
       authorAvatarColor: sdk.author.avatarColor,
       authorIsBot: sdk.author.bot ?? false,
       authorIsSystem: sdk.author.system ?? false,
-      authorPublicFlags: sdk.author.flags ?? 0,
+      authorPublicFlags: sdk.author.flags,
       webhookId: sdk.webhookId,
       content: sdk.content,
       timestamp: sdk.timestamp,

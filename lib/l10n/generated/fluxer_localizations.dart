@@ -7396,6 +7396,42 @@ abstract class FluxerLocalizations {
   /// **'Don\'t show message previews in the DM list'**
   String get accessibilityDmMessagePreviewNoneDescription;
 
+  /// Section title for media button visibility settings on the accessibility settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Media Buttons'**
+  String get accessibilityMediaButtonsGroupTitle;
+
+  /// Section description for media button visibility settings on the accessibility settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize which buttons appear on media attachments and embeds.'**
+  String get accessibilityMediaButtonsGroupDescription;
+
+  /// Toggle label for showing the delete button on media.
+  ///
+  /// In en, this message translates to:
+  /// **'Show delete button'**
+  String get accessibilityShowMediaDeleteButtonLabel;
+
+  /// Toggle label for showing the download button on media.
+  ///
+  /// In en, this message translates to:
+  /// **'Show download button'**
+  String get accessibilityShowMediaDownloadButtonLabel;
+
+  /// Toggle label for showing the favorite button on media.
+  ///
+  /// In en, this message translates to:
+  /// **'Show favorite button'**
+  String get accessibilityShowMediaFavoriteButtonLabel;
+
+  /// Toggle label for showing the suppress embeds button on media.
+  ///
+  /// In en, this message translates to:
+  /// **'Show suppress embeds button'**
+  String get accessibilityShowSuppressEmbedsButtonLabel;
+
   /// DM list row preview text when the most recent message has only attachments.
   ///
   /// In en, this message translates to:
@@ -9085,6 +9121,18 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Are you sure you want to delete this message?'**
   String get chatMessageDeleteConfirmDescription;
+
+  /// Action label for deleting an attachment from a sent message.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Attachment'**
+  String get chatMessageDeleteAttachment;
+
+  /// Action label for editing the alt text of a message attachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Alt Text'**
+  String get chatMessageEditAttachmentAltText;
 
   /// Tooltip label for additional message actions.
   ///

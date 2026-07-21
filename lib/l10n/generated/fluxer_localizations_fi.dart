@@ -4373,6 +4373,28 @@ class FluxerLocalizationsFi extends FluxerLocalizations {
       'Älä näytä viestien esikatseluita suorien viestien luettelossa';
 
   @override
+  String get accessibilityMediaButtonsGroupTitle => 'Media Buttons';
+
+  @override
+  String get accessibilityMediaButtonsGroupDescription =>
+      'Customize which buttons appear on media attachments and embeds.';
+
+  @override
+  String get accessibilityShowMediaDeleteButtonLabel => 'Show delete button';
+
+  @override
+  String get accessibilityShowMediaDownloadButtonLabel =>
+      'Show download button';
+
+  @override
+  String get accessibilityShowMediaFavoriteButtonLabel =>
+      'Show favorite button';
+
+  @override
+  String get accessibilityShowSuppressEmbedsButtonLabel =>
+      'Show suppress embeds button';
+
+  @override
   String get dmListSentAnAttachment => 'Lähetetty liite';
 
   @override
@@ -5388,6 +5410,12 @@ class FluxerLocalizationsFi extends FluxerLocalizations {
   @override
   String get chatMessageDeleteConfirmDescription =>
       'Haluatko varmasti poistaa tämän viestin?';
+
+  @override
+  String get chatMessageDeleteAttachment => 'Delete Attachment';
+
+  @override
+  String get chatMessageEditAttachmentAltText => 'Edit Alt Text';
 
   @override
   String get chatMessageMore => 'Lisää';

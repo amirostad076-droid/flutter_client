@@ -17,6 +17,7 @@ import 'package:fluxer_app/features/chat/utils/message_action_permissions.dart';
 import 'package:fluxer_app/features/chat/utils/message_link.dart';
 import 'package:fluxer_app/features/messaging/data/saved_messages_repository.dart';
 import 'package:fluxer_app/features/messaging/providers/saved_messages_sync_provider.dart';
+import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
 import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
@@ -58,6 +59,8 @@ Future<MessageAction?> showMessageBottomSheet(
   required bool developerMode,
   List<QuickReactionItem>? quickItems,
   ValueChanged<QuickReactionItem>? onQuickReaction,
+  MessageActionCallbacks? attachmentCallbacks,
+  bool isSendDisabled = false,
 }) {
   final MessageActionPermissions permissions = MessageActionPermissions(
     isOwnMessage: isOwnMessage,
@@ -69,6 +72,7 @@ Future<MessageAction?> showMessageBottomSheet(
     canManageMessages: canManageMessages,
     canSendMessages: canSendMessages,
     developerMode: developerMode,
+    isSendDisabled: isSendDisabled,
   );
   return FluxerBottomSheet.showScrollable<MessageAction>(
     context,
@@ -80,6 +84,7 @@ Future<MessageAction?> showMessageBottomSheet(
       permissions: permissions,
       quickItems: quickItems ?? kQuickReactionDefaults,
       onQuickReaction: onQuickReaction,
+      attachmentCallbacks: attachmentCallbacks,
       scrollController: scrollController,
     ),
   );
@@ -205,6 +210,7 @@ List<Widget> buildMessageActionMenuGroups({
   required Message message,
   required MessageActionPermissions permissions,
   required ValueChanged<MessageAction> onAction,
+  MessageActionCallbacks? attachmentCallbacks,
 }) {
   final FluxerLocalizations l10n = FluxerLocalizations.of(context);
 
@@ -240,6 +246,12 @@ List<Widget> buildMessageActionMenuGroups({
   final bool supportsInteractiveActions = message.supportsInteractiveActions;
   final bool canShowAddReaction =
       permissions.canAddReactions && supportsInteractiveActions;
+  final bool showMediaDeleteButton = ref.watch(
+    appearancePreferencesProvider.select((s) => s.showMediaDeleteButton),
+  );
+  final bool showSuppressEmbedsButton = ref.watch(
+    appearancePreferencesProvider.select((s) => s.showSuppressEmbedsButton),
+  );
   final bool canShowReply =
       isUserMessage &&
       supportsInteractiveActions &&
@@ -323,7 +335,7 @@ List<Widget> buildMessageActionMenuGroups({
             : l10n.chatMessageBookmark,
         onTap: () => onAction(MessageAction.bookmark),
       ),
-    if (canShowSuppressEmbeds)
+    if (canShowSuppressEmbeds && showSuppressEmbedsButton)
       FluxerBottomSheetMenuItem(
         icon: PhosphorIconsRegular.eyeSlash,
         label: isEmbedsSuppressed
@@ -338,6 +350,43 @@ List<Widget> buildMessageActionMenuGroups({
         isDanger: true,
         onTap: () => onAction(MessageAction.delete),
       ),
+  ];
+
+  final List<Widget> attachmentItems = <Widget>[
+    for (final Attachment attachment in message.attachments) ...<Widget>[
+      if (showMediaDeleteButton &&
+          canDeleteAttachmentOnMessage(
+            message: message,
+            isOwnMessage: permissions.isOwnMessage,
+            isSendDisabled: permissions.isSendDisabled,
+          ))
+        FluxerBottomSheetMenuItem(
+          icon: PhosphorIconsFill.trash,
+          label: l10n.chatMessageDeleteAttachment,
+          hint: attachment.filename,
+          isDanger: true,
+          onTap: () {
+            attachmentCallbacks?.onDeleteAttachment?.call(attachment);
+            Navigator.of(context).pop();
+          },
+        ),
+      if (canEditAttachmentAltText(
+        message: message,
+        isOwnMessage: permissions.isOwnMessage,
+        attachment: attachment,
+        canManageMessages: permissions.canManageMessages,
+        isDmChannel: permissions.isDmChannel,
+      ))
+        FluxerBottomSheetMenuItem(
+          icon: PhosphorIconsFill.pencilSimple,
+          label: l10n.chatMessageEditAttachmentAltText,
+          hint: attachment.filename,
+          onTap: () {
+            attachmentCallbacks?.onEditAttachmentAltText?.call(attachment);
+            Navigator.of(context).pop();
+          },
+        ),
+    ],
   ];
 
   final List<Widget> utilityItems = <Widget>[
@@ -380,6 +429,7 @@ List<Widget> buildMessageActionMenuGroups({
       reactionItems,
       interactionItems,
       managementItems,
+      attachmentItems,
       utilityItems,
       reportItems,
     ])
@@ -394,12 +444,14 @@ class _MessageBottomSheetBody extends ConsumerWidget {
     required this.quickItems,
     required this.scrollController,
     this.onQuickReaction,
+    this.attachmentCallbacks,
   });
 
   final Message message;
   final MessageActionPermissions permissions;
   final List<QuickReactionItem> quickItems;
   final ValueChanged<QuickReactionItem>? onQuickReaction;
+  final MessageActionCallbacks? attachmentCallbacks;
   final ScrollController scrollController;
 
   void _pop(BuildContext context, MessageAction action) =>
@@ -413,6 +465,7 @@ class _MessageBottomSheetBody extends ConsumerWidget {
       message: message,
       permissions: permissions,
       onAction: (MessageAction action) => _pop(context, action),
+      attachmentCallbacks: attachmentCallbacks,
     );
     final bool showQuickReactions =
         !message.hasFailed && !message.isSending && permissions.canAddReactions;

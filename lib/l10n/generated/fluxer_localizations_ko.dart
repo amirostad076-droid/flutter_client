@@ -4202,6 +4202,28 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
       'DM 목록에서 메시지 미리보기 표시 안 함';
 
   @override
+  String get accessibilityMediaButtonsGroupTitle => 'Media Buttons';
+
+  @override
+  String get accessibilityMediaButtonsGroupDescription =>
+      'Customize which buttons appear on media attachments and embeds.';
+
+  @override
+  String get accessibilityShowMediaDeleteButtonLabel => 'Show delete button';
+
+  @override
+  String get accessibilityShowMediaDownloadButtonLabel =>
+      'Show download button';
+
+  @override
+  String get accessibilityShowMediaFavoriteButtonLabel =>
+      'Show favorite button';
+
+  @override
+  String get accessibilityShowSuppressEmbedsButtonLabel =>
+      'Show suppress embeds button';
+
+  @override
   String get dmListSentAnAttachment => '첨부 파일을 보냈습니다.';
 
   @override
@@ -5156,6 +5178,12 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
 
   @override
   String get chatMessageDeleteConfirmDescription => '이 메시지를 삭제하시겠어요?';
+
+  @override
+  String get chatMessageDeleteAttachment => 'Delete Attachment';
+
+  @override
+  String get chatMessageEditAttachmentAltText => 'Edit Alt Text';
 
   @override
   String get chatMessageMore => '더보기';

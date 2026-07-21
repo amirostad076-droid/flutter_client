@@ -4404,6 +4404,28 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
       'Μην εμφανίζετε προεπισκοπήσεις μηνυμάτων στη λίστα DM';
 
   @override
+  String get accessibilityMediaButtonsGroupTitle => 'Media Buttons';
+
+  @override
+  String get accessibilityMediaButtonsGroupDescription =>
+      'Customize which buttons appear on media attachments and embeds.';
+
+  @override
+  String get accessibilityShowMediaDeleteButtonLabel => 'Show delete button';
+
+  @override
+  String get accessibilityShowMediaDownloadButtonLabel =>
+      'Show download button';
+
+  @override
+  String get accessibilityShowMediaFavoriteButtonLabel =>
+      'Show favorite button';
+
+  @override
+  String get accessibilityShowSuppressEmbedsButtonLabel =>
+      'Show suppress embeds button';
+
+  @override
   String get dmListSentAnAttachment => 'Έστειλε ένα συνημμένο';
 
   @override
@@ -5424,6 +5446,12 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
   @override
   String get chatMessageDeleteConfirmDescription =>
       'Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το μήνυμα;';
+
+  @override
+  String get chatMessageDeleteAttachment => 'Delete Attachment';
+
+  @override
+  String get chatMessageEditAttachmentAltText => 'Edit Alt Text';
 
   @override
   String get chatMessageMore => 'Περισσότερα';

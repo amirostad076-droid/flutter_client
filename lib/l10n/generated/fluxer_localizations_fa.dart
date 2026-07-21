@@ -4354,6 +4354,28 @@ class FluxerLocalizationsFa extends FluxerLocalizations {
       'پیش‌نمایش پیام‌ها را در لیست DM نمایش ندهید';
 
   @override
+  String get accessibilityMediaButtonsGroupTitle => 'Media Buttons';
+
+  @override
+  String get accessibilityMediaButtonsGroupDescription =>
+      'Customize which buttons appear on media attachments and embeds.';
+
+  @override
+  String get accessibilityShowMediaDeleteButtonLabel => 'Show delete button';
+
+  @override
+  String get accessibilityShowMediaDownloadButtonLabel =>
+      'Show download button';
+
+  @override
+  String get accessibilityShowMediaFavoriteButtonLabel =>
+      'Show favorite button';
+
+  @override
+  String get accessibilityShowSuppressEmbedsButtonLabel =>
+      'Show suppress embeds button';
+
+  @override
   String get dmListSentAnAttachment => 'یک پیوست ارسال شد';
 
   @override
@@ -5365,6 +5387,12 @@ class FluxerLocalizationsFa extends FluxerLocalizations {
   @override
   String get chatMessageDeleteConfirmDescription =>
       'آیا مطمئن هستید که می‌خواهید این پیام را حذف کنید؟';
+
+  @override
+  String get chatMessageDeleteAttachment => 'Delete Attachment';
+
+  @override
+  String get chatMessageEditAttachmentAltText => 'Edit Alt Text';
 
   @override
   String get chatMessageMore => 'بیشتر';

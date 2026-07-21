@@ -4129,6 +4129,28 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get accessibilityDmMessagePreviewNoneDescription => '不在私信列表中显示消息预览';
 
   @override
+  String get accessibilityMediaButtonsGroupTitle => 'Media Buttons';
+
+  @override
+  String get accessibilityMediaButtonsGroupDescription =>
+      'Customize which buttons appear on media attachments and embeds.';
+
+  @override
+  String get accessibilityShowMediaDeleteButtonLabel => 'Show delete button';
+
+  @override
+  String get accessibilityShowMediaDownloadButtonLabel =>
+      'Show download button';
+
+  @override
+  String get accessibilityShowMediaFavoriteButtonLabel =>
+      'Show favorite button';
+
+  @override
+  String get accessibilityShowSuppressEmbedsButtonLabel =>
+      'Show suppress embeds button';
+
+  @override
   String get dmListSentAnAttachment => '发送了附件';
 
   @override
@@ -5074,6 +5096,12 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
 
   @override
   String get chatMessageDeleteConfirmDescription => '你确定要删除此消息吗？';
+
+  @override
+  String get chatMessageDeleteAttachment => 'Delete Attachment';
+
+  @override
+  String get chatMessageEditAttachmentAltText => 'Edit Alt Text';
 
   @override
   String get chatMessageMore => '更多';

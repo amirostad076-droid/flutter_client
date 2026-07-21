@@ -4379,6 +4379,28 @@ class FluxerLocalizationsUk extends FluxerLocalizations {
       'Не показувати попередній перегляд повідомлень у списку прямих повідомлень';
 
   @override
+  String get accessibilityMediaButtonsGroupTitle => 'Media Buttons';
+
+  @override
+  String get accessibilityMediaButtonsGroupDescription =>
+      'Customize which buttons appear on media attachments and embeds.';
+
+  @override
+  String get accessibilityShowMediaDeleteButtonLabel => 'Show delete button';
+
+  @override
+  String get accessibilityShowMediaDownloadButtonLabel =>
+      'Show download button';
+
+  @override
+  String get accessibilityShowMediaFavoriteButtonLabel =>
+      'Show favorite button';
+
+  @override
+  String get accessibilityShowSuppressEmbedsButtonLabel =>
+      'Show suppress embeds button';
+
+  @override
   String get dmListSentAnAttachment => 'Надіслав вкладення';
 
   @override
@@ -5398,6 +5420,12 @@ class FluxerLocalizationsUk extends FluxerLocalizations {
   @override
   String get chatMessageDeleteConfirmDescription =>
       'Ви впевнені, що хочете видалити це повідомлення?';
+
+  @override
+  String get chatMessageDeleteAttachment => 'Delete Attachment';
+
+  @override
+  String get chatMessageEditAttachmentAltText => 'Edit Alt Text';
 
   @override
   String get chatMessageMore => 'Більше';

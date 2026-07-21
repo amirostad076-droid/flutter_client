@@ -17,6 +17,8 @@ import 'package:fluxer_app/features/chat/data/chat_unread_summary.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/domain/message_list_anchor.dart';
 import 'package:fluxer_app/features/chat/presentation/'
+    'sheets/attachment_alt_text_sheet.dart';
+import 'package:fluxer_app/features/chat/presentation/'
     'sheets/channel_pins_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/delete_message_confirm_sheet.dart';
@@ -64,6 +66,7 @@ import 'package:fluxer_app/features/dm/presentation/widgets/group_dm_welcome_sec
 import 'package:fluxer_app/features/dm/presentation/widgets/personal_notes_welcome_section.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/friends/providers/blocked_user_ids_provider.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_providers.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_simple_report_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
@@ -1520,6 +1523,9 @@ class _MessageListState extends ConsumerState<MessageList> {
     final bool isAuthorBlocked = blockedUserIds.contains(message.authorId);
     final bool canAddReactionsForMessage =
         channelCanAddReactions && !isAuthorBlocked;
+    final bool isSendDisabled =
+        ref.watch(guildByIdProvider(guildId ?? '')).value?.isSendDisabled ??
+        false;
     final double leading = leadingGroupSpacing(
       isGroupStart: !isGrouped,
       isNewDay: isNewDay,
@@ -1655,6 +1661,7 @@ class _MessageListState extends ConsumerState<MessageList> {
             canManageMessages: channelCanManageMessages,
             canSendMessages: channelCanSendMessages,
             isDmChannel: isDmChannel,
+            isSendDisabled: isSendDisabled,
             onReply: () =>
                 ref.read(chatViewModelProvider.notifier).startReply(message),
             onForward: () =>
@@ -1699,6 +1706,28 @@ class _MessageListState extends ConsumerState<MessageList> {
                 ),
               ),
             ),
+            onDeleteAttachment: (Attachment attachment) => ref
+                .read(chatViewModelProvider.notifier)
+                .deleteMessageAttachment(
+                  messageId: message.id,
+                  attachmentId: attachment.id,
+                ),
+            onEditAttachmentAltText: (Attachment attachment) async {
+              final String? description = await showAttachmentAltTextSheet(
+                context,
+                attachment: attachment,
+              );
+              if (description == null || !context.mounted) {
+                return;
+              }
+              await ref
+                  .read(chatViewModelProvider.notifier)
+                  .editAttachmentAltText(
+                    messageId: message.id,
+                    attachmentId: attachment.id,
+                    description: description.isEmpty ? null : description,
+                  );
+            },
             onReaction:
                 (String emoji, {String? emojiId, bool animated = false}) => ref
                     .read(chatViewModelProvider.notifier)

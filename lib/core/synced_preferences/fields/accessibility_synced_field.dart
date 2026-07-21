@@ -23,6 +23,10 @@ class AccessibilityLocalState {
     required this.compactMessageGroupSpacing,
     required this.saturationFactor,
     required this.customThemeCss,
+    this.showMediaDeleteButton = true,
+    this.showMediaDownloadButton = true,
+    this.showMediaFavoriteButton = true,
+    this.showSuppressEmbedsButton = true,
     this.hasSaturationFactorInProto = true,
     this.hasCustomThemeCssInProto = true,
   });
@@ -38,6 +42,10 @@ class AccessibilityLocalState {
   final double compactMessageGroupSpacing;
   final double saturationFactor;
   final String? customThemeCss;
+  final bool showMediaDeleteButton;
+  final bool showMediaDownloadButton;
+  final bool showMediaFavoriteButton;
+  final bool showSuppressEmbedsButton;
   final bool hasSaturationFactorInProto;
   final bool hasCustomThemeCssInProto;
 }
@@ -68,6 +76,10 @@ class AccessibilitySyncedField
       compactMessageGroupSpacing: appearance.compactMessageGroupSpacing,
       saturationFactor: theme.saturationFactor,
       customThemeCss: theme.customThemeCss,
+      showMediaDeleteButton: appearance.showMediaDeleteButton,
+      showMediaDownloadButton: appearance.showMediaDownloadButton,
+      showMediaFavoriteButton: appearance.showMediaFavoriteButton,
+      showSuppressEmbedsButton: appearance.showSuppressEmbedsButton,
     );
   }
 
@@ -129,6 +141,10 @@ class AccessibilitySyncedField
         a.messageGroupSpacing == b.messageGroupSpacing &&
         a.compactMessageGroupSpacing == b.compactMessageGroupSpacing &&
         a.saturationFactor == b.saturationFactor &&
+        a.showMediaDeleteButton == b.showMediaDeleteButton &&
+        a.showMediaDownloadButton == b.showMediaDownloadButton &&
+        a.showMediaFavoriteButton == b.showMediaFavoriteButton &&
+        a.showSuppressEmbedsButton == b.showSuppressEmbedsButton &&
         normalizeCustomThemeCss(a.customThemeCss) ==
             normalizeCustomThemeCss(b.customThemeCss);
   }
@@ -156,6 +172,10 @@ class AccessibilitySyncedField
           remote.hasCustomThemeCssInProto && remote.customThemeCss != null
           ? remote.customThemeCss
           : local.customThemeCss,
+      showMediaDeleteButton: remote.showMediaDeleteButton,
+      showMediaDownloadButton: remote.showMediaDownloadButton,
+      showMediaFavoriteButton: remote.showMediaFavoriteButton,
+      showSuppressEmbedsButton: remote.showSuppressEmbedsButton,
       hasSaturationFactorInProto:
           remote.hasSaturationFactorInProto || local.hasSaturationFactorInProto,
       hasCustomThemeCssInProto:
@@ -208,6 +228,15 @@ class AccessibilitySyncedField
       customThemeCss: proto.hasCustomThemeCss()
           ? normalizeCustomThemeCss(proto.customThemeCss)
           : null,
+      showMediaDeleteButton:
+          !proto.hasShowMediaDeleteButton() || proto.showMediaDeleteButton,
+      showMediaDownloadButton:
+          !proto.hasShowMediaDownloadButton() || proto.showMediaDownloadButton,
+      showMediaFavoriteButton:
+          !proto.hasShowMediaFavoriteButton() || proto.showMediaFavoriteButton,
+      showSuppressEmbedsButton:
+          !proto.hasShowSuppressEmbedsButton() ||
+          proto.showSuppressEmbedsButton,
       hasSaturationFactorInProto: proto.hasSaturationFactor(),
       hasCustomThemeCssInProto: proto.hasCustomThemeCss(),
     );
@@ -236,6 +265,10 @@ class AccessibilitySyncedField
     settings.messageGroupSpacing = local.messageGroupSpacing;
     settings.compactMessageGroupSpacing = local.compactMessageGroupSpacing;
     settings.saturationFactor = local.saturationFactor;
+    settings.showMediaDeleteButton = local.showMediaDeleteButton;
+    settings.showMediaDownloadButton = local.showMediaDownloadButton;
+    settings.showMediaFavoriteButton = local.showMediaFavoriteButton;
+    settings.showSuppressEmbedsButton = local.showSuppressEmbedsButton;
     final String? effectiveCss = normalizeCustomThemeCss(local.customThemeCss);
     if (effectiveCss != null) {
       settings.customThemeCss = effectiveCss;
@@ -259,6 +292,10 @@ class AccessibilitySyncedField
       messageGroupSpacing: local.messageGroupSpacing,
       compactMessageGroupSpacing: local.compactMessageGroupSpacing,
       saturationFactor: local.saturationFactor,
+      showMediaDeleteButton: local.showMediaDeleteButton,
+      showMediaDownloadButton: local.showMediaDownloadButton,
+      showMediaFavoriteButton: local.showMediaFavoriteButton,
+      showSuppressEmbedsButton: local.showSuppressEmbedsButton,
     );
     if (effectiveCss != null) {
       settings.customThemeCss = effectiveCss;

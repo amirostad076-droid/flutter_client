@@ -4354,6 +4354,28 @@ class FluxerLocalizationsIs extends FluxerLocalizations {
       'Ekki sýna forsýn skilaboða í DM lista';
 
   @override
+  String get accessibilityMediaButtonsGroupTitle => 'Media Buttons';
+
+  @override
+  String get accessibilityMediaButtonsGroupDescription =>
+      'Customize which buttons appear on media attachments and embeds.';
+
+  @override
+  String get accessibilityShowMediaDeleteButtonLabel => 'Show delete button';
+
+  @override
+  String get accessibilityShowMediaDownloadButtonLabel =>
+      'Show download button';
+
+  @override
+  String get accessibilityShowMediaFavoriteButtonLabel =>
+      'Show favorite button';
+
+  @override
+  String get accessibilityShowSuppressEmbedsButtonLabel =>
+      'Show suppress embeds button';
+
+  @override
   String get dmListSentAnAttachment => 'Sendi viðhengi';
 
   @override
@@ -5365,6 +5387,12 @@ class FluxerLocalizationsIs extends FluxerLocalizations {
   @override
   String get chatMessageDeleteConfirmDescription =>
       'Ertu viss um að þú viljir eyða þessum skilaboðum?';
+
+  @override
+  String get chatMessageDeleteAttachment => 'Delete Attachment';
+
+  @override
+  String get chatMessageEditAttachmentAltText => 'Edit Alt Text';
 
   @override
   String get chatMessageMore => 'Meira';

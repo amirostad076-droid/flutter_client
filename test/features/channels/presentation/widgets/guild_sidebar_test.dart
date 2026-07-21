@@ -281,15 +281,15 @@ void main() {
       await tester.longPress(find.text('My Category'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Mute Category'), findsOneWidget);
-      expect(find.text('Copy Category ID'), findsOneWidget);
-      expect(find.text('Mark Category as Read'), findsOneWidget);
+      expect(find.text('Mute category'), findsOneWidget);
+      expect(find.text('Copy category ID'), findsOneWidget);
+      expect(find.text('Mark as Read'), findsOneWidget);
       expect(find.text('Debug Category'), findsNothing);
 
       // Order must mirror the web category menu: Mark as Read -> Mute -> Copy ID.
       double dy(String label) => tester.getTopLeft(find.text(label)).dy;
-      expect(dy('Mark Category as Read'), lessThan(dy('Mute Category')));
-      expect(dy('Mute Category'), lessThan(dy('Copy Category ID')));
+      expect(dy('Mark as Read'), lessThan(dy('Mute category')));
+      expect(dy('Mute category'), lessThan(dy('Copy category ID')));
     });
 
     testWidgets('channel menu shows "Delete channel" for managers', (

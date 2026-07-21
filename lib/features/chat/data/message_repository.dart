@@ -10,6 +10,7 @@ import 'package:fluxer_app/core/utils/message_mention_resolver.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/chat/domain/api_attachment_metadata.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/domain/message_attachment_update.dart';
 import 'package:fluxer_app/features/chat/utils/client_nonce.dart';
 import 'package:fluxer_app/features/chat/utils/message_page_sync.dart';
 import 'package:fluxer_app/shared/utils/guild_user_display.dart';
@@ -745,6 +746,49 @@ class MessageRepository {
       return message;
     } on DioException catch (e) {
       throw Exception(dioExceptionMessage(e, 'Failed to edit message'));
+    }
+  }
+
+  Future<void> deleteAttachment({
+    required String channelId,
+    required String messageId,
+    required String attachmentId,
+  }) async {
+    try {
+      await _client.channels.deleteMessageAttachment(
+        channelId: channelId,
+        messageId: messageId,
+        attachmentId: attachmentId,
+      );
+    } on DioException catch (e) {
+      throw Exception(dioExceptionMessage(e, 'Failed to delete attachment'));
+    }
+  }
+
+  Future<Message> editMessageAttachments({
+    required String channelId,
+    required String messageId,
+    required String content,
+    required List<MessageAttachmentUpdate> attachmentUpdates,
+  }) async {
+    try {
+      final List<Object2> attachments = attachmentUpdates
+          .map((MessageAttachmentUpdate update) => Object2(update.toJson()))
+          .toList();
+      final MessageResponseSchema schema = await _client.channels.editMessage(
+        channelId: channelId,
+        messageId: messageId,
+        content: content,
+        attachments: attachments,
+      );
+      final Message message = Message.fromSdk(
+        schema,
+        currentUserId: _currentUserId,
+      ).copyWith(isMentioned: false);
+      await _db.messageDao.upsertMessage(message.toCompanion());
+      return message;
+    } on DioException catch (e) {
+      throw Exception(dioExceptionMessage(e, 'Failed to edit attachments'));
     }
   }
 

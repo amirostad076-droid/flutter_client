@@ -5500,6 +5500,30 @@
   "@accessibilityDmMessagePreviewNoneDescription": {
     "description": "Radio option description for hiding DM message previews."
   },
+  "accessibilityMediaButtonsGroupTitle": "Media Buttons",
+  "@accessibilityMediaButtonsGroupTitle": {
+    "description": "Section title for media button visibility settings on the accessibility settings page."
+  },
+  "accessibilityMediaButtonsGroupDescription": "Customize which buttons appear on media attachments and embeds.",
+  "@accessibilityMediaButtonsGroupDescription": {
+    "description": "Section description for media button visibility settings on the accessibility settings page."
+  },
+  "accessibilityShowMediaDeleteButtonLabel": "Show delete button",
+  "@accessibilityShowMediaDeleteButtonLabel": {
+    "description": "Toggle label for showing the delete button on media."
+  },
+  "accessibilityShowMediaDownloadButtonLabel": "Show download button",
+  "@accessibilityShowMediaDownloadButtonLabel": {
+    "description": "Toggle label for showing the download button on media."
+  },
+  "accessibilityShowMediaFavoriteButtonLabel": "Show favorite button",
+  "@accessibilityShowMediaFavoriteButtonLabel": {
+    "description": "Toggle label for showing the favorite button on media."
+  },
+  "accessibilityShowSuppressEmbedsButtonLabel": "Show suppress embeds button",
+  "@accessibilityShowSuppressEmbedsButtonLabel": {
+    "description": "Toggle label for showing the suppress embeds button on media."
+  },
   "dmListSentAnAttachment": "Sent an attachment",
   "@dmListSentAnAttachment": {
     "description": "DM list row preview text when the most recent message has only attachments."
@@ -6810,6 +6834,14 @@
   "chatMessageDeleteConfirmDescription": "Are you sure you want to delete this message?",
   "@chatMessageDeleteConfirmDescription": {
     "description": "Body text for the delete message confirmation dialog."
+  },
+  "chatMessageDeleteAttachment": "Delete Attachment",
+  "@chatMessageDeleteAttachment": {
+    "description": "Action label for deleting an attachment from a sent message."
+  },
+  "chatMessageEditAttachmentAltText": "Edit Alt Text",
+  "@chatMessageEditAttachmentAltText": {
+    "description": "Action label for editing the alt text of a message attachment."
   },
   "chatMessageMore": "More",
   "@chatMessageMore": {

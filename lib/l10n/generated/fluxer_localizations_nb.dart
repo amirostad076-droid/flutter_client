@@ -4355,6 +4355,28 @@ class FluxerLocalizationsNb extends FluxerLocalizations {
       'Ikke vis meldingsforhåndsvisninger i DM-listen';
 
   @override
+  String get accessibilityMediaButtonsGroupTitle => 'Media Buttons';
+
+  @override
+  String get accessibilityMediaButtonsGroupDescription =>
+      'Customize which buttons appear on media attachments and embeds.';
+
+  @override
+  String get accessibilityShowMediaDeleteButtonLabel => 'Show delete button';
+
+  @override
+  String get accessibilityShowMediaDownloadButtonLabel =>
+      'Show download button';
+
+  @override
+  String get accessibilityShowMediaFavoriteButtonLabel =>
+      'Show favorite button';
+
+  @override
+  String get accessibilityShowSuppressEmbedsButtonLabel =>
+      'Show suppress embeds button';
+
+  @override
   String get dmListSentAnAttachment => 'Sendte et vedlegg';
 
   @override
@@ -5371,6 +5393,12 @@ class FluxerLocalizationsNb extends FluxerLocalizations {
   @override
   String get chatMessageDeleteConfirmDescription =>
       'Er du sikker på at du vil slette denne meldingen?';
+
+  @override
+  String get chatMessageDeleteAttachment => 'Delete Attachment';
+
+  @override
+  String get chatMessageEditAttachmentAltText => 'Edit Alt Text';
 
   @override
   String get chatMessageMore => 'Mer';

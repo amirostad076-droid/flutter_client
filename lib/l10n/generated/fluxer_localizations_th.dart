@@ -4335,6 +4335,28 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
       'ไม่แสดงตัวอย่างข้อความในรายการ DM';
 
   @override
+  String get accessibilityMediaButtonsGroupTitle => 'Media Buttons';
+
+  @override
+  String get accessibilityMediaButtonsGroupDescription =>
+      'Customize which buttons appear on media attachments and embeds.';
+
+  @override
+  String get accessibilityShowMediaDeleteButtonLabel => 'Show delete button';
+
+  @override
+  String get accessibilityShowMediaDownloadButtonLabel =>
+      'Show download button';
+
+  @override
+  String get accessibilityShowMediaFavoriteButtonLabel =>
+      'Show favorite button';
+
+  @override
+  String get accessibilityShowSuppressEmbedsButtonLabel =>
+      'Show suppress embeds button';
+
+  @override
   String get dmListSentAnAttachment => 'ส่งไฟล์แนบ';
 
   @override
@@ -5335,6 +5357,12 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
   @override
   String get chatMessageDeleteConfirmDescription =>
       'คุณแน่ใจหรือไม่ว่าต้องการลบข้อความนี้';
+
+  @override
+  String get chatMessageDeleteAttachment => 'Delete Attachment';
+
+  @override
+  String get chatMessageEditAttachmentAltText => 'Edit Alt Text';
 
   @override
   String get chatMessageMore => 'เพิ่มเติม';
