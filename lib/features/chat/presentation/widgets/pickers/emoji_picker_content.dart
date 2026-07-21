@@ -1196,35 +1196,35 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 8),
           children: [
-          if (data.favoriteItems.isNotEmpty)
-            _CategoryButton(
-              icon: PhosphorIconsFill.star,
-              tooltip: 'Favorites',
-              onTap: () => _scrollToCategory('favorites'),
+            if (data.favoriteItems.isNotEmpty)
+              _CategoryButton(
+                icon: PhosphorIconsFill.star,
+                tooltip: 'Favorites',
+                onTap: () => _scrollToCategory('favorites'),
+              ),
+            if (data.frecent.isNotEmpty)
+              _CategoryButton(
+                icon: PhosphorIconsFill.clock,
+                tooltip: l10n.emojiFrequentlyUsed,
+                onTap: () => _scrollToCategory('frequently-used'),
+              ),
+            ...data.guildEmojisByGuild.keys.map(
+              (guild) => _GuildCategoryButton(
+                guild: guild,
+                onTap: () => _scrollToCategory('guild-${guild.id}'),
+              ),
             ),
-          if (data.frecent.isNotEmpty)
-            _CategoryButton(
-              icon: PhosphorIconsFill.clock,
-              tooltip: l10n.emojiFrequentlyUsed,
-              onTap: () => _scrollToCategory('frequently-used'),
-            ),
-          ...data.guildEmojisByGuild.keys.map(
-            (guild) => _GuildCategoryButton(
-              guild: guild,
-              onTap: () => _scrollToCategory('guild-${guild.id}'),
-            ),
-          ),
-          ...kEmojiCategoryOrder.map((cat) {
-            final icon = _kCategoryIcons[cat];
-            if (icon == null) {
-              return const SizedBox.shrink();
-            }
-            return _CategoryButton(
-              icon: icon,
-              tooltip: _categoryLabel(cat, l10n),
-              onTap: () => _scrollToCategory(cat),
-            );
-          }),
+            ...kEmojiCategoryOrder.map((cat) {
+              final icon = _kCategoryIcons[cat];
+              if (icon == null) {
+                return const SizedBox.shrink();
+              }
+              return _CategoryButton(
+                icon: icon,
+                tooltip: _categoryLabel(cat, l10n),
+                onTap: () => _scrollToCategory(cat),
+              );
+            }),
           ],
         ),
       ),

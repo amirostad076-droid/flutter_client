@@ -8,10 +8,7 @@ const double kInlineExpressionPanelScrollTopTolerance = 0.5;
 double expressionPanelBottomSystemInset(MediaQueryData mediaQuery) {
   return math.max(
     mediaQuery.viewPadding.bottom,
-    math.max(
-      mediaQuery.padding.bottom,
-      mediaQuery.systemGestureInsets.bottom,
-    ),
+    math.max(mediaQuery.padding.bottom, mediaQuery.systemGestureInsets.bottom),
   );
 }
 
