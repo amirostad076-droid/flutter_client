@@ -27,25 +27,26 @@ class ChannelSettingsActions extends _$ChannelSettingsActions {
       throw StateError('Provider disposed');
     }
     state = const AsyncLoading<void>();
-    final AsyncValue<Channel> result = await AsyncValue.guard(() {
-      return ref
-          .read(channelRepositoryProvider)
-          .updateChannelOverview(
-            channel: channel,
-            current: current,
-            original: original,
-            canManageChannel: canManageChannel,
-            canUpdateRtcRegion: canUpdateRtcRegion,
-          );
-    });
-    if (!ref.mounted) {
-      throw StateError('Provider disposed');
-    }
-    state = result.when(
-      data: (_) => const AsyncData<void>(null),
-      error: AsyncError.new,
-      loading: () => const AsyncLoading<void>(),
+    final AsyncValue<Channel> result = await _runWithKeepAlive(
+      () => AsyncValue.guard(() {
+        return ref
+            .read(channelRepositoryProvider)
+            .updateChannelOverview(
+              channel: channel,
+              current: current,
+              original: original,
+              canManageChannel: canManageChannel,
+              canUpdateRtcRegion: canUpdateRtcRegion,
+            );
+      }),
     );
+    if (ref.mounted) {
+      state = result.when(
+        data: (_) => const AsyncData<void>(null),
+        error: AsyncError.new,
+        loading: () => const AsyncLoading<void>(),
+      );
+    }
     return result.when(
       data: (Channel updated) => updated,
       error: (Object error, StackTrace stackTrace) => throw error,
@@ -61,27 +62,37 @@ class ChannelSettingsActions extends _$ChannelSettingsActions {
       throw StateError('Provider disposed');
     }
     state = const AsyncLoading<void>();
-    final AsyncValue<Channel> result = await AsyncValue.guard(() {
-      return ref
-          .read(channelRepositoryProvider)
-          .updateChannelPermissionOverwrites(
-            channel: channel,
-            overwrites: overwrites,
-          );
-    });
-    if (!ref.mounted) {
-      throw StateError('Provider disposed');
-    }
-    state = result.when(
-      data: (_) => const AsyncData<void>(null),
-      error: AsyncError.new,
-      loading: () => const AsyncLoading<void>(),
+    final AsyncValue<Channel> result = await _runWithKeepAlive(
+      () => AsyncValue.guard(() {
+        return ref
+            .read(channelRepositoryProvider)
+            .updateChannelPermissionOverwrites(
+              channel: channel,
+              overwrites: overwrites,
+            );
+      }),
     );
+    if (ref.mounted) {
+      state = result.when(
+        data: (_) => const AsyncData<void>(null),
+        error: AsyncError.new,
+        loading: () => const AsyncLoading<void>(),
+      );
+    }
     return result.when(
       data: (Channel updated) => updated,
       error: (Object error, StackTrace stackTrace) => throw error,
       loading: () => throw StateError('Unexpected loading state'),
     );
+  }
+
+  Future<T> _runWithKeepAlive<T>(Future<T> Function() operation) async {
+    final keepAlive = ref.keepAlive();
+    try {
+      return await operation();
+    } finally {
+      keepAlive.close();
+    }
   }
 }
 
