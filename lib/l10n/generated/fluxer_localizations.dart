@@ -9702,6 +9702,18 @@ abstract class FluxerLocalizations {
   /// **'Copy Link'**
   String get channelDetailsCopyLink;
 
+  /// Channel menu action to copy a link channel's channel link.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy channel link'**
+  String get channelMenuCopyChannelLink;
+
+  /// Channel menu action to copy a link channel's redirect URL.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy redirect link'**
+  String get channelMenuCopyRedirectLink;
+
   /// Group DM menu action to add friends to the group.
   ///
   /// In en, this message translates to:

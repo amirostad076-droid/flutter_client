@@ -420,9 +420,15 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Open link'), findsOneWidget);
-      expect(find.text('Copy Link'), findsOneWidget);
+      expect(find.text('Copy channel link'), findsOneWidget);
+      expect(find.text('Copy redirect link'), findsOneWidget);
       expect(find.text('Notification Settings'), findsOneWidget);
       expect(find.text('Mute Channel'), findsNothing);
+      expect(find.text('Copy Link'), findsNothing);
+
+      double dy(String label) => tester.getTopLeft(find.text(label)).dy;
+      expect(dy('Open link'), lessThan(dy('Copy redirect link')));
+      expect(dy('Copy redirect link'), lessThan(dy('Copy channel link')));
     });
   });
 

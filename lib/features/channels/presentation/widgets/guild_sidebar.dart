@@ -764,6 +764,9 @@ class _ChannelTile extends ConsumerWidget {
         unawaited(
           _copyToClipboard(ref, channelLink(channel.id, channel.guildId)),
         );
+      case ChannelMenuAction.copyRedirectLink:
+        close();
+        unawaited(_copyToClipboard(ref, channel.url!));
       case ChannelMenuAction.mute:
         unawaited(
           _openChannelMuteSheet(

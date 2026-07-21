@@ -17,6 +17,7 @@ enum ChannelMenuAction {
   invitePeople,
   openLink,
   copyLink,
+  copyRedirectLink,
   mute,
   notificationSettings,
   editChannel,
@@ -60,6 +61,7 @@ class ChannelMenuState {
     required this.canInvite,
     required this.useVanityInvite,
     required this.canOpenLink,
+    required this.canCopyRedirectLink,
     required this.showMute,
     required this.isMuted,
     required this.showNotificationSettings,
@@ -83,6 +85,7 @@ class ChannelMenuState {
   final bool canInvite;
   final bool useVanityInvite;
   final bool canOpenLink;
+  final bool canCopyRedirectLink;
   final bool showMute;
   final bool isMuted;
   final bool showNotificationSettings;
@@ -152,6 +155,7 @@ ChannelMenuState resolveChannelMenuState({
     useVanityInvite: inviteCapability.useVanityUrl,
     vanityUrlCode: inviteCapability.vanityUrlCode,
     canOpenLink: canOpenLink,
+    canCopyRedirectLink: canOpenLink,
     showMute: showMute,
     isMuted: isMuted,
     mutedHint: mutedHint,
@@ -227,9 +231,20 @@ List<ChannelMenuGroup> buildChannelMenuGroups({
       ),
     );
   }
+  if (state.canCopyRedirectLink) {
+    inviteItems.add(
+      ChannelMenuEntry(
+        label: l10n.channelMenuCopyRedirectLink,
+        icon: PhosphorIconsFill.copy,
+        action: ChannelMenuAction.copyRedirectLink,
+      ),
+    );
+  }
   inviteItems.add(
     ChannelMenuEntry(
-      label: l10n.channelDetailsCopyLink,
+      label: state.isLinkChannel
+          ? l10n.channelMenuCopyChannelLink
+          : l10n.channelDetailsCopyLink,
       icon: PhosphorIconsFill.link,
       action: ChannelMenuAction.copyLink,
     ),

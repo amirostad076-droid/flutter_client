@@ -7290,6 +7290,14 @@
   "@channelDetailsCopyLink": {
     "description": "Channel details menu action to copy a channel link."
   },
+  "channelMenuCopyChannelLink": "Copy channel link",
+  "@channelMenuCopyChannelLink": {
+    "description": "Channel menu action to copy a link channel's channel link."
+  },
+  "channelMenuCopyRedirectLink": "Copy redirect link",
+  "@channelMenuCopyRedirectLink": {
+    "description": "Channel menu action to copy a link channel's redirect URL."
+  },
   "channelDetailsAddFriendsToGroup": "Add friends to group",
   "@channelDetailsAddFriendsToGroup": {
     "description": "Group DM menu action to add friends to the group."
