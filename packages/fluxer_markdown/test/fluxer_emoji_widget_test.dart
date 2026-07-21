@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -54,19 +53,15 @@ class _StatusCodeHttpClient implements HttpClient {
 
   final int statusCode;
   final List<int> body;
-  _StatusCodeHttpClientRequest? lastRequest;
-  _RecordingHttpHeaders? lastHeaders;
 
   @override
   Future<HttpClientRequest> getUrl(Uri url) async {
     final headers = _RecordingHttpHeaders();
-    lastRequest = _StatusCodeHttpClientRequest(
+    return _StatusCodeHttpClientRequest(
       statusCode: statusCode,
       body: body,
       headers: headers,
     );
-    lastHeaders = headers;
-    return lastRequest!;
   }
 
   @override
@@ -119,18 +114,9 @@ class _StatusCodeHttpClientResponse implements HttpClientResponse {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-const double _size = 24;
-
 void main() {
   final svg = Uint8List.fromList(
-    '<?xml version="1.0" encoding="utf-8"?>'
-            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">'
-            '<path d="M35.885 11.833c0-5.45-4.418-9.868-9.867-9.868-3.308 0-6.227 '
-            '1.633-8.018 4.129-1.791-2.496-4.71-4.129-8.017-4.129-5.45 0-9.868 '
-            '4.417-9.868 9.868 0 .772.098 1.52.266 2.241C1.751 22.587 11.216 31.568 '
-            '18 34.034c6.783-2.466 16.249-11.447 17.617-19.959.17-.721.268-1.469 '
-            '.268-2.242z" fill="#DD2E44"/>'
-            '</svg>'
+    '<?xml version="1.0" encoding="utf-8"?><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36"><path d="M35.885 11.833c0-5.45-4.418-9.868-9.867-9.868-3.308 0-6.227 1.633-8.018 4.129-1.791-2.496-4.71-4.129-8.017-4.129-5.45 0-9.868 4.417-9.868 9.868 0 .772.098 1.52.266 2.241C1.751 22.587 11.216 31.568 18 34.034c6.783-2.466 16.249-11.447 17.617-19.959.17-.721.268-1.469 .268-2.242z" fill="#DD2E44"/></svg>'
         .codeUnits,
   );
 
@@ -152,7 +138,9 @@ void main() {
   testWidgets('renders heart as SvgPicture inside a WidgetSpan', (
     tester,
   ) async {
-    HttpOverrides.global = _StatusCodeHttpOverrides(statusCode: 200, body: svg);
+    final httpOverrides = _StatusCodeHttpOverrides(statusCode: 200, body: svg);
+    HttpOverrides.global = httpOverrides;
+    addTearDown(() => httpOverrides.lastClient?.close());
 
     final element = md.Element.text('emoji-unicode', 'heart')
       ..attributes['surrogate'] = '❤️';
