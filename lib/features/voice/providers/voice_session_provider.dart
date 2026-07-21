@@ -936,6 +936,18 @@ class VoiceSession extends _$VoiceSession {
     );
     final Room room = Room(roomOptions: roomOptions);
     _managedLiveKitRoom = room;
+    if (attempt != _connectGeneration) {
+      talker.warning(
+        '[Voice] LiveKit connect superseded after room creation '
+        '(attempt=$attempt, generation=$_connectGeneration).',
+      );
+      _managedLiveKitRoom = null;
+      await _disconnectAndDisposeRoom(room, reason: 'superseded_after_create');
+      if (identical(state.liveKitRoom, room)) {
+        state = state.copyWith(clearRoom: true);
+      }
+      return;
+    }
     final String? resolvedGuildId =
         _normalizeVoiceGuildId(event.guildId) ?? _expectedGuildId;
     state = state.copyWith(
@@ -1184,6 +1196,8 @@ class VoiceSession extends _$VoiceSession {
   }
 
   void _teardownOnDispose() {
+    // Prevent stale in-flight connects from creating a room after disposal.
+    _connectGeneration++;
     _cancelConnectWatchdog();
     _cancelLiveKitConnectWatchdog();
     _cancelDeferredServerDisconnect();
