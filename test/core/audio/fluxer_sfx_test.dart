@@ -1,9 +1,9 @@
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/audio/enums/fluxer_sfx_clip.dart';
 import 'package:fluxer_app/core/audio/fluxer_sfx.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:flutter_test/flutter_test.dart';
 
 import 'fluxer_sfx_test.mocks.dart';
 

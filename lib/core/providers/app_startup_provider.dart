@@ -71,12 +71,17 @@ class AppStartup extends _$AppStartup {
   Future<void> _validateAndRestore() async {
     final Stopwatch startupStopwatch = Stopwatch()..start();
     await ref.read(appRuntimeInfoProvider.future);
+    final database = ref.read(fluxerDatabaseProvider);
+    final authRepository = ref.read(authRepositoryProvider);
+    final InstanceConfigSnapshot? activeSnapshot = await authRepository
+        .resolveActiveInstanceSnapshot();
+    if (activeSnapshot != null) {
+      ref.read(activeInstanceProvider.notifier).applySnapshot(activeSnapshot);
+    }
     unawaited(EmojiRegistry.preload());
     unawaited(ref.read(wellKnownProvider.future));
     unawaited(EmojiSpriteSheet.preload());
     unawaited(bootstrapFcmAfterRunApp());
-    final database = ref.read(fluxerDatabaseProvider);
-    final authRepository = ref.read(authRepositoryProvider);
     debugPrint('[AppStartup] Database obtained, migrating legacy tokens…');
     await authRepository.migrateLegacyTokens();
     await authRepository.pruneTokenlessSessions();
@@ -87,12 +92,6 @@ class AppStartup extends _$AppStartup {
 
     if (session == null) {
       return;
-    }
-
-    final InstanceConfigSnapshot? activeSnapshot = await authRepository
-        .resolveActiveInstanceSnapshot();
-    if (activeSnapshot != null) {
-      ref.read(activeInstanceProvider.notifier).applySnapshot(activeSnapshot);
     }
 
     // Validate the session and try fallback sessions on 401.

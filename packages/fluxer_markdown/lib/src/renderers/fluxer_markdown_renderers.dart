@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
@@ -18,8 +16,10 @@ import 'package:fluxer_markdown/src/parsing/markdown_parse_cache.dart';
 import 'package:fluxer_markdown/src/syntaxes/fluxer_markdown_syntaxes.dart';
 import 'package:fluxer_markdown/src/utils/ansi_text_parser.dart';
 import 'package:fluxer_markdown/src/utils/code_block_highlight_theme.dart';
+import 'package:fluxer_markdown/src/utils/emoji_asset_cache.dart';
 import 'package:fluxer_markdown/src/utils/highlight_languages.dart';
 import 'package:fluxer_markdown/src/utils/jumbo_emoji.dart';
+import 'package:fluxer_markdown/src/widgets/system_emoji_fallback.dart';
 import 'package:intl/intl.dart';
 import 'package:latext/latext.dart';
 import 'package:markdown/markdown.dart' as md;
@@ -1521,33 +1521,6 @@ class FluxerInlineCodeWidget extends StatelessWidget {
   }
 }
 
-class FluxerSvgCache {
-  FluxerSvgCache._();
-
-  static final _cache = <String, Future<Uint8List>>{};
-
-  static Future<Uint8List> load(String url) {
-    return _cache.putIfAbsent(url, () async {
-      final uri = Uri.parse(url);
-      final response = await HttpClient().getUrl(uri).then((r) => r.close());
-      if (response.statusCode != HttpStatus.ok) {
-        throw HttpException(
-          'Twemoji load failed: ${response.statusCode}',
-          uri: uri,
-        );
-      }
-      final builder = BytesBuilder();
-      await response.forEach(builder.add);
-      return builder.toBytes();
-    });
-  }
-
-  @visibleForTesting
-  static void clearCacheForTesting() {
-    _cache.clear();
-  }
-}
-
 class FluxerEmojiWidget extends StatelessWidget {
   const FluxerEmojiWidget({
     required this.element,
@@ -1576,7 +1549,7 @@ class FluxerEmojiWidget extends StatelessWidget {
   }
 
   Widget _buildSystemUnicodeEmoji(String surrogate, double size) {
-    return Text(surrogate, style: TextStyle(fontSize: size));
+    return SystemEmojiFallback(emoji: surrogate, size: size);
   }
 
   Widget _buildUnicode(double size) {
@@ -1586,7 +1559,7 @@ class FluxerEmojiWidget extends StatelessWidget {
       return _buildSystemUnicodeEmoji(surrogate, size);
     }
     return FutureBuilder<Uint8List>(
-      future: FluxerSvgCache.load(url),
+      future: EmojiAssetCache.loadBytes(url),
       builder: (context, snap) {
         if (snap.hasError) {
           return _buildSystemUnicodeEmoji(surrogate, size);
