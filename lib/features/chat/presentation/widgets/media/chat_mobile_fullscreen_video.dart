@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/features/chat/domain/chat_fullscreen_video_launch_context.dart';
 import 'package:fluxer_app/features/chat/domain/chat_video_source.dart';
-import 'package:fluxer_app/features/chat/presentation/sheets/mobile_video_media_options_sheet.dart';
+import 'package:fluxer_app/features/chat/domain/media_options_launch_context.dart';
+import 'package:fluxer_app/features/chat/presentation/sheets/mobile_media_options_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/media/chat_video_playback_failure_overlay.dart';
 import 'package:fluxer_app/features/chat/utils/attachment_display_utils.dart';
 import 'package:fluxer_app/features/chat/utils/chat_video_playback_utils.dart';
@@ -328,10 +329,12 @@ class _ChatMobileFullscreenVideoPageState
 
   Future<void> _openOptions() async {
     _keepHudVisible();
-    await showMobileVideoMediaOptionsSheet(
+    await showMobileMediaOptionsSheet(
       context: context,
       ref: ref,
-      launchContext: widget.launchContext,
+      launchContext: MediaOptionsLaunchContext.fromVideoLaunchContext(
+        widget.launchContext,
+      ),
       onCloseViewer: _executeClose,
     );
     if (mounted && _isPlaying) {

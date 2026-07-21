@@ -780,7 +780,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           messageNonce: msg.clientNonce,
           channelId: msg.channelId,
           messageFlags: msg.flags,
-          videoActionScope: _videoActionScope,
+          mediaActionScope: _videoActionScope,
         ),
       if (renderEmbeds && !msg.suppressEmbeds)
         ...() {
@@ -1322,6 +1322,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         channelId: channelId,
         messageId: messageId,
         embedIndex: embedIndex,
+        mediaActionScope: _videoActionScope,
       ),
       EmbedType.link => EmbedLink(
         embed: embed,

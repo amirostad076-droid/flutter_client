@@ -24,7 +24,7 @@ class AttachmentMediaGrid extends StatelessWidget {
     required this.dimensionSize,
     this.channelId,
     this.messageId,
-    this.videoActionScope,
+    this.mediaActionScope,
     super.key,
   });
 
@@ -33,7 +33,7 @@ class AttachmentMediaGrid extends StatelessWidget {
   final MediaDimensionSize dimensionSize;
   final String? channelId;
   final String? messageId;
-  final MessageMediaActionScope? videoActionScope;
+  final MessageMediaActionScope? mediaActionScope;
 
   @override
   Widget build(BuildContext context) {
@@ -310,7 +310,7 @@ class AttachmentMediaGrid extends StatelessWidget {
           launchContext: ChatFullscreenVideoLaunchContext.fromAttachment(
             attachment: attachment,
             layoutDimensions: mediaDimensionsForSize(dimensionSize),
-            actionScope: videoActionScope,
+            actionScope: mediaActionScope,
           ),
         ),
       );
@@ -331,6 +331,9 @@ class AttachmentMediaGrid extends StatelessWidget {
                 width: item.width,
                 height: item.height,
                 isMatureMedia: item.isMatureMedia,
+                attachmentId: item.id,
+                proxyUrl: item.proxyUrl,
+                isExpired: item.expired ?? false,
               ),
             )
             .toList(),
@@ -344,6 +347,7 @@ class AttachmentMediaGrid extends StatelessWidget {
                 attachmentIds: <String>[images[i].id],
               )
             : null,
+        actionScope: mediaActionScope,
       ),
     );
   }

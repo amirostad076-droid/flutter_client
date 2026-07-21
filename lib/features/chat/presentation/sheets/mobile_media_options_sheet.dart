@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/chat_fullscreen_video_launch_context.dart';
+import 'package:fluxer_app/features/chat/domain/media_options_launch_context.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/sheets/forward_message_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_actions/message_bottom_sheet.dart';
@@ -16,10 +17,10 @@ import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-Future<void> showMobileVideoMediaOptionsSheet({
+Future<void> showMobileMediaOptionsSheet({
   required BuildContext context,
   required WidgetRef ref,
-  required ChatFullscreenVideoLaunchContext launchContext,
+  required MediaOptionsLaunchContext launchContext,
   VoidCallback? onCloseViewer,
 }) async {
   if (!launchContext.hasOptionsMenu) {
@@ -38,7 +39,7 @@ Future<void> showMobileVideoMediaOptionsSheet({
           ScrollController scrollController,
           VoidCallback close,
         ) {
-          return _MobileVideoMediaOptionsSheetBody(
+          return _MobileMediaOptionsSheetBody(
             launchContext: launchContext,
             scrollController: scrollController,
             onCloseViewer: onCloseViewer,
@@ -48,15 +49,15 @@ Future<void> showMobileVideoMediaOptionsSheet({
   );
 }
 
-class _MobileVideoMediaOptionsSheetBody extends ConsumerWidget {
-  const _MobileVideoMediaOptionsSheetBody({
+class _MobileMediaOptionsSheetBody extends ConsumerWidget {
+  const _MobileMediaOptionsSheetBody({
     required this.launchContext,
     required this.scrollController,
     required this.onCloseSheet,
     this.onCloseViewer,
   });
 
-  final ChatFullscreenVideoLaunchContext launchContext;
+  final MediaOptionsLaunchContext launchContext;
   final ScrollController scrollController;
   final VoidCallback onCloseSheet;
   final VoidCallback? onCloseViewer;
@@ -64,7 +65,7 @@ class _MobileVideoMediaOptionsSheetBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-    final String linkUrl = launchContext.source.fallbackUrl.trim();
+    final String linkUrl = launchContext.fallbackUrl.trim();
     final String? downloadUrl = _downloadUrl();
     final MessageMediaActionScope? actionScope = launchContext.actionScope;
     final List<Widget> mediaItems = <Widget>[
@@ -76,19 +77,19 @@ class _MobileVideoMediaOptionsSheetBody extends ConsumerWidget {
         ),
       if (linkUrl.isNotEmpty)
         FluxerBottomSheetMenuItem(
-          icon: PhosphorIconsRegular.arrowSquareOut,
+          icon: PhosphorIconsFill.arrowSquareOut,
           label: l10n.mediaViewerOpenInBrowser,
           onTap: () => unawaited(_openLink(context, linkUrl)),
         ),
       if (downloadUrl != null)
         FluxerBottomSheetMenuItem(
-          icon: PhosphorIconsRegular.downloadSimple,
+          icon: PhosphorIconsFill.downloadSimple,
           label: l10n.chatAttachmentDownload,
           onTap: () => unawaited(_download(context, downloadUrl)),
         ),
       if (_canForwardMedia())
         FluxerBottomSheetMenuItem(
-          icon: PhosphorIconsRegular.arrowBendUpRight,
+          icon: PhosphorIconsFill.arrowBendUpRight,
           label: l10n.mediaViewerForward,
           onTap: () => unawaited(_forward(context)),
         ),
@@ -163,14 +164,14 @@ class _MobileVideoMediaOptionsSheetBody extends ConsumerWidget {
       return;
     }
     final Message message = actionScope.message;
-    final Attachment? attachment = launchContext.attachment;
+    final String? attachmentId = launchContext.attachmentId;
     final int? embedIndex = launchContext.embedIndex;
-    if (attachment != null) {
+    if (attachmentId != null && attachmentId.isNotEmpty) {
       await showForwardMediaSheet(
         context,
         sourceChannelId: message.channelId,
         sourceMessageId: message.id,
-        attachmentIds: <String>[attachment.id],
+        attachmentIds: <String>[attachmentId],
       );
       return;
     }
@@ -191,7 +192,7 @@ class _MobileVideoMediaOptionsSheetBody extends ConsumerWidget {
     MessageAction action,
   ) async {
     onCloseSheet();
-    if (shouldCloseVideoViewerForMessageAction(action)) {
+    if (shouldCloseMediaViewerForMessageAction(action)) {
       onCloseViewer?.call();
     }
     if (!context.mounted) {
@@ -208,15 +209,15 @@ class _MobileVideoMediaOptionsSheetBody extends ConsumerWidget {
   }
 
   String? _downloadUrl() {
-    final Attachment? attachment = launchContext.attachment;
-    if (attachment != null) {
+    final String? attachmentId = launchContext.attachmentId;
+    if (attachmentId != null && attachmentId.isNotEmpty) {
       return attachmentEffectiveDownloadUrl(
-        url: attachment.url,
-        isExpired: attachment.expired ?? false,
-        proxyUrl: attachment.proxyUrl,
+        url: launchContext.fallbackUrl,
+        isExpired: launchContext.isExpired,
+        proxyUrl: launchContext.proxyUrl,
       );
     }
-    final String fallbackUrl = launchContext.source.fallbackUrl.trim();
+    final String fallbackUrl = launchContext.fallbackUrl.trim();
     if (fallbackUrl.isEmpty) {
       return null;
     }
@@ -227,7 +228,8 @@ class _MobileVideoMediaOptionsSheetBody extends ConsumerWidget {
     if (launchContext.actionScope == null) {
       return false;
     }
-    if (launchContext.attachment != null) {
+    final String? attachmentId = launchContext.attachmentId;
+    if (attachmentId != null && attachmentId.isNotEmpty) {
       return true;
     }
     return launchContext.embedIndex != null;

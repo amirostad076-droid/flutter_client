@@ -29,7 +29,7 @@ class AttachmentRenderer extends StatelessWidget {
     this.messageNonce,
     this.channelId,
     this.messageFlags = 0,
-    this.videoActionScope,
+    this.mediaActionScope,
     super.key,
   });
 
@@ -43,7 +43,7 @@ class AttachmentRenderer extends StatelessWidget {
   final String? messageNonce;
   final String? channelId;
   final int messageFlags;
-  final MessageMediaActionScope? videoActionScope;
+  final MessageMediaActionScope? mediaActionScope;
 
   @override
   Widget build(BuildContext context) {
@@ -113,11 +113,12 @@ class AttachmentRenderer extends StatelessWidget {
         imageGalleryIndex: imageGalleryIndex,
         channelId: channelId,
         messageId: messageId,
+        mediaActionScope: mediaActionScope,
       ),
       AttachmentRenderType.video => AttachmentVideo(
         attachment: attachment,
         dimensionSize: dimensionSize,
-        videoActionScope: videoActionScope,
+        videoActionScope: mediaActionScope,
       ),
       AttachmentRenderType.audio =>
         isVoiceMessageAttachment(

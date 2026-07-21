@@ -222,7 +222,7 @@ List<Widget> buildMessageActionMenuGroups({
       FluxerMenuGroup(
         children: <Widget>[
           FluxerBottomSheetMenuItem(
-            icon: PhosphorIconsRegular.trash,
+            icon: PhosphorIconsFill.trash,
             label: l10n.chatMessageDeleteFailed,
             isDanger: true,
             onTap: () => onAction(MessageAction.deleteFailed),
@@ -263,19 +263,19 @@ List<Widget> buildMessageActionMenuGroups({
   final List<Widget> reactionItems = <Widget>[
     if (canShowAddReaction)
       FluxerBottomSheetMenuItem(
-        icon: PhosphorIconsRegular.smiley,
+        icon: PhosphorIconsFill.smiley,
         label: l10n.chatMessageAddReaction,
         onTap: () => onAction(MessageAction.addReaction),
       ),
     if (hasReactions)
       FluxerBottomSheetMenuItem(
-        icon: PhosphorIconsRegular.users,
+        icon: PhosphorIconsFill.users,
         label: l10n.chatMessageViewReactions,
         onTap: () => onAction(MessageAction.viewReactions),
       ),
     if (canShowRemoveAllReactions)
       FluxerBottomSheetMenuItem(
-        icon: PhosphorIconsRegular.smileyXEyes,
+        icon: PhosphorIconsFill.smileyXEyes,
         label: l10n.chatMessageRemoveAllReactions,
         isDanger: true,
         onTap: () => onAction(MessageAction.removeAllReactions),
@@ -290,19 +290,19 @@ List<Widget> buildMessageActionMenuGroups({
     ),
     if (canShowReply)
       FluxerBottomSheetMenuItem(
-        icon: PhosphorIconsRegular.arrowBendUpLeft,
+        icon: PhosphorIconsFill.arrowBendUpLeft,
         label: l10n.chatMessageReply,
         onTap: () => onAction(MessageAction.reply),
       ),
     if (canShowForward)
       FluxerBottomSheetMenuItem(
-        icon: PhosphorIconsRegular.shareFat,
+        icon: PhosphorIconsFill.shareFat,
         label: l10n.chatMessageForward,
         onTap: () => onAction(MessageAction.forward),
       ),
     if (canShowEdit)
       FluxerBottomSheetMenuItem(
-        icon: PhosphorIconsRegular.pencilSimple,
+        icon: PhosphorIconsFill.pencilSimple,
         label: l10n.chatMessageEdit,
         onTap: () => onAction(MessageAction.edit),
       ),
@@ -311,15 +311,13 @@ List<Widget> buildMessageActionMenuGroups({
   final List<Widget> managementItems = <Widget>[
     if (canShowPin)
       FluxerBottomSheetMenuItem(
-        icon: PhosphorIconsRegular.pushPin,
+        icon: PhosphorIconsFill.pushPin,
         label: message.isPinned ? l10n.chatMessageUnpin : l10n.chatMessagePin,
         onTap: () => onAction(MessageAction.pin),
       ),
     if (canShowBookmark)
       FluxerBottomSheetMenuItem(
-        icon: isSaved
-            ? PhosphorIconsFill.bookmarkSimple
-            : PhosphorIconsRegular.bookmarkSimple,
+        icon: PhosphorIconsFill.bookmarkSimple,
         label: isSaved
             ? l10n.chatMessageRemoveBookmark
             : l10n.chatMessageBookmark,
@@ -335,7 +333,7 @@ List<Widget> buildMessageActionMenuGroups({
       ),
     if (permissions.canDelete)
       FluxerBottomSheetMenuItem(
-        icon: PhosphorIconsRegular.trash,
+        icon: PhosphorIconsFill.trash,
         label: l10n.chatMessageDelete,
         isDanger: true,
         onTap: () => onAction(MessageAction.delete),
@@ -370,7 +368,7 @@ List<Widget> buildMessageActionMenuGroups({
   final List<Widget> reportItems = <Widget>[
     if (permissions.canReport)
       FluxerBottomSheetMenuItem(
-        icon: PhosphorIconsRegular.flag,
+        icon: PhosphorIconsFill.flag,
         label: l10n.chatMessageReport,
         isDanger: true,
         onTap: () => onAction(MessageAction.report),
@@ -443,7 +441,7 @@ class _MessageBottomSheetBody extends ConsumerWidget {
   }
 }
 
-bool shouldCloseVideoViewerForMessageAction(MessageAction action) {
+bool shouldCloseMediaViewerForMessageAction(MessageAction action) {
   return switch (action) {
     MessageAction.reply ||
     MessageAction.forward ||
