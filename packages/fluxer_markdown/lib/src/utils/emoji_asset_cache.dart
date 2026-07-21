@@ -9,8 +9,15 @@ const String _kEmojiAssetUserAgent =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
     '(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
 
-const String _kEmojiAssetAcceptHeader =
-    'image/svg+xml,image/webp,image/apng,image/*,*/*;q=0.8';
+const String _kEmojiAssetAcceptHeader = 'image/svg+xml';
+
+const String _kEmojiAssetRefererHeader = 'https://web.fluxer.app/';
+
+const String _kEmojiAssetSecFetchDest = 'image';
+const String _kEmojiAssetSecFetchMode = 'no-cors';
+const String _kEmojiAssetSecFetchSite = 'cross-site';
+
+const String _kEmojiAssetCacheVersion = '2';
 
 class EmojiAssetCache {
   EmojiAssetCache._();
@@ -19,7 +26,7 @@ class EmojiAssetCache {
       CachedNetworkImageProvider.defaultCacheManager;
 
   static Future<Uint8List> loadBytes(String url) async {
-    final cacheKey = url;
+    final cacheKey = '$_kEmojiAssetCacheVersion:$url';
     final cached = await _cacheManager.getFileFromCache(cacheKey);
     if (cached != null) {
       return cached.file.readAsBytes();
@@ -36,6 +43,11 @@ class EmojiAssetCache {
       final request = await client.getUrl(Uri.parse(url));
       request.headers.set(HttpHeaders.userAgentHeader, _kEmojiAssetUserAgent);
       request.headers.set(HttpHeaders.acceptHeader, _kEmojiAssetAcceptHeader);
+      request.headers.set(HttpHeaders.acceptEncodingHeader, 'identity');
+      request.headers.set(HttpHeaders.refererHeader, _kEmojiAssetRefererHeader);
+      request.headers.set('Sec-Fetch-Dest', _kEmojiAssetSecFetchDest);
+      request.headers.set('Sec-Fetch-Mode', _kEmojiAssetSecFetchMode);
+      request.headers.set('Sec-Fetch-Site', _kEmojiAssetSecFetchSite);
       final response = await request.close();
       if (response.statusCode != HttpStatus.ok) {
         throw HttpException(

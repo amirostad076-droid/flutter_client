@@ -78,7 +78,7 @@ class AppStartup extends _$AppStartup {
     if (activeSnapshot != null) {
       ref.read(activeInstanceProvider.notifier).applySnapshot(activeSnapshot);
     }
-    unawaited(EmojiRegistry.preload());
+    await EmojiRegistry.preload();
     unawaited(ref.read(wellKnownProvider.future));
     unawaited(EmojiSpriteSheet.preload());
     unawaited(bootstrapFcmAfterRunApp());

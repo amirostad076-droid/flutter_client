@@ -210,9 +210,19 @@ class EmojiRegistry {
       return null;
     }
 
+    final patterns = <String, String>{};
+    for (final surrogate in surrogates) {
+      if (surrogate.endsWith('\uFE0F')) {
+        final base = surrogate.substring(0, surrogate.length - 1);
+        patterns[surrogate] = '${RegExp.escape(base)}(?:\\uFE0F)?';
+      } else {
+        patterns[surrogate] = RegExp.escape(surrogate);
+      }
+    }
+
     final ordered = surrogates.toList()
       ..sort((a, b) => b.length.compareTo(a.length));
-    final pattern = ordered.map(RegExp.escape).join('|');
+    final pattern = ordered.map((s) => patterns[s]!).join('|');
     if (pattern.isEmpty) {
       return null;
     }

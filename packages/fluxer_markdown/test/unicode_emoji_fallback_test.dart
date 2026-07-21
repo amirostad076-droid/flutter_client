@@ -200,7 +200,26 @@ void main() {
     );
     expect(
       overrides.lastClient?.lastHeaders?.value(HttpHeaders.acceptHeader),
-      contains('image/svg+xml'),
+      'image/svg+xml',
+    );
+    expect(
+      overrides.lastClient?.lastHeaders?.value(
+        HttpHeaders.acceptEncodingHeader,
+      ),
+      'identity',
+    );
+    expect(
+      overrides.lastClient?.lastHeaders?.value(HttpHeaders.refererHeader),
+      'https://web.fluxer.app/',
+    );
+    expect(overrides.lastClient?.lastHeaders?.value('Sec-Fetch-Dest'), 'image');
+    expect(
+      overrides.lastClient?.lastHeaders?.value('Sec-Fetch-Mode'),
+      'no-cors',
+    );
+    expect(
+      overrides.lastClient?.lastHeaders?.value('Sec-Fetch-Site'),
+      'cross-site',
     );
   });
 

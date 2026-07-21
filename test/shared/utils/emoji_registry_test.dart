@@ -61,4 +61,11 @@ void main() {
   test('resolves shortcut aliases', () {
     expect(EmojiRegistry.resolveSync('<3'), EmojiRegistry.resolveSync('heart'));
   });
+
+  test('matches heart with and without variation selector', () {
+    final regex = EmojiRegistry.unicodeEmojiRegexSync;
+    expect(regex, isNotNull);
+    expect(regex!.hasMatch('❤️'), isTrue);
+    expect(regex.hasMatch('❤'), isTrue);
+  });
 }
