@@ -48,6 +48,7 @@ import 'package:fluxer_app/features/chat/service/composer_mention_controller.dar
 import 'package:fluxer_app/features/chat/utils/bottom_input_slot_layout.dart';
 import 'package:fluxer_app/features/chat/utils/composer_command.dart';
 import 'package:fluxer_app/features/chat/utils/composer_emoji_resolution.dart';
+import 'package:fluxer_app/features/chat/utils/composer_scroll.dart';
 import 'package:fluxer_app/features/chat/utils/composer_sendable_content.dart';
 import 'package:fluxer_app/features/chat/utils/composer_upload_file.dart';
 import 'package:fluxer_app/features/chat/utils/composer_voice_button_visibility.dart';
@@ -136,7 +137,8 @@ class ChannelTextarea extends ConsumerStatefulWidget {
 
 class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
   late final ComposerMentionController _controller;
-  final _focusNode = FocusNode();
+  final FocusNode _focusNode = FocusNode();
+  final ScrollController _composerScrollController = ScrollController();
   final GlobalKey<ComposerAutocompleteFieldState> _composerFieldKey =
       GlobalKey<ComposerAutocompleteFieldState>();
   final GlobalKey<ComposerPasteScopeState> _pasteScopeKey =
@@ -275,6 +277,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     _focusNode
       ..unfocus()
       ..dispose();
+    _composerScrollController.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -420,6 +423,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             TextField(
               controller: _controller,
               focusNode: _focusNode,
+              scrollController: _composerScrollController,
               enabled: perms.isComposerEnabled,
               style: context.textStyles.inputText,
               minLines: minLines,
@@ -1210,6 +1214,10 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
 
   void _insertEmoji(String name, String surrogates) {
     _controller.insertEmoji(name, surrogates);
+    scheduleComposerScrollToEnd(
+      _composerScrollController,
+      isMounted: () => mounted,
+    );
   }
 
   void _showNoSendPermissionToast() {
