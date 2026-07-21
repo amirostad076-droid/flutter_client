@@ -257,7 +257,7 @@ void main() {
   });
 
   test(
-    'cache hit shows messages immediately without loading spinner state',
+    'cache refresh shows loading skeleton while fetching from network',
     () async {
       final db = openTestDatabase();
       final cachedId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
@@ -297,20 +297,20 @@ void main() {
       await _flushAsync();
 
       final state = container.read(chatViewModelProvider);
-      expect(state.isLoading, isFalse);
-      expect(state.isSyncingMessages, isTrue);
+      expect(state.isLoading, isTrue);
+      expect(state.isSyncingMessages, isFalse);
       expect(state.messages, isEmpty);
       expect(adapter.messageRequestUris, isNotEmpty);
 
       adapter.releaseMessageFetch();
       await _flushAsync();
-      expect(container.read(chatViewModelProvider).isSyncingMessages, isFalse);
+      expect(container.read(chatViewModelProvider).isLoading, isFalse);
       expect(container.read(chatViewModelProvider).messages.last.id, networkId);
     },
   );
 
   test(
-    'auto ack does not run while cache-first messages are syncing',
+    'auto ack does not run while cache-first messages are loading',
     () async {
       final db = openTestDatabase();
       final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
@@ -346,10 +346,11 @@ void main() {
       await _flushAsync();
 
       expect(adapter.ackedMessageIds, isEmpty);
-      expect(container.read(chatViewModelProvider).isSyncingMessages, isTrue);
+      expect(container.read(chatViewModelProvider).isLoading, isTrue);
+      expect(container.read(chatViewModelProvider).isSyncingMessages, isFalse);
       adapter.releaseMessageFetch();
       await _flushAsync();
-      expect(container.read(chatViewModelProvider).isSyncingMessages, isFalse);
+      expect(container.read(chatViewModelProvider).isLoading, isFalse);
     },
   );
 
@@ -488,24 +489,25 @@ void main() {
 
       final notifier = container.read(chatViewModelProvider.notifier);
       await notifier.switchChannel('channel-1');
-      final syncingState = container.read(chatViewModelProvider);
-      expect(syncingState.messages, isEmpty);
-      expect(syncingState.isSyncingMessages, isTrue);
+      final loadingState = container.read(chatViewModelProvider);
+      expect(loadingState.messages, isEmpty);
+      expect(loadingState.isLoading, isTrue);
+      expect(loadingState.isSyncingMessages, isFalse);
       expect(
-        syncingState.messages.map((m) => m.id),
+        loadingState.messages.map((m) => m.id),
         isNot(contains(deletedId)),
       );
 
       adapter.releaseMessageFetch();
       for (var i = 0; i < 30; i++) {
         await _flushAsync();
-        if (!container.read(chatViewModelProvider).isSyncingMessages) {
+        if (!container.read(chatViewModelProvider).isLoading) {
           break;
         }
       }
 
       final state = container.read(chatViewModelProvider);
-      expect(state.isSyncingMessages, isFalse);
+      expect(state.isLoading, isFalse);
       expect(state.messages.map((m) => m.id), [anchorId, keptId]);
       expect(await db.messageDao.getMessage(deletedId), null);
       expect(await db.messageDao.getMessage(keptId), isNot(null));
@@ -743,7 +745,7 @@ void main() {
     adapter.releaseMessageFetch();
     for (var i = 0; i < 30; i++) {
       await _flushAsync();
-      if (!container.read(chatViewModelProvider).isSyncingMessages) {
+      if (!container.read(chatViewModelProvider).isLoading) {
         break;
       }
     }
@@ -941,7 +943,7 @@ void main() {
       await notifier.switchChannel('channel-1');
       for (var i = 0; i < 30; i++) {
         await _flushAsync();
-        if (!container.read(chatViewModelProvider).isSyncingMessages) {
+        if (!container.read(chatViewModelProvider).isLoading) {
           break;
         }
       }
