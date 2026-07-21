@@ -656,6 +656,30 @@ class _ChannelTile extends ConsumerWidget {
       l10n: l10n,
       state: menuState,
     );
+    if (isMobileLayout(context)) {
+      return FluxerBottomSheet.showScrollable<void>(
+        context,
+        title: channel.name,
+        initialChildSize: 0.5,
+        minChildSize: 0.25,
+        maxChildSize: 0.85,
+        builder: (sheetContext, scrollController, close) {
+          return channelMenuGroupsToBottomSheetContent(
+            context: sheetContext,
+            scrollController: scrollController,
+            groups: groups,
+            menuState: menuState,
+            onAction: (ChannelMenuAction action) => _handleChannelMenuAction(
+              action,
+              menuContext: sheetContext,
+              ref: ref,
+              close: close,
+              menuState: menuState,
+            ),
+          );
+        },
+      );
+    }
     return FluxerActionMenu.show(
       context,
       position: position,
