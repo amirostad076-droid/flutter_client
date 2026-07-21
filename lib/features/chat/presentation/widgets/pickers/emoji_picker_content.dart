@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cached_network_image_ce/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +18,7 @@ import 'package:fluxer_app/features/chat/providers/channel/channel_message_permi
 import 'package:fluxer_app/features/chat/providers/pickers/emoji_picker_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/expression_picker_preferences_provider.dart';
 import 'package:fluxer_app/features/chat/utils/emoji_picker_rendering_policy.dart';
+import 'package:fluxer_app/features/chat/utils/inline_expression_panel_scroll_physics.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
@@ -34,6 +36,7 @@ const _kGridColumns = 9;
 const _kMobileGridColumns = 8;
 const _kEmojiSize = 40.0;
 const _kCellSize = 48.0;
+const double _kMobileCategoryBarHeight = 44;
 const int _kCustomEmojiRequestSize = kCustomEmojiFetchSize;
 
 const Map<String, IconData> _kCategoryIcons = {
@@ -1173,16 +1176,26 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     _EmojiPickerData data,
   ) {
     final l10n = FluxerLocalizations.of(context);
+    final MediaQueryData mediaQuery = MediaQuery.of(context);
+    final double bottomInset = defaultTargetPlatform == TargetPlatform.android
+        ? max(
+            0,
+            expressionPanelBottomSystemInset(mediaQuery) -
+                inlineExpressionPanelHomeIndicatorInset(mediaQuery),
+          )
+        : 0;
 
     return Container(
-      height: 44,
+      padding: EdgeInsets.only(bottom: bottomInset),
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: colors.backgroundModifierAccent)),
       ),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        children: [
+      child: SizedBox(
+        height: _kMobileCategoryBarHeight,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          children: [
           if (data.favoriteItems.isNotEmpty)
             _CategoryButton(
               icon: PhosphorIconsFill.star,
@@ -1212,7 +1225,8 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
               onTap: () => _scrollToCategory(cat),
             );
           }),
-        ],
+          ],
+        ),
       ),
     );
   }
