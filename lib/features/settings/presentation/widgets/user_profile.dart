@@ -839,6 +839,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                   );
                   return FluxerInput.multiline(
                     controller: controller,
+                    contextMenuBuilder: clipboardScope.buildContextMenu,
                     textCapitalization: TextCapitalization.sentences,
                     focusNode: _bioFocusNode,
                     label: l10n.aboutMeLabel,
