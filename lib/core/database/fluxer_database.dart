@@ -141,7 +141,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 76;
+  int get schemaVersion => 77;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -755,6 +755,48 @@ class FluxerDatabase extends _$FluxerDatabase {
           columnName: 'mobile',
         )) {
           await m.addColumn(users, users.mobile);
+        }
+      }
+      if (from < 77) {
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'user_preferences',
+          columnName: 'show_media_delete_button',
+        )) {
+          await m.addColumn(
+            userPreferencesTable,
+            userPreferencesTable.showMediaDeleteButton,
+          );
+        }
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'user_preferences',
+          columnName: 'show_media_download_button',
+        )) {
+          await m.addColumn(
+            userPreferencesTable,
+            userPreferencesTable.showMediaDownloadButton,
+          );
+        }
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'user_preferences',
+          columnName: 'show_media_favorite_button',
+        )) {
+          await m.addColumn(
+            userPreferencesTable,
+            userPreferencesTable.showMediaFavoriteButton,
+          );
+        }
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'user_preferences',
+          columnName: 'show_suppress_embeds_button',
+        )) {
+          await m.addColumn(
+            userPreferencesTable,
+            userPreferencesTable.showSuppressEmbedsButton,
+          );
         }
       }
     },

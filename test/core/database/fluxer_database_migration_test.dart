@@ -3,12 +3,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:sqlite3/sqlite3.dart';
 
-/// Columns added by the guarded migration steps 68-71, per table.
+/// Columns added by guarded migration steps, per table.
 const Map<String, List<String>> _guardedColumns = <String, List<String>>{
   'user_preferences': <String>[
     'voice_settings_json',
     'saturation_factor',
     'custom_theme_css',
+    'show_media_delete_button',
+    'show_media_download_button',
+    'show_media_favorite_button',
+    'show_suppress_embeds_button',
   ],
   'messages': <String>['call_json'],
   'dm_channels': <String>['nicks_json'],
