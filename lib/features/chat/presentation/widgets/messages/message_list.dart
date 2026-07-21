@@ -31,6 +31,7 @@ import 'package:fluxer_app/features/chat/presentation/'
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/system_message_actions_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/chat_loading_spinner.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/media/animated_image_playback_controller.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/blocked_message_groups.dart';
 import 'package:fluxer_app/features/chat/presentation/'
@@ -160,6 +161,8 @@ class _MessageListState extends ConsumerState<MessageList> {
   late final ListObserverController _observerController;
   late final SliverObserverController _sliverObserverController;
   late final ChatScrollObserver _chatObserver;
+  final AnimatedImagePlaybackController _animatedImagePlaybackController =
+      AnimatedImagePlaybackController();
   final Map<String, GlobalKey> _itemKeys = <String, GlobalKey>{};
   final MessageTileCache _tileCache = MessageTileCache();
   late final ChatViewModel _chatViewModel;
@@ -269,10 +272,12 @@ class _MessageListState extends ConsumerState<MessageList> {
     _scrollController
       ..removeListener(_onScroll)
       ..dispose();
+    _animatedImagePlaybackController.dispose();
     super.dispose();
   }
 
   void _onScroll() {
+    _animatedImagePlaybackController.setScrolling(value: _isUserDrivenScroll);
     switch (_openMode) {
       case _MessageListOpenMode.unresolved:
         return;
@@ -1910,87 +1915,90 @@ class _MessageListState extends ConsumerState<MessageList> {
     final ScrollPhysics chatPhysics = ScrollConfiguration.of(context)
         .getScrollPhysics(context)
         .applyTo(ChatObserverClampingScrollPhysics(observer: _chatObserver));
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        NotificationListener<ScrollNotification>(
-          onNotification: _onScrollNotification,
-          child: ListViewObserver(
-            controller: _observerController,
-            child: NotificationListener<ScrollMetricsNotification>(
-              onNotification: _onScrollMetricsNotification,
-              child: ListView.builder(
-                controller: _scrollController,
-                reverse: true,
-                scrollCacheExtent: ScrollCacheExtent.pixels(
-                  _useCompactScrollCache
-                      ? _kMessageListCompactScrollCacheExtent
-                      : _kMessageListScrollCacheExtent,
+    return AnimatedImagePlaybackScope(
+      controller: _animatedImagePlaybackController,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          NotificationListener<ScrollNotification>(
+            onNotification: _onScrollNotification,
+            child: ListViewObserver(
+              controller: _observerController,
+              child: NotificationListener<ScrollMetricsNotification>(
+                onNotification: _onScrollMetricsNotification,
+                child: ListView.builder(
+                  controller: _scrollController,
+                  reverse: true,
+                  scrollCacheExtent: ScrollCacheExtent.pixels(
+                    _useCompactScrollCache
+                        ? _kMessageListCompactScrollCacheExtent
+                        : _kMessageListScrollCacheExtent,
+                  ),
+                  padding: const EdgeInsets.only(
+                    top: 8,
+                    bottom: _kMessageListStatusOverlayInset,
+                  ),
+                  physics: chatPhysics,
+                  itemCount:
+                      stream.length + (startOfChannelHeader != null ? 1 : 0),
+                  addAutomaticKeepAlives: false,
+                  findChildIndexCallback: (Key key) =>
+                      _findMessageListChildIndex(key, stream),
+                  itemBuilder: (BuildContext context, int renderIndex) {
+                    if (startOfChannelHeader != null &&
+                        renderIndex == stream.length) {
+                      return startOfChannelHeader;
+                    }
+                    final int dataIndex = stream.length - 1 - renderIndex;
+                    return _buildStreamItem(
+                      context: context,
+                      stream: stream,
+                      dataIndex: dataIndex,
+                      visualUnreadId: visualUnreadId,
+                      highlightedMessageId: highlightedMessageId,
+                      currentUserId: currentUserId,
+                      isDmChannel: isDmChannel,
+                      guildId: guildId,
+                      channelPermissionBits: channelPermissionBits,
+                      channelCanSendMessages: channelCanSendMessages,
+                      channelCanAddReactions: channelCanAddReactions,
+                      channelCanPinMessage: channelCanPinMessage,
+                      channelCanManageMessages: channelCanManageMessages,
+                      renderSettings: renderSettings,
+                      blockedUserIds: blockedUserIds,
+                      revealedCollapsedGroupKey: revealedCollapsedGroupKey,
+                    );
+                  },
                 ),
-                padding: const EdgeInsets.only(
-                  top: 8,
-                  bottom: _kMessageListStatusOverlayInset,
+              ),
+            ),
+          ),
+          if (isLoadingMore)
+            Positioned(
+              top: 8,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: ChatLoadingSpinner(
+                  reason: ChatSpinnerReason.loadingMore,
+                  color: context.colors.brandPrimary,
                 ),
-                physics: chatPhysics,
-                itemCount:
-                    stream.length + (startOfChannelHeader != null ? 1 : 0),
-                addAutomaticKeepAlives: false,
-                findChildIndexCallback: (Key key) =>
-                    _findMessageListChildIndex(key, stream),
-                itemBuilder: (BuildContext context, int renderIndex) {
-                  if (startOfChannelHeader != null &&
-                      renderIndex == stream.length) {
-                    return startOfChannelHeader;
-                  }
-                  final int dataIndex = stream.length - 1 - renderIndex;
-                  return _buildStreamItem(
-                    context: context,
-                    stream: stream,
-                    dataIndex: dataIndex,
-                    visualUnreadId: visualUnreadId,
-                    highlightedMessageId: highlightedMessageId,
-                    currentUserId: currentUserId,
-                    isDmChannel: isDmChannel,
-                    guildId: guildId,
-                    channelPermissionBits: channelPermissionBits,
-                    channelCanSendMessages: channelCanSendMessages,
-                    channelCanAddReactions: channelCanAddReactions,
-                    channelCanPinMessage: channelCanPinMessage,
-                    channelCanManageMessages: channelCanManageMessages,
-                    renderSettings: renderSettings,
-                    blockedUserIds: blockedUserIds,
-                    revealedCollapsedGroupKey: revealedCollapsedGroupKey,
-                  );
-                },
               ),
             ),
-          ),
-        ),
-        if (isLoadingMore)
-          Positioned(
-            top: 8,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: ChatLoadingSpinner(
-                reason: ChatSpinnerReason.loadingMore,
-                color: context.colors.brandPrimary,
+          if (isLoadingNewer)
+            Positioned(
+              bottom: _kMessageListStatusOverlayInset,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: ChatLoadingSpinner(
+                  reason: ChatSpinnerReason.loadingNewer,
+                  color: context.colors.brandPrimary,
+                ),
               ),
             ),
-          ),
-        if (isLoadingNewer)
-          Positioned(
-            bottom: _kMessageListStatusOverlayInset,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: ChatLoadingSpinner(
-                reason: ChatSpinnerReason.loadingNewer,
-                color: context.colors.brandPrimary,
-              ),
-            ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 
