@@ -113,7 +113,7 @@ class _EmojiPickerData {
   final bool isPremium;
   final bool canUseExternalEmojis;
   final List<GuildEmojiEntry> allGuildEmojis;
-  final List<EmojiEntry> frecent;
+  final List<FrecentEmojiItem> frecent;
   final List<_FavoriteEmojiItem> favoriteItems;
   final List<String> collapsedCategories;
   final Map<Guild, List<GuildEmojiEntry>> guildEmojisByGuild;
@@ -395,7 +395,6 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     final canUseExternalEmojis = _watchCanUseExternalEmojis();
     final allGuildEmojis =
         ref.watch(allGuildEmojisForPickerProvider).value ?? const [];
-    final frecent = ref.watch(frecentEmojisProvider).value ?? const [];
     final favoriteKeys =
         ref.watch(favoriteEmojiKeysProvider).value ?? const <String>[];
     final collapsedCategories =
@@ -407,6 +406,15 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
       isPremium: hasPlutoniumEmojiAccess,
       canUseExternalEmojis: canUseExternalEmojis,
       allGuildEmojis: allGuildEmojis,
+    );
+    final availableCustomEmojiIds = guildEmojisByGuild.values
+        .expand((emojis) => emojis)
+        .map((emoji) => emoji.id)
+        .toSet();
+    final allFrecent = ref.watch(frecentEmojisProvider).value ?? const [];
+    final frecent = _filterFrecentByAvailability(
+      allFrecent,
+      availableCustomEmojiIds,
     );
     final favoriteItems = _favoriteEmojiItems(favoriteKeys, guildEmojisByGuild);
 
@@ -468,6 +476,21 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     return channelMessagePermissionsForComposer(
       ref.read(channelMessagePermissionsProvider(channelId)),
     ).canUseExternalEmojis;
+  }
+
+  List<FrecentEmojiItem> _filterFrecentByAvailability(
+    List<FrecentEmojiItem> allFrecent,
+    Set<String> availableCustomEmojiIds,
+  ) {
+    return allFrecent
+        .where(
+          (item) => switch (item) {
+            FrecentUnicodeEmoji() => true,
+            FrecentCustomEmoji(:final emoji) =>
+              availableCustomEmojiIds.contains(emoji.id),
+          },
+        )
+        .toList();
   }
 
   List<_FavoriteEmojiItem> _favoriteEmojiItems(
@@ -571,11 +594,19 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     }
 
     final categories = EmojiRegistry.categories;
-    final frecent = ref.read(frecentEmojisProvider).value ?? const [];
     final collapsedCategories =
         ref.read(collapsedEmojiPickerCategoriesProvider).value ??
         const <String>[];
     final guildEmojisByGuild = _readGuildEmojisByGuild();
+    final availableCustomEmojiIds = guildEmojisByGuild.values
+        .expand((emojis) => emojis)
+        .map((emoji) => emoji.id)
+        .toSet();
+    final allFrecent = ref.read(frecentEmojisProvider).value ?? const [];
+    final frecent = _filterFrecentByAvailability(
+      allFrecent,
+      availableCustomEmojiIds,
+    );
     final favoriteItems = _favoriteEmojiItems(
       ref.read(favoriteEmojiKeysProvider).value ?? const <String>[],
       guildEmojisByGuild,
@@ -832,7 +863,7 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
           if (!data.collapsedCategories.contains('frequently-used'))
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              sliver: _buildUnicodeEmojiGridSliver(data.frecent, colors),
+              sliver: _buildFrecentEmojiGridSliver(data.frecent, colors),
             ),
         ],
         for (final entry in guildEntries) ...[
@@ -918,6 +949,32 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
               colors,
             ),
             _FavoriteCustomEmojiItem(:final emoji) => _buildCustomEmojiCell(
+              emoji,
+              colors,
+            ),
+          };
+        },
+        childCount: emojis.length,
+        addAutomaticKeepAlives: false,
+      ),
+    );
+  }
+
+  SliverGrid _buildFrecentEmojiGridSliver(
+    List<FrecentEmojiItem> emojis,
+    FluxerColorTheme colors,
+  ) {
+    return SliverGrid(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: _columns,
+        mainAxisExtent: _kCellSize,
+      ),
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final item = emojis[index];
+          return switch (item) {
+            FrecentUnicodeEmoji(:final emoji) => _buildEmojiCell(emoji, colors),
+            FrecentCustomEmoji(:final emoji) => _buildCustomEmojiCell(
               emoji,
               colors,
             ),
