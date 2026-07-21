@@ -9762,6 +9762,54 @@ abstract class FluxerLocalizations {
   /// **'My category'**
   String get channelSettingsMyCategory;
 
+  /// Context menu action to expand a collapsed channel category.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand category'**
+  String get categoryExpandCategory;
+
+  /// Context menu action to collapse an expanded channel category.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse category'**
+  String get categoryCollapseCategory;
+
+  /// Context menu action to expand every collapsed channel category.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand all categories'**
+  String get categoryExpandAllCategories;
+
+  /// Context menu action to collapse every channel category.
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse all categories'**
+  String get categoryCollapseAllCategories;
+
+  /// Context menu action to mute a channel category.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute category'**
+  String get categoryMuteCategory;
+
+  /// Context menu action to unmute a channel category.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute category'**
+  String get categoryUnmuteCategory;
+
+  /// Context menu action to copy a category ID to the clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy category ID'**
+  String get categoryCopyCategoryId;
+
+  /// Toast confirming the category ID was copied to the clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Category ID copied'**
+  String get categoryIdCopied;
+
   /// Placeholder for channel name field in channel settings.
   ///
   /// In en, this message translates to:

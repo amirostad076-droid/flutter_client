@@ -5811,6 +5811,30 @@ class FluxerLocalizationsPl extends FluxerLocalizations {
   String get channelSettingsMyCategory => 'My category';
 
   @override
+  String get categoryExpandCategory => 'Expand category';
+
+  @override
+  String get categoryCollapseCategory => 'Collapse category';
+
+  @override
+  String get categoryExpandAllCategories => 'Expand all categories';
+
+  @override
+  String get categoryCollapseAllCategories => 'Collapse all categories';
+
+  @override
+  String get categoryMuteCategory => 'Mute category';
+
+  @override
+  String get categoryUnmuteCategory => 'Unmute category';
+
+  @override
+  String get categoryCopyCategoryId => 'Copy category ID';
+
+  @override
+  String get categoryIdCopied => 'Category ID copied';
+
+  @override
   String get channelSettingsChannelNamePlaceholder => 'general';
 
   @override

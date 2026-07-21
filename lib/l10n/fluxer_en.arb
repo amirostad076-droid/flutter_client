@@ -7340,6 +7340,38 @@
   "@channelSettingsMyCategory": {
     "description": "Placeholder for category name field."
   },
+  "categoryExpandCategory": "Expand category",
+  "@categoryExpandCategory": {
+    "description": "Context menu action to expand a collapsed channel category."
+  },
+  "categoryCollapseCategory": "Collapse category",
+  "@categoryCollapseCategory": {
+    "description": "Context menu action to collapse an expanded channel category."
+  },
+  "categoryExpandAllCategories": "Expand all categories",
+  "@categoryExpandAllCategories": {
+    "description": "Context menu action to expand every collapsed channel category."
+  },
+  "categoryCollapseAllCategories": "Collapse all categories",
+  "@categoryCollapseAllCategories": {
+    "description": "Context menu action to collapse every channel category."
+  },
+  "categoryMuteCategory": "Mute category",
+  "@categoryMuteCategory": {
+    "description": "Context menu action to mute a channel category."
+  },
+  "categoryUnmuteCategory": "Unmute category",
+  "@categoryUnmuteCategory": {
+    "description": "Context menu action to unmute a channel category."
+  },
+  "categoryCopyCategoryId": "Copy category ID",
+  "@categoryCopyCategoryId": {
+    "description": "Context menu action to copy a category ID to the clipboard."
+  },
+  "categoryIdCopied": "Category ID copied",
+  "@categoryIdCopied": {
+    "description": "Toast confirming the category ID was copied to the clipboard."
+  },
   "channelSettingsChannelNamePlaceholder": "general",
   "@channelSettingsChannelNamePlaceholder": {
     "description": "Placeholder for channel name field in channel settings."
