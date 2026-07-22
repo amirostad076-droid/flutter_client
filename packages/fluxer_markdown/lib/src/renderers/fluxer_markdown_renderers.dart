@@ -523,10 +523,11 @@ class _MarkdownBlockRenderer {
   }
 
   Widget _buildTable(md.Element table) {
-    const double minCellWidth = 80;
-    const EdgeInsets cellPadding = EdgeInsets.symmetric(
-      horizontal: 12,
-      vertical: 8,
+    final double baseFontSize = baseStyle.fontSize ?? 16;
+    final double minCellWidth = baseFontSize * 5;
+    final EdgeInsets cellPadding = EdgeInsets.symmetric(
+      horizontal: baseFontSize * 0.75,
+      vertical: baseFontSize * 0.5,
     );
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final Color borderColor =
@@ -542,7 +543,6 @@ class _MarkdownBlockRenderer {
         config.tableRowEvenBackgroundColor ?? Colors.transparent;
     final BorderRadius borderRadius =
         config.tableBorderRadius ?? const BorderRadius.all(Radius.circular(6));
-    final double baseFontSize = baseStyle.fontSize ?? 16;
     final TextStyle tableStyle = baseStyle.copyWith(
       fontSize: baseFontSize * 0.875,
       height: 1.4,
@@ -550,6 +550,7 @@ class _MarkdownBlockRenderer {
     final TextStyle headerStyle = tableStyle.copyWith(
       color: headerTextColor,
       fontWeight: FontWeight.w600,
+      height: baseStyle.height,
     );
     final BorderSide borderSide = BorderSide(color: borderColor);
     final List<TableRow> tableRows = <TableRow>[];
@@ -603,7 +604,7 @@ class _MarkdownBlockRenderer {
       for (int i = 0; i < columnCount; i++) i: const IntrinsicColumnWidth(),
     };
     final Widget tableWidget = Table(
-      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+      defaultVerticalAlignment: TableCellVerticalAlignment.intrinsicHeight,
       columnWidths: columnWidths,
       border: TableBorder(horizontalInside: borderSide),
       children: tableRows,
@@ -646,6 +647,7 @@ class _MarkdownBlockRenderer {
     return Container(
       constraints: BoxConstraints(minWidth: minCellWidth),
       padding: cellPadding,
+      alignment: _tableCellAlignment(textAlign, isHeader: isHeader),
       color: backgroundColor,
       child: _buildParagraph(
         cell.children ?? const [],
@@ -660,6 +662,15 @@ class _MarkdownBlockRenderer {
       'center' => TextAlign.center,
       'right' => TextAlign.right,
       _ => TextAlign.left,
+    };
+  }
+
+  Alignment _tableCellAlignment(TextAlign textAlign, {required bool isHeader}) {
+    final double vertical = isHeader ? -1 : 0;
+    return switch (textAlign) {
+      TextAlign.center => Alignment(0, vertical),
+      TextAlign.right => Alignment(1, vertical),
+      _ => Alignment(-1, vertical),
     };
   }
 }
