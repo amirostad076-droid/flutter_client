@@ -117,6 +117,7 @@ class DmRepository {
         channelLastMessageId: row.lastMessageId,
         ackLastMessageId: readState?.lastMessageId,
         mentionCount: readState?.mentionCount ?? 0,
+        channelLastMessageExistsInCache: lastMsg?.id == row.lastMessageId,
       );
       final recipientIds = parseDmChannelRecipientIds(row.recipientIds);
       final isGroup = isDmGroupType(row.type);

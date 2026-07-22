@@ -1,9 +1,11 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/gateway/gateway_event_handler.dart';
+import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/data/read_state_write_batcher.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
@@ -11,6 +13,14 @@ import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
 
 import '../../helpers/open_test_database.dart';
+
+GatewayEventHandler _handlerWithReadState(FluxerDatabase db) {
+  return GatewayEventHandler(
+    database: db,
+    currentUserId: 'me',
+    readStateRepository: ReadStateRepository(FluxerClient(Dio()), db),
+  );
+}
 
 String _snowflakeForUtc(DateTime utc) {
   final int internal = (utc.millisecondsSinceEpoch - kSnowflakeEpochMs) << 22;
@@ -618,81 +628,33 @@ void main() {
     expect(readState?.lastPinTimestamp, latestPin);
   });
 
-  test('message delete keeps the stored mention count (notify-only)', () async {
-    final db = openTestDatabase();
-    final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
-    final mentionId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
-    await db.channelDao.upsertChannel(
-      ChannelsCompanion.insert(
-        id: 'channel-1',
-        guildId: 'guild-1',
-        name: 'general',
-        lastMessageId: Value(mentionId),
-      ),
-    );
-    await db.messageDao.upsertMessages([
-      _cachedMessage(id: ackId, channelId: 'channel-1', authorId: 'other'),
-      _cachedMessage(
-        id: mentionId,
-        channelId: 'channel-1',
-        authorId: 'other',
-        isMentioned: true,
-      ),
-    ]);
-    await db.notificationDao.prependMentionRow(
-      messageId: mentionId,
-      channelId: 'channel-1',
-    );
-    await db.readStateDao.upsertReadState(
-      ReadStatesCompanion(
-        channelId: const Value('channel-1'),
-        lastMessageId: Value(ackId),
-        mentionCount: const Value(1),
-      ),
-    );
-    final handler = GatewayEventHandler(database: db, currentUserId: 'me');
-
-    await handler.handle(
-      MessageDeleteEvent(channelId: 'channel-1', messageId: mentionId),
-    );
-    await pumpEventQueue();
-
-    final readState = await db.readStateDao.getReadState('channel-1');
-    final mentionRows = await db.notificationDao.getMentionFeedOrdered();
-    expect(await db.messageDao.getMessage(mentionId), isNull);
-    expect(readState?.mentionCount, 1);
-    expect(mentionRows, isEmpty);
-  });
-
   test(
-    'bulk message delete leaves channel tail and keeps mention count',
+    'message delete drops mention count and walks back channel tail',
     () async {
       final db = openTestDatabase();
       final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
-      final remainingId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11, 30));
-      final deletedId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      final mentionId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
       await db.channelDao.upsertChannel(
         ChannelsCompanion.insert(
           id: 'channel-1',
           guildId: 'guild-1',
           name: 'general',
-          lastMessageId: Value(deletedId),
+          lastMessageId: Value(mentionId),
         ),
       );
       await db.messageDao.upsertMessages([
         _cachedMessage(id: ackId, channelId: 'channel-1', authorId: 'other'),
         _cachedMessage(
-          id: remainingId,
-          channelId: 'channel-1',
-          authorId: 'other',
-        ),
-        _cachedMessage(
-          id: deletedId,
+          id: mentionId,
           channelId: 'channel-1',
           authorId: 'other',
           isMentioned: true,
         ),
       ]);
+      await db.notificationDao.prependMentionRow(
+        messageId: mentionId,
+        channelId: 'channel-1',
+      );
       await db.readStateDao.upsertReadState(
         ReadStatesCompanion(
           channelId: const Value('channel-1'),
@@ -700,23 +662,72 @@ void main() {
           mentionCount: const Value(1),
         ),
       );
-      final handler = GatewayEventHandler(database: db, currentUserId: 'me');
+      final handler = _handlerWithReadState(db);
 
       await handler.handle(
-        MessageDeleteBulkEvent(channelId: 'channel-1', ids: [deletedId]),
+        MessageDeleteEvent(channelId: 'channel-1', messageId: mentionId),
       );
       await pumpEventQueue();
 
-      final channel = await db.channelDao.getChannelById('channel-1');
       final readState = await db.readStateDao.getReadState('channel-1');
-      // Local cache is not used to rewrite the tail; READY heals orphans.
-      expect(channel?.lastMessageId, deletedId);
-      expect(readState?.mentionCount, 1);
+      final channel = await db.channelDao.getChannelById('channel-1');
+      final mentionRows = await db.notificationDao.getMentionFeedOrdered();
+      expect(await db.messageDao.getMessage(mentionId), isNull);
+      expect(channel?.lastMessageId, ackId);
+      expect(readState?.mentionCount, 0);
+      expect(mentionRows, isEmpty);
     },
   );
 
+  test('bulk message delete walks tail back and drops mention count', () async {
+    final db = openTestDatabase();
+    final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+    final remainingId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11, 30));
+    final deletedId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(deletedId),
+      ),
+    );
+    await db.messageDao.upsertMessages([
+      _cachedMessage(id: ackId, channelId: 'channel-1', authorId: 'other'),
+      _cachedMessage(
+        id: remainingId,
+        channelId: 'channel-1',
+        authorId: 'other',
+      ),
+      _cachedMessage(
+        id: deletedId,
+        channelId: 'channel-1',
+        authorId: 'other',
+        isMentioned: true,
+      ),
+    ]);
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('channel-1'),
+        lastMessageId: Value(ackId),
+        mentionCount: const Value(1),
+      ),
+    );
+    final handler = _handlerWithReadState(db);
+
+    await handler.handle(
+      MessageDeleteBulkEvent(channelId: 'channel-1', ids: [deletedId]),
+    );
+    await pumpEventQueue();
+
+    final channel = await db.channelDao.getChannelById('channel-1');
+    final readState = await db.readStateDao.getReadState('channel-1');
+    expect(channel?.lastMessageId, remainingId);
+    expect(readState?.mentionCount, 0);
+  });
+
   test(
-    'dm message delete keeps unread and mention counts (notify-only)',
+    'dm message delete walks tail back and refreshes unread count',
     () async {
       final db = openTestDatabase();
       final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
@@ -727,6 +738,8 @@ void main() {
           id: 'dm-1',
           recipientId: 'other',
           recipientIds: const Value('["other"]'),
+          lastMessageId: Value(deletedId),
+          lastMessageTime: Value(dateTimeFromUserSnowflakeOrNull(deletedId)!),
           unreadCount: const Value(2),
         ),
       ]);
@@ -742,114 +755,120 @@ void main() {
           mentionCount: const Value(2),
         ),
       );
-      final handler = GatewayEventHandler(database: db, currentUserId: 'me');
+      final handler = _handlerWithReadState(db);
 
       await handler.handle(
         MessageDeleteEvent(channelId: 'dm-1', messageId: deletedId),
       );
+      await pumpEventQueue();
 
       final readState = await db.readStateDao.getReadState('dm-1');
       final dm = await db.dmChannelDao.getDmChannelById('dm-1');
-      expect(readState?.mentionCount, 2);
-      expect(dm?.unreadCount, 2);
-    },
-  );
-
-  test(
-    'guild plain unread keeps orphaned tail when only message is deleted',
-    () async {
-      final db = openTestDatabase();
-      final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
-      final messageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
-      await db.channelDao.upsertChannel(
-        ChannelsCompanion.insert(
-          id: 'channel-1',
-          guildId: 'guild-1',
-          name: 'general',
-        ),
-      );
-      final handler = GatewayEventHandler(database: db, currentUserId: 'me');
-
-      await handler.handle(
-        MessageCreateEvent(
-          message: _message(
-            id: messageId,
-            channelId: 'channel-1',
-            authorId: 'other',
-          ),
-        ),
-      );
-
-      final channelAfterCreate = await db.channelDao.getChannelById(
-        'channel-1',
-      );
-      expect(channelAfterCreate?.lastMessageId, messageId);
-      expect(
-        hasUnreadByReadState(
-          channelLastMessageId: messageId,
-          ackLastMessageId: ackId,
-          fallbackAckMs: 0,
-          mentionCount: 0,
-        ),
-        isTrue,
-      );
-
-      await handler.handle(
-        MessageDeleteEvent(channelId: 'channel-1', messageId: messageId),
-      );
-      await pumpEventQueue();
-
-      // Tail delete never rewrites lastMessageId from local cache; READY heals.
-      final channelAfterDelete = await db.channelDao.getChannelById(
-        'channel-1',
-      );
-      expect(channelAfterDelete?.lastMessageId, messageId);
-    },
-  );
-
-  test(
-    'dm stays hoisted and unread when its newest message is deleted',
-    () async {
-      final db = openTestDatabase();
-      final olderId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
-      final newerId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
-      await db.dmChannelDao.upsertDmChannels([
-        DmChannelsCompanion.insert(
-          id: 'dm-1',
-          recipientId: 'other',
-          recipientIds: const Value('["other"]'),
-          lastMessageId: Value(olderId),
-          lastMessageTime: Value(dateTimeFromUserSnowflakeOrNull(olderId)!),
-        ),
-      ]);
-      await db.messageDao.upsertMessages([
-        _cachedMessage(id: olderId, channelId: 'dm-1', authorId: 'other'),
-      ]);
-      final handler = GatewayEventHandler(database: db, currentUserId: 'me');
-
-      await handler.handle(
-        MessageCreateEvent(
-          message: _message(id: newerId, channelId: 'dm-1', authorId: 'other'),
-        ),
-      );
-      await handler.handle(
-        MessageDeleteEvent(channelId: 'dm-1', messageId: newerId),
-      );
-      await pumpEventQueue();
-
-      final dm = await db.dmChannelDao.getDmChannelById('dm-1');
-      final readState = await db.readStateDao.getReadState('dm-1');
-      expect(dm?.lastMessageId, newerId);
-      expect(
-        dm?.lastMessageTime.isAtSameMomentAs(
-          dateTimeFromUserSnowflakeOrNull(newerId)!,
-        ),
-        isTrue,
-      );
-      expect(dm?.unreadCount, 1);
+      expect(dm?.lastMessageId, remainingId);
       expect(readState?.mentionCount, 1);
+      expect(dm?.unreadCount, 1);
     },
   );
+
+  test('guild plain unread clears when only message is deleted', () async {
+    final db = openTestDatabase();
+    final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+    final messageId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+      ),
+    );
+    final handler = _handlerWithReadState(db);
+
+    await handler.handle(
+      MessageCreateEvent(
+        message: _message(
+          id: messageId,
+          channelId: 'channel-1',
+          authorId: 'other',
+        ),
+      ),
+    );
+
+    final channelAfterCreate = await db.channelDao.getChannelById('channel-1');
+    expect(channelAfterCreate?.lastMessageId, messageId);
+    expect(
+      hasUnreadByReadState(
+        channelLastMessageId: messageId,
+        ackLastMessageId: ackId,
+        fallbackAckMs: 0,
+        mentionCount: 0,
+      ),
+      isTrue,
+    );
+
+    await handler.handle(
+      MessageDeleteEvent(channelId: 'channel-1', messageId: messageId),
+    );
+    await pumpEventQueue();
+
+    final channelAfterDelete = await db.channelDao.getChannelById('channel-1');
+    expect(channelAfterDelete?.lastMessageId, isNull);
+    expect(
+      hasUnreadByReadState(
+        channelLastMessageId: channelAfterDelete?.lastMessageId,
+        ackLastMessageId: ackId,
+        fallbackAckMs: 0,
+        mentionCount: 0,
+      ),
+      isFalse,
+    );
+  });
+
+  test('dm tail delete walks back and clears unread when caught up', () async {
+    final db = openTestDatabase();
+    final olderId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
+    final newerId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+    await db.dmChannelDao.upsertDmChannels([
+      DmChannelsCompanion.insert(
+        id: 'dm-1',
+        recipientId: 'other',
+        recipientIds: const Value('["other"]'),
+        lastMessageId: Value(olderId),
+        lastMessageTime: Value(dateTimeFromUserSnowflakeOrNull(olderId)!),
+      ),
+    ]);
+    await db.messageDao.upsertMessages([
+      _cachedMessage(id: olderId, channelId: 'dm-1', authorId: 'other'),
+    ]);
+    await db.readStateDao.upsertReadState(
+      ReadStatesCompanion(
+        channelId: const Value('dm-1'),
+        lastMessageId: Value(olderId),
+      ),
+    );
+    final handler = _handlerWithReadState(db);
+
+    await handler.handle(
+      MessageCreateEvent(
+        message: _message(id: newerId, channelId: 'dm-1', authorId: 'other'),
+      ),
+    );
+    await handler.handle(
+      MessageDeleteEvent(channelId: 'dm-1', messageId: newerId),
+    );
+    await pumpEventQueue();
+
+    final dm = await db.dmChannelDao.getDmChannelById('dm-1');
+    final readState = await db.readStateDao.getReadState('dm-1');
+    expect(dm?.lastMessageId, olderId);
+    expect(
+      dm?.lastMessageTime.isAtSameMomentAs(
+        dateTimeFromUserSnowflakeOrNull(olderId)!,
+      ),
+      isTrue,
+    );
+    expect(dm?.unreadCount, 0);
+    expect(readState?.mentionCount, 0);
+  });
 
   test(
     'muted incoming DM updates unread presence without mention badge',

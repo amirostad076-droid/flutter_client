@@ -293,6 +293,7 @@ class MessageRepository {
         await ReadStateRepository(_client, _db).recomputeMentionsAfterBackfill(
           channelId: channelId,
           currentUserId: _currentUserId,
+          allowDecrease: true,
         );
       }
 
@@ -505,6 +506,7 @@ class MessageRepository {
       await ReadStateRepository(_client, _db).recomputeMentionsAfterBackfill(
         channelId: channelId,
         currentUserId: _currentUserId,
+        allowDecrease: true,
       );
     }
 

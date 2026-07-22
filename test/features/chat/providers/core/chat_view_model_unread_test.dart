@@ -14,6 +14,7 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_session_recovery_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/data/ack_batcher.dart';
+import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/providers/ack_batcher_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_read_viewport_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
@@ -2085,8 +2086,8 @@ void main() {
       await _flushAsync();
 
       final readState = await db.readStateDao.getReadState('channel-1');
-      expect(readState?.lastMessageId, orphanedPointer);
-      expect(adapter.ackedMessageIds, <String>[orphanedPointer]);
+      expect(readState?.lastMessageId, visibleTailId);
+      expect(adapter.ackedMessageIds, <String>[visibleTailId]);
     },
   );
 
@@ -2337,6 +2338,109 @@ void main() {
       expect(adapter.ackedMessageIds, <String>[priorId]);
       expect(readState?.mentionCount, 0);
       expect(dm?.unreadCount, 0);
+    },
+  );
+
+  test(
+    'opening a guild channel clears unread after its newest message was deleted',
+    () async {
+      final db = openTestDatabase();
+      final priorId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      final deletedId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(deletedId),
+        ),
+      );
+      await db.messageDao.upsertMessage(
+        _cachedMessage(id: priorId, channelId: 'channel-1', authorId: 'other'),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(priorId),
+          mentionCount: const Value(0),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        initialMessages: [
+          _messageJson(id: priorId, channelId: 'channel-1', authorId: 'other'),
+        ],
+      );
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      _setViewportActive(container, channelId: 'channel-1');
+      _updateViewport(container, nearLoadedTail: true);
+      await _flushAsync();
+
+      final readState = await db.readStateDao.getReadState('channel-1');
+      expect(readState?.lastMessageId, priorId);
+      expect(
+        container.read(chatViewModelProvider).hasMoreNewerMessages,
+        isFalse,
+      );
+      expect(
+        hasUnreadByReadState(
+          channelLastMessageId: priorId,
+          ackLastMessageId: readState?.lastMessageId,
+          fallbackAckMs: 0,
+          mentionCount: 0,
+          isGuildChannel: true,
+        ),
+        isFalse,
+      );
+    },
+  );
+
+  test(
+    'opening an empty channel clears unread after only message was deleted',
+    () async {
+      final db = openTestDatabase();
+      final ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      final deletedId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(deletedId),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(ackId),
+          mentionCount: const Value(0),
+        ),
+      );
+      final adapter = _ChatAdapter();
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      _setViewportActive(container, channelId: 'channel-1');
+      _updateViewport(container, nearLoadedTail: true);
+      await _flushAsync();
+
+      final readState = await db.readStateDao.getReadState('channel-1');
+      expect(readState?.mentionCount, 0);
+      expect(
+        hasUnreadByReadState(
+          channelLastMessageId: deletedId,
+          ackLastMessageId: readState?.lastMessageId,
+          fallbackAckMs: 0,
+          mentionCount: 0,
+          isGuildChannel: true,
+        ),
+        isFalse,
+      );
     },
   );
 

@@ -1774,16 +1774,24 @@ class GatewayEventHandler {
       return;
     }
 
-    // Local cache is not contiguous below a deleted tail (jump windows / trim),
-    // so walk-back can hide real unread. Leave the pointer; READY heals via
-    // authoritative tails. Follow-up: consume server replacement tail on
-    // MESSAGE_DELETE when the SDK exposes it.
     await database.transaction(() async {
       for (final messageId in messageIds) {
         await database.notificationDao.deleteMentionRow(messageId);
       }
       await database.messageDao.deleteMessages(messageIds);
     });
+
+    // Reconcile read state after the rows are removed. Only the tail is
+    // rewritten; deleting older messages in a jump window must not hide real
+    // unread below it.
+    final repository = readStateRepository;
+    if (repository != null) {
+      await repository.reconcileAfterMessageDelete(
+        channelId: channelId,
+        deletedMessageIds: messageIds,
+        currentUserId: currentUserId,
+      );
+    }
   }
 
   void _handleTypingStart(TypingStartEvent event) {

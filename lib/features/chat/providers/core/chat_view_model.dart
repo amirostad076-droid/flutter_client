@@ -1069,6 +1069,9 @@ class ChatViewModel extends _$ChatViewModel {
             isDirectLatestLoad: false,
             preserveLoadedWindow: true,
           ).whenComplete(() {
+            if (!ref.mounted) {
+              return;
+            }
             if (isCurrentSwitch() && state.channelId == channelId) {
               _markMessagesReconciled(channelId);
             }
@@ -1112,6 +1115,9 @@ class ChatViewModel extends _$ChatViewModel {
               isDirectLatestLoad: true,
               shouldApplyResult: isCurrentSwitch,
             ).whenComplete(() {
+              if (!ref.mounted) {
+                return;
+              }
               if (isCurrentSwitch() && state.channelId == channelId) {
                 _markMessagesReconciled(channelId);
               }
@@ -1332,10 +1338,18 @@ class ChatViewModel extends _$ChatViewModel {
       // channel pointer so detached windows remain detached.
       final bool shouldConsultPointer =
           !isDirectLatestLoad || page.messages.length >= limit;
+      final bool isSealedLatestTail =
+          isDirectLatestLoad && page.messages.length < effectiveLimit;
       final bool hasMoreNewer =
           shouldConsultPointer &&
           mergedServerTailId != null &&
-          await _hasNewerMessagesThanChannel(mergedServerTailId);
+          await _hasNewerMessagesThanChannel(
+            mergedServerTailId,
+            sealedTail: isSealedLatestTail,
+            knownLoadedMessageIds: isSealedLatestTail
+                ? merged.map((Message message) => message.id).toSet()
+                : null,
+          );
       if (state.channelId != channelId || !shouldApply()) {
         return;
       }
@@ -1375,6 +1389,9 @@ class ChatViewModel extends _$ChatViewModel {
         _markChannelNetworkRefresh(channelId);
         _markMessagesReconciled(channelId);
         await _onMessagesLoaded(channelId);
+        if (isDirectLatestLoad && page.messages.length < effectiveLimit) {
+          await _reconcileReadStateAfterLatestLoad(channelId);
+        }
       }
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to load messages: $e');
@@ -1489,6 +1506,39 @@ class ChatViewModel extends _$ChatViewModel {
       }
       return;
     }
+  }
+
+  Future<void> _reconcileReadStateAfterLatestLoad(String channelId) async {
+    if (state.channelId != channelId || !ref.mounted) {
+      return;
+    }
+    final repository = ref.read(readStateRepositoryProvider);
+    await repository.recomputeMentionsAfterBackfill(
+      channelId: channelId,
+      currentUserId: ref.read(currentUserIdProvider),
+      allowDecrease: true,
+    );
+    if (state.channelId != channelId || !ref.mounted) {
+      return;
+    }
+    final database = ref.read(fluxerDatabaseProvider);
+    final readState = await database.readStateDao.getReadState(channelId);
+    if ((readState?.mentionCount ?? 0) > 0 || (readState?.manual ?? false)) {
+      return;
+    }
+    final ackMessageId = readState?.lastMessageId;
+    if (ackMessageId == null || ackMessageId.isEmpty) {
+      return;
+    }
+    final messagesAfterAck = await database.messageDao.getMessagesAfter(
+      channelId,
+      ackMessageId,
+      limit: 1,
+    );
+    if (messagesAfterAck.isNotEmpty) {
+      return;
+    }
+    await repository.applyLocalAckLatest(channelId);
   }
 
   Future<void> loadMore() async {
@@ -1833,7 +1883,11 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
-  Future<bool> _hasNewerMessagesThanChannel(String messageId) async {
+  Future<bool> _hasNewerMessagesThanChannel(
+    String messageId, {
+    bool sealedTail = false,
+    Set<String>? knownLoadedMessageIds,
+  }) async {
     final db.Channel? channel = await ref
         .read(fluxerDatabaseProvider)
         .channelDao
@@ -1842,7 +1896,24 @@ class ChatViewModel extends _$ChatViewModel {
     if (lastMessageId == null || lastMessageId.isEmpty) {
       return false;
     }
-    return compareSnowflakeIds(lastMessageId, messageId) > 0;
+    if (compareSnowflakeIds(lastMessageId, messageId) <= 0) {
+      return false;
+    }
+    if (sealedTail) {
+      if (knownLoadedMessageIds != null) {
+        return knownLoadedMessageIds.contains(lastMessageId);
+      }
+      final pointerExists =
+          await ref
+              .read(fluxerDatabaseProvider)
+              .messageDao
+              .getMessage(lastMessageId) !=
+          null;
+      if (!pointerExists) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /// Live-tail ack target: max(visibleTail, channel.lastMessageId) for web parity.
@@ -1850,17 +1921,26 @@ class ChatViewModel extends _$ChatViewModel {
     required String channelId,
     required String visibleTailId,
   }) async {
-    final db.Channel? channel = await ref
-        .read(fluxerDatabaseProvider)
-        .channelDao
-        .getChannelById(channelId);
-    final String? pointer = channel?.lastMessageId;
+    final database = ref.read(fluxerDatabaseProvider);
+    final db.Channel? channel = await database.channelDao.getChannelById(
+      channelId,
+    );
+    final db.DmChannel? dm = channel == null
+        ? await database.dmChannelDao.getDmChannelById(channelId)
+        : null;
+    final String? pointer = channel?.lastMessageId ?? dm?.lastMessageId;
     if (pointer == null || pointer.isEmpty) {
       return visibleTailId;
     }
-    return compareSnowflakeIds(pointer, visibleTailId) > 0
-        ? pointer
-        : visibleTailId;
+    if (compareSnowflakeIds(pointer, visibleTailId) <= 0) {
+      return visibleTailId;
+    }
+    if (channelId == state.channelId &&
+        state.messages.any((Message message) => message.id == pointer)) {
+      return pointer;
+    }
+    final pointerExists = await database.messageDao.getMessage(pointer) != null;
+    return pointerExists ? pointer : visibleTailId;
   }
 
   Future<void> ackCurrentChannel({bool force = false}) async {
@@ -1873,6 +1953,17 @@ class ChatViewModel extends _$ChatViewModel {
     }
     final String? visibleTailId = newestServerBackedMessageId(state.messages);
     if (!force && visibleTailId == null) {
+      if (!state.hasMoreNewerMessages) {
+        final database = ref.read(fluxerDatabaseProvider);
+        final readState = await database.readStateDao.getReadState(channelId);
+        if (readState != null &&
+            !readState.manual &&
+            (readState.lastMessageId?.isNotEmpty ?? false)) {
+          await ref
+              .read(readStateRepositoryProvider)
+              .applyLocalAckLatest(channelId);
+        }
+      }
       return;
     }
     final now = DateTime.now();
