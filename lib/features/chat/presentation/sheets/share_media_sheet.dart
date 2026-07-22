@@ -10,6 +10,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_field.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/message_character_counter.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/expression_picker.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/pickers/forward_destination_avatar.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/picker_search_input.dart';
 import 'package:fluxer_app/features/chat/providers/messages/forward_destinations_provider.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_length_limits_provider.dart';
@@ -675,57 +676,7 @@ class _DestinationTile extends StatelessWidget {
   }
 
   Widget _leading(BuildContext context) {
-    final colors = context.colors;
-    final Widget avatar = destination.isGuildChannel
-        ? _guildAvatar(context)
-        : _dmAvatar(context);
-    return Stack(
-      children: [
-        avatar,
-        if (destination.isGuildChannel)
-          Positioned(
-            right: 0,
-            bottom: 0,
-            child: Container(
-              width: 16,
-              height: 16,
-              decoration: BoxDecoration(
-                color: colors.backgroundHeaderSecondary,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                PhosphorIconsRegular.hash,
-                size: 10,
-                color: colors.textSecondary,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _guildAvatar(BuildContext context) {
-    return CircleAvatar(
-      radius: 20,
-      backgroundColor: context.colors.backgroundHeaderSecondary,
-      child: Icon(
-        PhosphorIconsRegular.users,
-        size: 20,
-        color: context.colors.textSecondary,
-      ),
-    );
-  }
-
-  Widget _dmAvatar(BuildContext context) {
-    return CircleAvatar(
-      radius: 20,
-      backgroundColor: context.colors.backgroundHeaderSecondary,
-      child: Icon(
-        PhosphorIconsRegular.user,
-        size: 20,
-        color: context.colors.textSecondary,
-      ),
-    );
+    return ForwardDestinationAvatar(destination: destination);
   }
 
   Widget _checkbox(FluxerColorTheme colors) {
