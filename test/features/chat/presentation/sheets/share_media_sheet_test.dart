@@ -226,12 +226,7 @@ void main() {
       WidgetTester tester,
     ) async {
       final FluxerDatabase db = await _seedDb();
-      await _openSheet(
-        tester,
-        db,
-        files: const <XFile>[],
-        initialMessage: 'Hello from Safari',
-      );
+      await _openSheet(tester, db, initialMessage: 'Hello from Safari');
 
       expect(find.text('Hello from Safari'), findsOneWidget);
     });

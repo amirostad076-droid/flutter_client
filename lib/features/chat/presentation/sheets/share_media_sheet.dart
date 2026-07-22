@@ -47,9 +47,9 @@ Future<void> showShareMediaSheet(
 class _ShareMediaSheetBody extends ConsumerStatefulWidget {
   const _ShareMediaSheetBody({
     required this.files,
-    this.initialMessage,
     required this.scrollController,
     required this.onClose,
+    this.initialMessage,
   });
 
   final List<XFile> files;
@@ -443,7 +443,7 @@ class _ShareMediaSheetBodyState extends ConsumerState<_ShareMediaSheetBody> {
       return SizedBox(
         width: 48,
         height: 48,
-        child: Container(
+        child: DecoratedBox(
           decoration: BoxDecoration(
             color: context.colors.backgroundHeaderSecondary,
             borderRadius: BorderRadius.circular(8),
