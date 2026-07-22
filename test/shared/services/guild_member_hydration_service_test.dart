@@ -123,7 +123,7 @@ class _FailAdapter implements HttpClientAdapter {
     RequestOptions options,
     Stream<Uint8List>? requestStream,
     Future<void>? cancelFuture,
-  ) async {
+  ) {
     requestCount++;
     throw DioException(
       requestOptions: options,

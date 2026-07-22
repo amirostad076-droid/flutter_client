@@ -5,7 +5,8 @@ import 'package:fluxer_app/features/favorites/utils/favorites_shell_navigation.d
 import 'package:fluxer_app/features/shell/providers/drawer_reveal_sync_trigger_provider.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
 
-abstract final class DrawerNavigationCoordinator {
+class DrawerNavigationCoordinator {
+  const DrawerNavigationCoordinator._();
   static void prepareForNavigation(ProviderContainer container, String path) {
     final RevealSide? eager = eagerRevealSideFor(path);
     if (eager != null) {

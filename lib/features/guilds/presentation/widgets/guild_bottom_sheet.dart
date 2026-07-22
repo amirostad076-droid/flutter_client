@@ -116,7 +116,7 @@ void _handleSubmenuTap(
   switch (submenu.key) {
     case 'communitySettings':
       Navigator.of(context).pop();
-      context.push(RoutePaths.guildSettingsPath(guildId));
+      unawaited(context.push(RoutePaths.guildSettingsPath(guildId)));
     case 'mute':
       _openMuteSubmenu(context, submenu);
     default:

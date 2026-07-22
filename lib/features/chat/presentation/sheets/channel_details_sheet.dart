@@ -272,6 +272,9 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
         nickname: channel?.name ?? dm?.displayName,
       );
     }
+    if (!mounted) {
+      return;
+    }
     _toast(
       isFavorite
           ? FluxerLocalizations.of(context).favoritesRemovedToast
@@ -287,9 +290,15 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
     final repository = ref.read(dmRepositoryProvider);
     if (isPinned) {
       await repository.unpinDm(dm.id);
+      if (!mounted) {
+        return;
+      }
       _toast(FluxerLocalizations.of(context).dmUnpinned);
     } else {
       await repository.pinDm(dm.id);
+      if (!mounted) {
+        return;
+      }
       _toast(FluxerLocalizations.of(context).dmPinned);
     }
   }
@@ -391,6 +400,9 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
           channelId: channel.id,
           messageNotifications: setting,
         );
+    if (!mounted) {
+      return;
+    }
     _toast(
       FluxerLocalizations.of(context).channelDetailsNotificationSettingsUpdated,
     );

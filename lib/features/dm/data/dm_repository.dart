@@ -244,7 +244,7 @@ class DmRepository {
     return channel.id;
   }
 
-  Future<String> createDmFromSelection(List<String> userIds) async {
+  Future<String> createDmFromSelection(List<String> userIds) {
     if (userIds.length == 1) {
       return ensureDmChannel(userIds.first);
     }
@@ -260,22 +260,23 @@ class DmRepository {
     }
     final String key = canonicalizeRecipientIds(recipientIds);
     final List<db.DmChannel> rows = await _db.dmChannelDao.getDmChannels();
-    final List<db.DmChannel> matches = rows
-        .where(
-          (db.DmChannel row) => isDuplicateGroupDmRow(
-            row: row,
-            canonicalKey: key,
-            excludeChannelId: excludeChannelId,
-          ),
-        )
-        .toList();
-    matches.sort((db.DmChannel a, db.DmChannel b) {
-      final String aSnowflake = a.lastMessageId ?? a.id;
-      final String bSnowflake = b.lastMessageId ?? b.id;
-      return dateTimeFromSnowflakeAsLocalOrNow(
-        bSnowflake,
-      ).compareTo(dateTimeFromSnowflakeAsLocalOrNow(aSnowflake));
-    });
+    final List<db.DmChannel> matches =
+        rows
+            .where(
+              (db.DmChannel row) => isDuplicateGroupDmRow(
+                row: row,
+                canonicalKey: key,
+                excludeChannelId: excludeChannelId,
+              ),
+            )
+            .toList()
+          ..sort((db.DmChannel a, db.DmChannel b) {
+            final String aSnowflake = a.lastMessageId ?? a.id;
+            final String bSnowflake = b.lastMessageId ?? b.id;
+            return dateTimeFromSnowflakeAsLocalOrNow(
+              bSnowflake,
+            ).compareTo(dateTimeFromSnowflakeAsLocalOrNow(aSnowflake));
+          });
     final List<DmConversation> conversations = await _buildConversations(
       matches,
     );

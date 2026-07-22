@@ -158,7 +158,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       return;
     }
     if (_scrollStore != null && _scrollController.hasClients) {
-      _scrollStore!.setOffset(_scrollController.offset);
+      _scrollStore!.offset = _scrollController.offset;
     }
   }
 
@@ -1670,6 +1670,9 @@ Future<void> presentGuildMenuSheet(
   final unread = ref.read(guildReadStateProvider)[guild.id];
   final muteState = ref.read(guildMuteProvider(guild.id)).value;
   final int permissions = await _resolveGuildMenuPermissions(ref, guild.id);
+  if (!context.mounted) {
+    return;
+  }
   final String? currentUserId = ref.read(currentUserIdProvider);
   final bool developerMode = ref.read(
     userSettingsViewModelProvider.select((s) => s.developerMode),

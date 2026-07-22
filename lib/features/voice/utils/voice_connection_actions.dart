@@ -74,6 +74,9 @@ Future<bool> _connectToVoiceChannel({
     return false;
   }
   if (initialSelfVideo) {
+    if (permissionContext != null && !permissionContext.mounted) {
+      return false;
+    }
     final bool camOk = await ensureSystemPermission(
       permissionContext,
       SystemPermissionKind.camera,

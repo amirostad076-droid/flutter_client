@@ -93,8 +93,9 @@ class ReadStateWriteBatcher {
         compareSnowflakeIds(messageId, pending.messageId) > 0) {
       pending.messageId = messageId;
     }
-    pending.clearSticky = pending.clearSticky || clearSticky;
-    pending.markDmRead = pending.markDmRead || markDmRead;
+    pending
+      ..clearSticky = pending.clearSticky || clearSticky
+      ..markDmRead = pending.markDmRead || markDmRead;
   }
 
   Future<void> flushAck(String channelId) {

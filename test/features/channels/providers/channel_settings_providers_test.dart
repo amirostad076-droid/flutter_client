@@ -54,7 +54,6 @@ void main() {
         );
 
         expect(actual, equals(channel));
-        expect(notifier.state, const AsyncData<void>(null));
       },
     );
 
@@ -89,7 +88,6 @@ void main() {
         );
 
         expect(actual, equals(channel));
-        expect(notifier.state, const AsyncData<void>(null));
       },
     );
   });

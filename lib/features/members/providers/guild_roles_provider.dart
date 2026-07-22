@@ -36,7 +36,7 @@ Future<void> _ensurePrefetchStarted(
   }
   final Future<void> future = _runGuildRolesPrefetch(repository, guildId)
       .whenComplete(() {
-        _guildRolesPrefetchInFlight.remove(guildId);
+        unawaited(_guildRolesPrefetchInFlight.remove(guildId));
       });
   _guildRolesPrefetchInFlight[guildId] = future;
   return future;

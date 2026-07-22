@@ -821,16 +821,18 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('channel-20'), findsOneWidget);
 
-      harness.activeGuildId = _otherGuildId;
-      harness.channelListState = guildBState;
+      harness
+        ..activeGuildId = _otherGuildId
+        ..channelListState = guildBState;
       container
         ..invalidate(activeGuildIdProvider)
         ..invalidate(channelListViewModelProvider);
       await pumpSidebar();
       expect(find.text('guild-b-1'), findsOneWidget);
 
-      harness.activeGuildId = _guildId;
-      harness.channelListState = guildAState;
+      harness
+        ..activeGuildId = _guildId
+        ..channelListState = guildAState;
       container
         ..invalidate(activeGuildIdProvider)
         ..invalidate(channelListViewModelProvider);
@@ -999,7 +1001,7 @@ List<Override> _buildOverrides({
       ).overrideWith((ref) => permissionBits[channel.id] ?? 0),
       channelSettingsPermissionBitsProvider(
         channel.id,
-      ).overrideWith((ref) async => permissionBits[channel.id] ?? 0),
+      ).overrideWith((ref) => permissionBits[channel.id] ?? 0),
       if (sidebarConnectBits.containsKey(channel.id))
         channelSidebarIconConnectBitsProvider(
           channel.id,

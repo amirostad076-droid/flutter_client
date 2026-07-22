@@ -48,7 +48,7 @@ void main() {
         });
   });
 
-  tearDown(() async {
+  tearDown(() {
     const MethodChannel permissionChannel = MethodChannel(
       'flutter.baseflow.com/permissions/methods',
     );

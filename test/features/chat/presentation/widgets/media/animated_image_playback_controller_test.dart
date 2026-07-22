@@ -1,3 +1,4 @@
+// Cascade invocations are intentional in these tests.
 // ignore_for_file: cascade_invocations
 
 import 'package:flutter_test/flutter_test.dart';

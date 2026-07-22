@@ -36,28 +36,29 @@ void main() {
         name: 'general',
       ),
     );
-    batcher.enqueueMessage(
-      companion: MessagesCompanion.insert(
-        id: 'msg-1',
+    batcher
+      ..enqueueMessage(
+        companion: MessagesCompanion.insert(
+          id: 'msg-1',
+          channelId: 'channel-1',
+          authorId: 'user-1',
+          content: 'hello',
+          timestamp: DateTime.utc(2020),
+        ),
         channelId: 'channel-1',
-        authorId: 'user-1',
-        content: 'hello',
-        timestamp: DateTime.utc(2020),
-      ),
-      channelId: 'channel-1',
-      messageId: 'msg-1',
-    );
-    batcher.enqueueMessage(
-      companion: MessagesCompanion.insert(
-        id: 'msg-2',
+        messageId: 'msg-1',
+      )
+      ..enqueueMessage(
+        companion: MessagesCompanion.insert(
+          id: 'msg-2',
+          channelId: 'channel-1',
+          authorId: 'user-1',
+          content: 'world',
+          timestamp: DateTime.utc(2020, 1, 1, 0, 1),
+        ),
         channelId: 'channel-1',
-        authorId: 'user-1',
-        content: 'world',
-        timestamp: DateTime.utc(2020, 1, 1, 0, 1),
-      ),
-      channelId: 'channel-1',
-      messageId: 'msg-2',
-    );
+        messageId: 'msg-2',
+      );
     await batcher.flush();
     expect(index.lastMessageIdFor('channel-1'), 'msg-2');
     expect(flushBatches.length, 1);

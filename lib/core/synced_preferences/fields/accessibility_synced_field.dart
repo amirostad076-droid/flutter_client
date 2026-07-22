@@ -246,32 +246,33 @@ class AccessibilitySyncedField
     required AccessibilityLocalState local,
     pb.AccessibilitySettings? wireBase,
   }) {
-    final pb.AccessibilitySettings settings = wireBase != null
-        ? (pb.AccessibilitySettings()..mergeFromMessage(wireBase))
-        : pb.AccessibilitySettings();
-    settings.hideKeyboardHints = local.hideKeyboardHints;
-    settings.channelTypingIndicatorMode = _toProtoTypingMode(
-      local.channelTypingIndicatorMode,
-    );
-    settings.showSelectedChannelTypingIndicator =
-        local.showSelectedChannelTypingIndicator;
-    settings.showFadedUnreadOnMutedChannels =
-        local.showFadedUnreadOnMutedChannels;
-    settings.dmMessagePreviewMode = _toProtoDmPreviewMode(
-      local.dmMessagePreviewMode,
-    );
-    settings.showFavorites = local.showFavorites;
-    settings.useBrowserLocaleForTimeFormat = local.useSystemLocaleForTimeFormat;
-    settings.messageGroupSpacing = local.messageGroupSpacing;
-    settings.compactMessageGroupSpacing = local.compactMessageGroupSpacing;
-    settings.saturationFactor = local.saturationFactor;
-    settings.showMediaDeleteButton = local.showMediaDeleteButton;
-    settings.showMediaDownloadButton = local.showMediaDownloadButton;
-    settings.showMediaFavoriteButton = local.showMediaFavoriteButton;
-    settings.showSuppressEmbedsButton = local.showSuppressEmbedsButton;
     final String? effectiveCss = normalizeCustomThemeCss(local.customThemeCss);
+    final pb.AccessibilitySettings settings =
+        (wireBase != null
+              ? (pb.AccessibilitySettings()..mergeFromMessage(wireBase))
+              : pb.AccessibilitySettings())
+          ..hideKeyboardHints = local.hideKeyboardHints
+          ..channelTypingIndicatorMode = _toProtoTypingMode(
+            local.channelTypingIndicatorMode,
+          )
+          ..showSelectedChannelTypingIndicator =
+              local.showSelectedChannelTypingIndicator
+          ..showFadedUnreadOnMutedChannels =
+              local.showFadedUnreadOnMutedChannels
+          ..dmMessagePreviewMode = _toProtoDmPreviewMode(
+            local.dmMessagePreviewMode,
+          )
+          ..showFavorites = local.showFavorites
+          ..useBrowserLocaleForTimeFormat = local.useSystemLocaleForTimeFormat
+          ..messageGroupSpacing = local.messageGroupSpacing
+          ..compactMessageGroupSpacing = local.compactMessageGroupSpacing
+          ..saturationFactor = local.saturationFactor
+          ..showMediaDeleteButton = local.showMediaDeleteButton
+          ..showMediaDownloadButton = local.showMediaDownloadButton
+          ..showMediaFavoriteButton = local.showMediaFavoriteButton
+          ..showSuppressEmbedsButton = local.showSuppressEmbedsButton;
     if (effectiveCss != null) {
-      settings.customThemeCss = effectiveCss;
+      return settings..customThemeCss = effectiveCss;
     }
     return settings;
   }

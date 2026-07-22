@@ -25,8 +25,7 @@ Future<void> showChatMobileFullscreenVideo(
   }
   final ShellManualGestureBlock shellGestureBlock = ProviderScope.containerOf(
     context,
-  ).read(shellManualGestureBlockProvider.notifier);
-  shellGestureBlock.setBlocked(value: true);
+  ).read(shellManualGestureBlockProvider.notifier)..setBlocked(value: true);
   try {
     await Navigator.of(context).push<void>(
       MaterialPageRoute<void>(

@@ -81,7 +81,7 @@ class GuildMemberHydrationService {
           onMemberFetched: onMemberFetched,
         );
       } finally {
-        _inFlightByGuild.remove(guildId);
+        unawaited(_inFlightByGuild.remove(guildId));
         if (_pendingByGuild[guildId]?.isNotEmpty ?? false) {
           _scheduleFlush(guildId, onMemberFetched: onMemberFetched);
         }

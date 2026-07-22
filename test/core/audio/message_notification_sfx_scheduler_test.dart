@@ -8,9 +8,10 @@ void main() {
     test('plays after debounce on first schedule', () {
       fakeAsync((FakeAsync async) {
         final List<FluxerSfxClip> played = <FluxerSfxClip>[];
-        final MessageNotificationSfxScheduler scheduler =
-            MessageNotificationSfxScheduler();
-        scheduler.schedule(clip: FluxerSfxClip.message, play: played.add);
+        MessageNotificationSfxScheduler().schedule(
+          clip: FluxerSfxClip.message,
+          play: played.add,
+        );
         async.flushMicrotasks();
         expect(played, isEmpty);
 
@@ -23,8 +24,8 @@ void main() {
       fakeAsync((FakeAsync async) {
         final List<FluxerSfxClip> played = <FluxerSfxClip>[];
         final MessageNotificationSfxScheduler scheduler =
-            MessageNotificationSfxScheduler();
-        scheduler.schedule(clip: FluxerSfxClip.message, play: played.add);
+            MessageNotificationSfxScheduler()
+              ..schedule(clip: FluxerSfxClip.message, play: played.add);
         async.elapse(const Duration(milliseconds: 120));
         expect(played, <FluxerSfxClip>[FluxerSfxClip.message]);
 
@@ -51,11 +52,10 @@ void main() {
                 }
                 return null;
               },
+            )..schedule(
+              clip: FluxerSfxClip.sameChannelMessage,
+              play: played.add,
             );
-        scheduler.schedule(
-          clip: FluxerSfxClip.sameChannelMessage,
-          play: played.add,
-        );
         async.elapse(const Duration(milliseconds: 120));
         expect(played, <FluxerSfxClip>[FluxerSfxClip.sameChannelMessage]);
 
@@ -85,8 +85,7 @@ void main() {
                 }
                 return null;
               },
-            );
-        scheduler.schedule(clip: FluxerSfxClip.message, play: played.add);
+            )..schedule(clip: FluxerSfxClip.message, play: played.add);
         async.elapse(const Duration(milliseconds: 120));
         expect(played, <FluxerSfxClip>[FluxerSfxClip.message]);
 
@@ -102,10 +101,9 @@ void main() {
     test('replaces pending clip with the latest scheduled clip', () {
       fakeAsync((FakeAsync async) {
         final List<FluxerSfxClip> played = <FluxerSfxClip>[];
-        final MessageNotificationSfxScheduler scheduler =
-            MessageNotificationSfxScheduler();
-        scheduler.schedule(clip: FluxerSfxClip.message, play: played.add);
-        scheduler.schedule(clip: FluxerSfxClip.directMessage, play: played.add);
+        MessageNotificationSfxScheduler()
+          ..schedule(clip: FluxerSfxClip.message, play: played.add)
+          ..schedule(clip: FluxerSfxClip.directMessage, play: played.add);
         async.elapse(const Duration(milliseconds: 120));
 
         expect(played, <FluxerSfxClip>[FluxerSfxClip.directMessage]);
@@ -117,13 +115,13 @@ void main() {
     test('cancels pending timer without playing', () {
       fakeAsync((FakeAsync async) {
         final List<FluxerSfxClip> played = <FluxerSfxClip>[];
-        final MessageNotificationSfxScheduler scheduler =
-            MessageNotificationSfxScheduler();
-        scheduler.schedule(clip: FluxerSfxClip.message, play: played.add);
-        scheduler.schedule(clip: FluxerSfxClip.directMessage, play: played.add);
-        scheduler.dispose();
-        async.flushMicrotasks();
-        async.elapse(const Duration(seconds: 5));
+        MessageNotificationSfxScheduler()
+          ..schedule(clip: FluxerSfxClip.message, play: played.add)
+          ..schedule(clip: FluxerSfxClip.directMessage, play: played.add)
+          ..dispose();
+        async
+          ..flushMicrotasks()
+          ..elapse(const Duration(seconds: 5));
 
         expect(played, isEmpty);
       });

@@ -1,5 +1,7 @@
 part of 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_field.dart';
 
+// Kept for planned quick-switcher UI wiring.
+// ignore: unused_element
 const int _kRoleMentionLimit = 10;
 const int _kChannelLimit = 10;
 const int _kEmojiLimit = 10;
@@ -666,15 +668,18 @@ class ComposerAutocompleteFieldState
     );
     final List<_ComposerRow> rows = <_ComposerRow>[];
     if (promoteRoles) {
-      rows.addAll(roleRows);
-      rows.addAll(memberRows);
-      rows.addAll(specialRows);
+      rows
+        ..addAll(roleRows)
+        ..addAll(memberRows)
+        ..addAll(specialRows);
     } else {
-      rows.addAll(memberRows);
-      rows.addAll(specialRows);
+      rows
+        ..addAll(memberRows)
+        ..addAll(specialRows);
       if (roleRows.isNotEmpty) {
-        rows.add(_ComposerRow(title: '', onApply: () {}, isDivider: true));
-        rows.addAll(roleRows);
+        rows
+          ..add(_ComposerRow(title: '', onApply: () {}, isDivider: true))
+          ..addAll(roleRows);
       }
     }
     if (generation != _syncGeneration) {

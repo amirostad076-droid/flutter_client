@@ -359,7 +359,7 @@ class _ContextMenuPageState extends State<_ContextMenuPage> {
       _ => null,
     };
     if (path != null) {
-      context.push(path);
+      unawaited(context.push(path));
     }
   }
 

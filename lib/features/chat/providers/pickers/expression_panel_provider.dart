@@ -28,7 +28,9 @@ class ExpressionPanelTab extends _$ExpressionPanelTab {
   @override
   ExpressionPickerTab build() => ExpressionPickerTab.emojis;
 
-  void select(ExpressionPickerTab tab) => state = tab;
+  ExpressionPickerTab get tab => state;
+
+  set tab(ExpressionPickerTab tab) => state = tab;
 
   void reset() => state = ExpressionPickerTab.emojis;
 }
@@ -48,7 +50,9 @@ class ExpressionPanelHeight extends _$ExpressionPanelHeight {
   @override
   double? build() => null;
 
-  void set(double height) => state = height;
+  double? get height => state;
+
+  set height(double height) => state = height;
 
   void clear() => state = null;
 }
@@ -74,7 +78,9 @@ class PendingGifSelection extends Notifier<FluxerSelectedGif?> {
   @override
   FluxerSelectedGif? build() => null;
 
-  void emit(FluxerSelectedGif selection) => state = selection;
+  FluxerSelectedGif? get selection => state;
+
+  set selection(FluxerSelectedGif selection) => state = selection;
 
   void consume() => state = null;
 }
@@ -89,7 +95,9 @@ class PendingStickerSelection extends Notifier<StickerEntry?> {
   @override
   StickerEntry? build() => null;
 
-  void emit(StickerEntry selection) => state = selection;
+  StickerEntry? get selection => state;
+
+  set selection(StickerEntry selection) => state = selection;
 
   void consume() => state = null;
 }
@@ -104,7 +112,9 @@ class PendingFavoriteMemeSelection extends Notifier<FavoriteMemeSelection?> {
   @override
   FavoriteMemeSelection? build() => null;
 
-  void emit(FavoriteMemeSelection selection) => state = selection;
+  FavoriteMemeSelection? get selection => state;
+
+  set selection(FavoriteMemeSelection selection) => state = selection;
 
   void consume() => state = null;
 }

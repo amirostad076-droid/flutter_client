@@ -146,7 +146,7 @@ class _ExpressionPanelContentState extends ConsumerState<ExpressionPanelContent>
                   if (widget.scrollController.hasClients) {
                     widget.scrollController.jumpTo(0);
                   }
-                  ref.read(expressionPanelTabProvider.notifier).select(tab);
+                  ref.read(expressionPanelTabProvider.notifier).tab = tab;
                 }
               },
               initialTab: selectedTab,
@@ -223,7 +223,7 @@ class _ExpressionPanelContentState extends ConsumerState<ExpressionPanelContent>
                       if (widget.scrollController.hasClients) {
                         widget.scrollController.jumpTo(0);
                       }
-                      ref.read(expressionPanelTabProvider.notifier).select(tab);
+                      ref.read(expressionPanelTabProvider.notifier).tab = tab;
                     }
                   },
                   child: AnimatedContainer(

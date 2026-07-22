@@ -70,6 +70,9 @@ class _DMListState extends ConsumerState<DMList> {
     if (userId != null && channelId == userId) {
       await ref.read(dmRepositoryProvider).ensurePersonalNotesChannel(userId);
     }
+    if (!mounted) {
+      return;
+    }
     await navigateToDmChannelContent(
       context: context,
       ref: ref,
@@ -196,7 +199,7 @@ class _DMListState extends ConsumerState<DMList> {
                 _buildMobileHeader(context),
                 Divider(color: context.colors.borderColor, height: 1),
               ] else ...[
-                // TODO: fully setup
+                // TODO(deuss): fully setup quick switcher
                 // _buildQuickSwitcher(context),
                 // Divider(color: context.colors.borderColor, height: 1),
                 Builder(
@@ -294,6 +297,8 @@ class _DMListState extends ConsumerState<DMList> {
     );
   }
 
+  // Reserved for planned quick-switcher UI.
+  // ignore: unused_element
   Widget _buildQuickSwitcher(BuildContext context) => Material(
     color: Colors.transparent,
     child: InkWell(
@@ -1663,9 +1668,7 @@ class _DmBottomSheet extends ConsumerWidget {
       initialChildSize: convo.isGroup ? 0.45 : 0.7,
       maxChildSize: 0.85,
       builder: (context, scrollController) {
-        final Map<String, DmListRecipientRowData> recipientRows =
-            ref.watch(dmListRecipientRowDataProvider).value ??
-            const <String, DmListRecipientRowData>{};
+        ref.watch(dmListRecipientRowDataProvider);
         final bool isTyping = ref.watch(dmAvatarIsTypingProvider(convo));
         return SafeArea(
           bottom: Platform.isAndroid,

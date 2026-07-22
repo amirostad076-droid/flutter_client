@@ -11,7 +11,7 @@ const int _expectedSchemaVersion = 77;
 
 /// First version whose migration steps are written to be re-entrant against
 /// the current schema. Stamp the current schema at each version in this
-/// range and run [onUpgrade] to verify that the migration does not fail when
+/// range and run onUpgrade to verify that the migration does not fail when
 /// objects it creates already exist.
 const int _guardedBaselineVersion = 67;
 

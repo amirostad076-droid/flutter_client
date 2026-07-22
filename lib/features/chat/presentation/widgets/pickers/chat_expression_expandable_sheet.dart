@@ -442,17 +442,18 @@ class ChatExpressionExpandableSheetState
   }
 
   void _onGifSelect(FluxerSelectedGif selection) {
-    ref.read(pendingGifSelectionProvider.notifier).emit(selection);
+    ref.read(pendingGifSelectionProvider.notifier).selection = selection;
     _snapToDockedIfNeeded();
   }
 
   void _onStickerSelect(StickerEntry selection) {
-    ref.read(pendingStickerSelectionProvider.notifier).emit(selection);
+    ref.read(pendingStickerSelectionProvider.notifier).selection = selection;
     _snapToDockedIfNeeded();
   }
 
   void _onFavoriteMemeSelect(FavoriteMemeSelection selection) {
-    ref.read(pendingFavoriteMemeSelectionProvider.notifier).emit(selection);
+    ref.read(pendingFavoriteMemeSelectionProvider.notifier).selection =
+        selection;
     _snapToDockedIfNeeded();
   }
 
@@ -489,10 +490,10 @@ class ChatExpressionExpandableSheetState
       sizeBuilder:
           (
             BuildContext context,
-            double height,
-            bool isDragging,
-            Widget shellChild,
-          ) {
+            double height, {
+            required bool isDragging,
+            required Widget child,
+          }) {
             return expandableSheetAnimatedSize(
               context: context,
               isDragging: isDragging,
@@ -547,7 +548,7 @@ class ChatExpressionExpandableSheetState
                                   child: SizedBox(
                                     height: math.max(height, _minHeight),
                                     width: double.infinity,
-                                    child: shellChild,
+                                    child: child,
                                   ),
                                 ),
                               ),

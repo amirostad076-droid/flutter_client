@@ -20,7 +20,7 @@ void main() {
     );
   });
 
-  tearDown(() async {
+  tearDown(() {
     batcher.clearAll();
   });
 

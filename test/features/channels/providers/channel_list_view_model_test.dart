@@ -41,6 +41,7 @@ void main() {
     ];
     final StreamController<List<Channel>> controllerA =
         StreamController<List<Channel>>.broadcast();
+    addTearDown(controllerA.close);
     controllers['guild-a'] = controllerA;
 
     notifier.loadChannels('guild-a', guild: guildA);
@@ -61,6 +62,7 @@ void main() {
 
     final StreamController<List<Channel>> controllerB =
         StreamController<List<Channel>>.broadcast();
+    addTearDown(controllerB.close);
     controllers['guild-b'] = controllerB;
     notifier.loadChannels('guild-b', guild: guildB);
 
