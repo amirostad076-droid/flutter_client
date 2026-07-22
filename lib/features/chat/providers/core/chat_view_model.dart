@@ -862,6 +862,7 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   void highlightJumpMessage(String messageId) {
+    talker.debug('[ChatViewModel] highlightJumpMessage $messageId');
     _jumpHighlightTimer?.cancel();
     _jumpHighlightTimer = null;
     final int sequence = state.jumpHighlightSequence + 1;
@@ -900,6 +901,10 @@ class ChatViewModel extends _$ChatViewModel {
     String? targetMessageId,
     bool loadMessages = true,
   }) async {
+    talker.debug(
+      '[ChatViewModel] switchChannel channel=$channelId '
+      'target=$targetMessageId load=$loadMessages',
+    );
     final Stopwatch switchStopwatch = Stopwatch()..start();
     if (state.channelId == channelId &&
         targetMessageId != null &&
@@ -990,6 +995,9 @@ class ChatViewModel extends _$ChatViewModel {
         if (state.channelId == channelId &&
             state.isLoading &&
             !isChannelChange) {
+          talker.debug(
+            '[ChatViewModel] target load already in progress channel=$channelId',
+          );
           return;
         }
         if (state.channelId == channelId &&
@@ -997,6 +1005,10 @@ class ChatViewModel extends _$ChatViewModel {
             !state.isLoading &&
             !state.isSyncingMessages &&
             state.messages.any((Message m) => m.id == targetMessageId)) {
+          talker.debug(
+            '[ChatViewModel] target already in memory channel=$channelId '
+            'target=$targetMessageId',
+          );
           highlightJumpMessage(targetMessageId);
           scrollToMessage(targetMessageId);
           return;
@@ -1021,7 +1033,16 @@ class ChatViewModel extends _$ChatViewModel {
           shouldApplyResult: isCurrentSwitch,
         );
         if (isCurrentSwitch() && state.channelId == channelId) {
+          talker.debug(
+            '[ChatViewModel] target loaded; scrollToMessage '
+            'channel=$channelId target=$targetMessageId',
+          );
           scrollToMessage(targetMessageId);
+        } else {
+          talker.debug(
+            '[ChatViewModel] target load superseded; skip scroll '
+            'channel=$channelId target=$targetMessageId',
+          );
         }
         return;
       }
@@ -3114,6 +3135,7 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   void scrollToMessage(String messageId) {
+    talker.debug('[ChatViewModel] scrollToMessage $messageId');
     _revealCollapsedGroupForMessageIfNeeded(messageId);
     final version = (state.scrollToMessageSignal?.$2 ?? 0) + 1;
     state = state.copyWith(scrollToMessageSignal: (messageId, version));

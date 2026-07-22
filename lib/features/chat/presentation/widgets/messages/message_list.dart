@@ -9,6 +9,7 @@ import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.da
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
+import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
@@ -1135,6 +1136,10 @@ class _MessageListState extends ConsumerState<MessageList> {
     final String? highlightedMessageId = ref
         .read(chatViewModelProvider)
         .highlightedMessageId;
+    talker.debug(
+      '[MessageList] confirm highlight target=$messageId '
+      'highlighted=$highlightedMessageId',
+    );
     if (highlightedMessageId == messageId) {
       _chatViewModel.extendJumpHighlight(messageId);
     }
@@ -1459,6 +1464,7 @@ class _MessageListState extends ConsumerState<MessageList> {
 
   Future<void> _jumpToMessage(String messageId) {
     _messageJumpInFlight++;
+    talker.debug('[MessageList] _jumpToMessage $messageId openMode=$_openMode');
     final Future<void> done = switch (_openMode) {
       _MessageListOpenMode.unread => _jumpToMessageCenter(messageId),
       _ => _jumpToMessageBottom(messageId),
@@ -1471,11 +1477,16 @@ class _MessageListState extends ConsumerState<MessageList> {
   }
 
   void _onScrollToMessage(String messageId) {
+    talker.debug(
+      '[MessageList] _onScrollToMessage $messageId openMode=$_openMode '
+      'hasClients=${_scrollController.hasClients}',
+    );
     // Jumping while unresolved (or without clients) loses the post-frame
     // scroll because the real list is not mounted yet.
     if (_openMode == _MessageListOpenMode.unresolved ||
         !_scrollController.hasClients) {
       _pendingScrollTarget = messageId;
+      talker.debug('[MessageList] pending target parked $messageId');
       return;
     }
     // Orphaned unread anchor: demote first so the jump uses the bottom path.
@@ -2488,7 +2499,12 @@ class _MessageListState extends ConsumerState<MessageList> {
       final String target = _pendingScrollTarget!;
       if (messages.any((Message m) => m.id == target)) {
         _pendingScrollTarget = null;
+        talker.debug('[MessageList] consume pending target $target');
         unawaited(_jumpToMessage(target));
+      } else {
+        talker.debug(
+          '[MessageList] pending target $target not in ${messages.length} messages',
+        );
       }
     }
 
