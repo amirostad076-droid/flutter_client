@@ -4950,6 +4950,26 @@ class FluxerLocalizationsFa extends FluxerLocalizations {
       'نظرات در دسترس نیستند زیرا یک کانال انتخاب شده حالت کندی را فعال کرده است.';
 
   @override
+  String get shareMediaTitle => 'Share to';
+
+  @override
+  String get shareMediaMessageHint => 'Add an optional message…';
+
+  @override
+  String get shareMediaSendButton => 'Send';
+
+  @override
+  String get shareMediaSuccessToast => 'Media shared';
+
+  @override
+  String shareMediaPartialSuccessToast(int count) {
+    return 'Shared to $count destinations';
+  }
+
+  @override
+  String get shareMediaFailedToast => 'Failed to share media';
+
+  @override
   String get forwardDestinationNoSendPermission =>
       'شما نمی‌توانید پیام‌ها را اینجا ارسال کنید';
 

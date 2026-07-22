@@ -4965,6 +4965,26 @@ class FluxerLocalizationsFi extends FluxerLocalizations {
       'Kommentit eivät ole käytettävissä, koska valitussa kanavassa on hidastila käytössä.';
 
   @override
+  String get shareMediaTitle => 'Share to';
+
+  @override
+  String get shareMediaMessageHint => 'Add an optional message…';
+
+  @override
+  String get shareMediaSendButton => 'Send';
+
+  @override
+  String get shareMediaSuccessToast => 'Media shared';
+
+  @override
+  String shareMediaPartialSuccessToast(int count) {
+    return 'Shared to $count destinations';
+  }
+
+  @override
+  String get shareMediaFailedToast => 'Failed to share media';
+
+  @override
   String get forwardDestinationNoSendPermission =>
       'Et voi lähettää viestejä tänne';
 

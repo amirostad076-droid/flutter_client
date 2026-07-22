@@ -4927,6 +4927,26 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
       'ไม่สามารถแสดงความคิดเห็นได้เนื่องจากช่องที่เลือกเปิดใช้งานโหมดหน่วงเวลา';
 
   @override
+  String get shareMediaTitle => 'Share to';
+
+  @override
+  String get shareMediaMessageHint => 'Add an optional message…';
+
+  @override
+  String get shareMediaSendButton => 'Send';
+
+  @override
+  String get shareMediaSuccessToast => 'Media shared';
+
+  @override
+  String shareMediaPartialSuccessToast(int count) {
+    return 'Shared to $count destinations';
+  }
+
+  @override
+  String get shareMediaFailedToast => 'Failed to share media';
+
+  @override
   String get forwardDestinationNoSendPermission =>
       'คุณไม่สามารถส่งข้อความที่นี่ได้';
 

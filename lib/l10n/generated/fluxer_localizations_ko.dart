@@ -4776,6 +4776,26 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
       '선택한 채널에 슬로우 모드가 활성화되어 댓글을 사용할 수 없습니다.';
 
   @override
+  String get shareMediaTitle => 'Share to';
+
+  @override
+  String get shareMediaMessageHint => 'Add an optional message…';
+
+  @override
+  String get shareMediaSendButton => 'Send';
+
+  @override
+  String get shareMediaSuccessToast => 'Media shared';
+
+  @override
+  String shareMediaPartialSuccessToast(int count) {
+    return 'Shared to $count destinations';
+  }
+
+  @override
+  String get shareMediaFailedToast => 'Failed to share media';
+
+  @override
   String get forwardDestinationNoSendPermission => '여기에 메시지를 보낼 수 없습니다';
 
   @override

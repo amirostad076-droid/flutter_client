@@ -4979,6 +4979,26 @@ class FluxerLocalizationsPt extends FluxerLocalizations {
       'Os comentários não estão disponíveis porque um canal selecionado tem o modo lento ativado.';
 
   @override
+  String get shareMediaTitle => 'Share to';
+
+  @override
+  String get shareMediaMessageHint => 'Add an optional message…';
+
+  @override
+  String get shareMediaSendButton => 'Send';
+
+  @override
+  String get shareMediaSuccessToast => 'Media shared';
+
+  @override
+  String shareMediaPartialSuccessToast(int count) {
+    return 'Shared to $count destinations';
+  }
+
+  @override
+  String get shareMediaFailedToast => 'Failed to share media';
+
+  @override
   String get forwardDestinationNoSendPermission =>
       'Não pode enviar mensagens aqui';
 

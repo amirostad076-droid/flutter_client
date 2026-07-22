@@ -5016,6 +5016,26 @@ class FluxerLocalizationsFr extends FluxerLocalizations {
       'Les commentaires sont indisponibles car un salon sélectionné a le mode lent activé.';
 
   @override
+  String get shareMediaTitle => 'Share to';
+
+  @override
+  String get shareMediaMessageHint => 'Add an optional message…';
+
+  @override
+  String get shareMediaSendButton => 'Send';
+
+  @override
+  String get shareMediaSuccessToast => 'Media shared';
+
+  @override
+  String shareMediaPartialSuccessToast(int count) {
+    return 'Shared to $count destinations';
+  }
+
+  @override
+  String get shareMediaFailedToast => 'Failed to share media';
+
+  @override
   String get forwardDestinationNoSendPermission =>
       'Vous ne pouvez pas envoyer de messages ici';
 

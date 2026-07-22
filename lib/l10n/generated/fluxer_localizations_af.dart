@@ -4961,6 +4961,26 @@ class FluxerLocalizationsAf extends FluxerLocalizations {
       'Opmerkings is nie beskikbaar nie omdat \'n geselekteerde kanaal stadige modus aangeskakel het.';
 
   @override
+  String get shareMediaTitle => 'Share to';
+
+  @override
+  String get shareMediaMessageHint => 'Add an optional message…';
+
+  @override
+  String get shareMediaSendButton => 'Send';
+
+  @override
+  String get shareMediaSuccessToast => 'Media shared';
+
+  @override
+  String shareMediaPartialSuccessToast(int count) {
+    return 'Shared to $count destinations';
+  }
+
+  @override
+  String get shareMediaFailedToast => 'Failed to share media';
+
+  @override
   String get forwardDestinationNoSendPermission =>
       'Jy kan nie boodskappe hier stuur nie';
 

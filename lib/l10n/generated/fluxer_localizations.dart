@@ -8360,6 +8360,42 @@ abstract class FluxerLocalizations {
   /// **'Comments are unavailable because a selected channel has slowmode enabled.'**
   String get forwardCommentSlowmodeDisabled;
 
+  /// Title of the share-media bottom sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Share to'**
+  String get shareMediaTitle;
+
+  /// Placeholder for the optional message field in the share-media sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an optional message…'**
+  String get shareMediaMessageHint;
+
+  /// Share-media sheet send button label.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get shareMediaSendButton;
+
+  /// Toast shown after shared media is sent to all selected destinations.
+  ///
+  /// In en, this message translates to:
+  /// **'Media shared'**
+  String get shareMediaSuccessToast;
+
+  /// Toast shown when shared media is sent to some but not all selected destinations.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared to {count} destinations'**
+  String shareMediaPartialSuccessToast(int count);
+
+  /// Toast shown when sharing media to all destinations fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to share media'**
+  String get shareMediaFailedToast;
+
   /// Reason shown on a disabled forward destination when the user lacks the send-messages permission.
   ///
   /// In en, this message translates to:

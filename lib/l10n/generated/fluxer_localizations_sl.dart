@@ -4966,6 +4966,26 @@ class FluxerLocalizationsSl extends FluxerLocalizations {
       'Komentarji niso na voljo, ker je v izbranem kanalu omogočen počasni način.';
 
   @override
+  String get shareMediaTitle => 'Share to';
+
+  @override
+  String get shareMediaMessageHint => 'Add an optional message…';
+
+  @override
+  String get shareMediaSendButton => 'Send';
+
+  @override
+  String get shareMediaSuccessToast => 'Media shared';
+
+  @override
+  String shareMediaPartialSuccessToast(int count) {
+    return 'Shared to $count destinations';
+  }
+
+  @override
+  String get shareMediaFailedToast => 'Failed to share media';
+
+  @override
   String get forwardDestinationNoSendPermission =>
       'Tukaj ne moreš pošiljati sporočil';
 

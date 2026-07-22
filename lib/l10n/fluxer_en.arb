@@ -6304,6 +6304,35 @@
   "@forwardCommentSlowmodeDisabled": {
     "description": "Notice shown in the forward sheet when the optional comment is disabled due to slowmode on a selected destination."
   },
+  "shareMediaTitle": "Share to",
+  "@shareMediaTitle": {
+    "description": "Title of the share-media bottom sheet."
+  },
+  "shareMediaMessageHint": "Add an optional message…",
+  "@shareMediaMessageHint": {
+    "description": "Placeholder for the optional message field in the share-media sheet."
+  },
+  "shareMediaSendButton": "Send",
+  "@shareMediaSendButton": {
+    "description": "Share-media sheet send button label."
+  },
+  "shareMediaSuccessToast": "Media shared",
+  "@shareMediaSuccessToast": {
+    "description": "Toast shown after shared media is sent to all selected destinations."
+  },
+  "shareMediaPartialSuccessToast": "Shared to {count} destinations",
+  "@shareMediaPartialSuccessToast": {
+    "description": "Toast shown when shared media is sent to some but not all selected destinations.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shareMediaFailedToast": "Failed to share media",
+  "@shareMediaFailedToast": {
+    "description": "Toast shown when sharing media to all destinations fails."
+  },
   "forwardDestinationNoSendPermission": "You can't send messages here",
   "@forwardDestinationNoSendPermission": {
     "description": "Reason shown on a disabled forward destination when the user lacks the send-messages permission."

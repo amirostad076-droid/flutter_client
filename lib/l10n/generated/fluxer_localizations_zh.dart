@@ -4696,6 +4696,26 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get forwardCommentSlowmodeDisabled => '由于所选频道启用了慢速模式，评论不可用。';
 
   @override
+  String get shareMediaTitle => 'Share to';
+
+  @override
+  String get shareMediaMessageHint => 'Add an optional message…';
+
+  @override
+  String get shareMediaSendButton => 'Send';
+
+  @override
+  String get shareMediaSuccessToast => 'Media shared';
+
+  @override
+  String shareMediaPartialSuccessToast(int count) {
+    return 'Shared to $count destinations';
+  }
+
+  @override
+  String get shareMediaFailedToast => 'Failed to share media';
+
+  @override
   String get forwardDestinationNoSendPermission => '您无法在此发送消息';
 
   @override
