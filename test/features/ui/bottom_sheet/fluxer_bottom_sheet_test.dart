@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +13,16 @@ import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 void _noop() {}
+
+double _maxAnimatedPaddingBottom(WidgetTester tester) {
+  double maxBottom = 0;
+  for (final Element element in find.byType(AnimatedPadding).evaluate()) {
+    final AnimatedPadding padding = element.widget as AnimatedPadding;
+    final EdgeInsets resolved = padding.padding.resolve(TextDirection.ltr);
+    maxBottom = math.max(maxBottom, resolved.bottom);
+  }
+  return maxBottom;
+}
 
 Widget buildTestApp(Widget child) {
   final colorTheme = buildDarkColorTheme();
@@ -286,6 +297,86 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Draggable Sheet'), findsNothing);
+    });
+
+    testWidgets('manageKeyboardInset false skips sheet keyboard padding', (
+      tester,
+    ) async {
+      const double keyboardHeight = 300;
+
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(
+            size: Size(400, 800),
+            viewInsets: EdgeInsets.only(bottom: keyboardHeight),
+          ),
+          child: buildTestApp(
+            Builder(
+              builder: (context) {
+                return ElevatedButton(
+                  onPressed: () {
+                    unawaited(
+                      FluxerBottomSheet.show(
+                        context,
+                        manageKeyboardInset: false,
+                        builder: (context, close) {
+                          return const SizedBox(height: 100);
+                        },
+                      ),
+                    );
+                  },
+                  child: const Text('Open'),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      expect(_maxAnimatedPaddingBottom(tester), 0);
+    });
+
+    testWidgets('manageKeyboardInset true pads sheet for viewInsets', (
+      tester,
+    ) async {
+      const double keyboardHeight = 300;
+
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(
+            size: Size(400, 800),
+            viewInsets: EdgeInsets.only(bottom: keyboardHeight),
+          ),
+          child: buildTestApp(
+            Builder(
+              builder: (context) {
+                return ElevatedButton(
+                  onPressed: () {
+                    unawaited(
+                      FluxerBottomSheet.show(
+                        context,
+                        manageKeyboardInset: true,
+                        builder: (context, close) {
+                          return const SizedBox(height: 100);
+                        },
+                      ),
+                    );
+                  },
+                  child: const Text('Open'),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      expect(_maxAnimatedPaddingBottom(tester), keyboardHeight);
     });
 
     testWidgets('header supports back and trailing actions', (tester) async {
