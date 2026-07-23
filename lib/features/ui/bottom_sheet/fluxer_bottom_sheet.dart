@@ -197,15 +197,10 @@ class FluxerBottomSheet {
             child: content,
           );
 
-          if (canDismissNotifier == null) {
-            return sheetContent;
-          }
-
-          return ValueListenableBuilder<bool>(
-            valueListenable: canDismissNotifier,
-            builder: (context, canDismiss, child) =>
-                PopScope(canPop: canDismiss, child: child!),
+          return _buildSheetWithBackHandler(
             child: sheetContent,
+            onBack: onBack,
+            canDismissNotifier: canDismissNotifier,
           );
         },
       ),
@@ -298,20 +293,59 @@ class FluxerBottomSheet {
             builder: builder,
           );
 
-          if (canDismissNotifier == null) {
-            return sheet;
-          }
-
-          return ValueListenableBuilder<bool>(
-            valueListenable: canDismissNotifier,
-            builder: (context, canDismiss, child) =>
-                PopScope(canPop: canDismiss, child: child!),
+          return _buildSheetWithBackHandler(
             child: sheet,
+            onBack: onBack,
+            canDismissNotifier: canDismissNotifier,
           );
         },
       ),
     );
   }
+}
+
+Widget _buildSheetWithBackHandler({
+  required Widget child,
+  required VoidCallback? onBack,
+  required ValueNotifier<bool>? canDismissNotifier,
+}) {
+  if (canDismissNotifier == null) {
+    return _wrapSheetBackHandler(
+      canDismiss: true,
+      onBack: onBack,
+      child: child,
+    );
+  }
+  return ValueListenableBuilder<bool>(
+    valueListenable: canDismissNotifier,
+    builder: (BuildContext context, bool canDismiss, Widget? sheetChild) =>
+        _wrapSheetBackHandler(
+          canDismiss: canDismiss,
+          onBack: onBack,
+          child: sheetChild!,
+        ),
+    child: child,
+  );
+}
+
+Widget _wrapSheetBackHandler({
+  required bool canDismiss,
+  required VoidCallback? onBack,
+  required Widget child,
+}) {
+  if (canDismiss && onBack == null) {
+    return child;
+  }
+  return PopScope(
+    canPop: false,
+    onPopInvokedWithResult: (bool didPop, _) {
+      if (didPop || !canDismiss) {
+        return;
+      }
+      onBack?.call();
+    },
+    child: child,
+  );
 }
 
 // ---------------------------------------------------------------------------

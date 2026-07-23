@@ -435,5 +435,162 @@ void main() {
       expect(find.text('Section content'), findsOneWidget);
       expect(find.text('Footer action'), findsOneWidget);
     });
+
+    testWidgets('system back dismisses a default sheet', (tester) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () {
+                  unawaited(
+                    FluxerBottomSheet.show(
+                      context,
+                      title: 'Back Dismissible',
+                      builder: (context, close) {
+                        return const Text('Sheet body');
+                      },
+                    ),
+                  );
+                },
+                child: const Text('Open'),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+      expect(find.text('Back Dismissible'), findsOneWidget);
+
+      final bool handled = await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(handled, isTrue);
+      expect(find.text('Back Dismissible'), findsNothing);
+    });
+
+    testWidgets('system back invokes onBack without dismissing', (
+      tester,
+    ) async {
+      var backPressed = 0;
+
+      await tester.pumpWidget(
+        buildTestApp(
+          Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () {
+                  unawaited(
+                    FluxerBottomSheet.show(
+                      context,
+                      title: 'Intercepted Back',
+                      onBack: () => backPressed++,
+                      builder: (context, close) {
+                        return const Text('Sheet body');
+                      },
+                    ),
+                  );
+                },
+                child: const Text('Open'),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      final bool handled = await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(handled, isTrue);
+      expect(backPressed, 1);
+      expect(find.text('Intercepted Back'), findsOneWidget);
+    });
+
+    testWidgets('system back invokes onBack that pops the sheet', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () {
+                  unawaited(
+                    FluxerBottomSheet.show(
+                      context,
+                      title: 'Pop On Back',
+                      onBack: () => Navigator.of(context).pop(),
+                      builder: (context, close) {
+                        return const Text('Sheet body');
+                      },
+                    ),
+                  );
+                },
+                child: const Text('Open'),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+      expect(find.text('Pop On Back'), findsOneWidget);
+
+      final bool handled = await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(handled, isTrue);
+      expect(find.text('Pop On Back'), findsNothing);
+    });
+
+    testWidgets('system back is blocked when canDismissNotifier is false', (
+      tester,
+    ) async {
+      final ValueNotifier<bool> canDismissNotifier = ValueNotifier<bool>(true);
+
+      await tester.pumpWidget(
+        buildTestApp(
+          Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () {
+                  unawaited(
+                    FluxerBottomSheet.show(
+                      context,
+                      title: 'Blocked Back',
+                      canDismissNotifier: canDismissNotifier,
+                      builder: (context, close) {
+                        return const Text('Sheet body');
+                      },
+                    ),
+                  );
+                },
+                child: const Text('Open'),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      canDismissNotifier.value = false;
+      await tester.pumpAndSettle();
+
+      final bool handled = await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(handled, isTrue);
+      expect(find.text('Blocked Back'), findsOneWidget);
+
+      canDismissNotifier.dispose();
+    });
   });
 }
