@@ -975,7 +975,7 @@ packages:
       path: dart_sdk
       relative: true
     source: path
-    version: "2.1.0"
+    version: "2.2.0"
   fluxer_markdown:
     dependency: "direct main"
     description:

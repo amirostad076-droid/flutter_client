@@ -17011,11 +17011,11 @@ class FluxerLocalizationsEs419 extends FluxerLocalizationsEs {
   String get guildSettingsBannedBy => 'Baneado por';
 
   @override
-  String get guildSettingsRevokeBanTitle => 'Revocar baneo';
+  String get guildSettingsRevokeBanTitle => 'Revocar ban';
 
   @override
   String guildSettingsRevokeBanDescription(String displayName) {
-    return '¿Estás seguro de que quieres revocar el baneo de $displayName? Podrá volver a unirse a la comunidad.';
+    return '¿Estás seguro de que quieres revocar el ban de $displayName? Podrá volver a unirse a la comunidad.';
   }
 
   @override
