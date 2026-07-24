@@ -285,6 +285,32 @@ void main() {
       );
     });
 
+    testWidgets('renders bold and underline for nested formatting', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: FluxerMarkdown(
+              data: '__**text**__',
+              config: _testMarkdownConfig,
+            ),
+          ),
+        ),
+      );
+      final RichText richText = tester.widget<RichText>(find.byType(RichText));
+      expect(richText.text.toPlainText(), 'text');
+      expect(
+        _leafTextHasStyle(
+          richText.text,
+          'text',
+          fontWeight: FontWeight.w700,
+          decoration: TextDecoration.underline,
+        ),
+        isTrue,
+      );
+    });
+
     testWidgets('renders underline inside masked link labels', (tester) async {
       const String url = 'https://fluxer.app';
       await tester.pumpWidget(
