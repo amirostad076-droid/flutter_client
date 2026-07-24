@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:dio/dio.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/features/channels/domain/channel.dart';
@@ -125,7 +123,6 @@ class ChannelRepository {
           ),
         ],
       );
-      unawaited(getChannels(guildId));
     } on DioException catch (e) {
       if (rollbackChannels != null) {
         await applyLocalChannels(guildId, rollbackChannels);

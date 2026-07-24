@@ -40,11 +40,13 @@ class ChannelReorderDropResult {
     required this.targetId,
     required this.position,
     this.targetParentId,
+    this.targetParentIdSpecified = false,
   });
 
   final String targetId;
   final ChannelReorderDropPosition position;
   final String? targetParentId;
+  final bool targetParentIdSpecified;
 }
 
 class ChannelReorderTarget {
@@ -201,6 +203,7 @@ ChannelReorderIntent? resolveChannelReorderHover({
           ? ChannelReorderDropPosition.before
           : ChannelReorderDropPosition.inside,
       targetParentId: before ? target.parentId : target.id,
+      targetParentIdSpecified: true,
     );
   } else {
     result = ChannelReorderDropResult(
@@ -209,6 +212,7 @@ ChannelReorderIntent? resolveChannelReorderHover({
           ? ChannelReorderDropPosition.before
           : ChannelReorderDropPosition.after,
       targetParentId: target.parentId,
+      targetParentIdSpecified: true,
     );
   }
   return ChannelReorderIntent(indicator: indicator, result: result);

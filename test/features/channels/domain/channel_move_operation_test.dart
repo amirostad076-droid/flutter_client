@@ -52,6 +52,7 @@ void main() {
         targetId: 'cat-1',
         position: ChannelReorderDropPosition.inside,
         targetParentId: 'cat-1',
+        targetParentIdSpecified: true,
       ),
     );
     expect(operation, isNotNull);
@@ -75,6 +76,7 @@ void main() {
         targetId: 'cat-1',
         position: ChannelReorderDropPosition.inside,
         targetParentId: 'cat-1',
+        targetParentIdSpecified: true,
       ),
     );
     expect(computation, isNotNull);
@@ -136,6 +138,33 @@ void main() {
       expect(operation!.newParentId, isNull);
       expect(operation.precedingSiblingId, 'text-2');
       expect(operation.position, 2);
+    },
+  );
+
+  test(
+    'createChannelMoveOperation moves categorized channel to root before category',
+    () {
+      final List<Channel> channels = <Channel>[
+        _channel(id: 'cat-1', type: 4),
+        _channel(id: 'text-1', type: 0, parentId: 'cat-1'),
+        _channel(id: 'cat-2', type: 4, position: 1),
+        _channel(id: 'text-2', type: 0, parentId: 'cat-2'),
+      ];
+      final ChannelReorderDragItem dragItem =
+          ChannelReorderDragItem.fromChannel(
+            channels.firstWhere((Channel channel) => channel.id == 'text-1'),
+          );
+      final ChannelMoveOperation? operation = createChannelMoveOperation(
+        channels: channels,
+        dragItem: dragItem,
+        dropResult: const ChannelReorderDropResult(
+          targetId: 'cat-2',
+          position: ChannelReorderDropPosition.before,
+          targetParentIdSpecified: true,
+        ),
+      );
+      expect(operation, isNotNull);
+      expect(operation!.newParentId, isNull);
     },
   );
 }

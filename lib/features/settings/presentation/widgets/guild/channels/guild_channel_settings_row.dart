@@ -9,8 +9,8 @@ import 'package:fluxer_app/features/channels/domain/channel_reorder_drop.dart';
 import 'package:fluxer_app/features/channels/presentation/channel_settings/channel_settings_flow.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/channels/guild_channel_drop_indicator.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/guild/channels/guild_channel_move_handler.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/channels/guild_channel_settings_entries.dart';
-import 'package:fluxer_app/features/settings/providers/guild/guild_channel_settings_providers.dart';
 import 'package:gaimon/gaimon.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -192,17 +192,13 @@ class GuildChannelSettingsRow extends ConsumerWidget {
                   return;
                 }
                 unawaited(
-                  ref
-                      .read(
-                        guildChannelSettingsActionsProvider(
-                          entry.guildId,
-                        ).notifier,
-                      )
-                      .moveChannel(
-                        operation: computation.operation,
-                        currentChannels: channels,
-                        optimisticChannels: computation.updatedChannels,
-                      ),
+                  performGuildChannelMove(
+                    ref: ref,
+                    context: context,
+                    guildId: entry.guildId,
+                    computation: computation,
+                    currentChannels: channels,
+                  ),
                 );
               },
           builder:

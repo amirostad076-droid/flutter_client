@@ -9,6 +9,7 @@ import 'package:fluxer_app/features/channels/domain/channel_move_operation.dart'
 import 'package:fluxer_app/features/channels/domain/channel_reorder_drop.dart';
 import 'package:fluxer_app/features/settings/presentation/sheets/create_channel_category_picker_sheet.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/channels/guild_channel_drop_indicator.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/guild/channels/guild_channel_move_handler.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/channels/guild_channel_settings_entries.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/channels/guild_channel_settings_row.dart';
 import 'package:fluxer_app/features/settings/providers/guild/guild_channel_settings_providers.dart';
@@ -135,6 +136,7 @@ class _GuildChannelsSettingsWidgetState
   }
 
   void _handleTrailingDrop({
+    required BuildContext context,
     required ChannelReorderDragItem item,
     required List<Channel> channels,
     required ChannelReorderDropResult dropResult,
@@ -149,13 +151,13 @@ class _GuildChannelsSettingsWidgetState
       return;
     }
     unawaited(
-      ref
-          .read(guildChannelSettingsActionsProvider(widget.guildId).notifier)
-          .moveChannel(
-            operation: computation.operation,
-            currentChannels: channels,
-            optimisticChannels: computation.updatedChannels,
-          ),
+      performGuildChannelMove(
+        ref: ref,
+        context: context,
+        guildId: widget.guildId,
+        computation: computation,
+        currentChannels: channels,
+      ),
     );
   }
 
@@ -237,6 +239,7 @@ class _GuildChannelsSettingsWidgetState
   }
 
   Widget _buildTrailingDropTarget({
+    required BuildContext context,
     required String targetId,
     required ChannelReorderDropPosition position,
     required List<Channel> channels,
@@ -271,6 +274,7 @@ class _GuildChannelsSettingsWidgetState
       },
       onAcceptWithDetails: (DragTargetDetails<ChannelReorderDragItem> details) {
         _handleTrailingDrop(
+          context: context,
           item: details.data,
           channels: channels,
           dropResult: dropResult,
@@ -354,6 +358,7 @@ class _GuildChannelsSettingsWidgetState
           itemBuilder: (BuildContext context, int index) {
             if (index == 0) {
               return _buildTrailingDropTarget(
+                context: context,
                 targetId: kNullSpaceTargetId,
                 position: ChannelReorderDropPosition.before,
                 channels: channels,
@@ -361,6 +366,7 @@ class _GuildChannelsSettingsWidgetState
             }
             if (index == entries.length + 1) {
               return _buildTrailingDropTarget(
+                context: context,
                 targetId: kTrailingSpaceTargetId,
                 position: ChannelReorderDropPosition.after,
                 channels: channels,
