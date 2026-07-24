@@ -358,7 +358,6 @@ void main() {
                     unawaited(
                       FluxerBottomSheet.show(
                         context,
-                        manageKeyboardInset: true,
                         builder: (context, close) {
                           return const SizedBox(height: 100);
                         },
