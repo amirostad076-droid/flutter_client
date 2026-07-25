@@ -2096,8 +2096,8 @@ void main() {
       await _flushAsync();
 
       final readState = await db.readStateDao.getReadState('channel-1');
-      expect(readState?.lastMessageId, visibleTailId);
-      expect(adapter.ackedMessageIds, <String>[visibleTailId]);
+      expect(readState?.lastMessageId, orphanedPointer);
+      expect(adapter.ackedMessageIds, <String>[orphanedPointer]);
     },
   );
 
@@ -2345,7 +2345,7 @@ void main() {
 
       final readState = await db.readStateDao.getReadState('dm-1');
       final dm = await db.dmChannelDao.getDmChannelById('dm-1');
-      expect(adapter.ackedMessageIds, <String>[priorId]);
+      expect(adapter.ackedMessageIds, <String>[deletedId]);
       expect(readState?.mentionCount, 0);
       expect(dm?.unreadCount, 0);
     },
@@ -2390,14 +2390,22 @@ void main() {
       await _flushAsync();
 
       final readState = await db.readStateDao.getReadState('channel-1');
-      expect(readState?.lastMessageId, priorId);
+      final channel = await db.channelDao.getChannelById('channel-1');
+      expect(channel?.lastMessageId, deletedId);
+      expect(readState?.lastMessageId, deletedId);
       expect(
         container.read(chatViewModelProvider).hasMoreNewerMessages,
         isFalse,
       );
+      final latestForUnread = await resolveLatestMessageIdForUnreadDisplay(
+        db,
+        'channel-1',
+        channelLastMessageId: deletedId,
+        ackLastMessageId: readState?.lastMessageId,
+      );
       expect(
         hasUnreadByReadState(
-          channelLastMessageId: priorId,
+          channelLastMessageId: latestForUnread,
           ackLastMessageId: readState?.lastMessageId,
           fallbackAckMs: 0,
           mentionCount: 0,
@@ -2440,6 +2448,7 @@ void main() {
       await _flushAsync();
 
       final readState = await db.readStateDao.getReadState('channel-1');
+      expect(readState?.lastMessageId, deletedId);
       expect(readState?.mentionCount, 0);
       expect(
         hasUnreadByReadState(

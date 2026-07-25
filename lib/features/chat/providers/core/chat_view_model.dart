@@ -1940,12 +1940,9 @@ class ChatViewModel extends _$ChatViewModel {
     if (compareSnowflakeIds(pointer, visibleTailId) <= 0) {
       return visibleTailId;
     }
-    if (channelId == state.channelId &&
-        state.messages.any((Message message) => message.id == pointer)) {
-      return pointer;
-    }
-    final pointerExists = await database.messageDao.getMessage(pointer) != null;
-    return pointerExists ? pointer : visibleTailId;
+    // Ack to the channel pointer even when it is orphaned (deleted tail), matching
+    // web ackWithStickyUnread.
+    return pointer;
   }
 
   Future<void> ackCurrentChannel({bool force = false}) async {
