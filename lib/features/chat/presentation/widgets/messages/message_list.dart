@@ -68,6 +68,7 @@ import 'package:fluxer_app/features/dm/presentation/widgets/group_dm_welcome_sec
 import 'package:fluxer_app/features/dm/presentation/widgets/personal_notes_welcome_section.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/friends/providers/blocked_user_ids_provider.dart';
+import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_providers.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_simple_report_sheet.dart';
@@ -194,6 +195,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   Object? _unreadSummaryKey;
   bool _useCompactScrollCache = true;
   int _lastMessageCount = 0;
+  bool _scrollCacheExpansionPending = false;
   double? _lastViewportDimension;
 
   bool _userDragActive = false;
@@ -291,7 +293,6 @@ class _MessageListState extends ConsumerState<MessageList> {
           _lastViewportDimension ??=
               _scrollController.position.viewportDimension;
         }
-        _updateNewestMessageVisibleLatch();
         _maybeLoadOlder();
         _maybeLoadNewer();
         _syncReadViewport();
@@ -538,6 +539,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     _newestMessageVisibleLatch = null;
     _useCompactScrollCache = true;
     _lastMessageCount = 0;
+    _scrollCacheExpansionPending = false;
   }
 
   void _scheduleScrollCacheExpansion(int messageCount) {
@@ -548,12 +550,30 @@ class _MessageListState extends ConsumerState<MessageList> {
       return;
     }
     _lastMessageCount = messageCount;
+    _scrollCacheExpansionPending = true;
+    _scheduleScrollCacheExpansionWhenIdle();
+  }
+
+  void _scheduleScrollCacheExpansionWhenIdle() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_useCompactScrollCache) {
+      if (!mounted ||
+          !_scrollCacheExpansionPending ||
+          !_useCompactScrollCache) {
         return;
       }
-      setState(() => _useCompactScrollCache = false);
+      if (_isUserDrivenScroll) {
+        return;
+      }
+      _maybeExpandScrollCache();
     });
+  }
+
+  void _maybeExpandScrollCache() {
+    if (!_scrollCacheExpansionPending || !_useCompactScrollCache) {
+      return;
+    }
+    _scrollCacheExpansionPending = false;
+    setState(() => _useCompactScrollCache = false);
   }
 
   bool _onScrollNotification(ScrollNotification notification) {
@@ -563,6 +583,8 @@ class _MessageListState extends ConsumerState<MessageList> {
       _userDragActive = true;
     } else if (notification is ScrollEndNotification) {
       _userDragActive = false;
+      _refreshNewestMessageVisibleLatch();
+      _maybeExpandScrollCache();
     }
     if (notification.depth != 0) {
       return false;
@@ -657,12 +679,23 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
   }
 
+  void _refreshNewestMessageVisibleLatch() {
+    if (_openMode != _MessageListOpenMode.bottom) {
+      return;
+    }
+    if (_isLiveNearBottom()) {
+      _newestMessageVisibleLatch = true;
+      return;
+    }
+    _updateNewestMessageVisibleLatch();
+  }
+
   void _onBottomViewportMetrics(ScrollMetrics metrics) {
     final double viewport = metrics.viewportDimension;
     final double? previous = _lastViewportDimension;
     if (previous == null || viewport >= previous - 0.5) {
       _lastViewportDimension = viewport;
-      _updateNewestMessageVisibleLatch();
+      _refreshNewestMessageVisibleLatch();
       return;
     }
     // Order matters: capture visibility before adopting the shrunken viewport.
@@ -1522,6 +1555,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     required bool channelCanManageMessages,
     required MessageRenderSettings renderSettings,
     required Set<String> blockedUserIds,
+    required bool isGuildSendDisabled,
     bool renderDaySeparator = true,
     bool prependUnreadSeparator = false,
   }) {
@@ -1539,9 +1573,6 @@ class _MessageListState extends ConsumerState<MessageList> {
     final bool isAuthorBlocked = blockedUserIds.contains(message.authorId);
     final bool canAddReactionsForMessage =
         channelCanAddReactions && !isAuthorBlocked;
-    final bool isSendDisabled =
-        ref.watch(guildByIdProvider(guildId ?? '')).value?.isSendDisabled ??
-        false;
     final double leading = leadingGroupSpacing(
       isGroupStart: !isGrouped,
       isNewDay: isNewDay,
@@ -1568,6 +1599,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       channelCanManageMessages,
       renderSettings,
       leading,
+      isGuildSendDisabled,
     );
     return _tileCache.resolve(message.id, signature, () {
       if (message.isSystemMessage) {
@@ -1677,7 +1709,7 @@ class _MessageListState extends ConsumerState<MessageList> {
             canManageMessages: channelCanManageMessages,
             canSendMessages: channelCanSendMessages,
             isDmChannel: isDmChannel,
-            isSendDisabled: isSendDisabled,
+            isSendDisabled: isGuildSendDisabled,
             onReply: () =>
                 ref.read(chatViewModelProvider.notifier).startReply(message),
             onForward: () =>
@@ -1799,6 +1831,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     required MessageRenderSettings renderSettings,
     required Set<String> blockedUserIds,
     required String? revealedCollapsedGroupKey,
+    required bool isGuildSendDisabled,
   }) {
     final ChannelStreamItem item = stream[dataIndex];
     final bool streamOwnsUnreadBoundary =
@@ -1862,6 +1895,7 @@ class _MessageListState extends ConsumerState<MessageList> {
                   blockedUserIds: blockedUserIds,
                   renderDaySeparator: false,
                   prependUnreadSeparator: streamOwnsUnreadBoundary,
+                  isGuildSendDisabled: isGuildSendDisabled,
                 );
               },
             ),
@@ -1897,6 +1931,7 @@ class _MessageListState extends ConsumerState<MessageList> {
             blockedUserIds: blockedUserIds,
             renderDaySeparator: false,
             prependUnreadSeparator: streamOwnsUnreadBoundary,
+            isGuildSendDisabled: isGuildSendDisabled,
           ),
           show: item.showUnreadDividerBefore,
         );
@@ -1922,6 +1957,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     required bool isLoadingMore,
     required bool isLoadingNewer,
     required Widget? startOfChannelHeader,
+    required bool isGuildSendDisabled,
   }) {
     final ScrollPhysics chatPhysics = ScrollConfiguration.of(context)
         .getScrollPhysics(context)
@@ -1978,6 +2014,7 @@ class _MessageListState extends ConsumerState<MessageList> {
                       renderSettings: renderSettings,
                       blockedUserIds: blockedUserIds,
                       revealedCollapsedGroupKey: revealedCollapsedGroupKey,
+                      isGuildSendDisabled: isGuildSendDisabled,
                     );
                   },
                 ),
@@ -2030,6 +2067,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     required MessageRenderSettings renderSettings,
     required Set<String> blockedUserIds,
     required String? revealedCollapsedGroupKey,
+    required bool isGuildSendDisabled,
   }) {
     final ChannelStreamItem item = stream[dataIndex];
     final String keyValue = item.type.isCollapsedGroup
@@ -2054,6 +2092,7 @@ class _MessageListState extends ConsumerState<MessageList> {
         renderSettings: renderSettings,
         blockedUserIds: blockedUserIds,
         revealedCollapsedGroupKey: revealedCollapsedGroupKey,
+        isGuildSendDisabled: isGuildSendDisabled,
       ),
     );
   }
@@ -2129,6 +2168,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     required bool isLoadingMore,
     required bool isLoadingNewer,
     required Widget? startOfChannelHeader,
+    required bool isGuildSendDisabled,
   }) {
     final String? anchorId = _centerAnchorMessageId;
     final int splitIndex = anchorId == null
@@ -2184,6 +2224,7 @@ class _MessageListState extends ConsumerState<MessageList> {
                             blockedUserIds: blockedUserIds,
                             revealedCollapsedGroupKey:
                                 revealedCollapsedGroupKey,
+                            isGuildSendDisabled: isGuildSendDisabled,
                           );
                         },
                         childCount: splitIndex,
@@ -2223,6 +2264,7 @@ class _MessageListState extends ConsumerState<MessageList> {
                           renderSettings: renderSettings,
                           blockedUserIds: blockedUserIds,
                           revealedCollapsedGroupKey: revealedCollapsedGroupKey,
+                          isGuildSendDisabled: isGuildSendDisabled,
                         );
                       },
                       childCount: stream.length - splitIndex,
@@ -2397,6 +2439,14 @@ class _MessageListState extends ConsumerState<MessageList> {
         ? null
         : findChannelById(ref.watch(channelListViewModelProvider), channelId);
     final String? guildId = channelRow?.guildId;
+    final bool isGuildSendDisabled =
+        guildId != null &&
+        guildId.isNotEmpty &&
+        ref.watch(
+          guildByIdProvider(guildId).select(
+            (AsyncValue<Guild?> guild) => guild.value?.isSendDisabled ?? false,
+          ),
+        );
     final int? channelPermissionBits = channelId.isEmpty
         ? null
         : ref
@@ -2654,6 +2704,7 @@ class _MessageListState extends ConsumerState<MessageList> {
                       isLoadingMore: isLoadingMore,
                       isLoadingNewer: isLoadingNewer,
                       startOfChannelHeader: startOfChannelHeader,
+                      isGuildSendDisabled: isGuildSendDisabled,
                     )
                   : _buildMessageListView(
                       context: context,
@@ -2675,6 +2726,7 @@ class _MessageListState extends ConsumerState<MessageList> {
                       isLoadingMore: isLoadingMore,
                       isLoadingNewer: isLoadingNewer,
                       startOfChannelHeader: startOfChannelHeader,
+                      isGuildSendDisabled: isGuildSendDisabled,
                     );
             }
 
