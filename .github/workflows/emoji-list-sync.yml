@@ -42,6 +42,7 @@ jobs:
         with:
           token: ${{ steps.create-token.outputs.token }}
           ref: ${{ env.BASE_BRANCH }}
+          submodules: recursive
 
       - name: Checkout fluxer
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
