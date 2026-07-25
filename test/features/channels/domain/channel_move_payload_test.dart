@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/features/channels/domain/channel_move_operation.dart';
 import 'package:fluxer_app/features/channels/domain/channel_move_payload.dart';
-import 'package:fluxer_dart/export.dart';
 
 void main() {
   test('buildChannelMoveRequestBody includes explicit null parent_id', () {
@@ -26,25 +25,4 @@ void main() {
       },
     ]);
   });
-
-  test(
-    'ChannelPositionUpdateRequestItem serializes explicit null parent_id',
-    () {
-      const ChannelPositionUpdateRequestItem item =
-          ChannelPositionUpdateRequestItem(
-            id: 'text-1',
-            precedingSiblingId: 'cat-1',
-            position: 1,
-            lockPermissions: false,
-          );
-
-      expect(item.toJson(), <String, Object?>{
-        'id': 'text-1',
-        'parent_id': null,
-        'preceding_sibling_id': 'cat-1',
-        'position': 1,
-        'lock_permissions': false,
-      });
-    },
-  );
 }

@@ -16,8 +16,9 @@ typedef ChannelPermissionIdentity = ({
 @Riverpod(keepAlive: true)
 ChannelRepository channelRepository(Ref ref) {
   final client = ref.watch(fluxerClientProvider);
+  final dio = ref.watch(fluxerDioProvider);
   final db = ref.watch(fluxerDatabaseProvider);
-  return ChannelRepository(client, db);
+  return ChannelRepository(client, dio, db);
 }
 
 @riverpod
