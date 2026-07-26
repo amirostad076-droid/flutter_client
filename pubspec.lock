@@ -309,10 +309,10 @@ packages:
     dependency: transitive
     description:
       name: cli_util
-      sha256: "71e43f1976c3eae2d9468a5b4d6600bf8cae61508b87f27fa1799228935d48ab"
+      sha256: ff6785f7e9e3c38ac98b2fb035701789de90154024a75b6cb926445e83197d1c
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.2"
+    version: "0.4.2"
   clock:
     dependency: "direct main"
     description:
@@ -581,10 +581,10 @@ packages:
     dependency: "direct dev"
     description:
       name: drift_dev
-      sha256: "735aad3c34215805c66bd518c8812fa4f83b5534b2c13c4092c970c04a7e9983"
+      sha256: "9cfff1576b49725da0d32c040651a41ae195e8c4af8d8da301593e41d7abc2f7"
       url: "https://pub.dev"
     source: hosted
-    version: "2.34.5"
+    version: "2.34.0"
   drift_flutter:
     dependency: "direct main"
     description:
@@ -852,10 +852,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_riverpod
-      sha256: a441fd079f11969f526ec04556ba9819fee7d981bdf50fab858066807b36cff9
+      sha256: "9255e1e3ad6e38906a1b4f8287678f95f378744c5b46b1985588543f3f19046e"
       url: "https://pub.dev"
     source: hosted
-    version: "3.4.1"
+    version: "3.3.2"
   flutter_secure_storage:
     dependency: "direct main"
     description:
@@ -1329,14 +1329,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.1.2"
-  listen:
-    dependency: transitive
-    description:
-      name: listen
-      sha256: cb0ad74d7453d8f83a7c1fae401828681ef5df21d41a3a26a04af590c985d085
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0-beta.4"
   livekit_client:
     dependency: "direct main"
     description:
@@ -2006,10 +1998,10 @@ packages:
     dependency: "direct main"
     description:
       name: riverpod
-      sha256: ccd1d45f07d20f894a975eeaa64d14a0dbbcfd0825bb59c3cd89837c2c21b436
+      sha256: "17100416c51db7810c71a7bb2c34d1f881faa0074fd452afb0c4db6f8f126c76"
       url: "https://pub.dev"
     source: hosted
-    version: "3.4.1"
+    version: "3.3.2"
   riverpod_analyzer_utils:
     dependency: transitive
     description:
@@ -2022,26 +2014,26 @@ packages:
     dependency: "direct main"
     description:
       name: riverpod_annotation
-      sha256: "2154e7c3e9c843c0297302d167ab540921c2d45a36940320520c9e7b2b6be340"
+      sha256: "674dbb26e2db3d9253166faf4758c796af14146b8fbcf5e7102bc8a04cd359b8"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.5"
+    version: "4.0.3"
   riverpod_generator:
     dependency: "direct dev"
     description:
       name: riverpod_generator
-      sha256: c18956ee6f1c0609955e66654668845e2d4bc0d0dd141f5e16a9d898dc36cbce
+      sha256: "54d790c3fee1ae281c448801bfdbfaa9fd961a9d3998494e0fcd9ee32184d7eb"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.6"
+    version: "4.0.4"
   riverpod_lint:
     dependency: "direct dev"
     description:
       name: riverpod_lint
-      sha256: a9b4578bf8eee50f1403767bce0fb8cdc76ba64894fee011eac13377f28f66ff
+      sha256: "166f29492228dc471b6fe294092560ccd5545ed15c9fc155622455b58b2451a9"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.6"
+    version: "3.1.4"
   safe_local_storage:
     dependency: transitive
     description:
@@ -2299,10 +2291,10 @@ packages:
     dependency: transitive
     description:
       name: sqlparser
-      sha256: "772bb2f6f5bce0631a60f26b57d6e8882e1105c22345b05c163ee6ee5d7ba32d"
+      sha256: "40bdddb306a727be9ce510bd2d2b9a6c9db6c586d846ef7b22e3990a2b24f02d"
       url: "https://pub.dev"
     source: hosted
-    version: "0.45.0"
+    version: "0.44.5"
   sse:
     dependency: transitive
     description:
