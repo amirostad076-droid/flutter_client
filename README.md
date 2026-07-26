@@ -34,18 +34,18 @@ For updates, support, and discussion, [join the Fluxer Mobile community on Fluxe
 
 ## Download
 
-> [!NOTE]
-> Unless you are using a degoogled operating system, you should use the FCM client. If you don't know if your OS is degoogled, it likely is not.
-
 **Apple App Store**: Coming when V1 is finished.
 
 **Google Play Store**: Coming when V1 is finished.
 
-**Fdroid**: Coming when V1 is finished.
+**F-Droid**: Coming when V1 is finished.
 
 **iOS Testflight**: Currently only available to Plutonium users.
 
 ### Android (APK)
+
+> [!NOTE]
+> Unless you are using a degoogled operating system, you should use the FCM client. If you don't know if your OS is degoogled, it likely is not.
 
 **Quick pick (most users):** download the **beta FCM** APK from [GitHub releases](https://github.com/fluxerapp/flutter_client/releases) — e.g. `app-arm64-v8a-betafcm-release.apk` on a phone from the last few years.
 
