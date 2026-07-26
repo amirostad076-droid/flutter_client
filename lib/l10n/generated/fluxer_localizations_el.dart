@@ -9790,6 +9790,167 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
   String get guildSettingsEmojiUploadTitle => 'Μεταφόρτωση Emoji';
 
   @override
+  String get guildSettingsEmojiSlotsTitle => 'Emoji slots';
+
+  @override
+  String get guildSettingsEmojiDropZone => 'Drag and drop emoji files here';
+
+  @override
+  String get guildSettingsEmojiLoadFailed =>
+      'Failed to load emojis. Try again later.';
+
+  @override
+  String get guildSettingsEmojiSearchEmpty =>
+      'No emojis found matching your search.';
+
+  @override
+  String get guildSettingsEmojiNoSlots => 'No emoji slots available';
+
+  @override
+  String get guildSettingsEmojiSlotsFull =>
+      'You\'ve reached the maximum number of emojis. Delete some existing emojis to make room.';
+
+  @override
+  String guildSettingsEmojiUploadRequirements(String maxSize) {
+    return 'Emoji names need at least 2 characters and can use letters, numbers, and underscores. Emojis must be under $maxSize. Static images are resized to 128x128 pixels and compressed automatically. Animated emojis and SVGs must already fit the limit.';
+  }
+
+  @override
+  String get guildSettingsEmojiUploadingTitle => 'Uploading emojis';
+
+  @override
+  String guildSettingsEmojiUploadingBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '# emojis',
+      one: '# emoji',
+    );
+    return 'Uploading $_temp0. This may take a little while.';
+  }
+
+  @override
+  String get guildSettingsEmojiUploadFailed =>
+      'Failed to upload emojis. Try again.';
+
+  @override
+  String get guildSettingsEmojiSomeFailedTitle =>
+      'Some emojis couldn\'t be added';
+
+  @override
+  String get guildSettingsEmojiSomeFailedBody =>
+      'Review these files and try again with smaller or simpler images.';
+
+  @override
+  String get guildSettingsEmojiRenameTitle => 'Rename emoji';
+
+  @override
+  String get guildSettingsEmojiRenameHint =>
+      '2-32 characters, letters, numbers, underscores.';
+
+  @override
+  String get guildSettingsEmojiColumnEmoji => 'Emoji';
+
+  @override
+  String get guildSettingsEmojiColumnName => 'Name';
+
+  @override
+  String get guildSettingsEmojiColumnUploader => 'Uploaded by';
+
+  @override
+  String get guildSettingsEmojiUnknownUploader => 'Unknown';
+
+  @override
+  String get guildSettingsEmojiDeleteTitle => 'Delete emoji';
+
+  @override
+  String guildSettingsEmojiDeleteBody(String name) {
+    return 'Delete :$name:? Can\'t be undone.';
+  }
+
+  @override
+  String get guildSettingsEmojiPurgeLabel =>
+      'Purge this emoji from storage and CDN';
+
+  @override
+  String get guildSettingsEmojiNameTooShort =>
+      'Emoji name must be at least 2 characters long';
+
+  @override
+  String get guildSettingsEmojiNameTooLong =>
+      'Emoji name must be at most 32 characters long';
+
+  @override
+  String get guildSettingsEmojiInvalidNameTitle => 'Invalid emoji name';
+
+  @override
+  String get guildSettingsEmojiRenameFailedTitle =>
+      'Couldn\'t rename this emoji';
+
+  @override
+  String get guildSettingsEmojiRenameFailedBody =>
+      'The name was reverted to what it was before. Please try again in a moment.';
+
+  @override
+  String get guildSettingsEmojiGoneTitle => 'This emoji no longer exists';
+
+  @override
+  String get guildSettingsEmojiGoneBody =>
+      'It may have been deleted. The name was reverted to what it was before.';
+
+  @override
+  String get guildSettingsEmojiNoPermissionRenameTitle =>
+      'You can\'t rename this emoji';
+
+  @override
+  String get guildSettingsEmojiNoPermissionRenameBody =>
+      'You don\'t have permission to rename this emoji. The name was reverted to what it was before.';
+
+  @override
+  String get guildSettingsEmojiRateLimitedTitle => 'You\'re going too fast';
+
+  @override
+  String get guildSettingsEmojiRateLimitedBody =>
+      'Please wait a moment and try renaming again.';
+
+  @override
+  String get guildSettingsEmojiDeleteFailedTitle =>
+      'Couldn\'t delete this emoji';
+
+  @override
+  String get guildSettingsEmojiDeleteNoPermissionTitle =>
+      'You can\'t delete this emoji';
+
+  @override
+  String get guildSettingsCloneEmojiTitle =>
+      'Allow others to clone your emojis';
+
+  @override
+  String get guildSettingsCloneEmojiDescription =>
+      'When enabled, members of other communities can use the in-app one-click \"Clone\" shortcut on your custom emojis. This does not prevent them from saving the image and uploading it themselves.';
+
+  @override
+  String get guildSettingsCloneStickerTitle =>
+      'Allow others to clone your stickers';
+
+  @override
+  String get guildSettingsCloneStickerDescription =>
+      'When enabled, members of other communities can use the in-app one-click \"Clone\" shortcut on your custom stickers. This does not prevent them from saving the image and uploading it themselves.';
+
+  @override
+  String guildSettingsClonePermissionHint(String permission) {
+    return 'Only members with the \"$permission\" permission can change this.';
+  }
+
+  @override
+  String get guildSettingsCloneEmojiUpdateFailed =>
+      'Couldn\'t update emoji cloning';
+
+  @override
+  String get guildSettingsCloneStickerUpdateFailed =>
+      'Couldn\'t update sticker cloning';
+
+  @override
   String guildSettingsNonAnimatedEmoji(int count) {
     return 'Μη κινούμενα emoji ($count)';
   }
@@ -9801,6 +9962,129 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
 
   @override
   String get guildSettingsStickersSearchHint => 'Αναζήτηση αυτοκόλλητων';
+
+  @override
+  String get guildSettingsStickerSlotsTitle => 'Sticker slots';
+
+  @override
+  String get guildSettingsStickerUploadTitle => 'Upload sticker';
+
+  @override
+  String get guildSettingsStickerDropZone =>
+      'Drag and drop a sticker file here (one at a time)';
+
+  @override
+  String get guildSettingsStickerDensity => 'Sticker density';
+
+  @override
+  String get guildSettingsStickerDensityCozy => 'Cozy';
+
+  @override
+  String get guildSettingsStickerDensityCompact => 'Compact';
+
+  @override
+  String get guildSettingsStickersLoadFailedTitle => 'Failed to load stickers';
+
+  @override
+  String get guildSettingsStickersLoadFailedBody =>
+      'There was an error loading the stickers. Try again.';
+
+  @override
+  String get guildSettingsStickersSearchEmpty =>
+      'No stickers found matching your search.';
+
+  @override
+  String get guildSettingsStickersEmptySearch => 'No stickers found';
+
+  @override
+  String get guildSettingsStickerNoSlots => 'No sticker slots available';
+
+  @override
+  String get guildSettingsStickerSlotsFull =>
+      'You\'ve reached the maximum number of stickers. Delete some existing stickers to make room.';
+
+  @override
+  String guildSettingsStickerUploadRequirements(String maxSize) {
+    return 'Stickers are saved at 320x320 pixels and must be under $maxSize. Static images are resized and compressed automatically. Animated stickers and SVGs must already fit the limit.';
+  }
+
+  @override
+  String get guildSettingsStickerUnsupportedTitle => 'Unsupported sticker file';
+
+  @override
+  String get guildSettingsStickerAddTitle => 'Add sticker';
+
+  @override
+  String get guildSettingsStickerEditTitle => 'Edit sticker';
+
+  @override
+  String get guildSettingsStickerNameLabel => 'Name';
+
+  @override
+  String get guildSettingsStickerNameHint => 'My awesome sticker';
+
+  @override
+  String get guildSettingsStickerDescriptionLabel => 'Description';
+
+  @override
+  String get guildSettingsStickerDescriptionHint => 'Describe the sticker';
+
+  @override
+  String guildSettingsStickerTagsLabel(int count, int limit) {
+    return 'Tags ($count/$limit)';
+  }
+
+  @override
+  String get guildSettingsStickerTagHint => 'Add a tag';
+
+  @override
+  String get guildSettingsStickerTagAdd => 'Add';
+
+  @override
+  String get guildSettingsStickerNameRequired => 'Name is required';
+
+  @override
+  String get guildSettingsStickerNameTooShort =>
+      'Name must be at least 2 characters';
+
+  @override
+  String get guildSettingsStickerNameTooLong =>
+      'Name must be 30 characters or less';
+
+  @override
+  String get guildSettingsStickerDescriptionTooLong =>
+      'Description must be 500 characters or less';
+
+  @override
+  String get guildSettingsStickerCreateFailedTitle =>
+      'Couldn\'t create this sticker';
+
+  @override
+  String get guildSettingsStickerTooLargeTitle => 'Sticker is too large';
+
+  @override
+  String get guildSettingsStickerCompressFailedTitle =>
+      'Sticker couldn\'t be compressed enough';
+
+  @override
+  String get guildSettingsStickerDeleteTitle => 'Delete sticker';
+
+  @override
+  String guildSettingsStickerDeleteBody(String name) {
+    return 'Delete \"$name\"? Can\'t be undone.';
+  }
+
+  @override
+  String get guildSettingsStickerPurgeLabel =>
+      'Purge this sticker from storage and CDN';
+
+  @override
+  String get guildSettingsStickerDeleteFailedTitle =>
+      'Couldn\'t delete this sticker';
+
+  @override
+  String get guildSettingsStickerDeleteNoPermissionTitle =>
+      'You can\'t delete this sticker';
 
   @override
   String get guildSettingsWebhooksInfo =>

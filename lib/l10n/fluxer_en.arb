@@ -10152,11 +10152,11 @@
   "@guildMenuSettingsRoles": {
     "description": "Community settings tab for roles and permissions."
   },
-  "guildMenuSettingsEmoji": "Custom Emoji",
+  "guildMenuSettingsEmoji": "Emoji",
   "@guildMenuSettingsEmoji": {
     "description": "Community settings tab for custom emoji."
   },
-  "guildMenuSettingsStickers": "Custom Stickers",
+  "guildMenuSettingsStickers": "Stickers",
   "@guildMenuSettingsStickers": {
     "description": "Community settings tab for custom stickers."
   },
@@ -12428,7 +12428,60 @@
   "guildSettingsModeration2faOwnerOnlyTooltip": "Only the community owner can change this setting",
   "guildSettingsModeration2faEnableFirstTooltip": "Enable 2FA on your account to change this setting",
   "guildSettingsEmojiSearchHint": "Search emojis",
-  "guildSettingsEmojiUploadTitle": "Upload Emoji",
+  "guildSettingsEmojiUploadTitle": "Upload emoji",
+  "guildSettingsEmojiSlotsTitle": "Emoji slots",
+  "guildSettingsEmojiDropZone": "Drag and drop emoji files here",
+  "guildSettingsEmojiLoadFailed": "Failed to load emojis. Try again later.",
+  "guildSettingsEmojiSearchEmpty": "No emojis found matching your search.",
+  "guildSettingsEmojiNoSlots": "No emoji slots available",
+  "guildSettingsEmojiSlotsFull": "You've reached the maximum number of emojis. Delete some existing emojis to make room.",
+  "guildSettingsEmojiUploadRequirements": "Emoji names need at least 2 characters and can use letters, numbers, and underscores. Emojis must be under {maxSize}. Static images are resized to 128x128 pixels and compressed automatically. Animated emojis and SVGs must already fit the limit.",
+  "@guildSettingsEmojiUploadRequirements": {
+    "placeholders": { "maxSize": {"type": "String"} }
+  },
+  "guildSettingsEmojiUploadingTitle": "Uploading emojis",
+  "guildSettingsEmojiUploadingBody": "Uploading {count, plural, one {# emoji} other {# emojis}}. This may take a little while.",
+  "@guildSettingsEmojiUploadingBody": {
+    "placeholders": { "count": {"type": "int"} }
+  },
+  "guildSettingsEmojiUploadFailed": "Failed to upload emojis. Try again.",
+  "guildSettingsEmojiSomeFailedTitle": "Some emojis couldn't be added",
+  "guildSettingsEmojiSomeFailedBody": "Review these files and try again with smaller or simpler images.",
+  "guildSettingsEmojiRenameTitle": "Rename emoji",
+  "guildSettingsEmojiRenameHint": "2-32 characters, letters, numbers, underscores.",
+  "guildSettingsEmojiColumnEmoji": "Emoji",
+  "guildSettingsEmojiColumnName": "Name",
+  "guildSettingsEmojiColumnUploader": "Uploaded by",
+  "guildSettingsEmojiUnknownUploader": "Unknown",
+  "guildSettingsEmojiDeleteTitle": "Delete emoji",
+  "guildSettingsEmojiDeleteBody": "Delete :{name}:? Can't be undone.",
+  "@guildSettingsEmojiDeleteBody": {
+    "placeholders": { "name": {"type": "String"} }
+  },
+  "guildSettingsEmojiPurgeLabel": "Purge this emoji from storage and CDN",
+  "guildSettingsEmojiNameTooShort": "Emoji name must be at least 2 characters long",
+  "guildSettingsEmojiNameTooLong": "Emoji name must be at most 32 characters long",
+  "guildSettingsEmojiInvalidNameTitle": "Invalid emoji name",
+  "guildSettingsEmojiRenameFailedTitle": "Couldn't rename this emoji",
+  "guildSettingsEmojiRenameFailedBody": "The name was reverted to what it was before. Please try again in a moment.",
+  "guildSettingsEmojiGoneTitle": "This emoji no longer exists",
+  "guildSettingsEmojiGoneBody": "It may have been deleted. The name was reverted to what it was before.",
+  "guildSettingsEmojiNoPermissionRenameTitle": "You can't rename this emoji",
+  "guildSettingsEmojiNoPermissionRenameBody": "You don't have permission to rename this emoji. The name was reverted to what it was before.",
+  "guildSettingsEmojiRateLimitedTitle": "You're going too fast",
+  "guildSettingsEmojiRateLimitedBody": "Please wait a moment and try renaming again.",
+  "guildSettingsEmojiDeleteFailedTitle": "Couldn't delete this emoji",
+  "guildSettingsEmojiDeleteNoPermissionTitle": "You can't delete this emoji",
+  "guildSettingsCloneEmojiTitle": "Allow others to clone your emojis",
+  "guildSettingsCloneEmojiDescription": "When enabled, members of other communities can use the in-app one-click \"Clone\" shortcut on your custom emojis. This does not prevent them from saving the image and uploading it themselves.",
+  "guildSettingsCloneStickerTitle": "Allow others to clone your stickers",
+  "guildSettingsCloneStickerDescription": "When enabled, members of other communities can use the in-app one-click \"Clone\" shortcut on your custom stickers. This does not prevent them from saving the image and uploading it themselves.",
+  "guildSettingsClonePermissionHint": "Only members with the \"{permission}\" permission can change this.",
+  "@guildSettingsClonePermissionHint": {
+    "placeholders": { "permission": {"type": "String"} }
+  },
+  "guildSettingsCloneEmojiUpdateFailed": "Couldn't update emoji cloning",
+  "guildSettingsCloneStickerUpdateFailed": "Couldn't update sticker cloning",
   "guildSettingsNonAnimatedEmoji": "Non-animated emoji ({count})",
   "@guildSettingsNonAnimatedEmoji": {
     "placeholders": { "count": {"type": "int"} }
@@ -12438,6 +12491,53 @@
     "placeholders": { "count": {"type": "int"} }
   },
   "guildSettingsStickersSearchHint": "Search stickers",
+  "guildSettingsStickerSlotsTitle": "Sticker slots",
+  "guildSettingsStickerUploadTitle": "Upload sticker",
+  "guildSettingsStickerDropZone": "Drag and drop a sticker file here (one at a time)",
+  "guildSettingsStickerDensity": "Sticker density",
+  "guildSettingsStickerDensityCozy": "Cozy",
+  "guildSettingsStickerDensityCompact": "Compact",
+  "guildSettingsStickersLoadFailedTitle": "Failed to load stickers",
+  "guildSettingsStickersLoadFailedBody": "There was an error loading the stickers. Try again.",
+  "guildSettingsStickersSearchEmpty": "No stickers found matching your search.",
+  "guildSettingsStickersEmptySearch": "No stickers found",
+  "guildSettingsStickerNoSlots": "No sticker slots available",
+  "guildSettingsStickerSlotsFull": "You've reached the maximum number of stickers. Delete some existing stickers to make room.",
+  "guildSettingsStickerUploadRequirements": "Stickers are saved at 320x320 pixels and must be under {maxSize}. Static images are resized and compressed automatically. Animated stickers and SVGs must already fit the limit.",
+  "@guildSettingsStickerUploadRequirements": {
+    "placeholders": { "maxSize": {"type": "String"} }
+  },
+  "guildSettingsStickerUnsupportedTitle": "Unsupported sticker file",
+  "guildSettingsStickerAddTitle": "Add sticker",
+  "guildSettingsStickerEditTitle": "Edit sticker",
+  "guildSettingsStickerNameLabel": "Name",
+  "guildSettingsStickerNameHint": "My awesome sticker",
+  "guildSettingsStickerDescriptionLabel": "Description",
+  "guildSettingsStickerDescriptionHint": "Describe the sticker",
+  "guildSettingsStickerTagsLabel": "Tags ({count}/{limit})",
+  "@guildSettingsStickerTagsLabel": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "limit": {"type": "int"}
+    }
+  },
+  "guildSettingsStickerTagHint": "Add a tag",
+  "guildSettingsStickerTagAdd": "Add",
+  "guildSettingsStickerNameRequired": "Name is required",
+  "guildSettingsStickerNameTooShort": "Name must be at least 2 characters",
+  "guildSettingsStickerNameTooLong": "Name must be 30 characters or less",
+  "guildSettingsStickerDescriptionTooLong": "Description must be 500 characters or less",
+  "guildSettingsStickerCreateFailedTitle": "Couldn't create this sticker",
+  "guildSettingsStickerTooLargeTitle": "Sticker is too large",
+  "guildSettingsStickerCompressFailedTitle": "Sticker couldn't be compressed enough",
+  "guildSettingsStickerDeleteTitle": "Delete sticker",
+  "guildSettingsStickerDeleteBody": "Delete \"{name}\"? Can't be undone.",
+  "@guildSettingsStickerDeleteBody": {
+    "placeholders": { "name": {"type": "String"} }
+  },
+  "guildSettingsStickerPurgeLabel": "Purge this sticker from storage and CDN",
+  "guildSettingsStickerDeleteFailedTitle": "Couldn't delete this sticker",
+  "guildSettingsStickerDeleteNoPermissionTitle": "You can't delete this sticker",
   "guildSettingsWebhooksInfo": "Create webhooks from Channel settings. Edit them here.",
   "guildSettingsVanityUrlWarning": "Your vanity URL won't work unless at least one channel is visible to everyone.",
   "guildSettingsVanityUrlRemove": "Remove",
