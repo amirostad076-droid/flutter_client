@@ -561,7 +561,8 @@ class _MessageListState extends ConsumerState<MessageList> {
           !_useCompactScrollCache) {
         return;
       }
-      if (_isUserDrivenScroll) {
+      if (_userDragActive) {
+        _scheduleScrollCacheExpansionWhenIdle();
         return;
       }
       _maybeExpandScrollCache();
