@@ -196,6 +196,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   bool _useCompactScrollCache = true;
   int _lastMessageCount = 0;
   bool _scrollCacheExpansionPending = false;
+  bool _messagesWereLoading = false;
   double? _lastViewportDimension;
 
   bool _userDragActive = false;
@@ -540,6 +541,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     _useCompactScrollCache = true;
     _lastMessageCount = 0;
     _scrollCacheExpansionPending = false;
+    _messagesWereLoading = false;
   }
 
   void _expandScrollCacheNow() {
@@ -571,6 +573,9 @@ class _MessageListState extends ConsumerState<MessageList> {
       if (!mounted ||
           !_scrollCacheExpansionPending ||
           !_useCompactScrollCache) {
+        return;
+      }
+      if (_openMode == _MessageListOpenMode.unread) {
         return;
       }
       // Finger drag only; programmatic scroll must still expand cache.
@@ -2511,7 +2516,8 @@ class _MessageListState extends ConsumerState<MessageList> {
           widget.targetMessageId != null || _pendingScrollTarget != null;
       if (hasJumpTarget && messages.isEmpty) {
         // Wait for the around-window before picking open mode.
-      } else if (readStateAsync.hasValue || messages.isNotEmpty) {
+      } else if (readStateAsync.hasValue ||
+          (hasJumpTarget && messages.isNotEmpty)) {
         final String? anchorId = hasJumpTarget ? null : visualUnreadId;
         final bool canAnchor =
             anchorId != null &&
@@ -2525,11 +2531,14 @@ class _MessageListState extends ConsumerState<MessageList> {
           _openMode = _MessageListOpenMode.bottom;
           _expandScrollCacheNow();
         }
-      } else {
-        _openMode = _MessageListOpenMode.bottom;
-        _expandScrollCacheNow();
       }
     }
+    if (!isLoading &&
+        _messagesWereLoading &&
+        _openMode == _MessageListOpenMode.unread) {
+      _scheduleUnreadViewportSync();
+    }
+    _messagesWereLoading = isLoading;
     // Invariant: unread mode ⇒ center anchor present in the current stream.
     _ensureUnreadCenterAnchorInStream(
       stream: channelStream,
