@@ -103,13 +103,11 @@ class _ChannelChatPanelState extends ConsumerState<ChannelChatPanel> {
         isMobile &&
         widget.showInlineEmojiPicker &&
         ref.watch(expressionPanelProvider);
-    final Widget messageList = RepaintBoundary(
-      child: MessageList(
-        key: ValueKey<String>(listChannelId),
-        expectedChannelId: listChannelId,
-        targetMessageId: widget.targetMessageId,
-        visible: widget.loadMessages,
-      ),
+    final Widget messageList = MessageList(
+      key: ValueKey<String>(listChannelId),
+      expectedChannelId: listChannelId,
+      targetMessageId: widget.targetMessageId,
+      visible: widget.loadMessages,
     );
     return ColoredBox(
       color: context.colors.chatBackground,
@@ -172,19 +170,13 @@ class _ChannelChatPanelState extends ConsumerState<ChannelChatPanel> {
                             behavior: HitTestBehavior.translucent,
                             onPointerDown: (_) =>
                                 FocusManager.instance.primaryFocus?.unfocus(),
-                            child: Offstage(
-                              offstage: !widget.loadMessages,
-                              child: TickerMode(
-                                enabled: widget.loadMessages,
-                                child: stripKeyboardInsets
-                                    ? MediaQuery.removeViewInsets(
-                                        context: context,
-                                        removeBottom: true,
-                                        child: messageList,
-                                      )
-                                    : messageList,
-                              ),
-                            ),
+                            child: stripKeyboardInsets
+                                ? MediaQuery.removeViewInsets(
+                                    context: context,
+                                    removeBottom: true,
+                                    child: messageList,
+                                  )
+                                : messageList,
                           ),
                         ),
                         _ChannelChatScrollOverlay(
@@ -303,9 +295,6 @@ class _ChannelChatScrollOverlay extends ConsumerWidget {
           viewportHeight: viewport.viewportHeight,
           hasMoreNewerMessages: hasMoreNewerMessages,
         );
-    if (onClose == null && !showJumpToBottom) {
-      return const SizedBox.shrink();
-    }
     return Positioned(
       right: 8,
       bottom: showSlowmodeIndicator ? _kChannelChatStatusMessageInset : 0,
@@ -321,14 +310,21 @@ class _ChannelChatScrollOverlay extends ConsumerWidget {
                 child: FluxerSheetCloseButton(onTap: onClose!),
               ),
             ),
-          if (showJumpToBottom)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: FluxerJumpToBottomButton(
-                enabled: !isBusy,
-                isLoading: isSyncingMessages,
-                onTap: () =>
-                    ref.read(chatViewModelProvider.notifier).scrollToBottom(),
+          if (loadMessages)
+            IgnorePointer(
+              ignoring: !showJumpToBottom,
+              child: Opacity(
+                opacity: showJumpToBottom ? 1 : 0,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: FluxerJumpToBottomButton(
+                    enabled: !isBusy,
+                    isLoading: isSyncingMessages,
+                    onTap: () => ref
+                        .read(chatViewModelProvider.notifier)
+                        .scrollToBottom(),
+                  ),
+                ),
               ),
             ),
         ],

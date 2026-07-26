@@ -1146,6 +1146,9 @@ class ChatViewModel extends _$ChatViewModel {
             .readStateDao
             .getReadState(channelId);
         if (!isCurrentSwitch()) {
+          if (state.channelId == channelId && state.isLoading) {
+            state = state.copyWith(isLoading: false);
+          }
           return;
         }
         final String? ack = unreadReadState?.lastMessageId;
@@ -1301,6 +1304,9 @@ class ChatViewModel extends _$ChatViewModel {
         );
       }
       if (state.channelId != channelId || !shouldApply()) {
+        if (showLoadingSpinner) {
+          state = state.copyWith(isLoading: false, isSyncingMessages: false);
+        }
         return;
       }
       if (preserveLoadedWindow &&
@@ -1351,6 +1357,9 @@ class ChatViewModel extends _$ChatViewModel {
                 .toSet(),
           );
       if (state.channelId != channelId || !shouldApply()) {
+        if (showLoadingSpinner) {
+          state = state.copyWith(isLoading: false, isSyncingMessages: false);
+        }
         return;
       }
       await _hydrateGuildMembersForMessages(
@@ -1359,6 +1368,9 @@ class ChatViewModel extends _$ChatViewModel {
         embeddedReplyParents: page.embeddedReplyParents,
       );
       if (state.channelId != channelId || !shouldApply()) {
+        if (showLoadingSpinner) {
+          state = state.copyWith(isLoading: false, isSyncingMessages: false);
+        }
         return;
       }
       // Around pages are split before/after the anchor; near the live tail they
@@ -1396,6 +1408,9 @@ class ChatViewModel extends _$ChatViewModel {
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to load messages: $e');
       if (state.channelId != channelId || !shouldApply()) {
+        if (showLoadingSpinner) {
+          state = state.copyWith(isLoading: false, isSyncingMessages: false);
+        }
         return;
       }
       final bool hasCachedMessages = state.messages.isNotEmpty;

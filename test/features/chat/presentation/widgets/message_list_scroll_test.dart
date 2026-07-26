@@ -2487,8 +2487,8 @@ void main() {
         await tester.pump();
         expect(
           find.byType(Scrollable),
-          findsNothing,
-          reason: 'list must stay unresolved until read state arrives',
+          findsWidgets,
+          reason: 'messages should render before read state arrives',
         );
 
         readStateController.add(null);
@@ -2570,8 +2570,8 @@ void main() {
         await tester.pump();
         expect(
           find.byType(Scrollable),
-          findsNothing,
-          reason: 'list must stay unresolved until read state arrives',
+          findsWidgets,
+          reason: 'messages should render before read state arrives',
         );
 
         loadingChatViewModel.scrollToMessage(targetId);
@@ -2579,8 +2579,8 @@ void main() {
         await tester.pump();
         expect(
           find.byType(Scrollable),
-          findsNothing,
-          reason: 'signal must park while open mode is unresolved',
+          findsWidgets,
+          reason: 'scroll signal should run once messages are mounted',
         );
 
         readStateController.add(null);

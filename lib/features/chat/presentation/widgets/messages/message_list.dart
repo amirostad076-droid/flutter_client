@@ -542,11 +542,23 @@ class _MessageListState extends ConsumerState<MessageList> {
     _scrollCacheExpansionPending = false;
   }
 
-  void _scheduleScrollCacheExpansion(int messageCount) {
-    if (!_useCompactScrollCache || messageCount == 0) {
+  void _expandScrollCacheNow() {
+    if (!_useCompactScrollCache) {
       return;
     }
-    if (_lastMessageCount == messageCount && messageCount > 0) {
+    _useCompactScrollCache = false;
+    _scrollCacheExpansionPending = false;
+  }
+
+  void _scheduleScrollCacheExpansion(int messageCount) {
+    if (messageCount == 0 || !_useCompactScrollCache) {
+      return;
+    }
+    if (_lastMessageCount == messageCount) {
+      if (!_scrollCacheExpansionPending) {
+        _scrollCacheExpansionPending = true;
+        _scheduleScrollCacheExpansionWhenIdle();
+      }
       return;
     }
     _lastMessageCount = messageCount;
@@ -561,6 +573,7 @@ class _MessageListState extends ConsumerState<MessageList> {
           !_useCompactScrollCache) {
         return;
       }
+      // Finger drag only; programmatic scroll must still expand cache.
       if (_userDragActive) {
         _scheduleScrollCacheExpansionWhenIdle();
         return;
@@ -991,6 +1004,7 @@ class _MessageListState extends ConsumerState<MessageList> {
         _leadingSliverCtx = null;
         _trailingSliverCtx = null;
         _edgeLoadTrigger.reset();
+        _expandScrollCacheNow();
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _scrollController.hasClients) {
@@ -1012,6 +1026,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     _leadingSliverCtx = null;
     _trailingSliverCtx = null;
     _edgeLoadTrigger.reset();
+    _expandScrollCacheNow();
   }
 
   String? _visibleMessageIdNearViewportCenter() {
@@ -2491,21 +2506,28 @@ class _MessageListState extends ConsumerState<MessageList> {
       ),
     );
     if (_openMode == _MessageListOpenMode.unresolved &&
-        !isLoading &&
-        readStateAsync.hasValue) {
+        (!isLoading || messages.isNotEmpty)) {
       final bool hasJumpTarget =
           widget.targetMessageId != null || _pendingScrollTarget != null;
-      final String? anchorId = hasJumpTarget ? null : visualUnreadId;
-      final bool canAnchor =
-          anchorId != null &&
-          findChannelStreamDataIndex(channelStream, anchorId) != null;
-      if (canAnchor) {
-        _openMode = _MessageListOpenMode.unread;
-        _centerAnchorMessageId = anchorId;
-        _scheduleUnreadUnderfillFallback();
-        _scheduleUnreadViewportSync();
+      if (hasJumpTarget && messages.isEmpty) {
+        // Wait for the around-window before picking open mode.
+      } else if (readStateAsync.hasValue || messages.isNotEmpty) {
+        final String? anchorId = hasJumpTarget ? null : visualUnreadId;
+        final bool canAnchor =
+            anchorId != null &&
+            findChannelStreamDataIndex(channelStream, anchorId) != null;
+        if (canAnchor) {
+          _openMode = _MessageListOpenMode.unread;
+          _centerAnchorMessageId = anchorId;
+          _scheduleUnreadUnderfillFallback();
+          _scheduleUnreadViewportSync();
+        } else {
+          _openMode = _MessageListOpenMode.bottom;
+          _expandScrollCacheNow();
+        }
       } else {
         _openMode = _MessageListOpenMode.bottom;
+        _expandScrollCacheNow();
       }
     }
     // Invariant: unread mode ⇒ center anchor present in the current stream.
@@ -2591,7 +2613,8 @@ class _MessageListState extends ConsumerState<MessageList> {
             channelActions,
           ) {
             final Widget body;
-            if (_openMode == _MessageListOpenMode.unresolved ||
+            if ((_openMode == _MessageListOpenMode.unresolved &&
+                    messages.isEmpty) ||
                 (isLoading && messages.isEmpty)) {
               body = MessageListSkeleton(channelId: channelId);
             } else if (messageLoadFailed && messages.isEmpty) {
