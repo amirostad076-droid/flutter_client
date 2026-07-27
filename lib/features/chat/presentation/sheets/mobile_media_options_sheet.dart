@@ -5,8 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/chat_fullscreen_video_launch_context.dart';
 import 'package:fluxer_app/features/chat/domain/media_options_launch_context.dart';
-import 'package:fluxer_app/features/chat/domain/message.dart';
-import 'package:fluxer_app/features/chat/presentation/sheets/forward_message_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_actions/message_bottom_sheet.dart';
 import 'package:fluxer_app/features/chat/utils/attachment_display_utils.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
@@ -85,12 +83,6 @@ class _MobileMediaOptionsSheetBody extends ConsumerWidget {
           label: l10n.chatAttachmentDownload,
           onTap: () => unawaited(_download(context, downloadUrl)),
         ),
-      if (_canForwardMedia())
-        FluxerBottomSheetMenuItem(
-          icon: PhosphorIconsFill.arrowBendUpRight,
-          label: l10n.mediaViewerForward,
-          onTap: () => unawaited(_forward(context)),
-        ),
     ];
     final List<Widget> groups = <Widget>[
       if (mediaItems.isNotEmpty) FluxerMenuGroup(children: mediaItems),
@@ -136,38 +128,6 @@ class _MobileMediaOptionsSheetBody extends ConsumerWidget {
     await handleExternalLinkTap(context, downloadUrl);
   }
 
-  Future<void> _forward(BuildContext context) async {
-    onCloseSheet();
-    onCloseViewer?.call();
-    if (!context.mounted) {
-      return;
-    }
-    final MessageMediaActionScope? actionScope = launchContext.actionScope;
-    if (actionScope == null) {
-      return;
-    }
-    final Message message = actionScope.message;
-    final String? attachmentId = launchContext.attachmentId;
-    final int? embedIndex = launchContext.embedIndex;
-    if (attachmentId != null && attachmentId.isNotEmpty) {
-      await showForwardMediaSheet(
-        context,
-        sourceChannelId: message.channelId,
-        sourceMessageId: message.id,
-        attachmentIds: <String>[attachmentId],
-      );
-      return;
-    }
-    if (embedIndex != null) {
-      await showForwardMediaSheet(
-        context,
-        sourceChannelId: message.channelId,
-        sourceMessageId: message.id,
-        embedIndices: <int>[embedIndex],
-      );
-    }
-  }
-
   Future<void> _handleMessageAction(
     BuildContext context,
     WidgetRef ref,
@@ -205,16 +165,5 @@ class _MobileMediaOptionsSheetBody extends ConsumerWidget {
       return null;
     }
     return fallbackUrl;
-  }
-
-  bool _canForwardMedia() {
-    if (launchContext.actionScope == null) {
-      return false;
-    }
-    final String? attachmentId = launchContext.attachmentId;
-    if (attachmentId != null && attachmentId.isNotEmpty) {
-      return true;
-    }
-    return launchContext.embedIndex != null;
   }
 }

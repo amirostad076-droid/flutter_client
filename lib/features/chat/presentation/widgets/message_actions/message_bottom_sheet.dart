@@ -276,7 +276,7 @@ List<Widget> buildMessageActionMenuGroups({
       ),
     if (canShowRemoveAllReactions)
       FluxerBottomSheetMenuItem(
-        icon: PhosphorIconsFill.smileyXEyes,
+        icon: PhosphorIconsBold.x,
         label: l10n.chatMessageRemoveAllReactions,
         isDanger: true,
         onTap: () => onAction(MessageAction.removeAllReactions),
