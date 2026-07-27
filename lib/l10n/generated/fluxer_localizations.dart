@@ -15501,29 +15501,71 @@ abstract class FluxerLocalizations {
   /// **'{count} uses'**
   String guildSettingsVanityUrlUses(int count);
 
-  /// Description for discovery tab.
+  /// Subtitle for the community Discovery settings tab.
   ///
   /// In en, this message translates to:
-  /// **'Apply to be listed in server discovery.'**
+  /// **'List your community in Discovery so others can find and join it.'**
   String get guildSettingsDiscoveryDescription;
+
+  /// Title for the eligibility warning when a community cannot apply for Discovery yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough members'**
+  String get guildSettingsDiscoveryNotEnoughMembersTitle;
 
   /// Discovery eligibility message.
   ///
   /// In en, this message translates to:
-  /// **'Requires at least {count} members to apply.'**
+  /// **'Your community needs at least {count} members before it can be listed in Discovery.'**
   String guildSettingsDiscoveryNotEligible(int count);
 
-  /// Title for discovery application form.
+  /// Label before the discovery application status badge.
   ///
   /// In en, this message translates to:
-  /// **'Application'**
-  String get guildSettingsDiscoveryFormTitle;
+  /// **'Status:'**
+  String get guildSettingsDiscoveryStatusLabel;
 
-  /// Title for discovery application status section.
+  /// Discovery application status badge when awaiting staff review.
   ///
   /// In en, this message translates to:
-  /// **'Status'**
-  String get guildSettingsDiscoveryStatusTitle;
+  /// **'Pending'**
+  String get guildSettingsDiscoveryStatusPending;
+
+  /// Discovery application status badge when approved and listed.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get guildSettingsDiscoveryStatusApproved;
+
+  /// Discovery application status badge when declined by staff.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get guildSettingsDiscoveryStatusRejected;
+
+  /// Discovery application status badge when delisted from Discovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed'**
+  String get guildSettingsDiscoveryStatusRemoved;
+
+  /// Review or removal reason shown on the discovery application status card.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason: {reason}'**
+  String guildSettingsDiscoveryReason(String reason);
+
+  /// Info banner when the community is approved and listed in Discovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Your community is listed in Discovery. You can update your listing details below or withdraw to remove it.'**
+  String get guildSettingsDiscoveryApprovedInfo;
+
+  /// Info banner when the discovery application is pending review.
+  ///
+  /// In en, this message translates to:
+  /// **'Your application is pending review. You can still update your listing details or withdraw the application.'**
+  String get guildSettingsDiscoveryPendingInfo;
 
   /// Label for discovery category dropdown.
   ///
@@ -15531,35 +15573,149 @@ abstract class FluxerLocalizations {
   /// **'Category'**
   String get guildSettingsDiscoveryCategory;
 
+  /// Help text below the discovery category field.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the category that best describes your community. You can change this any time.'**
+  String get guildSettingsDiscoveryCategoryHelp;
+
+  /// Label for the primary language field on the discovery application form.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary language'**
+  String get guildSettingsDiscoveryPrimaryLanguage;
+
+  /// Help text below the primary language field.
+  ///
+  /// In en, this message translates to:
+  /// **'The language most of your community speaks. Used to filter Discovery results.'**
+  String get guildSettingsDiscoveryPrimaryLanguageHelp;
+
   /// Label for discovery description field.
   ///
   /// In en, this message translates to:
   /// **'Description'**
   String get guildSettingsDiscoveryDescriptionField;
 
-  /// Label for discovery tags field.
+  /// Placeholder in the discovery description field.
   ///
   /// In en, this message translates to:
-  /// **'Tags'**
+  /// **'Describe what your community is about'**
+  String get guildSettingsDiscoveryDescriptionPlaceholder;
+
+  /// Validation error when the discovery description is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'A description is required.'**
+  String get guildSettingsDiscoveryDescriptionRequired;
+
+  /// Validation error when the discovery description is too short.
+  ///
+  /// In en, this message translates to:
+  /// **'Description must be at least {minLength} characters.'**
+  String guildSettingsDiscoveryDescriptionMinLength(int minLength);
+
+  /// Validation error when the discovery description is too long.
+  ///
+  /// In en, this message translates to:
+  /// **'Description must be no more than {maxLength} characters.'**
+  String guildSettingsDiscoveryDescriptionMaxLength(int maxLength);
+
+  /// Label for discovery custom tags field.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom tags'**
   String get guildSettingsDiscoveryTags;
 
-  /// Hint for discovery tags field.
+  /// Help text below the custom tags field.
   ///
   /// In en, this message translates to:
-  /// **'gaming, art, music'**
+  /// **'Up to {maxTags} tags help people find your community. They show up in Discovery search.'**
+  String guildSettingsDiscoveryTagsHelp(int maxTags);
+
+  /// Placeholder in the custom tags input field.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a tag and press Enter'**
   String get guildSettingsDiscoveryTagsHint;
 
-  /// Button to submit discovery application.
+  /// Button to add a custom discovery tag.
   ///
   /// In en, this message translates to:
-  /// **'Submit Application'**
+  /// **'Add'**
+  String get guildSettingsDiscoveryAddTag;
+
+  /// Accessibility label for removing a custom discovery tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove tag {tag}'**
+  String guildSettingsDiscoveryRemoveTag(String tag);
+
+  /// Error modal title when a custom discovery tag cannot be added.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t add tag'**
+  String get guildSettingsDiscoveryTagErrorTitle;
+
+  /// Validation error for invalid custom discovery tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags must be 2 to {maxLength} characters and alphanumeric.'**
+  String guildSettingsDiscoveryTagRequirements(int maxLength);
+
+  /// Validation error when the custom tag limit is reached.
+  ///
+  /// In en, this message translates to:
+  /// **'You can only add up to {maxTags} tags.'**
+  String guildSettingsDiscoveryTagLimit(int maxTags);
+
+  /// Button to submit a new discovery application.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
   String get guildSettingsDiscoveryApply;
+
+  /// Button to save changes to an existing discovery listing.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get guildSettingsDiscoverySave;
 
   /// Button to withdraw discovery application.
   ///
   /// In en, this message translates to:
   /// **'Withdraw'**
   String get guildSettingsDiscoveryWithdraw;
+
+  /// Success toast after submitting a discovery application.
+  ///
+  /// In en, this message translates to:
+  /// **'Discovery application sent'**
+  String get guildSettingsDiscoveryApplicationSent;
+
+  /// Success toast after updating a discovery listing.
+  ///
+  /// In en, this message translates to:
+  /// **'Discovery listing updated'**
+  String get guildSettingsDiscoveryListingUpdated;
+
+  /// Success toast after withdrawing a discovery application.
+  ///
+  /// In en, this message translates to:
+  /// **'Discovery application withdrawn'**
+  String get guildSettingsDiscoveryApplicationWithdrawn;
+
+  /// Error modal title when withdrawing a discovery application fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t withdraw application'**
+  String get guildSettingsDiscoveryWithdrawErrorTitle;
+
+  /// Error modal body when withdrawing a discovery application fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again in a moment.'**
+  String get guildSettingsDiscoveryWithdrawErrorDescription;
 
   /// Description for members tab.
   ///

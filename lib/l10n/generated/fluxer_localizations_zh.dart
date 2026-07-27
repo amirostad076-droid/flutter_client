@@ -8841,33 +8841,137 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get guildSettingsDiscoveryDescription => '申请在服务器发现中列出。';
 
   @override
+  String get guildSettingsDiscoveryNotEnoughMembersTitle =>
+      'Not enough members';
+
+  @override
   String guildSettingsDiscoveryNotEligible(int count) {
     return '申请需要至少 $count 名成员。';
   }
 
   @override
-  String get guildSettingsDiscoveryFormTitle => '申请';
+  String get guildSettingsDiscoveryStatusLabel => 'Status:';
 
   @override
-  String get guildSettingsDiscoveryStatusTitle => '状态';
+  String get guildSettingsDiscoveryStatusPending => 'Pending';
+
+  @override
+  String get guildSettingsDiscoveryStatusApproved => 'Approved';
+
+  @override
+  String get guildSettingsDiscoveryStatusRejected => 'Rejected';
+
+  @override
+  String get guildSettingsDiscoveryStatusRemoved => 'Removed';
+
+  @override
+  String guildSettingsDiscoveryReason(String reason) {
+    return 'Reason: $reason';
+  }
+
+  @override
+  String get guildSettingsDiscoveryApprovedInfo =>
+      'Your community is listed in Discovery. You can update your listing details below or withdraw to remove it.';
+
+  @override
+  String get guildSettingsDiscoveryPendingInfo =>
+      'Your application is pending review. You can still update your listing details or withdraw the application.';
 
   @override
   String get guildSettingsDiscoveryCategory => '类别';
 
   @override
+  String get guildSettingsDiscoveryCategoryHelp =>
+      'Choose the category that best describes your community. You can change this any time.';
+
+  @override
+  String get guildSettingsDiscoveryPrimaryLanguage => 'Primary language';
+
+  @override
+  String get guildSettingsDiscoveryPrimaryLanguageHelp =>
+      'The language most of your community speaks. Used to filter Discovery results.';
+
+  @override
   String get guildSettingsDiscoveryDescriptionField => '描述';
+
+  @override
+  String get guildSettingsDiscoveryDescriptionPlaceholder =>
+      'Describe what your community is about';
+
+  @override
+  String get guildSettingsDiscoveryDescriptionRequired =>
+      'A description is required.';
+
+  @override
+  String guildSettingsDiscoveryDescriptionMinLength(int minLength) {
+    return 'Description must be at least $minLength characters.';
+  }
+
+  @override
+  String guildSettingsDiscoveryDescriptionMaxLength(int maxLength) {
+    return 'Description must be no more than $maxLength characters.';
+  }
 
   @override
   String get guildSettingsDiscoveryTags => '标签';
 
   @override
+  String guildSettingsDiscoveryTagsHelp(int maxTags) {
+    return 'Up to $maxTags tags help people find your community. They show up in Discovery search.';
+  }
+
+  @override
   String get guildSettingsDiscoveryTagsHint => '游戏、艺术、音乐';
+
+  @override
+  String get guildSettingsDiscoveryAddTag => 'Add';
+
+  @override
+  String guildSettingsDiscoveryRemoveTag(String tag) {
+    return 'Remove tag $tag';
+  }
+
+  @override
+  String get guildSettingsDiscoveryTagErrorTitle => 'Couldn\'t add tag';
+
+  @override
+  String guildSettingsDiscoveryTagRequirements(int maxLength) {
+    return 'Tags must be 2 to $maxLength characters and alphanumeric.';
+  }
+
+  @override
+  String guildSettingsDiscoveryTagLimit(int maxTags) {
+    return 'You can only add up to $maxTags tags.';
+  }
 
   @override
   String get guildSettingsDiscoveryApply => '提交申请';
 
   @override
+  String get guildSettingsDiscoverySave => 'Save';
+
+  @override
   String get guildSettingsDiscoveryWithdraw => '撤回';
+
+  @override
+  String get guildSettingsDiscoveryApplicationSent =>
+      'Discovery application sent';
+
+  @override
+  String get guildSettingsDiscoveryListingUpdated =>
+      'Discovery listing updated';
+
+  @override
+  String get guildSettingsDiscoveryApplicationWithdrawn =>
+      'Discovery application withdrawn';
+
+  @override
+  String get guildSettingsDiscoveryWithdrawErrorTitle =>
+      'Couldn\'t withdraw application';
+
+  @override
+  String get guildSettingsDiscoveryWithdrawErrorDescription =>
+      'Try again in a moment.';
 
   @override
   String get guildSettingsMembersDescription => '搜索和管理服务器成员。';
@@ -16037,12 +16141,6 @@ class FluxerLocalizationsZhHant extends FluxerLocalizationsZh {
   String guildSettingsDiscoveryNotEligible(int count) {
     return '申請至少需要 $count 位成員。';
   }
-
-  @override
-  String get guildSettingsDiscoveryFormTitle => '申請';
-
-  @override
-  String get guildSettingsDiscoveryStatusTitle => '狀態';
 
   @override
   String get guildSettingsDiscoveryCategory => '類別';

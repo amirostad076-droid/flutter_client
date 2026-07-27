@@ -11,6 +11,7 @@ import 'package:fluxer_app/features/settings/domain/guild/expressions/guild_emoj
 import 'package:fluxer_app/features/settings/domain/guild/expressions/guild_sticker_settings_state.dart';
 import 'package:fluxer_app/features/settings/domain/guild/guild_audit_log_state.dart';
 import 'package:fluxer_app/features/settings/domain/guild/guild_bans_state.dart';
+import 'package:fluxer_app/features/settings/domain/guild/guild_discovery_settings_state.dart';
 import 'package:fluxer_app/features/settings/domain/guild/guild_invites_state.dart';
 import 'package:fluxer_app/features/settings/domain/guild/guild_settings_details.dart';
 import 'package:fluxer_app/features/settings/domain/guild/guild_settings_tab.dart';
@@ -18,6 +19,7 @@ import 'package:fluxer_app/features/settings/presentation/pages/guild/guild_sett
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/audit_log/guild_audit_log_widget.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/bans/guild_bans_widget.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/channels/guild_channels_settings_widget.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/guild/discovery/guild_discovery_settings_widget.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/expressions/guild_emoji_settings_widget.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/expressions/guild_sticker_settings_widget.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/guild_settings_access_gate.dart';
@@ -32,6 +34,7 @@ import 'package:fluxer_app/features/settings/presentation/widgets/guild/webhooks
 import 'package:fluxer_app/features/settings/presentation/widgets/settings_sidebar.dart';
 import 'package:fluxer_app/features/settings/providers/guild/guild_audit_log_provider.dart';
 import 'package:fluxer_app/features/settings/providers/guild/guild_bans_provider.dart';
+import 'package:fluxer_app/features/settings/providers/guild/guild_discovery_settings_provider.dart';
 import 'package:fluxer_app/features/settings/providers/guild/guild_emoji_settings_provider.dart';
 import 'package:fluxer_app/features/settings/providers/guild/guild_invites_provider.dart';
 import 'package:fluxer_app/features/settings/providers/guild/guild_settings_tab_providers.dart';
@@ -322,6 +325,18 @@ class GuildSettingsTabBody extends ConsumerWidget {
                 scrollController: scrollController,
               ),
             ),
+      GuildSettingsTab.discovery =>
+        GuildSettingsAsyncBody<GuildDiscoverySettingsState>(
+          value: ref.watch(guildDiscoverySettingsProvider(guildId)),
+          scrollController: scrollController,
+          usesSettingsSheet: true,
+          data: (GuildDiscoverySettingsState state) =>
+              GuildDiscoverySettingsWidget(
+                guildId: guildId,
+                state: state,
+                scrollController: scrollController,
+              ),
+        ),
       _ => const SizedBox.shrink(),
     };
   }

@@ -11950,48 +11950,173 @@
       "count": {"type": "int"}
     }
   },
-  "guildSettingsDiscoveryDescription": "Apply to be listed in server discovery.",
+  "guildSettingsDiscoveryDescription": "List your community in Discovery so others can find and join it.",
   "@guildSettingsDiscoveryDescription": {
-    "description": "Description for discovery tab."
+    "description": "Subtitle for the community Discovery settings tab."
   },
-  "guildSettingsDiscoveryNotEligible": "Requires at least {count} members to apply.",
+  "guildSettingsDiscoveryNotEnoughMembersTitle": "Not enough members",
+  "@guildSettingsDiscoveryNotEnoughMembersTitle": {
+    "description": "Title for the eligibility warning when a community cannot apply for Discovery yet."
+  },
+  "guildSettingsDiscoveryNotEligible": "Your community needs at least {count} members before it can be listed in Discovery.",
   "@guildSettingsDiscoveryNotEligible": {
     "description": "Discovery eligibility message.",
     "placeholders": {
       "count": {"type": "int"}
     }
   },
-  "guildSettingsDiscoveryFormTitle": "Application",
-  "@guildSettingsDiscoveryFormTitle": {
-    "description": "Title for discovery application form."
+  "guildSettingsDiscoveryStatusLabel": "Status:",
+  "@guildSettingsDiscoveryStatusLabel": {
+    "description": "Label before the discovery application status badge."
   },
-  "guildSettingsDiscoveryStatusTitle": "Status",
-  "@guildSettingsDiscoveryStatusTitle": {
-    "description": "Title for discovery application status section."
+  "guildSettingsDiscoveryStatusPending": "Pending",
+  "@guildSettingsDiscoveryStatusPending": {
+    "description": "Discovery application status badge when awaiting staff review."
+  },
+  "guildSettingsDiscoveryStatusApproved": "Approved",
+  "@guildSettingsDiscoveryStatusApproved": {
+    "description": "Discovery application status badge when approved and listed."
+  },
+  "guildSettingsDiscoveryStatusRejected": "Rejected",
+  "@guildSettingsDiscoveryStatusRejected": {
+    "description": "Discovery application status badge when declined by staff."
+  },
+  "guildSettingsDiscoveryStatusRemoved": "Removed",
+  "@guildSettingsDiscoveryStatusRemoved": {
+    "description": "Discovery application status badge when delisted from Discovery."
+  },
+  "guildSettingsDiscoveryReason": "Reason: {reason}",
+  "@guildSettingsDiscoveryReason": {
+    "description": "Review or removal reason shown on the discovery application status card.",
+    "placeholders": {
+      "reason": {"type": "String"}
+    }
+  },
+  "guildSettingsDiscoveryApprovedInfo": "Your community is listed in Discovery. You can update your listing details below or withdraw to remove it.",
+  "@guildSettingsDiscoveryApprovedInfo": {
+    "description": "Info banner when the community is approved and listed in Discovery."
+  },
+  "guildSettingsDiscoveryPendingInfo": "Your application is pending review. You can still update your listing details or withdraw the application.",
+  "@guildSettingsDiscoveryPendingInfo": {
+    "description": "Info banner when the discovery application is pending review."
   },
   "guildSettingsDiscoveryCategory": "Category",
   "@guildSettingsDiscoveryCategory": {
     "description": "Label for discovery category dropdown."
   },
+  "guildSettingsDiscoveryCategoryHelp": "Choose the category that best describes your community. You can change this any time.",
+  "@guildSettingsDiscoveryCategoryHelp": {
+    "description": "Help text below the discovery category field."
+  },
+  "guildSettingsDiscoveryPrimaryLanguage": "Primary language",
+  "@guildSettingsDiscoveryPrimaryLanguage": {
+    "description": "Label for the primary language field on the discovery application form."
+  },
+  "guildSettingsDiscoveryPrimaryLanguageHelp": "The language most of your community speaks. Used to filter Discovery results.",
+  "@guildSettingsDiscoveryPrimaryLanguageHelp": {
+    "description": "Help text below the primary language field."
+  },
   "guildSettingsDiscoveryDescriptionField": "Description",
   "@guildSettingsDiscoveryDescriptionField": {
     "description": "Label for discovery description field."
   },
-  "guildSettingsDiscoveryTags": "Tags",
+  "guildSettingsDiscoveryDescriptionPlaceholder": "Describe what your community is about",
+  "@guildSettingsDiscoveryDescriptionPlaceholder": {
+    "description": "Placeholder in the discovery description field."
+  },
+  "guildSettingsDiscoveryDescriptionRequired": "A description is required.",
+  "@guildSettingsDiscoveryDescriptionRequired": {
+    "description": "Validation error when the discovery description is empty."
+  },
+  "guildSettingsDiscoveryDescriptionMinLength": "Description must be at least {minLength} characters.",
+  "@guildSettingsDiscoveryDescriptionMinLength": {
+    "description": "Validation error when the discovery description is too short.",
+    "placeholders": {
+      "minLength": {"type": "int"}
+    }
+  },
+  "guildSettingsDiscoveryDescriptionMaxLength": "Description must be no more than {maxLength} characters.",
+  "@guildSettingsDiscoveryDescriptionMaxLength": {
+    "description": "Validation error when the discovery description is too long.",
+    "placeholders": {
+      "maxLength": {"type": "int"}
+    }
+  },
+  "guildSettingsDiscoveryTags": "Custom tags",
   "@guildSettingsDiscoveryTags": {
-    "description": "Label for discovery tags field."
+    "description": "Label for discovery custom tags field."
   },
-  "guildSettingsDiscoveryTagsHint": "gaming, art, music",
+  "guildSettingsDiscoveryTagsHelp": "Up to {maxTags} tags help people find your community. They show up in Discovery search.",
+  "@guildSettingsDiscoveryTagsHelp": {
+    "description": "Help text below the custom tags field.",
+    "placeholders": {
+      "maxTags": {"type": "int"}
+    }
+  },
+  "guildSettingsDiscoveryTagsHint": "Add a tag and press Enter",
   "@guildSettingsDiscoveryTagsHint": {
-    "description": "Hint for discovery tags field."
+    "description": "Placeholder in the custom tags input field."
   },
-  "guildSettingsDiscoveryApply": "Submit Application",
+  "guildSettingsDiscoveryAddTag": "Add",
+  "@guildSettingsDiscoveryAddTag": {
+    "description": "Button to add a custom discovery tag."
+  },
+  "guildSettingsDiscoveryRemoveTag": "Remove tag {tag}",
+  "@guildSettingsDiscoveryRemoveTag": {
+    "description": "Accessibility label for removing a custom discovery tag.",
+    "placeholders": {
+      "tag": {"type": "String"}
+    }
+  },
+  "guildSettingsDiscoveryTagErrorTitle": "Couldn't add tag",
+  "@guildSettingsDiscoveryTagErrorTitle": {
+    "description": "Error modal title when a custom discovery tag cannot be added."
+  },
+  "guildSettingsDiscoveryTagRequirements": "Tags must be 2 to {maxLength} characters and alphanumeric.",
+  "@guildSettingsDiscoveryTagRequirements": {
+    "description": "Validation error for invalid custom discovery tags.",
+    "placeholders": {
+      "maxLength": {"type": "int"}
+    }
+  },
+  "guildSettingsDiscoveryTagLimit": "You can only add up to {maxTags} tags.",
+  "@guildSettingsDiscoveryTagLimit": {
+    "description": "Validation error when the custom tag limit is reached.",
+    "placeholders": {
+      "maxTags": {"type": "int"}
+    }
+  },
+  "guildSettingsDiscoveryApply": "Apply",
   "@guildSettingsDiscoveryApply": {
-    "description": "Button to submit discovery application."
+    "description": "Button to submit a new discovery application."
+  },
+  "guildSettingsDiscoverySave": "Save",
+  "@guildSettingsDiscoverySave": {
+    "description": "Button to save changes to an existing discovery listing."
   },
   "guildSettingsDiscoveryWithdraw": "Withdraw",
   "@guildSettingsDiscoveryWithdraw": {
     "description": "Button to withdraw discovery application."
+  },
+  "guildSettingsDiscoveryApplicationSent": "Discovery application sent",
+  "@guildSettingsDiscoveryApplicationSent": {
+    "description": "Success toast after submitting a discovery application."
+  },
+  "guildSettingsDiscoveryListingUpdated": "Discovery listing updated",
+  "@guildSettingsDiscoveryListingUpdated": {
+    "description": "Success toast after updating a discovery listing."
+  },
+  "guildSettingsDiscoveryApplicationWithdrawn": "Discovery application withdrawn",
+  "@guildSettingsDiscoveryApplicationWithdrawn": {
+    "description": "Success toast after withdrawing a discovery application."
+  },
+  "guildSettingsDiscoveryWithdrawErrorTitle": "Couldn't withdraw application",
+  "@guildSettingsDiscoveryWithdrawErrorTitle": {
+    "description": "Error modal title when withdrawing a discovery application fails."
+  },
+  "guildSettingsDiscoveryWithdrawErrorDescription": "Try again in a moment.",
+  "@guildSettingsDiscoveryWithdrawErrorDescription": {
+    "description": "Error modal body when withdrawing a discovery application fails."
   },
   "guildSettingsMembersDescription": "Search and manage server members.",
   "@guildSettingsMembersDescription": {

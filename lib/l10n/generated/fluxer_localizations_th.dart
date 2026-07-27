@@ -9146,33 +9146,137 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
       'สมัครเพื่อเข้าร่วมการค้นหาเซิร์ฟเวอร์';
 
   @override
+  String get guildSettingsDiscoveryNotEnoughMembersTitle =>
+      'Not enough members';
+
+  @override
   String guildSettingsDiscoveryNotEligible(int count) {
     return 'ต้องมีสมาชิกอย่างน้อย $count คนจึงจะสมัครได้';
   }
 
   @override
-  String get guildSettingsDiscoveryFormTitle => 'ใบสมัคร';
+  String get guildSettingsDiscoveryStatusLabel => 'Status:';
 
   @override
-  String get guildSettingsDiscoveryStatusTitle => 'สถานะ';
+  String get guildSettingsDiscoveryStatusPending => 'Pending';
+
+  @override
+  String get guildSettingsDiscoveryStatusApproved => 'Approved';
+
+  @override
+  String get guildSettingsDiscoveryStatusRejected => 'Rejected';
+
+  @override
+  String get guildSettingsDiscoveryStatusRemoved => 'Removed';
+
+  @override
+  String guildSettingsDiscoveryReason(String reason) {
+    return 'Reason: $reason';
+  }
+
+  @override
+  String get guildSettingsDiscoveryApprovedInfo =>
+      'Your community is listed in Discovery. You can update your listing details below or withdraw to remove it.';
+
+  @override
+  String get guildSettingsDiscoveryPendingInfo =>
+      'Your application is pending review. You can still update your listing details or withdraw the application.';
 
   @override
   String get guildSettingsDiscoveryCategory => 'หมวดหมู่';
 
   @override
+  String get guildSettingsDiscoveryCategoryHelp =>
+      'Choose the category that best describes your community. You can change this any time.';
+
+  @override
+  String get guildSettingsDiscoveryPrimaryLanguage => 'Primary language';
+
+  @override
+  String get guildSettingsDiscoveryPrimaryLanguageHelp =>
+      'The language most of your community speaks. Used to filter Discovery results.';
+
+  @override
   String get guildSettingsDiscoveryDescriptionField => 'คำอธิบาย';
+
+  @override
+  String get guildSettingsDiscoveryDescriptionPlaceholder =>
+      'Describe what your community is about';
+
+  @override
+  String get guildSettingsDiscoveryDescriptionRequired =>
+      'A description is required.';
+
+  @override
+  String guildSettingsDiscoveryDescriptionMinLength(int minLength) {
+    return 'Description must be at least $minLength characters.';
+  }
+
+  @override
+  String guildSettingsDiscoveryDescriptionMaxLength(int maxLength) {
+    return 'Description must be no more than $maxLength characters.';
+  }
 
   @override
   String get guildSettingsDiscoveryTags => 'แท็ก';
 
   @override
+  String guildSettingsDiscoveryTagsHelp(int maxTags) {
+    return 'Up to $maxTags tags help people find your community. They show up in Discovery search.';
+  }
+
+  @override
   String get guildSettingsDiscoveryTagsHint => 'เกม, ศิลปะ, ดนตรี';
+
+  @override
+  String get guildSettingsDiscoveryAddTag => 'Add';
+
+  @override
+  String guildSettingsDiscoveryRemoveTag(String tag) {
+    return 'Remove tag $tag';
+  }
+
+  @override
+  String get guildSettingsDiscoveryTagErrorTitle => 'Couldn\'t add tag';
+
+  @override
+  String guildSettingsDiscoveryTagRequirements(int maxLength) {
+    return 'Tags must be 2 to $maxLength characters and alphanumeric.';
+  }
+
+  @override
+  String guildSettingsDiscoveryTagLimit(int maxTags) {
+    return 'You can only add up to $maxTags tags.';
+  }
 
   @override
   String get guildSettingsDiscoveryApply => 'ส่งใบสมัคร';
 
   @override
+  String get guildSettingsDiscoverySave => 'Save';
+
+  @override
   String get guildSettingsDiscoveryWithdraw => 'ถอน';
+
+  @override
+  String get guildSettingsDiscoveryApplicationSent =>
+      'Discovery application sent';
+
+  @override
+  String get guildSettingsDiscoveryListingUpdated =>
+      'Discovery listing updated';
+
+  @override
+  String get guildSettingsDiscoveryApplicationWithdrawn =>
+      'Discovery application withdrawn';
+
+  @override
+  String get guildSettingsDiscoveryWithdrawErrorTitle =>
+      'Couldn\'t withdraw application';
+
+  @override
+  String get guildSettingsDiscoveryWithdrawErrorDescription =>
+      'Try again in a moment.';
 
   @override
   String get guildSettingsMembersDescription =>
