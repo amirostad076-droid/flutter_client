@@ -104,29 +104,11 @@ bool _isTextType(int channelType) {
       channelType == ChannelType.guildLink.wireValue;
 }
 
-const double kDropZoneBeforeRatio = 0.35;
-const double kDropZoneAfterRatio = 0.65;
-
-ChannelReorderIndicatorPosition _resolveDropZonePosition({
+ChannelReorderIndicatorPosition resolveChannelReorderIndicatorPosition({
   required double localY,
   required double height,
-  required ChannelReorderIndicatorPosition? lastPosition,
 }) {
   final double offsetY = localY.clamp(0, height);
-  final double beforeThreshold = height * kDropZoneBeforeRatio;
-  final double afterThreshold = height * kDropZoneAfterRatio;
-
-  if (offsetY < beforeThreshold) {
-    return ChannelReorderIndicatorPosition.top;
-  }
-  if (offsetY > afterThreshold) {
-    return ChannelReorderIndicatorPosition.bottom;
-  }
-
-  if (lastPosition != null) {
-    return lastPosition;
-  }
-
   return offsetY < height / 2
       ? ChannelReorderIndicatorPosition.top
       : ChannelReorderIndicatorPosition.bottom;
@@ -136,13 +118,11 @@ ChannelReorderIndicator _createIndicator({
   required double localY,
   required double height,
   required bool isValid,
-  required ChannelReorderIndicatorPosition? lastPosition,
 }) {
   return ChannelReorderIndicator(
-    position: _resolveDropZonePosition(
+    position: resolveChannelReorderIndicatorPosition(
       localY: localY,
       height: height,
-      lastPosition: lastPosition,
     ),
     isValid: isValid,
   );
@@ -178,7 +158,6 @@ ChannelReorderIntent? resolveChannelReorderHover({
   required ChannelReorderTarget target,
   required double localY,
   required double height,
-  ChannelReorderIndicatorPosition? lastPosition,
 }) {
   if (height <= 0) {
     return null;
@@ -188,7 +167,6 @@ ChannelReorderIntent? resolveChannelReorderHover({
     localY: localY,
     height: height,
     isValid: isValid,
-    lastPosition: lastPosition,
   );
   if (!isValid) {
     return null;

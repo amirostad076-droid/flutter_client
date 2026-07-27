@@ -167,4 +167,62 @@ void main() {
       expect(operation!.newParentId, isNull);
     },
   );
+
+  test(
+    'createChannelMoveOperation inserts channel between siblings in category',
+    () {
+      final List<Channel> channels = <Channel>[
+        _channel(id: 'cat-1', type: 4),
+        _channel(id: 'text-1', type: 0, parentId: 'cat-1'),
+        _channel(id: 'voice-1', type: 2, parentId: 'cat-1', position: 1),
+        _channel(id: 'text-2', type: 0, parentId: 'cat-1', position: 2),
+      ];
+      final ChannelReorderDragItem dragItem =
+          ChannelReorderDragItem.fromChannel(
+            channels.firstWhere((Channel channel) => channel.id == 'text-2'),
+          );
+      final ChannelMoveOperation? operation = createChannelMoveOperation(
+        channels: channels,
+        dragItem: dragItem,
+        dropResult: const ChannelReorderDropResult(
+          targetId: 'voice-1',
+          position: ChannelReorderDropPosition.before,
+          targetParentId: 'cat-1',
+          targetParentIdSpecified: true,
+        ),
+      );
+      expect(operation, isNotNull);
+      expect(operation!.newParentId, 'cat-1');
+      expect(operation.precedingSiblingId, 'text-1');
+    },
+  );
+
+  test(
+    'createChannelMoveOperation places channel after last channel in category',
+    () {
+      final List<Channel> channels = <Channel>[
+        _channel(id: 'cat-1', type: 4),
+        _channel(id: 'text-1', type: 0, parentId: 'cat-1'),
+        _channel(id: 'text-3', type: 0, parentId: 'cat-1', position: 1),
+        _channel(id: 'text-2', type: 0, position: 1),
+      ];
+      final ChannelReorderDragItem dragItem =
+          ChannelReorderDragItem.fromChannel(
+            channels.firstWhere((Channel channel) => channel.id == 'text-2'),
+          );
+      final ChannelMoveOperation? operation = createChannelMoveOperation(
+        channels: channels,
+        dragItem: dragItem,
+        dropResult: const ChannelReorderDropResult(
+          targetId: 'text-3',
+          position: ChannelReorderDropPosition.after,
+          targetParentId: 'cat-1',
+          targetParentIdSpecified: true,
+        ),
+      );
+      expect(operation, isNotNull);
+      expect(operation!.newParentId, 'cat-1');
+      expect(operation.precedingSiblingId, 'text-3');
+    },
+  );
 }
