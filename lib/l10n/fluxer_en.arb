@@ -11869,13 +11869,51 @@
   "@guildSettingsLoadingMore": {
     "description": "Loading state for pagination."
   },
-  "guildSettingsWebhooksDescription": "Manage webhooks that post messages to channels.",
+  "guildSettingsWebhooksDescription": "View and manage every webhook configured across your community.",
   "@guildSettingsWebhooksDescription": {
     "description": "Description for webhooks tab."
   },
-  "guildSettingsWebhooksEmpty": "No webhooks configured.",
+  "guildSettingsWebhooksEmpty": "No webhooks",
   "@guildSettingsWebhooksEmpty": {
-    "description": "Empty state for webhooks."
+    "description": "Empty state title for webhooks."
+  },
+  "guildSettingsWebhooksEmptyDescription": "This community doesn't have any webhooks yet. Go to {channelSettingsPath} to create one.",
+  "@guildSettingsWebhooksEmptyDescription": {
+    "description": "Empty state description for guild webhooks.",
+    "placeholders": {
+      "channelSettingsPath": {
+        "type": "String"
+      }
+    }
+  },
+  "guildSettingsWebhooksPermissionRequired": "You need the \"{permission}\" permission to view and edit webhooks for this community.",
+  "@guildSettingsWebhooksPermissionRequired": {
+    "description": "Permission notice on guild webhooks tab.",
+    "placeholders": {
+      "permission": {
+        "type": "String"
+      }
+    }
+  },
+  "guildSettingsWebhooksLoadFailedTitle": "Failed to load webhooks",
+  "@guildSettingsWebhooksLoadFailedTitle": {
+    "description": "Error title when guild webhooks fail to load."
+  },
+  "guildSettingsWebhooksLoadFailedDescription": "There was an error loading the webhooks. Try again.",
+  "@guildSettingsWebhooksLoadFailedDescription": {
+    "description": "Error description when guild webhooks fail to load."
+  },
+  "guildSettingsWebhooksUpdated": "Webhooks updated",
+  "@guildSettingsWebhooksUpdated": {
+    "description": "Success toast after saving guild webhook changes."
+  },
+  "guildSettingsWebhooksUpdateFailed": "Failed to update webhooks",
+  "@guildSettingsWebhooksUpdateFailed": {
+    "description": "Error message when saving guild webhook changes fails."
+  },
+  "guildSettingsUnknownChannel": "Unknown channel",
+  "@guildSettingsUnknownChannel": {
+    "description": "Fallback label when a webhook channel name is unavailable."
   },
   "guildSettingsCopyUrl": "Copy URL",
   "@guildSettingsCopyUrl": {
@@ -12573,7 +12611,15 @@
   "guildSettingsStickerPurgeLabel": "Purge this sticker from storage and CDN",
   "guildSettingsStickerDeleteFailedTitle": "Couldn't delete this sticker",
   "guildSettingsStickerDeleteNoPermissionTitle": "You can't delete this sticker",
-  "guildSettingsWebhooksInfo": "Create webhooks from Channel settings. Edit them here.",
+  "guildSettingsWebhooksInfo": "To create a webhook, open {channelSettingsPath}. You can still edit and organize all existing webhooks here.",
+  "@guildSettingsWebhooksInfo": {
+    "description": "Info box on the guild webhooks tab.",
+    "placeholders": {
+      "channelSettingsPath": {
+        "type": "String"
+      }
+    }
+  },
   "guildSettingsVanityUrlWarning": "Your vanity URL won't work unless at least one channel is visible to everyone.",
   "guildSettingsVanityUrlRemove": "Remove",
   "guildSettingsBannedUsersTitle": "Banned users",

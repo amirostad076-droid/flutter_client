@@ -15402,14 +15402,56 @@ abstract class FluxerLocalizations {
   /// Description for webhooks tab.
   ///
   /// In en, this message translates to:
-  /// **'Manage webhooks that post messages to channels.'**
+  /// **'View and manage every webhook configured across your community.'**
   String get guildSettingsWebhooksDescription;
 
-  /// Empty state for webhooks.
+  /// Empty state title for webhooks.
   ///
   /// In en, this message translates to:
-  /// **'No webhooks configured.'**
+  /// **'No webhooks'**
   String get guildSettingsWebhooksEmpty;
+
+  /// Empty state description for guild webhooks.
+  ///
+  /// In en, this message translates to:
+  /// **'This community doesn\'t have any webhooks yet. Go to {channelSettingsPath} to create one.'**
+  String guildSettingsWebhooksEmptyDescription(String channelSettingsPath);
+
+  /// Permission notice on guild webhooks tab.
+  ///
+  /// In en, this message translates to:
+  /// **'You need the \"{permission}\" permission to view and edit webhooks for this community.'**
+  String guildSettingsWebhooksPermissionRequired(String permission);
+
+  /// Error title when guild webhooks fail to load.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load webhooks'**
+  String get guildSettingsWebhooksLoadFailedTitle;
+
+  /// Error description when guild webhooks fail to load.
+  ///
+  /// In en, this message translates to:
+  /// **'There was an error loading the webhooks. Try again.'**
+  String get guildSettingsWebhooksLoadFailedDescription;
+
+  /// Success toast after saving guild webhook changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Webhooks updated'**
+  String get guildSettingsWebhooksUpdated;
+
+  /// Error message when saving guild webhook changes fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update webhooks'**
+  String get guildSettingsWebhooksUpdateFailed;
+
+  /// Fallback label when a webhook channel name is unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown channel'**
+  String get guildSettingsUnknownChannel;
 
   /// Tooltip to copy a URL.
   ///
@@ -16899,11 +16941,11 @@ abstract class FluxerLocalizations {
   /// **'You can\'t delete this sticker'**
   String get guildSettingsStickerDeleteNoPermissionTitle;
 
-  /// No description provided for @guildSettingsWebhooksInfo.
+  /// Info box on the guild webhooks tab.
   ///
   /// In en, this message translates to:
-  /// **'Create webhooks from Channel settings. Edit them here.'**
-  String get guildSettingsWebhooksInfo;
+  /// **'To create a webhook, open {channelSettingsPath}. You can still edit and organize all existing webhooks here.'**
+  String guildSettingsWebhooksInfo(String channelSettingsPath);
 
   /// No description provided for @guildSettingsVanityUrlWarning.
   ///

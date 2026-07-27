@@ -9178,6 +9178,32 @@ class FluxerLocalizationsPt extends FluxerLocalizations {
   String get guildSettingsWebhooksEmpty => 'Nenhum webhook configurado.';
 
   @override
+  String guildSettingsWebhooksEmptyDescription(String channelSettingsPath) {
+    return 'This community doesn\'t have any webhooks yet. Go to $channelSettingsPath to create one.';
+  }
+
+  @override
+  String guildSettingsWebhooksPermissionRequired(String permission) {
+    return 'You need the \"$permission\" permission to view and edit webhooks for this community.';
+  }
+
+  @override
+  String get guildSettingsWebhooksLoadFailedTitle => 'Failed to load webhooks';
+
+  @override
+  String get guildSettingsWebhooksLoadFailedDescription =>
+      'There was an error loading the webhooks. Try again.';
+
+  @override
+  String get guildSettingsWebhooksUpdated => 'Webhooks updated';
+
+  @override
+  String get guildSettingsWebhooksUpdateFailed => 'Failed to update webhooks';
+
+  @override
+  String get guildSettingsUnknownChannel => 'Unknown channel';
+
+  @override
   String get guildSettingsCopyUrl => 'Copiar URL';
 
   @override
@@ -10071,8 +10097,9 @@ class FluxerLocalizationsPt extends FluxerLocalizations {
       'You can\'t delete this sticker';
 
   @override
-  String get guildSettingsWebhooksInfo =>
-      'Crie webhooks a partir das definições do canal. Edite-os aqui.';
+  String guildSettingsWebhooksInfo(String channelSettingsPath) {
+    return 'Crie webhooks a partir das definições do canal. Edite-os aqui.';
+  }
 
   @override
   String get guildSettingsVanityUrlWarning =>
@@ -17423,8 +17450,9 @@ class FluxerLocalizationsPtBr extends FluxerLocalizationsPt {
   String get guildSettingsStickersSearchHint => 'Pesquisar figurinhas';
 
   @override
-  String get guildSettingsWebhooksInfo =>
-      'Crie webhooks nas configurações do canal. Edite-os aqui.';
+  String guildSettingsWebhooksInfo(String channelSettingsPath) {
+    return 'Crie webhooks nas configurações do canal. Edite-os aqui.';
+  }
 
   @override
   String get guildSettingsVanityUrlWarning =>

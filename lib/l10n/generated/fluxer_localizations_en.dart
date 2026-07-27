@@ -9109,10 +9109,36 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get guildSettingsWebhooksDescription =>
-      'Manage webhooks that post messages to channels.';
+      'View and manage every webhook configured across your community.';
 
   @override
-  String get guildSettingsWebhooksEmpty => 'No webhooks configured.';
+  String get guildSettingsWebhooksEmpty => 'No webhooks';
+
+  @override
+  String guildSettingsWebhooksEmptyDescription(String channelSettingsPath) {
+    return 'This community doesn\'t have any webhooks yet. Go to $channelSettingsPath to create one.';
+  }
+
+  @override
+  String guildSettingsWebhooksPermissionRequired(String permission) {
+    return 'You need the \"$permission\" permission to view and edit webhooks for this community.';
+  }
+
+  @override
+  String get guildSettingsWebhooksLoadFailedTitle => 'Failed to load webhooks';
+
+  @override
+  String get guildSettingsWebhooksLoadFailedDescription =>
+      'There was an error loading the webhooks. Try again.';
+
+  @override
+  String get guildSettingsWebhooksUpdated => 'Webhooks updated';
+
+  @override
+  String get guildSettingsWebhooksUpdateFailed => 'Failed to update webhooks';
+
+  @override
+  String get guildSettingsUnknownChannel => 'Unknown channel';
 
   @override
   String get guildSettingsCopyUrl => 'Copy URL';
@@ -9999,8 +10025,9 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'You can\'t delete this sticker';
 
   @override
-  String get guildSettingsWebhooksInfo =>
-      'Create webhooks from Channel settings. Edit them here.';
+  String guildSettingsWebhooksInfo(String channelSettingsPath) {
+    return 'To create a webhook, open $channelSettingsPath. You can still edit and organize all existing webhooks here.';
+  }
 
   @override
   String get guildSettingsVanityUrlWarning =>
@@ -17267,8 +17294,9 @@ class FluxerLocalizationsEnGb extends FluxerLocalizationsEn {
   String get guildSettingsStickersSearchHint => 'Search stickers';
 
   @override
-  String get guildSettingsWebhooksInfo =>
-      'Create webhooks from Channel settings. Edit them here.';
+  String guildSettingsWebhooksInfo(String channelSettingsPath) {
+    return 'Create webhooks from Channel settings. Edit them here.';
+  }
 
   @override
   String get guildSettingsVanityUrlWarning =>
@@ -24348,8 +24376,9 @@ class FluxerLocalizationsEnUs extends FluxerLocalizationsEn {
   String get guildSettingsStickersSearchHint => 'Search stickers';
 
   @override
-  String get guildSettingsWebhooksInfo =>
-      'Create webhooks from Channel settings. Edit them here.';
+  String guildSettingsWebhooksInfo(String channelSettingsPath) {
+    return 'Create webhooks from Channel settings. Edit them here.';
+  }
 
   @override
   String get guildSettingsVanityUrlWarning =>

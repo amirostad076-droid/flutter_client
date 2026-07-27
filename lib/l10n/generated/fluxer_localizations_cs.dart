@@ -9147,6 +9147,32 @@ class FluxerLocalizationsCs extends FluxerLocalizations {
   String get guildSettingsWebhooksEmpty => 'Nenastaveny žádné webhooky.';
 
   @override
+  String guildSettingsWebhooksEmptyDescription(String channelSettingsPath) {
+    return 'This community doesn\'t have any webhooks yet. Go to $channelSettingsPath to create one.';
+  }
+
+  @override
+  String guildSettingsWebhooksPermissionRequired(String permission) {
+    return 'You need the \"$permission\" permission to view and edit webhooks for this community.';
+  }
+
+  @override
+  String get guildSettingsWebhooksLoadFailedTitle => 'Failed to load webhooks';
+
+  @override
+  String get guildSettingsWebhooksLoadFailedDescription =>
+      'There was an error loading the webhooks. Try again.';
+
+  @override
+  String get guildSettingsWebhooksUpdated => 'Webhooks updated';
+
+  @override
+  String get guildSettingsWebhooksUpdateFailed => 'Failed to update webhooks';
+
+  @override
+  String get guildSettingsUnknownChannel => 'Unknown channel';
+
+  @override
   String get guildSettingsCopyUrl => 'Zkopírovat URL';
 
   @override
@@ -10035,8 +10061,9 @@ class FluxerLocalizationsCs extends FluxerLocalizations {
       'You can\'t delete this sticker';
 
   @override
-  String get guildSettingsWebhooksInfo =>
-      'Vytvářejte webhooky z nastavení kanálu. Upravujte je zde.';
+  String guildSettingsWebhooksInfo(String channelSettingsPath) {
+    return 'Vytvářejte webhooky z nastavení kanálu. Upravujte je zde.';
+  }
 
   @override
   String get guildSettingsVanityUrlWarning =>

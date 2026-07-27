@@ -8877,6 +8877,32 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
   String get guildSettingsWebhooksEmpty => '설정된 웹훅이 없습니다.';
 
   @override
+  String guildSettingsWebhooksEmptyDescription(String channelSettingsPath) {
+    return 'This community doesn\'t have any webhooks yet. Go to $channelSettingsPath to create one.';
+  }
+
+  @override
+  String guildSettingsWebhooksPermissionRequired(String permission) {
+    return 'You need the \"$permission\" permission to view and edit webhooks for this community.';
+  }
+
+  @override
+  String get guildSettingsWebhooksLoadFailedTitle => 'Failed to load webhooks';
+
+  @override
+  String get guildSettingsWebhooksLoadFailedDescription =>
+      'There was an error loading the webhooks. Try again.';
+
+  @override
+  String get guildSettingsWebhooksUpdated => 'Webhooks updated';
+
+  @override
+  String get guildSettingsWebhooksUpdateFailed => 'Failed to update webhooks';
+
+  @override
+  String get guildSettingsUnknownChannel => 'Unknown channel';
+
+  @override
   String get guildSettingsCopyUrl => 'URL 복사';
 
   @override
@@ -9735,7 +9761,9 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
       'You can\'t delete this sticker';
 
   @override
-  String get guildSettingsWebhooksInfo => '채널 설정에서 웹훅을 생성합니다. 여기서 편집합니다.';
+  String guildSettingsWebhooksInfo(String channelSettingsPath) {
+    return '채널 설정에서 웹훅을 생성합니다. 여기서 편집합니다.';
+  }
 
   @override
   String get guildSettingsVanityUrlWarning =>

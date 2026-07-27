@@ -9211,6 +9211,32 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
   String get guildSettingsWebhooksEmpty => 'Δεν έχουν ρυθμιστεί webhook.';
 
   @override
+  String guildSettingsWebhooksEmptyDescription(String channelSettingsPath) {
+    return 'This community doesn\'t have any webhooks yet. Go to $channelSettingsPath to create one.';
+  }
+
+  @override
+  String guildSettingsWebhooksPermissionRequired(String permission) {
+    return 'You need the \"$permission\" permission to view and edit webhooks for this community.';
+  }
+
+  @override
+  String get guildSettingsWebhooksLoadFailedTitle => 'Failed to load webhooks';
+
+  @override
+  String get guildSettingsWebhooksLoadFailedDescription =>
+      'There was an error loading the webhooks. Try again.';
+
+  @override
+  String get guildSettingsWebhooksUpdated => 'Webhooks updated';
+
+  @override
+  String get guildSettingsWebhooksUpdateFailed => 'Failed to update webhooks';
+
+  @override
+  String get guildSettingsUnknownChannel => 'Unknown channel';
+
+  @override
   String get guildSettingsCopyUrl => 'Αντιγραφή URL';
 
   @override
@@ -10108,8 +10134,9 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
       'You can\'t delete this sticker';
 
   @override
-  String get guildSettingsWebhooksInfo =>
-      'Δημιουργήστε webhooks από τις ρυθμίσεις καναλιού. Επεξεργαστείτε τα εδώ.';
+  String guildSettingsWebhooksInfo(String channelSettingsPath) {
+    return 'Δημιουργήστε webhooks από τις ρυθμίσεις καναλιού. Επεξεργαστείτε τα εδώ.';
+  }
 
   @override
   String get guildSettingsVanityUrlWarning =>

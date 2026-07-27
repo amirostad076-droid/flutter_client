@@ -22,7 +22,6 @@ enum GuildSettingsTab {
 }
 
 const List<GuildSettingsTab> _comingSoonTabs = <GuildSettingsTab>[
-  GuildSettingsTab.webhooks,
   GuildSettingsTab.discovery,
   GuildSettingsTab.members,
 ];

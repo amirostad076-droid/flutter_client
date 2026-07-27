@@ -8786,6 +8786,32 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get guildSettingsWebhooksEmpty => '未配置 Webhook。';
 
   @override
+  String guildSettingsWebhooksEmptyDescription(String channelSettingsPath) {
+    return 'This community doesn\'t have any webhooks yet. Go to $channelSettingsPath to create one.';
+  }
+
+  @override
+  String guildSettingsWebhooksPermissionRequired(String permission) {
+    return 'You need the \"$permission\" permission to view and edit webhooks for this community.';
+  }
+
+  @override
+  String get guildSettingsWebhooksLoadFailedTitle => 'Failed to load webhooks';
+
+  @override
+  String get guildSettingsWebhooksLoadFailedDescription =>
+      'There was an error loading the webhooks. Try again.';
+
+  @override
+  String get guildSettingsWebhooksUpdated => 'Webhooks updated';
+
+  @override
+  String get guildSettingsWebhooksUpdateFailed => 'Failed to update webhooks';
+
+  @override
+  String get guildSettingsUnknownChannel => 'Unknown channel';
+
+  @override
   String get guildSettingsCopyUrl => '复制 URL';
 
   @override
@@ -9632,7 +9658,9 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
       'You can\'t delete this sticker';
 
   @override
-  String get guildSettingsWebhooksInfo => '从频道设置创建 webhook。在此处编辑。';
+  String guildSettingsWebhooksInfo(String channelSettingsPath) {
+    return '从频道设置创建 webhook。在此处编辑。';
+  }
 
   @override
   String get guildSettingsVanityUrlWarning =>
@@ -16442,7 +16470,9 @@ class FluxerLocalizationsZhHant extends FluxerLocalizationsZh {
   String get guildSettingsStickersSearchHint => '搜尋貼圖';
 
   @override
-  String get guildSettingsWebhooksInfo => '從頻道設定建立網頁掛鉤。在此編輯。';
+  String guildSettingsWebhooksInfo(String channelSettingsPath) {
+    return '從頻道設定建立網頁掛鉤。在此編輯。';
+  }
 
   @override
   String get guildSettingsVanityUrlWarning => '除非至少有一個頻道對所有人可見，否則您的自訂網址將無法運作。';

@@ -9179,6 +9179,32 @@ class FluxerLocalizationsRu extends FluxerLocalizations {
   String get guildSettingsWebhooksEmpty => 'Веб-хуки не настроены.';
 
   @override
+  String guildSettingsWebhooksEmptyDescription(String channelSettingsPath) {
+    return 'This community doesn\'t have any webhooks yet. Go to $channelSettingsPath to create one.';
+  }
+
+  @override
+  String guildSettingsWebhooksPermissionRequired(String permission) {
+    return 'You need the \"$permission\" permission to view and edit webhooks for this community.';
+  }
+
+  @override
+  String get guildSettingsWebhooksLoadFailedTitle => 'Failed to load webhooks';
+
+  @override
+  String get guildSettingsWebhooksLoadFailedDescription =>
+      'There was an error loading the webhooks. Try again.';
+
+  @override
+  String get guildSettingsWebhooksUpdated => 'Webhooks updated';
+
+  @override
+  String get guildSettingsWebhooksUpdateFailed => 'Failed to update webhooks';
+
+  @override
+  String get guildSettingsUnknownChannel => 'Unknown channel';
+
+  @override
   String get guildSettingsCopyUrl => 'Копировать URL';
 
   @override
@@ -10074,8 +10100,9 @@ class FluxerLocalizationsRu extends FluxerLocalizations {
       'You can\'t delete this sticker';
 
   @override
-  String get guildSettingsWebhooksInfo =>
-      'Создавайте вебхуки из настроек канала. Редактируйте их здесь.';
+  String guildSettingsWebhooksInfo(String channelSettingsPath) {
+    return 'Создавайте вебхуки из настроек канала. Редактируйте их здесь.';
+  }
 
   @override
   String get guildSettingsVanityUrlWarning =>
