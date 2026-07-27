@@ -184,46 +184,46 @@ void main() {
     expect(bounded.hasMoreNewerMessages, isTrue);
   });
 
-  test(
-    'trimToNewestWindow is a no-op while newer history is unloaded',
-    () async {
-      final db = openTestDatabase();
-      // The channel's newest message is far ahead of what we load, so the loaded
-      // window sits in history with hasMoreNewerMessages == true.
-      await db.channelDao.upsertChannel(
-        ChannelsCompanion.insert(
-          id: 'channel-1',
-          guildId: 'guild-1',
-          name: 'general',
-          lastMessageId: Value(_snowflakeForIndex(999)),
-        ),
-      );
-      final List<Map<String, Object?>> all = _channelMessages('channel-1', 250);
-      final adapter = _PaginatingAdapter(
-        messagesByChannel: {'channel-1': all},
-        pageLimit: 250,
-      );
-      final container = _container(db, adapter);
-      addTearDown(container.dispose);
+  test('trimToNewestWindow is a no-op while newer messages remain', () async {
+    final db = openTestDatabase();
+    final List<Map<String, Object?>> all = _channelMessages('channel-1', 500);
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(all.last['id']! as String),
+      ),
+    );
+    final adapter = _PaginatingAdapter(
+      messagesByChannel: {'channel-1': all},
+      pageLimit: 250,
+    );
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
 
-      final notifier = container.read(chatViewModelProvider.notifier);
-      await notifier.switchChannel('channel-1');
-      await _flushAsync();
+    // Open around a mid-history message: a detached window whose "newest"
+    // row is history, so trimming to it would discard the live tail's claim.
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel(
+      'channel-1',
+      targetMessageId: all[250]['id']! as String,
+    );
+    await _flushAsync();
 
-      final state = container.read(chatViewModelProvider);
-      expect(state.hasMoreNewerMessages, isTrue);
-      // Above the cap, so only the hasMoreNewerMessages guard protects it.
-      expect(state.messages, hasLength(250));
-      final messagesBeforeTrim = state.messages;
+    final state = container.read(chatViewModelProvider);
+    expect(state.hasMoreNewerMessages, isTrue);
+    // Above the cap, so only the newer-messages guard protects it.
+    expect(state.messages.length, greaterThan(kMaxLoadedMessages));
+    final messagesBeforeTrim = state.messages;
 
-      notifier.trimToNewestWindow();
+    notifier.trimToNewestWindow();
 
-      expect(
-        container.read(chatViewModelProvider).messages,
-        same(messagesBeforeTrim),
-      );
-    },
-  );
+    expect(
+      container.read(chatViewModelProvider).messages,
+      same(messagesBeforeTrim),
+    );
+  });
 
   test(
     'realtime create while scrolled up preserves loaded older messages',
@@ -649,6 +649,186 @@ void main() {
     },
   );
 
+  // A window built with around= is detached by construction. When the channel
+  // pointer is missing the old code read that as "no newer messages", so
+  // jump-to-latest early-returned into a plain scroll and stranded the user at
+  // the bottom of the loaded history with no way back to the present.
+  test(
+    'jump to latest escapes an around window with no channel pointer',
+    () async {
+      final db = openTestDatabase();
+      // Deliberately NO lastMessageId: the pointer is unknown.
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+        ),
+      );
+      final List<Map<String, Object?>> all = _channelMessages('channel-1', 350);
+      final String trueLatestId = all.last['id']! as String;
+      final adapter = _PaginatingAdapter(messagesByChannel: {'channel-1': all});
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      // Open around a message deep in history: the window cannot reach the tail.
+      await notifier.switchChannel(
+        'channel-1',
+        targetMessageId: all[100]['id']! as String,
+      );
+      await _flushAsync();
+
+      final ChatViewState detached = container.read(chatViewModelProvider);
+      expect(
+        detached.messages.last.id,
+        isNot(trueLatestId),
+        reason: 'the around window must not already contain the present',
+      );
+      expect(
+        detached.hasMoreNewerMessages,
+        isTrue,
+        reason:
+            'an unknown pointer must fail open, not claim we are at the tail',
+      );
+
+      expect(await notifier.jumpToLatestMessages(), isTrue);
+      await _flushAsync();
+
+      expect(
+        container.read(chatViewModelProvider).messages.last.id,
+        trueLatestId,
+        reason: 'jump to latest must reach the present, not the loaded bottom',
+      );
+    },
+  );
+
+  // Side (a). The compared id comes from a page just fetched from the network
+  // while the pointer is a cached local value, so reaching the pointer proves
+  // the POINTER is stale, not that we are at the tail. A detached window must
+  // therefore fail open here exactly as it does for an unknown pointer.
+  test('a stale pointer does not decide the tail for a detached window', () async {
+    final db = openTestDatabase();
+    final List<Map<String, Object?>> all = _channelMessages('channel-1', 350);
+    final String target = all[100]['id']! as String;
+    final String trueLatestId = all.last['id']! as String;
+    // Pointer parked ON the jump target, so the around window loaded around it
+    // extends NEWER than the pointer: stale, but present.
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(target),
+      ),
+    );
+    final adapter = _PaginatingAdapter(messagesByChannel: {'channel-1': all});
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel('channel-1', targetMessageId: target);
+    await _flushAsync();
+
+    final ChatViewState state = container.read(chatViewModelProvider);
+    expect(
+      state.messages.map((e) => e.id).contains(trueLatestId),
+      isFalse,
+      reason: 'the window must be genuinely detached from the present',
+    );
+    expect(
+      int.parse(state.messages.last.id) > int.parse(target),
+      isTrue,
+      reason: 'the window must extend newer than the pointer, ie stale',
+    );
+    expect(
+      state.hasMoreNewerMessages,
+      isTrue,
+      reason:
+          'newer messages do exist, and a stale pointer must not be trusted to '
+          'say otherwise for a window that is detached by construction',
+    );
+  });
+
+  // Side (b), the other half of the same rule: without it, (a) could be
+  // satisfied by hardcoding true. A direct latest page genuinely IS the tail,
+  // so the same stale comparison must still report no newer messages there.
+  test(
+    'a stale pointer still reports the tail for a direct latest load',
+    () async {
+      final db = openTestDatabase();
+      final List<Map<String, Object?>> all = _channelMessages('channel-1', 350);
+      // Pointer well behind the real newest message: stale, but present.
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(all[300]['id']! as String),
+        ),
+      );
+      final adapter = _PaginatingAdapter(messagesByChannel: {'channel-1': all});
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      // No targetMessageId: this is a direct latest load, not a detached window.
+      await notifier.switchChannel('channel-1');
+      await _flushAsync();
+
+      final ChatViewState state = container.read(chatViewModelProvider);
+      expect(
+        state.messages.last.id,
+        all.last['id']! as String,
+        reason: 'a direct latest load must sit on the real newest message',
+      );
+      expect(
+        state.hasMoreNewerMessages,
+        isFalse,
+        reason:
+            'a latest page IS the tail, so failing open here would cost a fetch '
+            'for nothing',
+      );
+    },
+  );
+
+  // Case (c). Equality returns false regardless of how the window was built, so
+  // the healthy direct-latest case is unchanged by the fail-open above.
+  test(
+    'a pointer equal to the tail of a direct latest load reports the tail',
+    () async {
+      final db = openTestDatabase();
+      final List<Map<String, Object?>> all = _channelMessages('channel-1', 350);
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(all.last['id']! as String),
+        ),
+      );
+      final adapter = _PaginatingAdapter(messagesByChannel: {'channel-1': all});
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      await _flushAsync();
+
+      final ChatViewState state = container.read(chatViewModelProvider);
+      expect(
+        state.messages.last.id,
+        all.last['id']! as String,
+        reason: 'the window must sit on the real newest message',
+      );
+      expect(
+        state.hasMoreNewerMessages,
+        isFalse,
+        reason: 'an accurate pointer on a tail-built window means no newer',
+      );
+    },
+  );
+
   test('refreshAfterSessionRecovery preserves a scrolled-up window', () async {
     final db = openTestDatabase();
     // Newest message far ahead so the loaded window stays in history.
@@ -699,101 +879,7 @@ void main() {
     expect(after.isSyncingMessages, isFalse);
   });
 
-  test(
-    'jumpToLatestMessages returns false while an older page is loading',
-    () async {
-      final db = openTestDatabase();
-      await db.channelDao.upsertChannel(
-        ChannelsCompanion.insert(
-          id: 'channel-1',
-          guildId: 'guild-1',
-          name: 'general',
-          lastMessageId: Value(_snowflakeForIndex(999)),
-        ),
-      );
-      final List<Map<String, Object?>> all = _channelMessages('channel-1', 350);
-      final adapter = _PaginatingAdapter(
-        messagesByChannel: {'channel-1': all},
-        pageLimit: 150,
-      );
-      final container = _container(db, adapter);
-      addTearDown(container.dispose);
-      addTearDown(adapter.releaseBeforeFetch);
-
-      final notifier = container.read(chatViewModelProvider.notifier);
-      await notifier.switchChannel('channel-1');
-      await _flushAsync();
-      await notifier.loadMore();
-      await _flushAsync();
-
-      expect(
-        container.read(chatViewModelProvider).hasMoreNewerMessages,
-        isTrue,
-      );
-
-      adapter.holdBeforeFetch = true;
-      final Future<void> olderLoad = notifier.loadMore();
-      await _flushAsync();
-
-      expect(container.read(chatViewModelProvider).isLoadingMore, isTrue);
-      expect(await notifier.jumpToLatestMessages(), isFalse);
-
-      adapter.releaseBeforeFetch();
-      await olderLoad;
-      await _flushAsync();
-    },
-  );
-
-  test(
-    'jumpToLatestMessages returns false while a newer page is loading',
-    () async {
-      final db = openTestDatabase();
-      final List<Map<String, Object?>> all = _channelMessages('channel-1', 500);
-      final String targetId = all[100]['id']! as String;
-      await db.channelDao.upsertChannel(
-        ChannelsCompanion.insert(
-          id: 'channel-1',
-          guildId: 'guild-1',
-          name: 'general',
-          lastMessageId: Value(all.last['id']! as String),
-        ),
-      );
-      for (final Map<String, Object?> message in all) {
-        await db.messageDao.upsertMessage(
-          _cachedMessage(id: message['id']! as String, channelId: 'channel-1'),
-        );
-      }
-      final adapter = _PaginatingAdapter(
-        messagesByChannel: {'channel-1': all},
-        pageLimit: 30,
-      );
-      final container = _container(db, adapter);
-      addTearDown(container.dispose);
-      addTearDown(adapter.releaseAfterFetch);
-
-      final notifier = container.read(chatViewModelProvider.notifier);
-      await notifier.switchChannel('channel-1', targetMessageId: targetId);
-      await _flushAsync();
-
-      expect(
-        container.read(chatViewModelProvider).hasMoreNewerMessages,
-        isTrue,
-      );
-
-      adapter.holdAfterFetch = true;
-      final Future<void> newerLoad = notifier.loadNewer();
-      await _flushAsync();
-
-      expect(container.read(chatViewModelProvider).isLoadingNewer, isTrue);
-      expect(await notifier.jumpToLatestMessages(), isFalse);
-
-      adapter.releaseAfterFetch();
-      await newerLoad;
-      await _flushAsync();
-    },
-  );
-
-  test('jumpToLatestMessages requests the jump-to-present page size', () async {
+  test('jumpToLatestMessages preempts an in-flight older page', () async {
     final db = openTestDatabase();
     await db.channelDao.upsertChannel(
       ChannelsCompanion.insert(
@@ -803,10 +889,113 @@ void main() {
         lastMessageId: Value(_snowflakeForIndex(999)),
       ),
     );
-    final List<Map<String, Object?>> all = _channelMessages('channel-1', 250);
+    final List<Map<String, Object?>> all = _channelMessages('channel-1', 350);
     final adapter = _PaginatingAdapter(
       messagesByChannel: {'channel-1': all},
-      pageLimit: 250,
+      pageLimit: 150,
+    );
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+    addTearDown(adapter.releaseBeforeFetch);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel('channel-1');
+    await _flushAsync();
+    await notifier.loadMore();
+    await _flushAsync();
+
+    expect(container.read(chatViewModelProvider).hasMoreNewerMessages, isTrue);
+
+    adapter.holdBeforeFetch = true;
+    final Future<void> olderLoad = notifier.loadMore();
+    await _flushAsync();
+
+    expect(container.read(chatViewModelProvider).isLoadingMore, isTrue);
+    // The jump is the only escape hatch out of a detached window, so it
+    // must not be refused by pagination that it is about to supersede.
+    expect(await notifier.jumpToLatestMessages(), isTrue);
+    await _flushAsync();
+    expect(container.read(chatViewModelProvider).hasMoreNewerMessages, isFalse);
+    expect(
+      container.read(chatViewModelProvider).messages.last.id,
+      all.last['id'],
+    );
+
+    adapter.releaseBeforeFetch();
+    await olderLoad;
+    await _flushAsync();
+    expect(
+      container.read(chatViewModelProvider).messages.last.id,
+      all.last['id'],
+      reason: 'the superseded older page must not rebuild the old window',
+    );
+  });
+
+  test('jumpToLatestMessages preempts an in-flight newer page', () async {
+    final db = openTestDatabase();
+    final List<Map<String, Object?>> all = _channelMessages('channel-1', 500);
+    final String targetId = all[100]['id']! as String;
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(all.last['id']! as String),
+      ),
+    );
+    for (final Map<String, Object?> message in all) {
+      await db.messageDao.upsertMessage(
+        _cachedMessage(id: message['id']! as String, channelId: 'channel-1'),
+      );
+    }
+    final adapter = _PaginatingAdapter(
+      messagesByChannel: {'channel-1': all},
+      pageLimit: 30,
+    );
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+    addTearDown(adapter.releaseAfterFetch);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel('channel-1', targetMessageId: targetId);
+    await _flushAsync();
+
+    expect(container.read(chatViewModelProvider).hasMoreNewerMessages, isTrue);
+
+    adapter.holdAfterFetch = true;
+    final Future<void> newerLoad = notifier.loadNewer();
+    await _flushAsync();
+
+    expect(container.read(chatViewModelProvider).isLoadingNewer, isTrue);
+    expect(await notifier.jumpToLatestMessages(), isTrue);
+    await _flushAsync();
+    expect(container.read(chatViewModelProvider).hasMoreNewerMessages, isFalse);
+    expect(
+      container.read(chatViewModelProvider).messages.last.id,
+      all.last['id'],
+    );
+
+    adapter.releaseAfterFetch();
+    await newerLoad;
+    await _flushAsync();
+  });
+
+  test('jumpToLatestMessages requests the jump-to-present page size', () async {
+    final db = openTestDatabase();
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+      ),
+    );
+    // Detach by paging back until the older-page trim drops the newest side.
+    // The channel watermark deliberately stays unset: it may only confirm the
+    // tail, never manufacture "has newer".
+    final List<Map<String, Object?>> all = _channelMessages('channel-1', 350);
+    final adapter = _PaginatingAdapter(
+      messagesByChannel: {'channel-1': all},
+      pageLimit: 150,
     );
     final container = _container(db, adapter);
     addTearDown(container.dispose);

@@ -153,7 +153,6 @@ void main() {
     final notifier = container.read(chatViewModelProvider.notifier);
     await notifier.switchChannel('channel-1', targetMessageId: historicalId);
     await _flushAsync();
-    expect(container.read(chatViewModelProvider).hasMoreNewerMessages, isTrue);
     return (container, adapter, notifier);
   }
 

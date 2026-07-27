@@ -128,6 +128,11 @@ const _kMonthNames = [
 /// Viewport fraction where the NEW divider sits on unread opens.
 const double _kUnreadOpenAnchor = 0.5;
 
+/// How long a parked jump target may hold off edge pagination before it is
+/// retired. The page that would contain it may never arrive - a deleted target
+/// comes back as a neighbour window with no error - so the wait is bounded.
+const Duration _kPendingScrollTargetTimeout = Duration(seconds: 6);
+
 /// How a channel open positions its first rendered message frame.
 enum _MessageListOpenMode { unresolved, unread, bottom }
 
@@ -170,6 +175,12 @@ class _MessageListState extends ConsumerState<MessageList> {
   late final ChatReadViewport _readViewport;
   late String _viewportChannelId;
   String? _pendingScrollTarget;
+  // The channel the parked target belongs to, plus the deadline that retires
+  // it. An `around=<id>` fetch whose target was deleted returns the neighbour
+  // window with no error, so "the target never arrives" is a normal response
+  // and must never latch the list.
+  String? _pendingScrollTargetChannelId;
+  Timer? _pendingScrollTargetTimer;
   int _messageJumpInFlight = 0;
   // Bumped to cancel an in-flight post-jump settle correction.
   int _bottomJumpGeneration = 0;
@@ -217,7 +228,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     _chatObserver = ChatScrollObserver(_observerController)
       ..fixedPositionOffset = kMessageListReadBottomThreshold;
     _scrollController.addListener(_onScroll);
-    _pendingScrollTarget = widget.targetMessageId;
+    _setPendingScrollTarget(widget.targetMessageId);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
@@ -235,7 +246,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     super.didUpdateWidget(oldWidget);
     if (widget.targetMessageId != oldWidget.targetMessageId &&
         widget.targetMessageId != null) {
-      _pendingScrollTarget = widget.targetMessageId;
+      _setPendingScrollTarget(widget.targetMessageId);
     }
     final String nextViewportChannelId =
         widget.expectedChannelId ?? ref.read(chatViewModelProvider).channelId;
@@ -265,6 +276,8 @@ class _MessageListState extends ConsumerState<MessageList> {
   @override
   void dispose() {
     _cancelBottomJumpSettle();
+    _pendingScrollTargetTimer?.cancel();
+    _pendingScrollTargetTimer = null;
     _readViewport.setViewportActive(
       channelId: _viewportChannelId,
       isActive: false,
@@ -319,7 +332,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       hasMore: state.hasMoreMessages,
       isLoading: state.isLoadingMore,
       isUserDrivenScroll: _isUserDrivenScroll,
-      hasActiveJumpTarget: _hasActiveJumpTarget(),
+      hasActiveJumpTarget: _isJumpOwningViewport(),
     )) {
       unawaited(_chatViewModel.loadMore());
     }
@@ -339,7 +352,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       hasMore: state.hasMoreNewerMessages,
       isLoading: state.isLoadingNewer,
       isUserDrivenScroll: _isUserDrivenScroll,
-      hasActiveJumpTarget: _hasActiveJumpTarget(),
+      hasActiveJumpTarget: _isJumpOwningViewport(),
     )) {
       unawaited(_chatViewModel.loadNewer());
     }
@@ -368,7 +381,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       hasMore: state.hasMoreMessages,
       isLoading: state.isLoadingMore,
       isUserDrivenScroll: _isUserDrivenScroll,
-      hasActiveJumpTarget: _hasActiveJumpTarget(),
+      hasActiveJumpTarget: _isJumpOwningViewport(),
     )) {
       unawaited(_chatViewModel.loadMore());
     }
@@ -388,7 +401,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       hasMore: state.hasMoreNewerMessages,
       isLoading: state.isLoadingNewer,
       isUserDrivenScroll: _isUserDrivenScroll,
-      hasActiveJumpTarget: _hasActiveJumpTarget(),
+      hasActiveJumpTarget: _isJumpOwningViewport(),
     )) {
       unawaited(_chatViewModel.loadNewer());
     }
@@ -470,7 +483,7 @@ class _MessageListState extends ConsumerState<MessageList> {
             if (!mounted ||
                 !_scrollController.hasClients ||
                 _openMode != _MessageListOpenMode.bottom ||
-                _hasActiveJumpTarget() ||
+                _isJumpOwningViewport() ||
                 _isUserDrivenScroll) {
               return;
             }
@@ -534,6 +547,11 @@ class _MessageListState extends ConsumerState<MessageList> {
     _landAtLatestTailPending = false;
     _jumpToLatestTicket++;
     _jumpToLatestInFlight = false;
+    // A target parked for another channel can never be consumed here.
+    if (_pendingScrollTargetChannelId != null &&
+        _pendingScrollTargetChannelId != channelId) {
+      _clearPendingScrollTarget();
+    }
     _openMode = _MessageListOpenMode.unresolved;
     _edgeLoadTrigger.reset();
     _lastViewportDimension = null;
@@ -721,7 +739,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     _updateNewestMessageVisibleLatch();
     final bool? newestVisible = _newestMessageVisibleLatch;
     _lastViewportDimension = viewport;
-    if (_hasActiveJumpTarget() || _isUserDrivenScroll) {
+    if (_isJumpOwningViewport() || _isUserDrivenScroll) {
       return;
     }
     final bool nearTailPx = isLiveNearBottom(
@@ -737,7 +755,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       if (!mounted ||
           !_scrollController.hasClients ||
           _openMode != _MessageListOpenMode.bottom ||
-          _hasActiveJumpTarget() ||
+          _isJumpOwningViewport() ||
           _isUserDrivenScroll) {
         return;
       }
@@ -790,10 +808,47 @@ class _MessageListState extends ConsumerState<MessageList> {
     return _isLiveNearBottom();
   }
 
-  bool _hasActiveJumpTarget() =>
-      _pendingScrollTarget != null ||
-      _messageJumpInFlight > 0 ||
-      _activeSettleGeneration != null;
+  /// A jump is actively moving the viewport right now.
+  bool _isJumpScrollActive() =>
+      _messageJumpInFlight > 0 || _activeSettleGeneration != null;
+
+  /// A target is parked waiting for the page that contains it.
+  bool _hasPendingScrollTarget() => _pendingScrollTarget != null;
+
+  /// A jump owns the viewport: edge pagination and anchor re-pinning must not
+  /// fight it, because both would yank the anchor out from under it.
+  ///
+  /// Deliberately NOT the same question as "may the read viewport publish" or
+  /// "may the user escape to the present" - neither of those may ever latch.
+  bool _isJumpOwningViewport() =>
+      _isJumpScrollActive() || _hasPendingScrollTarget();
+
+  void _setPendingScrollTarget(String? messageId) {
+    _pendingScrollTargetTimer?.cancel();
+    _pendingScrollTargetTimer = null;
+    _pendingScrollTarget = messageId;
+    if (messageId == null) {
+      _pendingScrollTargetChannelId = null;
+      return;
+    }
+    _pendingScrollTargetChannelId = _viewportChannelId;
+    _pendingScrollTargetTimer = Timer(_kPendingScrollTargetTimeout, () {
+      _pendingScrollTargetTimer = null;
+      if (!mounted || _pendingScrollTarget != messageId) {
+        return;
+      }
+      talker.debug('[MessageList] pending target $messageId expired');
+      _clearPendingScrollTarget();
+      _onScroll();
+    });
+  }
+
+  void _clearPendingScrollTarget() {
+    _pendingScrollTargetTimer?.cancel();
+    _pendingScrollTargetTimer = null;
+    _pendingScrollTarget = null;
+    _pendingScrollTargetChannelId = null;
+  }
 
   List<ChannelStreamItem> _channelStreamFor({
     required List<Message> messages,
@@ -878,16 +933,23 @@ class _MessageListState extends ConsumerState<MessageList> {
     );
   }
 
+  /// Publishes viewport geometry to the read-viewport provider.
+  ///
+  /// Geometry is published unconditionally: `viewportHeight` gates the
+  /// jump-to-bottom distance branch, so withholding it during a jump hides the
+  /// only escape hatch out of a detached window. Only `nearLoadedTail` - the
+  /// flag that can trigger an auto-ack - is withheld while a jump owns the
+  /// viewport, since the position mid-jump is not where the user is reading.
   void _syncReadViewport({bool ignoreJumpTarget = false}) {
     if (!_scrollController.hasClients ||
-        _openMode != _MessageListOpenMode.bottom ||
-        (!ignoreJumpTarget && _hasActiveJumpTarget())) {
+        _openMode != _MessageListOpenMode.bottom) {
       return;
     }
+    final bool jumpOwnsViewport = !ignoreJumpTarget && _isJumpOwningViewport();
     final ScrollPosition position = _scrollController.position;
     _readViewport.updateViewport(
       channelId: _viewportChannelId,
-      nearLoadedTail: _isLiveNearBottom(),
+      nearLoadedTail: !jumpOwnsViewport && _isLiveNearBottom(),
       distanceFromBottom: distanceFromScrollExtentEnd(
         pixels: position.pixels,
         minScrollExtent: position.minScrollExtent,
@@ -898,28 +960,30 @@ class _MessageListState extends ConsumerState<MessageList> {
 
   void _syncReadViewportCenter() {
     if (!_scrollController.hasClients ||
-        _openMode != _MessageListOpenMode.unread ||
-        _hasActiveJumpTarget()) {
+        _openMode != _MessageListOpenMode.unread) {
       return;
     }
+    final bool jumpOwnsViewport = _isJumpOwningViewport();
     final ScrollPosition position = _scrollController.position;
     final double distanceFromTrailingEdge = _centerTrailingDistance(position);
     _readViewport.updateViewport(
       channelId: _viewportChannelId,
-      nearLoadedTail: isNearTrailingEdge(
-        distanceFromTrailingEdge: distanceFromTrailingEdge,
-      ),
+      nearLoadedTail:
+          !jumpOwnsViewport &&
+          isNearTrailingEdge(
+            distanceFromTrailingEdge: distanceFromTrailingEdge,
+          ),
       distanceFromBottom: distanceFromTrailingEdge,
       viewportHeight: position.viewportDimension,
     );
   }
 
   void _onScrollToBottom() {
-    // Cancel post-jump settle so a user "jump to latest" is not overwritten.
+    // The escape hatch preempts: cancel the post-jump settle and retire any
+    // parked target instead of refusing the tap. A pending jump must never be
+    // able to turn this button into a no-op.
     _cancelBottomJumpSettle();
-    if (_hasActiveJumpTarget()) {
-      return;
-    }
+    _clearPendingScrollTarget();
     if (_openMode == _MessageListOpenMode.unread) {
       final ChatViewState chatState = ref.read(chatViewModelProvider);
       if (chatState.hasMoreNewerMessages) {
@@ -948,6 +1012,9 @@ class _MessageListState extends ConsumerState<MessageList> {
       return;
     }
     final ChatViewState chatState = ref.read(chatViewModelProvider);
+    // An unconfirmed tail must fetch the present. A local jump to
+    // minScrollExtent would land on the newest message of the LOADED window,
+    // which in a detached search window is history, not the present.
     if (chatState.hasMoreNewerMessages) {
       _requestJumpToLatest();
       return;
@@ -970,15 +1037,28 @@ class _MessageListState extends ConsumerState<MessageList> {
     _jumpToLatestInFlight = true;
     _landAtLatestTailPending = true;
     unawaited(
-      _chatViewModel.jumpToLatestMessages().then((bool started) {
-        if (ticket != _jumpToLatestTicket) {
-          return;
-        }
-        _jumpToLatestInFlight = false;
-        if (!started && mounted) {
-          _landAtLatestTailPending = false;
-        }
-      }),
+      _chatViewModel
+          .jumpToLatestMessages()
+          .then<bool>((bool started) {
+            if (ticket == _jumpToLatestTicket && !started && mounted) {
+              _landAtLatestTailPending = false;
+            }
+            return started;
+          })
+          .onError<Object>((Object error, StackTrace stackTrace) {
+            talker.handle(error, stackTrace, '[MessageList] jump to latest');
+            if (ticket == _jumpToLatestTicket && mounted) {
+              _landAtLatestTailPending = false;
+            }
+            return false;
+          })
+          // A thrown Error would otherwise strand the in-flight flag and wedge
+          // every later jump request.
+          .whenComplete(() {
+            if (ticket == _jumpToLatestTicket) {
+              _jumpToLatestInFlight = false;
+            }
+          }),
     );
   }
 
@@ -1104,7 +1184,7 @@ class _MessageListState extends ConsumerState<MessageList> {
         return;
       }
       // A pending/active jump owns the viewport — do not fight it.
-      if (_hasActiveJumpTarget()) {
+      if (_isJumpOwningViewport()) {
         return;
       }
       if (!ref
@@ -1179,6 +1259,17 @@ class _MessageListState extends ConsumerState<MessageList> {
     });
   }
 
+  // A bottom open that lands without a jump (or whose jump target never
+  // arrives) has no scroll event either, so the jump-to-bottom button would
+  // never learn the viewport height it needs to evaluate the distance branch.
+  void _scheduleBottomViewportSync() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _openMode == _MessageListOpenMode.bottom) {
+        _syncReadViewport();
+      }
+    });
+  }
+
   // Coordinates the latest-window replacement with its tail landing so the
   // reverse list never paints a clamped intermediate frame.
   void _landAtLatestTail(List<Message> next) {
@@ -1247,19 +1338,25 @@ class _MessageListState extends ConsumerState<MessageList> {
           }
           return;
         }
+        var jumpFailed = false;
         try {
           await _runBottomJump(messageId);
+        } on Object catch (error, stackTrace) {
+          // A thrown Error here used to escape the post-frame callback and
+          // leave _activeSettleGeneration owned forever.
+          jumpFailed = true;
+          talker.handle(error, stackTrace, '[MessageList] bottom jump');
         } finally {
           // Own settle before releasing the jump future so scroll handlers
           // still see an active jump target during correction.
-          if (mounted && generation == _bottomJumpGeneration) {
+          if (!jumpFailed && mounted && generation == _bottomJumpGeneration) {
             _activeSettleGeneration = generation;
           }
           if (!completer.isCompleted) {
             completer.complete();
           }
         }
-        if (mounted && generation == _bottomJumpGeneration) {
+        if (!jumpFailed && mounted && generation == _bottomJumpGeneration) {
           unawaited(_correctBottomJumpIfNeeded(messageId, generation));
         }
       });
@@ -1480,17 +1577,21 @@ class _MessageListState extends ConsumerState<MessageList> {
           }
           return;
         }
+        var jumpFailed = false;
         try {
           await _runCenterJump(messageId);
+        } on Object catch (error, stackTrace) {
+          jumpFailed = true;
+          talker.handle(error, stackTrace, '[MessageList] center jump');
         } finally {
-          if (mounted && generation == _bottomJumpGeneration) {
+          if (!jumpFailed && mounted && generation == _bottomJumpGeneration) {
             _activeSettleGeneration = generation;
           }
           if (!completer.isCompleted) {
             completer.complete();
           }
         }
-        if (mounted && generation == _bottomJumpGeneration) {
+        if (!jumpFailed && mounted && generation == _bottomJumpGeneration) {
           unawaited(
             _settleJumpCorrection(messageId, generation, _runCenterJump),
           );
@@ -1558,7 +1659,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     // scroll because the real list is not mounted yet.
     if (_openMode == _MessageListOpenMode.unresolved ||
         !_scrollController.hasClients) {
-      _pendingScrollTarget = messageId;
+      _setPendingScrollTarget(messageId);
       talker.debug('[MessageList] pending target parked $messageId');
       return;
     }
@@ -1567,7 +1668,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       final String? anchorId = _centerAnchorMessageId;
       final List<Message> messages = ref.read(chatViewModelProvider).messages;
       if (anchorId == null || !messages.any((Message m) => m.id == anchorId)) {
-        _pendingScrollTarget = messageId;
+        _setPendingScrollTarget(messageId);
         if (_messageJumpInFlight == 0 && _activeSettleGeneration == null) {
           setState(() {
             _convertUnreadOpenToBottom(messages);
@@ -2539,6 +2640,7 @@ class _MessageListState extends ConsumerState<MessageList> {
         } else {
           _openMode = _MessageListOpenMode.bottom;
           _expandScrollCacheNow();
+          _scheduleBottomViewportSync();
         }
       }
     }
@@ -2589,9 +2691,15 @@ class _MessageListState extends ConsumerState<MessageList> {
         _pendingScrollTarget != null) {
       final String target = _pendingScrollTarget!;
       if (messages.any((Message m) => m.id == target)) {
-        _pendingScrollTarget = null;
+        _clearPendingScrollTarget();
         talker.debug('[MessageList] consume pending target $target');
         unawaited(_jumpToMessage(target));
+      } else if (messageLoadFailed) {
+        // The page that would carry the target will not arrive.
+        talker.debug(
+          '[MessageList] pending target $target dropped: load failed',
+        );
+        _clearPendingScrollTarget();
       } else {
         talker.debug(
           '[MessageList] pending target $target not in ${messages.length} messages',

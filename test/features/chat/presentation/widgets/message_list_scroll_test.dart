@@ -2222,7 +2222,7 @@ void main() {
       await _disposeMessageList(tester);
     });
 
-    testWidgets('jump settle suppresses read viewport publish and newer loads', (
+    testWidgets('jump settle publishes geometry but withholds the tail flag', (
       WidgetTester tester,
     ) async {
       tester.view.physicalSize = const Size(420, 640);
@@ -2250,7 +2250,7 @@ void main() {
           .read(chatReadViewportProvider.notifier)
           .updateViewport(
             channelId: _messageListChannelId,
-            nearLoadedTail: false,
+            nearLoadedTail: true,
             distanceFromBottom: double.infinity,
             viewportHeight: 0,
           );
@@ -2273,12 +2273,26 @@ void main() {
       final ChatReadViewportState midSettle = container.read(
         chatReadViewportProvider,
       );
+      // #415: geometry must keep flowing during a jump. viewportHeight gates
+      // the jump-to-bottom distance branch, so withholding it hid the only
+      // escape hatch out of a detached window.
+      expect(
+        midSettle.viewportHeight,
+        greaterThan(0),
+        reason: 'settle-active must still publish viewport geometry',
+      );
       expect(
         midSettle.distanceFromBottom,
-        double.infinity,
-        reason: 'settle-active must suppress read-viewport publish',
+        isNot(double.infinity),
+        reason: 'settle-active must still publish the scroll distance',
       );
-      expect(midSettle.viewportHeight, 0);
+      // The ack-bearing flag is the one thing a mid-jump position may not
+      // assert: the viewport is not where the user is reading yet.
+      expect(
+        midSettle.nearLoadedTail,
+        isFalse,
+        reason: 'settle-active must withhold the tail flag',
+      );
       expect(
         harness.chatViewModel._loadNewerCallCount,
         loadNewerBefore,
@@ -2598,6 +2612,121 @@ void main() {
           reason:
               'target center=${targetRect.center.dy}, '
               'viewport center=${viewport.center.dy}',
+        );
+
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets(
+      'a target that never arrives still shows and serves jump-to-bottom',
+      (WidgetTester tester) async {
+        // #415. An `around=<id>` fetch whose target was deleted returns the
+        // neighbour window with no error, so the parked target is never
+        // consumed. It used to latch _hasActiveJumpTarget forever, which
+        // suppressed the read-viewport publish (no viewportHeight, so the
+        // button could not appear) and made the button's action a no-op.
+        tester.view.physicalSize = const Size(420, 640);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final StreamController<db.ReadState?> readStateController =
+            StreamController<db.ReadState?>.broadcast();
+        addTearDown(readStateController.close);
+
+        final _AroundAckMessageListHarness source =
+            await _createBottomMessageListHarness();
+        // Never present in the window: the deleted search hit.
+        const String deletedTargetId = 'deleted-search-hit';
+
+        final _InstrumentedChatViewModel chatViewModel =
+            _InstrumentedChatViewModel(
+              const ChatViewState(
+                channelId: _messageListChannelId,
+                messages: <Message>[],
+                replyingTo: null,
+                replyMentioning: false,
+                editingMessage: null,
+                messageText: '',
+                scrollToBottomSignal: 0,
+                isLoading: true,
+                isSyncingMessages: false,
+                isLoadingMore: false,
+                isLoadingNewer: false,
+                hasMoreMessages: true,
+                hasMoreNewerMessages: true,
+                errorMessage: null,
+              ),
+            );
+
+        await tester.pumpWidget(
+          _messageListApp(
+            database: source.database,
+            chatViewModel: chatViewModel,
+            overrides: <Override>[
+              messageListReadStateProvider(
+                _messageListChannelId,
+              ).overrideWith((ref) => readStateController.stream),
+            ],
+          ),
+        );
+        await tester.pump();
+
+        // The around window lands without the target, then the signal parks
+        // while open mode is still unresolved.
+        chatViewModel._testState = chatViewModel._testState.copyWith(
+          messages: source.messages,
+          isLoading: false,
+        );
+        await tester.pump();
+        chatViewModel.scrollToMessage(deletedTargetId);
+        await tester.pump();
+
+        readStateController.add(null);
+        await tester.pump();
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        final ProviderContainer container = ProviderScope.containerOf(
+          tester.element(find.byType(MessageList)),
+        );
+        final ChatReadViewportState viewport = container.read(
+          chatReadViewportProvider,
+        );
+        expect(
+          viewport.viewportHeight,
+          greaterThan(0),
+          reason: 'a parked target must not withhold viewport geometry',
+        );
+        expect(
+          shouldShowJumpToBottomButton(
+            hasMessages: true,
+            isLoading: false,
+            isActiveReadChannel: true,
+            distanceFromBottom: viewport.distanceFromBottom,
+            viewportHeight: viewport.viewportHeight,
+            hasMoreNewerMessages: chatViewModel._testState.hasMoreNewerMessages,
+          ),
+          isTrue,
+          reason: 'the escape hatch must be reachable while a target is parked',
+        );
+
+        // Tapping the button routes through scrollToBottom(); with the tail
+        // unconfirmed it must fetch the present rather than no-op.
+        chatViewModel.scrollToBottom();
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        expect(
+          chatViewModel._testState.hasMoreNewerMessages,
+          isFalse,
+          reason: 'the tap must have run a jump to present',
+        );
+        expect(
+          _messageItemFor(chatViewModel._latestReplacementNewestIdValue),
+          findsOneWidget,
+          reason: 'the newest message of the present must be rendered',
         );
 
         await _disposeMessageList(tester);

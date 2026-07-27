@@ -275,6 +275,11 @@ class ChatViewModel extends _$ChatViewModel {
   // Monotonically increasing token identifying the most recent switchChannel
   // call.
   int _channelSwitchGeneration = 0;
+  // Bumped whenever the loaded window is replaced wholesale. In-flight page
+  // loads compare it before applying, so a slow response cannot resurrect
+  // the window it was fetched for after a jump replaced it.
+  int _windowGeneration = 0;
+  bool _jumpToLatestActive = false;
   final Map<String, Future<void>> _pendingDeleteFutures =
       <String, Future<void>>{};
   final Map<String, DateTime> _lastNetworkRefreshByChannel =
@@ -1260,7 +1265,10 @@ class ChatViewModel extends _$ChatViewModel {
     bool Function()? shouldApplyResult,
     bool preserveLoadedWindow = false,
   }) async {
-    bool shouldApply() => shouldApplyResult?.call() ?? true;
+    final int windowGeneration = _windowGeneration;
+    bool shouldApply() =>
+        windowGeneration == _windowGeneration &&
+        (shouldApplyResult?.call() ?? true);
     if (showLoadingSpinner) {
       if (!shouldApply()) {
         return;
@@ -1348,6 +1356,11 @@ class ChatViewModel extends _$ChatViewModel {
           await _hasNewerMessagesThanChannel(
             mergedServerTailId,
             sealedTail: isSealedLatestTail,
+            // Detached by construction means built AROUND a target rather than
+            // from the tail. Not merely "not a direct latest load": a plain
+            // reconcile of a live-tail window is still at the tail, and
+            // treating it as detached would suppress auto-ack.
+            detachedWindow: aroundMessageId != null || targetMessageId != null,
             knownLoadedMessageIds: merged
                 .map((Message message) => message.id)
                 .toSet(),
@@ -1829,12 +1842,14 @@ class ChatViewModel extends _$ChatViewModel {
       scrollToBottom();
       return true;
     }
-    if (state.isSyncingMessages ||
-        state.isLoading ||
-        state.isLoadingMore ||
-        state.isLoadingNewer) {
+    // The jump is the only escape hatch out of a detached window, so it
+    // preempts in-flight page loads instead of refusing while they run.
+    // Bumping the generation makes their results non-applicable on return.
+    if (_jumpToLatestActive || state.isLoading) {
       return false;
     }
+    _windowGeneration++;
+    _jumpToLatestActive = true;
     state = state.copyWith(isSyncingMessages: true);
     try {
       final page = await ref
@@ -1879,6 +1894,7 @@ class ChatViewModel extends _$ChatViewModel {
       talker.warning('[ChatPagination] jump to latest failed', e);
       return false;
     } finally {
+      _jumpToLatestActive = false;
       if (state.channelId == channelId && state.isSyncingMessages) {
         state = state.copyWith(isSyncingMessages: false);
       }
@@ -1888,17 +1904,54 @@ class ChatViewModel extends _$ChatViewModel {
   Future<bool> _hasNewerMessagesThanChannel(
     String messageId, {
     bool sealedTail = false,
+    bool detachedWindow = false,
     Set<String>? knownLoadedMessageIds,
   }) async {
     final db.Channel? channel = await ref
         .read(fluxerDatabaseProvider)
         .channelDao
         .getChannelById(state.channelId);
-    final String? lastMessageId = channel?.lastMessageId;
-    if (lastMessageId == null || lastMessageId.isEmpty) {
-      return false;
+    String? lastMessageId = channel?.lastMessageId;
+    if (channel == null) {
+      // DMs are not in the guild channel table, so without this their pointer
+      // always reads as unknown and every DM window looks detached.
+      final db.DmChannel? dmChannel = await ref
+          .read(fluxerDatabaseProvider)
+          .dmChannelDao
+          .getDmChannelById(state.channelId);
+      lastMessageId = dmChannel?.lastMessageId;
     }
-    if (compareSnowflakeIds(lastMessageId, messageId) <= 0) {
+    if (lastMessageId == null || lastMessageId.isEmpty) {
+      // An unknown pointer cannot settle the question, so defer to how the
+      // window was built: a window built around a target, or reconciled from
+      // one, is detached by construction. A spurious true costs one fetch, a
+      // spurious false strands the user in history with no way back.
+      return detachedWindow;
+    }
+    // [messageId] is the newest message of a page just fetched from the network;
+    // [lastMessageId] is a cached local pointer. The two cases differ and must
+    // not be lumped together.
+    final int pointerVsFetchedTail = compareSnowflakeIds(
+      lastMessageId,
+      messageId,
+    );
+    if (pointerVsFetchedTail < 0) {
+      // The fetched page contains messages NEWER than the pointer claims exist,
+      // so the pointer is behind reality and cannot settle whether more newer
+      // messages remain. A window built around a target defers to how it was
+      // constructed rather than trusting a value already shown to be out of
+      // date; a tail-built window really is the tail and reports so.
+      return detachedWindow;
+    }
+    if (pointerVsFetchedTail == 0) {
+      // The pointer exactly matches our fetched tail. That is consistent with
+      // having genuinely reached the tail with an accurate pointer, and also
+      // with a stale pointer coinciding with where an around-page happened to
+      // end. It proves NEITHER. We choose the at-the-tail reading, because
+      // equality is the normal state of a window that has caught up, and
+      // failing open here suppresses auto-ack for every such window. Residual
+      // risk accepted: a pointer that is stale AND exactly equal to an
+      // around-page's newest message will still under-report newer messages.
       return false;
     }
     if (knownLoadedMessageIds?.contains(lastMessageId) ?? false) {
@@ -3275,6 +3328,7 @@ class ChatViewModel extends _$ChatViewModel {
       // Around jumps consult the pointer: a short around page is not server tail.
       final bool hasMoreNewer = await _hasNewerMessagesThanChannel(
         page.messages.last.id,
+        detachedWindow: true,
       );
       if (state.channelId != channelId) {
         return;

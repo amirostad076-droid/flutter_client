@@ -16,6 +16,7 @@ import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/features/channels/data/ack_batcher.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/providers/ack_batcher_provider.dart';
+import 'package:fluxer_app/features/chat/domain/message_window.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_read_viewport_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_realtime_events.dart';
@@ -169,6 +170,94 @@ void main() {
 
     return (db, adapter, container, notifier, ackId);
   }
+
+  // Case (b) of the pointer rule, at integration level. A pointer exactly equal
+  // to our fetched tail is treated as the tail. Asserting the helper returns
+  // false would prove nothing about the symptom, so this pins the two things a
+  // bogus true would break, both of which persist until the user intervenes:
+  // the channel must AUTO-ACK with no button tap or manual pagination, and
+  // newest-window trimming must be PERMITTED.
+  test(
+    'an around window whose pointer equals its tail acks and allows trimming',
+    () async {
+      final db = openTestDatabase();
+      // Enough messages that the loaded window exceeds kMaxLoadedMessages, so
+      // trimming has something to do.
+      const int total = 250;
+      final List<String> ids = <String>[
+        for (int i = 0; i < total; i++)
+          _snowflakeForUtc(
+            DateTime.utc(2026, 5, 1, 9).add(Duration(minutes: i)),
+          ),
+      ];
+      final String newestId = ids.last;
+      final String ackId = ids.first;
+
+      // The cached pointer is EXACTLY our around-page tail, not beyond it.
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(newestId),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(ackId),
+          mentionCount: const Value(0),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        initialMessages: <Map<String, Object?>>[
+          _messageJson(id: newestId, channelId: 'channel-1', authorId: 'other'),
+        ],
+        aroundMessages: <Map<String, Object?>>[
+          for (final String id in ids.reversed)
+            _messageJson(id: id, channelId: 'channel-1', authorId: 'other'),
+        ],
+      );
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      _setViewportActive(container, channelId: 'channel-1');
+      _updateViewport(container, nearLoadedTail: true);
+      await _flushAsync();
+
+      expect(
+        container.read(chatViewModelProvider).hasMoreNewerMessages,
+        isFalse,
+        reason: 'a pointer equal to our fetched tail is treated as the tail',
+      );
+
+      // Consequence 1: the channel must not sit unread waiting for the user.
+      expect(
+        adapter.ackedMessageIds,
+        contains(newestId),
+        reason:
+            'the channel must auto-ack with no button tap and no manual '
+            'pagination; a bogus hasMoreNewerMessages blocks ack indefinitely',
+      );
+
+      // Consequence 2: trimming must be permitted, not gated off.
+      expect(
+        container.read(chatViewModelProvider).messages.length,
+        greaterThan(kMaxLoadedMessages),
+        reason: 'the window must exceed the cap for trimming to be meaningful',
+      );
+      notifier.trimToNewestWindow();
+      expect(
+        container.read(chatViewModelProvider).messages,
+        hasLength(kTrimmedMessageWindowSize),
+        reason:
+            'newest-window trimming must be permitted; a bogus '
+            'hasMoreNewerMessages leaves the window unbounded',
+      );
+    },
+  );
 
   test(
     'switchChannel honors loadMessages false when target is provided',
@@ -1866,6 +1955,12 @@ void main() {
         ),
       );
       final adapter = _ChatAdapter(
+        // The tail genuinely exists on the server, so the latest-page probe
+        // can prove the around window stopped short. The channel watermark
+        // alone may not: it is monotonic and may point at a deleted row.
+        initialMessages: [
+          _messageJson(id: tailId, channelId: 'channel-1', authorId: 'other'),
+        ],
         aroundMessages: [
           _messageJson(
             id: secondUnreadId,
@@ -1963,29 +2058,26 @@ void main() {
     expect(adapter.ackAttempts, 0);
   });
 
-  test(
-    'active viewport is ineligible while newer history is unloaded',
-    () async {
-      final (_, adapter, container, _, _) = await setUpDetachedWindow();
+  test('active viewport is ineligible while newer messages remain', () async {
+    final (_, adapter, container, _, _) = await setUpDetachedWindow();
 
-      _updateViewport(container, nearLoadedTail: true);
-      await _flushAsync();
+    _updateViewport(container, nearLoadedTail: true);
+    await _flushAsync();
 
-      final viewport = container.read(chatReadViewportProvider);
-      expect(viewport.nearLoadedTail, isTrue);
-      expect(
-        isAutoAckEligible(
-          viewport: viewport,
-          channelId: 'channel-1',
-          hasMoreNewerMessages: container
-              .read(chatViewModelProvider)
-              .hasMoreNewerMessages,
-        ),
-        isFalse,
-      );
-      expect(adapter.ackedMessageIds, isEmpty);
-    },
-  );
+    final viewport = container.read(chatReadViewportProvider);
+    expect(viewport.nearLoadedTail, isTrue);
+    expect(
+      isAutoAckEligible(
+        viewport: viewport,
+        channelId: 'channel-1',
+        hasMoreNewerMessages: container
+            .read(chatViewModelProvider)
+            .hasMoreNewerMessages,
+      ),
+      isFalse,
+    );
+    expect(adapter.ackedMessageIds, isEmpty);
+  });
 
   test('reaching the live tail rechecks unchanged viewport geometry', () async {
     final (db, adapter, container, notifier, _) = await setUpDetachedWindow();
@@ -3048,8 +3140,9 @@ void main() {
     'live message received while scrolled into history is dropped',
     () async {
       final db = openTestDatabase();
-      // Full latest-page (initial size 50) while the channel pointer is still
-      // ahead: real newer messages remain.
+      // An around window deep in history, with a real newer tail the server
+      // will serve on the latest page. The channel pointer alone cannot make
+      // a window detached: it is monotonic and may point at a deleted row.
       final List<String> historyIds = <String>[
         for (var i = 0; i < 50; i++)
           _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10, 0, i)),
@@ -3064,9 +3157,19 @@ void main() {
           lastMessageId: Value(latestId),
         ),
       );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(historyIds.first),
+          mentionCount: const Value(0),
+        ),
+      );
       final adapter = _ChatAdapter(
         initialMessages: [
-          for (final String id in historyIds)
+          _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+        ],
+        aroundMessages: [
+          for (final String id in historyIds.reversed)
             _messageJson(id: id, channelId: 'channel-1', authorId: 'other'),
         ],
       );
