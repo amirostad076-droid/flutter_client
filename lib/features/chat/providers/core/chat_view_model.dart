@@ -280,6 +280,10 @@ class ChatViewModel extends _$ChatViewModel {
   // the window it was fetched for after a jump replaced it.
   int _windowGeneration = 0;
   bool _jumpToLatestActive = false;
+  // Realtime events that arrived while a window replacement was in flight.
+  List<MessageRealtimeEvent>? _windowSwapEvents;
+  String? _windowSwapChannelId;
+  int _windowSwapToken = 0;
   final Map<String, Future<void>> _pendingDeleteFutures =
       <String, Future<void>>{};
   final Map<String, DateTime> _lastNetworkRefreshByChannel =
@@ -377,6 +381,16 @@ class ChatViewModel extends _$ChatViewModel {
     for (final MessageRealtimeEvent event in events) {
       _forwardRealtimeToMessageReferences(event);
     }
+    if (_windowSwapEvents != null) {
+      // Preserve arrival order across the swap; the batch fast path cannot.
+      var captured = false;
+      for (final MessageRealtimeEvent event in events) {
+        captured = _captureDuringWindowSwap(event) || captured;
+      }
+      if (captured) {
+        return;
+      }
+    }
     unawaited(_applyRealtimeBatch(events));
   }
 
@@ -445,8 +459,75 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
+  /// Buffers realtime events while a wholesale window replacement runs.
+  ///
+  /// A replacement computes its merged list from a snapshot and then awaits.
+  /// Every realtime mutation landing in that gap is applied to state.messages
+  /// and then overwritten by the stale snapshot: creates vanish, edits roll
+  /// back to the fetched revision, and deletes are resurrected by a REST page
+  /// fetched before the delete. Buffering the raw events and replaying them
+  /// through the normal reducer after the swap preserves both the mutations
+  /// and their order, and inherits every per-event rule for free.
+  ///
+  /// Arming is idempotent, so a replacement that supersedes another still
+  /// replays everything. The returned token identifies the owner, and a
+  /// superseded owner's drain is a no-op.
+  int _armWindowSwap(String channelId) {
+    _windowSwapEvents ??= <MessageRealtimeEvent>[];
+    _windowSwapChannelId = channelId;
+    return ++_windowSwapToken;
+  }
+
+  List<MessageRealtimeEvent> _drainWindowSwap(int token) {
+    if (token != _windowSwapToken) {
+      return const <MessageRealtimeEvent>[];
+    }
+    final List<MessageRealtimeEvent> events =
+        _windowSwapEvents ?? const <MessageRealtimeEvent>[];
+    _windowSwapEvents = null;
+    _windowSwapChannelId = null;
+    return events;
+  }
+
+  /// Captures [ev] if a window swap owns the channel. Returns true when the
+  /// caller must not apply it now.
+  bool _captureDuringWindowSwap(MessageRealtimeEvent ev) {
+    final List<MessageRealtimeEvent>? buffer = _windowSwapEvents;
+    if (buffer == null || _windowSwapChannelId != state.channelId) {
+      return false;
+    }
+    buffer.add(ev);
+    return true;
+  }
+
+  /// Replays buffered events in arrival order through the normal reducer.
+  ///
+  /// Every event is idempotent against a window that already reflects it:
+  /// a create for a present id is skipped, and the replace and remove helpers
+  /// both return null when nothing changes.
+  Future<void> _replayWindowSwapEvents(
+    List<MessageRealtimeEvent> events,
+    String channelId,
+  ) async {
+    for (final MessageRealtimeEvent ev in events) {
+      if (!ref.mounted || state.channelId != channelId) {
+        return;
+      }
+      await _applyRealtimeEvent(ev);
+    }
+  }
+
   Future<void> _onRealtimeEvent(MessageRealtimeEvent ev) async {
+    // References track the whole channel, not the loaded window, so they are
+    // never deferred.
     _forwardRealtimeToMessageReferences(ev);
+    if (_captureDuringWindowSwap(ev)) {
+      return;
+    }
+    await _applyRealtimeEvent(ev);
+  }
+
+  Future<void> _applyRealtimeEvent(MessageRealtimeEvent ev) async {
     final next = await _nextMessagesFor(ev);
     final Set<String> deletedIds = _deletedMessageIdsFor(ev);
     final bool clearEditing =
@@ -1280,6 +1361,8 @@ class ChatViewModel extends _$ChatViewModel {
         messageLoadFailed: false,
       );
     }
+    final int swapToken = _armWindowSwap(channelId);
+    List<MessageRealtimeEvent> bufferedEvents = const <MessageRealtimeEvent>[];
     try {
       final String? effectiveAroundMessageId =
           targetMessageId ?? aroundMessageId;
@@ -1382,6 +1465,8 @@ class ChatViewModel extends _$ChatViewModel {
           ? state.hasMoreMessages
           : page.messages.length >= effectiveLimit ||
                 (effectiveAroundMessageId != null && page.messages.isNotEmpty);
+      // Drain immediately before the swap so nothing lands between the two.
+      bufferedEvents = _drainWindowSwap(swapToken);
       state = state.copyWith(
         messages: merged,
         isLoading: false,
@@ -1395,9 +1480,13 @@ class ChatViewModel extends _$ChatViewModel {
         _contiguity.setVerified(channelId, page.messages);
       }
       _contiguityTrusted = true;
+      // Realtime mutations that raced the swap: replay in arrival order so
+      // edits keep their revision and deletes stay deleted.
+      await _replayWindowSwapEvents(bufferedEvents, channelId);
+      bufferedEvents = const <MessageRealtimeEvent>[];
       _notifyMessageReferencesLoaded(
         channelId: channelId,
-        messages: merged,
+        messages: state.messages,
         embeddedReplyParents: page.embeddedReplyParents,
       );
       if (targetMessageId == null) {
@@ -1420,6 +1509,15 @@ class ChatViewModel extends _$ChatViewModel {
         messageLoadFailed: !hasCachedMessages,
         errorMessage: hasCachedMessages ? 'Failed to sync messages' : null,
       );
+    } finally {
+      // A failed or superseded load must still not swallow realtime events.
+      final List<MessageRealtimeEvent> pending = <MessageRealtimeEvent>[
+        ...bufferedEvents,
+        ..._drainWindowSwap(swapToken),
+      ];
+      if (pending.isNotEmpty) {
+        await _replayWindowSwapEvents(pending, channelId);
+      }
     }
   }
 
@@ -1850,6 +1948,8 @@ class ChatViewModel extends _$ChatViewModel {
     }
     _windowGeneration++;
     _jumpToLatestActive = true;
+    final int swapToken = _armWindowSwap(channelId);
+    List<MessageRealtimeEvent> bufferedEvents = const <MessageRealtimeEvent>[];
     state = state.copyWith(isSyncingMessages: true);
     try {
       final page = await ref
@@ -1858,6 +1958,14 @@ class ChatViewModel extends _$ChatViewModel {
             channelId: channelId,
             limit: _kJumpToPresentPageSize,
           );
+      if (state.channelId != channelId) {
+        return false;
+      }
+      await _hydrateGuildMembersForMessages(
+        channelId,
+        page.messages,
+        embeddedReplyParents: page.embeddedReplyParents,
+      );
       if (state.channelId != channelId) {
         return false;
       }
@@ -1870,22 +1978,20 @@ class ChatViewModel extends _$ChatViewModel {
       );
       _contiguity.setVerified(channelId, page.messages);
       _contiguityTrusted = true;
-      await _hydrateGuildMembersForMessages(
-        channelId,
-        merged,
-        embeddedReplyParents: page.embeddedReplyParents,
-      );
-      if (state.channelId != channelId) {
-        return false;
-      }
+      // Drain immediately before the swap so nothing lands between the two.
+      bufferedEvents = _drainWindowSwap(swapToken);
       state = state.copyWith(
         messages: merged,
         hasMoreMessages: page.messages.length >= _kJumpToPresentPageSize,
         hasMoreNewerMessages: false,
       );
+      // Replay against the fresh tail window: creates append, edits keep
+      // their revision, deletes stay deleted.
+      await _replayWindowSwapEvents(bufferedEvents, channelId);
+      bufferedEvents = const <MessageRealtimeEvent>[];
       _notifyMessageReferencesLoaded(
         channelId: channelId,
-        messages: merged,
+        messages: state.messages,
         embeddedReplyParents: page.embeddedReplyParents,
       );
       scrollToBottom();
@@ -1895,6 +2001,13 @@ class ChatViewModel extends _$ChatViewModel {
       return false;
     } finally {
       _jumpToLatestActive = false;
+      final List<MessageRealtimeEvent> pending = <MessageRealtimeEvent>[
+        ...bufferedEvents,
+        ..._drainWindowSwap(swapToken),
+      ];
+      if (pending.isNotEmpty) {
+        await _replayWindowSwapEvents(pending, channelId);
+      }
       if (state.channelId == channelId && state.isSyncingMessages) {
         state = state.copyWith(isSyncingMessages: false);
       }
