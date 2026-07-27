@@ -190,7 +190,8 @@ class ChannelHeader extends ConsumerWidget {
               button: true,
               label: 'Open channel details',
               child: InkWell(
-                onTap: () => _openDetails(context, channel: channel, dm: dm),
+                onTap: () =>
+                    _openDetails(context, ref, channel: channel, dm: dm),
                 borderRadius: BorderRadius.circular(6),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -302,7 +303,7 @@ class ChannelHeader extends ConsumerWidget {
               variant: FluxerButtonVariant.secondary,
               size: FluxerButtonSize.small,
               iconSize: 20,
-              onPressed: () => _openSearch(context, channel: channel),
+              onPressed: () => _openSearch(context, ref, channel: channel),
             ),
           if (channel != null &&
               channel.type == ChannelType.guildVoice) ...<Widget>[
@@ -458,8 +459,9 @@ class ChannelHeader extends ConsumerWidget {
                 PhosphorIconsFill.pushPin,
                 'Pinned Messages',
                 showIndicator: hasUnreadPins,
-                onTap: () => showChannelDetailsSheet(
+                onTap: () => showChannelDetailsSheetAndJump(
                   context,
+                  container: ref.container,
                   channel: channel,
                   dm: null,
                   initialTab: ChannelDetailsInitialTab.pins,
@@ -477,7 +479,7 @@ class ChannelHeader extends ConsumerWidget {
               ),
             if (channel != null)
               InkWell(
-                onTap: () => _openSearch(context, channel: channel),
+                onTap: () => _openSearch(context, ref, channel: channel),
                 borderRadius: BorderRadius.circular(4),
                 child: SizedBox(
                   width: 160,
@@ -802,7 +804,7 @@ class ChannelHeader extends ConsumerWidget {
       unawaited(EditGroupDmFlow.show(context, dm: dm));
       return;
     }
-    _openDetails(context, channel: channel, dm: dm);
+    _openDetails(context, ref, channel: channel, dm: dm);
   }
 
   bool _shouldShowAddFriendsToGroupButton(WidgetRef ref, DmConversation dm) {
@@ -816,20 +818,33 @@ class ChannelHeader extends ConsumerWidget {
   }
 
   void _openDetails(
-    BuildContext context, {
+    BuildContext context,
+    WidgetRef ref, {
     required Channel? channel,
     required DmConversation? dm,
   }) {
     if (channel == null && dm == null) {
       return;
     }
-    unawaited(showChannelDetailsSheet(context, channel: channel, dm: dm));
+    unawaited(
+      showChannelDetailsSheetAndJump(
+        context,
+        container: ref.container,
+        channel: channel,
+        dm: dm,
+      ),
+    );
   }
 
-  void _openSearch(BuildContext context, {required Channel channel}) {
+  void _openSearch(
+    BuildContext context,
+    WidgetRef ref, {
+    required Channel channel,
+  }) {
     unawaited(
-      showChannelDetailsSheet(
+      showChannelDetailsSheetAndJump(
         context,
+        container: ref.container,
         channel: channel,
         dm: null,
         openSearchImmediately: true,
