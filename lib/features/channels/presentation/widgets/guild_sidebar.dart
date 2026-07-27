@@ -734,9 +734,14 @@ class _ChannelTile extends ConsumerWidget {
         await ref
             .read(favoriteChannelsRepositoryProvider)
             .isFavorite(channel.id);
+    final int? cachedPermissionBits = ref.read(
+      channelPermissionCacheProvider,
+    )[channel.id];
     final int? permissionBits =
-        ref.read(channelPermissionCacheProvider)[channel.id] ??
-        ref.read(effectiveGuildChannelPermissionBitsProvider(channel.id)).value;
+        cachedPermissionBits ??
+        await ref.read(
+          effectiveGuildChannelPermissionBitsProvider(channel.id).future,
+        );
     final Set<String> mutedIds =
         ref.read(mutedChannelIdsProvider(guildId)).value ?? const <String>{};
     final bool isMuted = mutedIds.contains(channel.id);

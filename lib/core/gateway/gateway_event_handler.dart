@@ -253,12 +253,12 @@ class GatewayEventHandler {
         _logGatewayDebug(
           () => talker.debug('[Gateway] CHANNEL_CREATE: ${event.channel.id}'),
         );
-        _handleChannelUpsert(event.channel);
+        unawaited(_handleChannelUpsert(event.channel));
       case ChannelUpdateEvent():
         _logGatewayDebug(
           () => talker.debug('[Gateway] CHANNEL_UPDATE: ${event.channel.id}'),
         );
-        _handleChannelUpsert(event.channel);
+        unawaited(_handleChannelUpsert(event.channel));
       case ChannelDeleteEvent():
         _logGatewayDebug(
           () => talker.debug('[Gateway] CHANNEL_DELETE: ${event.channel.id}'),
@@ -1846,14 +1846,14 @@ class GatewayEventHandler {
     unawaited(database.memberDao.deleteMember(event.userId, event.guildId));
   }
 
-  void _handleChannelUpsert(ChannelResponse channel) {
+  Future<void> _handleChannelUpsert(ChannelResponse channel) async {
     final guildId = channel.guildId;
     if (guildId != null) {
-      unawaited(
-        database.channelDao.upsertChannel(channelFromSdk(channel, guildId)),
-      );
-      _invalidateMentionCacheForChannel(channel.id, guildId: guildId);
-      onChannelPermissionChanged?.call(channel.id);
+      await database.channelDao.upsertChannel(channelFromSdk(channel, guildId));
+      unawaited(() {
+        _invalidateMentionCacheForChannel(channel.id, guildId: guildId);
+        onChannelPermissionChanged?.call(channel.id);
+      }());
       return;
     }
 
