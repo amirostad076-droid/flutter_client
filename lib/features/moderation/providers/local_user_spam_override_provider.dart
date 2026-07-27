@@ -51,12 +51,31 @@ class LocalUserSpamOverride extends _$LocalUserSpamOverride {
     if (!ref.mounted) {
       return;
     }
-    SchedulerBinding.instance.addPostFrameCallback((_) {
+    _scheduleInitialStateUpdate(sets);
+  }
+
+  void _scheduleInitialStateUpdate(LocalSpamOverrideSets sets) {
+    void apply() {
       if (!ref.mounted) {
         return;
       }
       _setStateFromSets(sets);
-    });
+    }
+
+    if (_hasSchedulerBinding) {
+      SchedulerBinding.instance.addPostFrameCallback((_) => apply());
+      return;
+    }
+    scheduleMicrotask(apply);
+  }
+
+  bool get _hasSchedulerBinding {
+    try {
+      SchedulerBinding.instance;
+      return true;
+    } on Object {
+      return false;
+    }
   }
 
   bool isUserMarkedAsSpammer(String userId, int userFlags) {
