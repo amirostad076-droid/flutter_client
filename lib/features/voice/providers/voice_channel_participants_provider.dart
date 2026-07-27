@@ -70,6 +70,7 @@ class VoiceSidebarParticipant {
     required this.selfStream,
     required this.guildMute,
     required this.guildDeaf,
+    required this.primaryVoice,
   });
 
   final String userId;
@@ -82,6 +83,7 @@ class VoiceSidebarParticipant {
   final bool selfStream;
   final bool guildMute;
   final bool guildDeaf;
+  final VoiceState primaryVoice;
 }
 
 String _displayNameForSort(
@@ -208,6 +210,10 @@ Future<List<VoiceSidebarParticipant>> voiceChannelSidebarParticipants(
   final Map<String, _VoiceSidebarAgg> byUser = _aggregateVoiceByUserId(
     inChannel,
   );
+  final Map<String, VoiceState> primaryVoiceByUserId = <String, VoiceState>{};
+  for (final VoiceState voiceState in inChannel) {
+    primaryVoiceByUserId.putIfAbsent(voiceState.userId, () => voiceState);
+  }
   final List<String> userIds = byUser.keys.toList();
   final database.FluxerDatabase db = ref.read(fluxerDatabaseProvider);
   final Map<String, database.User> usersById =
@@ -246,6 +252,7 @@ Future<List<VoiceSidebarParticipant>> voiceChannelSidebarParticipants(
         selfStream: agg.selfStream,
         guildMute: agg.guildMute,
         guildDeaf: agg.guildDeaf,
+        primaryVoice: primaryVoiceByUserId[userId]!,
       ),
     );
   }
