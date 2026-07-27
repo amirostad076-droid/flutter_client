@@ -2500,10 +2500,10 @@ class _MessageListState extends ConsumerState<MessageList> {
         ),
       ),
     );
+    final bool hasJumpTarget =
+        widget.targetMessageId != null || _pendingScrollTarget != null;
     if (_openMode == _MessageListOpenMode.unresolved &&
         (!isLoading || messages.isNotEmpty)) {
-      final bool hasJumpTarget =
-          widget.targetMessageId != null || _pendingScrollTarget != null;
       if (hasJumpTarget && messages.isEmpty) {
         // Wait for the around-window before picking open mode.
       } else if (readStateAsync.hasValue ||
@@ -2614,9 +2614,10 @@ class _MessageListState extends ConsumerState<MessageList> {
             channelActions,
           ) {
             final Widget body;
-            if ((_openMode == _MessageListOpenMode.unresolved &&
-                    messages.isEmpty) ||
-                (isLoading && messages.isEmpty)) {
+            if (messages.isEmpty &&
+                (isLoading ||
+                    (_openMode == _MessageListOpenMode.unresolved &&
+                        hasJumpTarget))) {
               body = MessageListSkeleton(channelId: channelId);
             } else if (messageLoadFailed && messages.isEmpty) {
               final FluxerLocalizations l10n = FluxerLocalizations.of(context);
