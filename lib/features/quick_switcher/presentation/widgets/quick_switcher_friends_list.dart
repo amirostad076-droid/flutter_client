@@ -208,7 +208,7 @@ class _FriendRow extends StatelessWidget {
                 ),
               ),
               PhosphorIcon(
-                PhosphorIconsRegular.caretRight,
+                PhosphorIconsBold.caretRight,
                 size: 16,
                 color: colors.textPrimaryMuted,
               ),

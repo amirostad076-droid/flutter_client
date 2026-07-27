@@ -69,7 +69,7 @@ class _MobileMediaOptionsSheetBody extends ConsumerWidget {
     final List<Widget> mediaItems = <Widget>[
       if (linkUrl.isNotEmpty)
         FluxerBottomSheetMenuItem(
-          icon: PhosphorIconsRegular.link,
+          icon: PhosphorIconsBold.link,
           label: l10n.mediaViewerCopyLink,
           onTap: () => unawaited(_copyLink(context, linkUrl)),
         ),

@@ -310,7 +310,7 @@ class _EditGroupDmContentState extends ConsumerState<EditGroupDmContent> {
         ),
         child: Center(
           child: PhosphorIcon(
-            PhosphorIconsRegular.plus,
+            PhosphorIconsBold.plus,
             size: 32,
             color: context.colors.textTertiary,
           ),

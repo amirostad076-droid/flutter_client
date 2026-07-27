@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
@@ -131,7 +130,7 @@ class UserArea extends ConsumerWidget {
           ),
           SizedBox(width: layout.s1),
           _ControlButton(
-            icon: PhosphorIconsRegular.gear,
+            icon: PhosphorIconsBold.gear,
             color: colors.interactiveNormal,
             onPressed: onSettingsTap,
           ),

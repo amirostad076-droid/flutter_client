@@ -666,7 +666,7 @@ class _DMListState extends ConsumerState<DMList> {
                 child: Padding(
                   padding: const EdgeInsets.all(4),
                   child: PhosphorIcon(
-                    PhosphorIconsRegular.plus,
+                    PhosphorIconsBold.plus,
                     size: 16,
                     color: isRestricted
                         ? context.colors.textPrimaryMuted.withValues(alpha: 0.4)
@@ -1650,12 +1650,12 @@ class _DmBottomSheet extends ConsumerWidget {
         children: [
           if (!convo.isGroup)
             FluxerBottomSheetMenuItem(
-              icon: PhosphorIconsRegular.snowflake,
+              icon: PhosphorIconsBold.snowflake,
               label: l10n.dmCopyUserId,
               onTap: () => pop(_DmAction.copyUserId),
             ),
           FluxerBottomSheetMenuItem(
-            icon: PhosphorIconsRegular.snowflake,
+            icon: PhosphorIconsBold.snowflake,
             label: l10n.dmCopyChannelId,
             onTap: () => pop(_DmAction.copyChannelId),
           ),

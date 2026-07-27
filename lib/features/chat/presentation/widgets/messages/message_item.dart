@@ -1270,7 +1270,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                           child: Padding(
                             padding: const EdgeInsets.only(right: 6),
                             child: PhosphorIcon(
-                              PhosphorIconsRegular.eye,
+                              PhosphorIconsBold.eye,
                               size: 14,
                               color: footerTextStyle.color,
                             ),

@@ -29,7 +29,7 @@ class GuildExpressionSearchField extends StatelessWidget {
         hint: hintText,
         onChanged: onChanged,
         prefixIcon: PhosphorIcon(
-          PhosphorIconsRegular.magnifyingGlass,
+          PhosphorIconsBold.magnifyingGlass,
           size: 16,
           color: context.colors.textPrimaryMuted,
         ),

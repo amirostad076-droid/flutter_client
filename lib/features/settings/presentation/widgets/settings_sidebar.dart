@@ -44,7 +44,7 @@ class SettingsSidebar extends StatelessWidget {
               prefixIcon: Padding(
                 padding: const EdgeInsets.only(left: 8, right: 4),
                 child: PhosphorIcon(
-                  PhosphorIconsRegular.magnifyingGlass,
+                  PhosphorIconsBold.magnifyingGlass,
                   size: 18,
                   color: context.colors.textPrimaryMuted,
                 ),

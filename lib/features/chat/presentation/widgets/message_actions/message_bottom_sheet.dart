@@ -208,7 +208,7 @@ List<Widget> buildMessageActionMenuGroups({
       FluxerMenuGroup(
         children: <Widget>[
           FluxerBottomSheetMenuItem(
-            icon: PhosphorIconsRegular.arrowClockwise,
+            icon: PhosphorIconsBold.arrowClockwise,
             label: l10n.retry,
             onTap: () => onAction(MessageAction.retry),
           ),
@@ -326,7 +326,7 @@ List<Widget> buildMessageActionMenuGroups({
       ),
     if (canShowSuppressEmbeds && showSuppressEmbedsButton)
       FluxerBottomSheetMenuItem(
-        icon: PhosphorIconsRegular.eyeSlash,
+        icon: PhosphorIconsBold.eyeSlash,
         label: isEmbedsSuppressed
             ? l10n.chatMessageUnsuppressEmbeds
             : l10n.chatMessageSuppressEmbeds,
@@ -380,7 +380,7 @@ List<Widget> buildMessageActionMenuGroups({
 
   final List<Widget> utilityItems = <Widget>[
     FluxerBottomSheetMenuItem(
-      icon: PhosphorIconsRegular.link,
+      icon: PhosphorIconsBold.link,
       label: l10n.chatMessageCopyMessageLink,
       onTap: () => onAction(MessageAction.copyMessageLink),
     ),
@@ -391,7 +391,7 @@ List<Widget> buildMessageActionMenuGroups({
         onTap: () => onAction(MessageAction.copyText),
       ),
     FluxerBottomSheetMenuItem(
-      icon: PhosphorIconsRegular.snowflake,
+      icon: PhosphorIconsBold.snowflake,
       label: l10n.chatMessageCopyMessageId,
       onTap: () => onAction(MessageAction.copyMessageId),
     ),

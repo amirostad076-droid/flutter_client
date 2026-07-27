@@ -389,7 +389,7 @@ class _StickerPickerContentState extends ConsumerState<StickerPickerContent> {
                     ? 'Remove from Favorites'
                     : 'Add to Favorites',
                 icon: isFavorite
-                    ? PhosphorIconsRegular.star
+                    ? PhosphorIconsBold.star
                     : PhosphorIconsFill.star,
                 onTap: () {
                   close();

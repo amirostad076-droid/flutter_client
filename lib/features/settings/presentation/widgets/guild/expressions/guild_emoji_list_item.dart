@@ -193,7 +193,7 @@ class _GuildEmojiListItemState extends State<GuildEmojiListItem> {
             FluxerButton.ghost(
               size: FluxerButtonSize.small,
               fitContent: true,
-              icon: PhosphorIconsRegular.trash,
+              icon: PhosphorIconsBold.trash,
               label: l10n.guildSettingsEmojiDeleteTitle,
               onPressed: widget.onDelete,
             ),

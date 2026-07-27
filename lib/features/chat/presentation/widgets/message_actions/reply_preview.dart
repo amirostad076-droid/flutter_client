@@ -425,7 +425,7 @@ class ReplyInputBar extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         PhosphorIcon(
-                          PhosphorIconsRegular.at,
+                          PhosphorIconsBold.at,
                           size: 20,
                           color: shouldMention
                               ? activeMentionColor

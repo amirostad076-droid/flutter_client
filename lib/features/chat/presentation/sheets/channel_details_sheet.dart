@@ -976,7 +976,7 @@ class _PinsEmptyState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             PhosphorIcon(
-              PhosphorIconsRegular.sparkle,
+              PhosphorIconsBold.sparkle,
               size: 80,
               color: context.colors.textPrimaryMuted,
             ),
@@ -3020,13 +3020,13 @@ Future<void> _showDetailsMoreSheet(
         if (isDM)
           FluxerBottomSheetMenuItem(
             label: l10n.dmCopyUserId,
-            icon: PhosphorIconsRegular.snowflake,
+            icon: PhosphorIconsBold.snowflake,
             onTap: () => run(() => onCopy(dm.recipientId)),
           ),
         if (channelId != null)
           FluxerBottomSheetMenuItem(
             label: l10n.dmCopyChannelId,
-            icon: PhosphorIconsRegular.snowflake,
+            icon: PhosphorIconsBold.snowflake,
             onTap: () => run(() => onCopy(channelId)),
           ),
       ];
@@ -3202,7 +3202,7 @@ Future<void> _showPinnedMessageActions(
             ),
             FluxerBottomSheetMenuItem(
               label: l10n.channelDetailsCopyMessageId,
-              icon: PhosphorIconsRegular.snowflake,
+              icon: PhosphorIconsBold.snowflake,
               onTap: () => pop(_PinnedMessageAction.copyMessageId),
             ),
           ],
@@ -3272,7 +3272,7 @@ Future<void> _showSearchMessageActions(
             ),
             FluxerBottomSheetMenuItem(
               label: l10n.channelDetailsCopyMessageId,
-              icon: PhosphorIconsRegular.snowflake,
+              icon: PhosphorIconsBold.snowflake,
               onTap: () => pop(_PinnedMessageAction.copyMessageId),
             ),
           ],
@@ -3464,12 +3464,12 @@ String _scopeDescription(
 };
 
 IconData _scopeIcon(MessageSearchScopeFilter value) => switch (value) {
-  MessageSearchScopeFilter.current => PhosphorIconsRegular.hash,
-  MessageSearchScopeFilter.openDms => PhosphorIconsRegular.chatCenteredDots,
-  MessageSearchScopeFilter.allDms => PhosphorIconsRegular.envelopeSimple,
-  MessageSearchScopeFilter.allGuilds => PhosphorIconsRegular.globe,
-  MessageSearchScopeFilter.all => PhosphorIconsRegular.users,
-  MessageSearchScopeFilter.openDmsAndAllGuilds => PhosphorIconsRegular.users,
+  MessageSearchScopeFilter.current => PhosphorIconsBold.hash,
+  MessageSearchScopeFilter.openDms => PhosphorIconsBold.chatCenteredDots,
+  MessageSearchScopeFilter.allDms => PhosphorIconsBold.envelopeSimple,
+  MessageSearchScopeFilter.allGuilds => PhosphorIconsBold.globe,
+  MessageSearchScopeFilter.all => PhosphorIconsBold.users,
+  MessageSearchScopeFilter.openDmsAndAllGuilds => PhosphorIconsBold.users,
 };
 
 String _sortLabel(FluxerLocalizations l10n, MessageSearchSortFilter value) =>
@@ -3493,9 +3493,9 @@ String _sortDescription(
 };
 
 IconData _sortIcon(MessageSearchSortFilter value) => switch (value) {
-  MessageSearchSortFilter.newest => PhosphorIconsRegular.clockClockwise,
-  MessageSearchSortFilter.oldest => PhosphorIconsRegular.clockCounterClockwise,
-  MessageSearchSortFilter.relevance => PhosphorIconsRegular.sparkle,
+  MessageSearchSortFilter.newest => PhosphorIconsBold.clockClockwise,
+  MessageSearchSortFilter.oldest => PhosphorIconsBold.clockCounterClockwise,
+  MessageSearchSortFilter.relevance => PhosphorIconsBold.sparkle,
 };
 
 String _contentLabel(
@@ -3532,11 +3532,11 @@ String _contentDescription(
 };
 
 IconData _contentIcon(MessageSearchContentFilter value) => switch (value) {
-  MessageSearchContentFilter.image => PhosphorIconsRegular.image,
-  MessageSearchContentFilter.video => PhosphorIconsRegular.videoCamera,
-  MessageSearchContentFilter.audio => PhosphorIconsRegular.musicNote,
-  MessageSearchContentFilter.file => PhosphorIconsRegular.file,
-  MessageSearchContentFilter.link => PhosphorIconsRegular.link,
-  MessageSearchContentFilter.embed => PhosphorIconsRegular.browser,
-  MessageSearchContentFilter.sticker => PhosphorIconsRegular.sticker,
+  MessageSearchContentFilter.image => PhosphorIconsBold.image,
+  MessageSearchContentFilter.video => PhosphorIconsBold.videoCamera,
+  MessageSearchContentFilter.audio => PhosphorIconsBold.musicNote,
+  MessageSearchContentFilter.file => PhosphorIconsBold.file,
+  MessageSearchContentFilter.link => PhosphorIconsBold.link,
+  MessageSearchContentFilter.embed => PhosphorIconsBold.browser,
+  MessageSearchContentFilter.sticker => PhosphorIconsBold.sticker,
 };

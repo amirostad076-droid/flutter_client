@@ -66,7 +66,7 @@ class GuildDragFeedback extends StatelessWidget {
             child: isUnavailable
                 ? Center(
                     child: PhosphorIcon(
-                      PhosphorIconsRegular.exclamationMark,
+                      PhosphorIconsBold.exclamationMark,
                       color: colors.textOnBrandPrimary,
                       size: 28,
                     ),

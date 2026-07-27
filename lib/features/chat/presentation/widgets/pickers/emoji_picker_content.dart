@@ -380,7 +380,7 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
                     ? 'Remove from Favorites'
                     : 'Add to Favorites',
                 icon: isFavorite
-                    ? PhosphorIconsRegular.star
+                    ? PhosphorIconsBold.star
                     : PhosphorIconsFill.star,
                 onTap: () {
                   close();
@@ -1337,7 +1337,7 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
         height: _kEmojiSize,
         child: Center(
           child: PhosphorIcon(
-            PhosphorIconsRegular.imageBroken,
+            PhosphorIconsBold.imageBroken,
             size: _kEmojiSize * 0.55,
             color: colors.textTertiary,
           ),

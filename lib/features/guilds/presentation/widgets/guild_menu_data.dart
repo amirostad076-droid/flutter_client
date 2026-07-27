@@ -235,7 +235,7 @@ List<GuildMenuGroup> buildGuildMenuGroups({
     [
       GuildMenuAction(
         label: l10n.guildMenuCopyCommunityId,
-        icon: PhosphorIconsRegular.snowflake,
+        icon: PhosphorIconsBold.snowflake,
         action: GuildAction.copyGuildId,
       ),
     ],

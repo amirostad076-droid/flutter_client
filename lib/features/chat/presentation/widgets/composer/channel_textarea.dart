@@ -1631,7 +1631,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                 FluxerMenuGroup(
                   children: [
                     FluxerBottomSheetMenuItem(
-                      icon: PhosphorIconsRegular.images,
+                      icon: PhosphorIconsBold.images,
                       label: l10n.chatAttachmentSourceGallery,
                       onTap: () async {
                         close();
@@ -1656,7 +1656,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                       },
                     ),
                     FluxerBottomSheetMenuItem(
-                      icon: PhosphorIconsRegular.camera,
+                      icon: PhosphorIconsBold.camera,
                       label: l10n.chatAttachmentSourceCamera,
                       onTap: () async {
                         close();
@@ -1680,7 +1680,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                       },
                     ),
                     FluxerBottomSheetMenuItem(
-                      icon: PhosphorIconsRegular.folderOpen,
+                      icon: PhosphorIconsBold.folderOpen,
                       label: l10n.chatAttachmentSourceBrowse,
                       onTap: () async {
                         close();

@@ -89,7 +89,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                             ? null
                             : () => unawaited(_mentionsFilterInvoker!()),
                         icon: Icon(
-                          PhosphorIconsRegular.funnel,
+                          PhosphorIconsBold.funnel,
                           color: colors.textSecondary,
                           size: 22,
                         ),

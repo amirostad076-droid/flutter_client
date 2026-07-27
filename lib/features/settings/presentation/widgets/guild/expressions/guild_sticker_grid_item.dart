@@ -140,7 +140,7 @@ class _GuildStickerGridItemState extends State<GuildStickerGridItem> {
               FluxerButton.ghost(
                 size: FluxerButtonSize.small,
                 fitContent: true,
-                icon: PhosphorIconsRegular.trash,
+                icon: PhosphorIconsBold.trash,
                 label: l10n.guildSettingsStickerDeleteTitle,
                 onPressed: widget.onDelete,
               ),

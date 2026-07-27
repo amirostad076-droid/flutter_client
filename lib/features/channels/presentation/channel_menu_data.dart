@@ -245,7 +245,7 @@ List<ChannelMenuGroup> buildChannelMenuGroups({
       label: state.isLinkChannel
           ? l10n.channelMenuCopyChannelLink
           : l10n.channelDetailsCopyLink,
-      icon: PhosphorIconsFill.link,
+      icon: PhosphorIconsBold.link,
       action: ChannelMenuAction.copyLink,
     ),
   );

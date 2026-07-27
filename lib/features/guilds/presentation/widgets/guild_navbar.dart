@@ -522,7 +522,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
         );
         return _DashedGuildIcon(
           label: l10n.guildNavbarExploreDiscoverableCommunities,
-          icon: PhosphorIconsRegular.compass,
+          icon: PhosphorIconsBold.compass,
           isSelected: isDiscover,
           onTap: () {
             if (ref.read(currentLocationProvider) == RoutePaths.discover) {
@@ -534,13 +534,13 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       case _NavbarListEntryKind.addCommunity:
         return _DashedGuildIcon(
           label: l10n.guildNavbarAddCommunity,
-          icon: PhosphorIconsRegular.plus,
+          icon: PhosphorIconsBold.plus,
           onTap: () => unawaited(showAddGuildModal(context, ref)),
         );
       case _NavbarListEntryKind.help:
         return _DashedGuildIcon(
           label: l10n.guildNavbarHelp,
-          icon: PhosphorIconsRegular.question,
+          icon: PhosphorIconsBold.question,
           onTap: () =>
               handleExternalLinkTap(context, 'https://help.fluxer.app'),
         );
@@ -2662,7 +2662,7 @@ class _GuildListItemState extends State<_GuildListItem>
                             child: widget.isUnavailable
                                 ? Center(
                                     child: PhosphorIcon(
-                                      PhosphorIconsRegular.exclamationMark,
+                                      PhosphorIconsBold.exclamationMark,
                                       color: context.colors.textOnBrandPrimary,
                                       size: 32,
                                     ),
@@ -4389,7 +4389,7 @@ class _UnavailableGuildsIndicator extends StatelessWidget {
                   ),
                   child: Center(
                     child: PhosphorIcon(
-                      PhosphorIconsRegular.exclamationMark,
+                      PhosphorIconsBold.exclamationMark,
                       color: context.colors.textOnBrandPrimary,
                       size: 32,
                     ),

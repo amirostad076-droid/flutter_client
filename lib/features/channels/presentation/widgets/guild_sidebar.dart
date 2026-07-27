@@ -1165,8 +1165,8 @@ class _CategoryHeader extends ConsumerWidget {
             const SizedBox(width: 4),
             PhosphorIcon(
               isCollapsed
-                  ? PhosphorIconsRegular.caretRight
-                  : PhosphorIconsRegular.caretDown,
+                  ? PhosphorIconsBold.caretRight
+                  : PhosphorIconsBold.caretDown,
               size: 12,
               color: context.colors.textPrimaryMuted,
             ),

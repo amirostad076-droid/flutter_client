@@ -134,6 +134,6 @@ IconData guildSettingsTabIcon(GuildSettingsTab tab) {
     GuildSettingsTab.members => PhosphorIconsFill.users,
     GuildSettingsTab.invites => PhosphorIconsFill.ticket,
     GuildSettingsTab.bans => PhosphorIconsFill.prohibit,
-    GuildSettingsTab.channels => PhosphorIconsRegular.hash,
+    GuildSettingsTab.channels => PhosphorIconsBold.hash,
   };
 }

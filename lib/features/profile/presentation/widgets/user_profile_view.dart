@@ -1026,7 +1026,7 @@ class _ErrorState extends StatelessWidget {
             right: layout.s2,
             child: FluxerButton.circleAlt(
               onPressed: onClose,
-              icon: PhosphorIconsRegular.x,
+              icon: PhosphorIconsBold.x,
             ),
           ),
       ],

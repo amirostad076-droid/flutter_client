@@ -373,7 +373,7 @@ class _GuildChannelSettingsRowContent extends StatelessWidget {
                     opacity: 0.35,
                     child: Center(
                       child: PhosphorIcon(
-                        PhosphorIconsRegular.dotsSixVertical,
+                        PhosphorIconsBold.dotsSixVertical,
                         size: 18,
                         color: context.colors.textTertiaryMuted,
                       ),
@@ -381,7 +381,7 @@ class _GuildChannelSettingsRowContent extends StatelessWidget {
                   ),
                   child: Center(
                     child: PhosphorIcon(
-                      PhosphorIconsRegular.dotsSixVertical,
+                      PhosphorIconsBold.dotsSixVertical,
                       size: 18,
                       color: context.colors.textPrimaryMuted,
                     ),
@@ -456,7 +456,7 @@ class _DragFeedbackRow extends StatelessWidget {
             height: kGuildChannelSettingsDragTouchSize,
             child: Center(
               child: PhosphorIcon(
-                PhosphorIconsRegular.dotsSixVertical,
+                PhosphorIconsBold.dotsSixVertical,
                 size: 18,
                 color: handleColor,
               ),

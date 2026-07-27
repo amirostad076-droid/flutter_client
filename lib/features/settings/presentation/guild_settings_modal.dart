@@ -180,7 +180,7 @@ class _GuildSettingsModalState extends ConsumerState<GuildSettingsModal> {
       width: 36,
       height: 36,
       child: PhosphorIcon(
-        PhosphorIconsRegular.x,
+        PhosphorIconsBold.x,
         size: 18,
         color: context.colors.interactiveNormal,
       ),

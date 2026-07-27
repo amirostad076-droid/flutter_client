@@ -57,7 +57,7 @@ class GuildUploadSlotInfo extends StatelessWidget {
                 label: uploadLabel,
                 size: FluxerButtonSize.small,
                 fitContent: true,
-                icon: PhosphorIconsRegular.uploadSimple,
+                icon: PhosphorIconsBold.uploadSimple,
                 onPressed: onUpload,
               ),
             ],

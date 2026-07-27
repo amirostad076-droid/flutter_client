@@ -349,7 +349,7 @@ class _AttachmentAudioState extends State<AttachmentAudio> {
                   onPressed: _downloadAudio,
                   variant: FluxerButtonVariant.ghost,
                   size: FluxerButtonSize.compact,
-                  icon: PhosphorIconsRegular.downloadSimple,
+                  icon: PhosphorIconsBold.downloadSimple,
                 ),
               ),
             ],

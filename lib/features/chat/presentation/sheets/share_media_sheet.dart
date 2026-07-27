@@ -473,7 +473,7 @@ class _ShareMediaSheetBodyState extends ConsumerState<_ShareMediaSheetBody> {
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
-            PhosphorIconsRegular.textAa,
+            PhosphorIconsBold.textAa,
             size: 24,
             color: context.colors.textSecondary,
           ),
@@ -505,7 +505,7 @@ class _ShareMediaSheetBodyState extends ConsumerState<_ShareMediaSheetBody> {
             child: isImage
                 ? null
                 : Icon(
-                    PhosphorIconsRegular.filmStrip,
+                    PhosphorIconsBold.filmStrip,
                     size: 24,
                     color: context.colors.textSecondary,
                   ),
