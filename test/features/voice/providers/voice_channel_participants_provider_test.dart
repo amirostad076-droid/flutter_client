@@ -33,10 +33,10 @@ void main() {
     final FluxerDatabase db = openTestDatabase();
     final ProviderContainer container = makeContainer(db);
 
-    final List<VoiceChannelParticipantData> participants = await container.read(
+    final List<VoiceChannelParticipantData> participants = container.read(
       voiceChannelParticipantsProvider(
         voiceChannelParticipantsFamilyKey('g1', 'A'),
-      ).future,
+      ),
     );
 
     expect(participants, isEmpty);
@@ -54,12 +54,11 @@ void main() {
           .read(voiceStatesMapProvider.notifier)
           .update(voiceState(userId: 'u1', channelId: 'A', guildId: 'g1'));
 
-      final List<VoiceChannelParticipantData> participants = await container
-          .read(
-            voiceChannelParticipantsProvider(
-              voiceChannelParticipantsFamilyKey('g1', 'A'),
-            ).future,
-          );
+      final String key = voiceChannelParticipantsFamilyKey('g1', 'A');
+      await container.read(voiceParticipantUsersLoaderProvider('u1').future);
+      final List<VoiceChannelParticipantData> participants = container.read(
+        voiceChannelParticipantsProvider(key),
+      );
 
       expect(participants, hasLength(1));
       expect(participants.single.userId, 'u1');

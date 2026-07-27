@@ -25,33 +25,28 @@ class VoiceChannelParticipantsList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final String key = voiceChannelParticipantsFamilyKey(guildId, channelId);
-    final AsyncValue<List<VoiceSidebarParticipant>> async = ref.watch(
+    ref.watch(voiceChannelSidebarStructureProvider(key));
+    final List<VoiceSidebarParticipant> list = ref.read(
       voiceChannelSidebarParticipantsProvider(key),
     );
-    return async.when(
-      data: (List<VoiceSidebarParticipant> list) {
-        if (list.isEmpty) {
-          return const SizedBox.shrink();
-        }
-        return Padding(
-          padding: const EdgeInsets.only(left: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              for (int i = 0; i < list.length; i++) ...<Widget>[
-                if (i > 0) const SizedBox(height: 2),
-                _VoiceChannelParticipantTile(
-                  guildId: guildId,
-                  channelId: channelId,
-                  participant: list[i],
-                ),
-              ],
-            ],
-          ),
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (_, _) => const SizedBox.shrink(),
+    if (list.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: const EdgeInsets.only(left: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          for (int i = 0; i < list.length; i++) ...<Widget>[
+            if (i > 0) const SizedBox(height: 2),
+            _VoiceChannelParticipantTile(
+              guildId: guildId,
+              channelId: channelId,
+              participant: list[i],
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -96,11 +91,21 @@ class _VoiceChannelParticipantTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final VoiceSidebarParticipant p = participant;
-    final bool showMic = p.guildMute || p.selfMute;
-    final bool micDanger = p.guildMute;
-    final bool showDeaf = p.guildDeaf || p.selfDeaf;
-    final bool deafDanger = p.guildDeaf;
-    final bool hasIcons = p.selfVideo || showMic || showDeaf || p.selfStream;
+    final VoiceSidebarVoiceFlags flags = ref.watch(
+      voiceSidebarVoiceFlagsProvider(
+        voiceSidebarVoiceFlagsKey(
+          guildId: guildId,
+          channelId: channelId,
+          userId: p.userId,
+        ),
+      ),
+    );
+    final bool showMic = flags.guildMute || flags.selfMute;
+    final bool micDanger = flags.guildMute;
+    final bool showDeaf = flags.guildDeaf || flags.selfDeaf;
+    final bool deafDanger = flags.guildDeaf;
+    final bool hasIcons =
+        flags.selfVideo || showMic || showDeaf || flags.selfStream;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onSecondaryTapUp: (TapUpDetails details) {
@@ -142,12 +147,12 @@ class _VoiceChannelParticipantTile extends ConsumerWidget {
             if (hasIcons) ...<Widget>[
               const SizedBox(width: 4),
               _VoiceParticipantStatusIcons(
-                selfVideo: p.selfVideo,
+                selfVideo: flags.selfVideo,
                 showMic: showMic,
                 micDanger: micDanger,
                 showDeaf: showDeaf,
                 deafDanger: deafDanger,
-                selfStream: p.selfStream,
+                selfStream: flags.selfStream,
               ),
             ],
           ],
