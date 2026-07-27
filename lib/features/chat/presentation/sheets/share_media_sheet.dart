@@ -7,6 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/channels/domain/channel.dart';
+import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
+import 'package:fluxer_app/features/channels/utils/navigate_to_channel_content.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_field.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/message_character_counter.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/expression_picker.dart';
@@ -166,6 +169,20 @@ class _ShareMediaSheetBodyState extends ConsumerState<_ShareMediaSheetBody> {
     }
   }
 
+  Future<void> _navigateToDestination(String channelId) async {
+    final Channel? channel = ref.read(channelByIdProvider(channelId)).value;
+    final String? guildId = channel != null && channel.guildId.isNotEmpty
+        ? channel.guildId
+        : null;
+    await navigateToChannelContent(
+      context: context,
+      ref: ref,
+      channelId: channelId,
+      guildId: guildId,
+      channel: channel,
+    );
+  }
+
   Future<void> _share(bool messageDisabled) async {
     if (_isSending) {
       return;
@@ -187,6 +204,12 @@ class _ShareMediaSheetBodyState extends ConsumerState<_ShareMediaSheetBody> {
       ).send(channelIds: destinations, files: widget.files, message: message);
       if (!mounted) {
         return;
+      }
+      if (sentCount > 0) {
+        await _navigateToDestination(destinations.first);
+        if (!mounted) {
+          return;
+        }
       }
       if (sentCount == destinations.length) {
         _showToast(l10n.shareMediaSuccessToast, FluxerToastVariant.success);
