@@ -120,6 +120,7 @@ class _MessageReactionsSheetBodyState
       ),
     );
 
+    final String? guildId = ref.watch(contextualGuildIdProvider);
     return Column(
       children: [
         _ReactionTabRow(
@@ -163,7 +164,7 @@ class _MessageReactionsSheetBodyState
                       child: Center(child: FluxerLoadingSpinner()),
                     );
                   }
-                  return _ReactorRow(user: data.users[index]);
+                  return _ReactorRow(user: data.users[index], guildId: guildId);
                 },
               );
             },
@@ -287,17 +288,21 @@ class _ReactionTab extends StatelessWidget {
 }
 
 class _ReactorRow extends ConsumerWidget {
-  const _ReactorRow({required this.user});
+  const _ReactorRow({required this.user, required this.guildId});
 
   final UserPartialResponse user;
+  final String? guildId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hasGlobalName = user.globalName?.isNotEmpty ?? false;
-    final String? guildId = ref.watch(activeGuildIdProvider);
-    final GuildUserDisplay? resolved = guildId == null || guildId.isEmpty
+    final String? resolvedGuildId = guildId;
+    final GuildUserDisplay? resolved =
+        resolvedGuildId == null || resolvedGuildId.isEmpty
         ? null
-        : ref.watch(guildUserDisplayFromDbProvider((user.id, guildId))).value;
+        : ref
+              .watch(guildUserDisplayFromDbProvider((user.id, resolvedGuildId)))
+              .value;
     final displayName =
         resolved?.displayName ??
         resolveDisplayName(

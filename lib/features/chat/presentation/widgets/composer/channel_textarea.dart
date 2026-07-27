@@ -1362,7 +1362,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         channelMessagePermissionsForComposer(
           ref.read(channelMessagePermissionsProvider(channelId)),
         ).canUseExternalEmojis;
-    final String? activeGuildId = ref.read(activeGuildIdProvider);
+    final String? activeGuildId = ref.read(contextualGuildIdProvider);
     final Map<String, String> markdownByName = <String, String>{};
     final Set<String> knownIds = <String>{};
     final Set<String> usableIds = <String>{};
@@ -1389,7 +1389,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     String channelId,
     String content,
   ) async {
-    final String? guildId = ref.read(activeGuildIdProvider);
+    final String? guildId = ref.read(contextualGuildIdProvider);
     if (guildId == null || guildId.isEmpty) {
       return true;
     }

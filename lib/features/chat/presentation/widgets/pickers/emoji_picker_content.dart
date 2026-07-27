@@ -415,9 +415,9 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
   _EmojiPickerData _watchPickerData() {
     final guilds = guildsForExpressionPicker(
       organized: ref.watch(organizedGuildListProvider),
-      activeGuildId: ref.watch(activeGuildIdProvider),
+      activeGuildId: ref.watch(contextualGuildIdProvider),
     );
-    final activeGuildId = ref.watch(activeGuildIdProvider);
+    final activeGuildId = ref.watch(contextualGuildIdProvider);
     final String? channelId = widget.channelId;
     final List<DmConversation> dmConversations = ref
         .watch(dmViewModelProvider)
@@ -485,7 +485,7 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
   }
 
   Map<Guild, List<GuildEmojiEntry>> _readGuildEmojisByGuild() {
-    final activeGuildId = ref.read(activeGuildIdProvider);
+    final activeGuildId = ref.read(contextualGuildIdProvider);
     final guilds = guildsForExpressionPicker(
       organized: ref.read(organizedGuildListProvider),
       activeGuildId: activeGuildId,

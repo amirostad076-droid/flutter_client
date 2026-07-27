@@ -13,7 +13,6 @@ import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
-import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/chat/data/chat_unread_summary.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/domain/message_list_anchor.dart';
@@ -2458,16 +2457,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     );
     final channelRow = isDmChannel || channelId.isEmpty
         ? null
-        : findChannelById(ref.watch(channelListViewModelProvider), channelId);
-    final String? guildId = channelRow?.guildId;
-    final bool isGuildSendDisabled =
-        guildId != null &&
-        guildId.isNotEmpty &&
-        ref.watch(
-          guildByIdProvider(guildId).select(
-            (AsyncValue<Guild?> guild) => guild.value?.isSendDisabled ?? false,
-          ),
-        );
+        : resolveGuildChannel(ref, channelId);
     final int? channelPermissionBits = channelId.isEmpty
         ? null
         : ref
@@ -2613,6 +2603,8 @@ class _MessageListState extends ConsumerState<MessageList> {
           (
             BuildContext context,
             MessageRenderSettings messageRenderSettings,
+            String? guildId,
+            bool isGuildSendDisabled,
             ({
               bool canSendMessages,
               bool canAddReactions,
@@ -2969,6 +2961,8 @@ class _MessageListSettingsLayer extends ConsumerWidget {
   final Widget Function(
     BuildContext context,
     MessageRenderSettings settings,
+    String? guildId,
+    bool isGuildSendDisabled,
     ({
       bool canSendMessages,
       bool canAddReactions,
@@ -2996,8 +2990,17 @@ class _MessageListSettingsLayer extends ConsumerWidget {
     final RenderSpoilers renderSpoilers = ref.watch(
       userSettingsViewModelProvider.select((s) => s.renderSpoilers),
     );
+    final String? guildId = ref.watch(contextualGuildIdProvider);
+    final bool isGuildSendDisabled =
+        guildId != null &&
+        guildId.isNotEmpty &&
+        ref.watch(
+          guildByIdProvider(guildId).select(
+            (AsyncValue<Guild?> guild) => guild.value?.isSendDisabled ?? false,
+          ),
+        );
     final MessageRenderSettings settings = MessageRenderSettings(
-      activeGuildId: ref.watch(activeGuildIdProvider),
+      activeGuildId: guildId,
       renderEmbeds: ref.watch(
         userSettingsViewModelProvider.select((s) => s.renderEmbeds),
       ),
@@ -3020,7 +3023,7 @@ class _MessageListSettingsLayer extends ConsumerWidget {
         appearancePreferencesProvider.select((s) => s.messageGroupSpacing),
       ),
     );
-    return builder(context, settings, (
+    return builder(context, settings, guildId, isGuildSendDisabled, (
       canSendMessages: channelMessagePerms.canSendMessages,
       canAddReactions: canAddReactionsInChannel(
         isDmChannel: isDmChannel,

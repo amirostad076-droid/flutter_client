@@ -269,7 +269,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       return;
     }
     final String? guildId =
-        widget.previewRoleGuildId ?? ref.read(activeGuildIdProvider);
+        widget.previewRoleGuildId ?? ref.read(contextualGuildIdProvider);
     unawaited(
       FluxerUserProfileSheet.show(
         context,
@@ -364,7 +364,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
 
   Future<List<QuickReactionItem>?> _loadQuickReactionItems() {
     final guildId =
-        widget.previewRoleGuildId ?? ref.read(activeGuildIdProvider);
+        widget.previewRoleGuildId ?? ref.read(contextualGuildIdProvider);
     return loadQuickReactionItems(
       ref,
       channelId: widget.message.channelId,
@@ -458,7 +458,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         widget.previewRoleGuildId ??
         (settings != null
             ? settings.activeGuildId
-            : ref.watch(activeGuildIdProvider));
+            : ref.watch(contextualGuildIdProvider));
     final bool renderEmbeds =
         settings?.renderEmbeds ??
         ref.watch(userSettingsViewModelProvider.select((s) => s.renderEmbeds));

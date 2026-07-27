@@ -115,7 +115,7 @@ Future<void> dispatchMessageAction({
       unawaited(copyToClipboard(context: context, value: message.id));
     case MessageAction.copyMessageLink:
       final String? guildId =
-          previewRoleGuildId ?? ref.read(activeGuildIdProvider);
+          previewRoleGuildId ?? ref.read(contextualGuildIdProvider);
       unawaited(
         copyToClipboard(
           context: context,

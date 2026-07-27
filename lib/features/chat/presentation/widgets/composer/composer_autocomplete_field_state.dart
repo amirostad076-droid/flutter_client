@@ -216,8 +216,7 @@ class ComposerAutocompleteFieldState
   }
 
   Channel? _guildChannel() {
-    final ChannelListState list = ref.read(channelListViewModelProvider);
-    return findChannelById(list, _channelId);
+    return resolveGuildChannel(ref, _channelId);
   }
 
   void _warmCustomEmoji() {
@@ -745,7 +744,7 @@ class ComposerAutocompleteFieldState
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     await EmojiRegistry.ensureLoaded();
     final bool hasChannel = _channelId.isNotEmpty;
-    final String activeGuildId = ref.read(activeGuildIdProvider) ?? '';
+    final String activeGuildId = ref.read(contextualGuildIdProvider) ?? '';
     final bool hasPlutoniumEmojiAccess =
         !hasChannel ||
         composerHasDirectChatEmojiAccess(

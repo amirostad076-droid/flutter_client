@@ -30,6 +30,18 @@ Stream<Channel?> channelById(Ref ref, String id) {
 }
 
 @riverpod
+Stream<String?> channelGuildId(Ref ref, String id) {
+  if (id.isEmpty) {
+    return Stream<String?>.value(null);
+  }
+  final db = ref.watch(fluxerDatabaseProvider);
+  return db.channelDao
+      .watchChannelById(id)
+      .map((row) => row?.guildId)
+      .distinct();
+}
+
+@riverpod
 Stream<ChannelPermissionIdentity?> channelPermissionIdentity(
   Ref ref,
   String id,
