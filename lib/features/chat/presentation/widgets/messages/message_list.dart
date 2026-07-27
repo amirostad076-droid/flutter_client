@@ -54,7 +54,7 @@ import 'package:fluxer_app/features/chat/presentation/'
 import 'package:fluxer_app/features/chat/providers/channel/channel_message_permissions_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_read_viewport_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
-import 'package:fluxer_app/features/chat/providers/messages/channel_message_stream_provider.dart';
+import 'package:fluxer_app/features/moderation/providers/local_user_spam_override_provider.dart';
 import 'package:fluxer_app/features/chat/providers/messages/spoiler_reveal_provider.dart';
 import 'package:fluxer_app/features/chat/utils/channel_message_stream.dart';
 import 'package:fluxer_app/features/chat/utils/chat_spinner_debug.dart';
@@ -412,10 +412,11 @@ class _MessageListState extends ConsumerState<MessageList> {
 
   List<Object> _anchorItemKeysForMessages(List<Message> messages) =>
       _anchorItemKeysForStream(
-        createChannelStream(
+        _channelStreamFor(
           messages: messages,
           oldestUnreadMessageId: null,
-          context: ref.read(channelCollapseContextProvider),
+          currentUserId: ref.read(currentUserIdProvider),
+          blockedUserIds: ref.read(blockedUserIdsProvider),
         ),
       );
 
@@ -793,6 +794,29 @@ class _MessageListState extends ConsumerState<MessageList> {
       _pendingScrollTarget != null ||
       _messageJumpInFlight > 0 ||
       _activeSettleGeneration != null;
+
+  List<ChannelStreamItem> _channelStreamFor({
+    required List<Message> messages,
+    required String? oldestUnreadMessageId,
+    required String? currentUserId,
+    required Set<String> blockedUserIds,
+  }) {
+    if (messages.isEmpty) {
+      return const <ChannelStreamItem>[];
+    }
+    return createChannelStream(
+      messages: messages,
+      oldestUnreadMessageId: oldestUnreadMessageId,
+      context: ChannelCollapseContext(
+        treatSpam: true,
+        currentUserId: currentUserId,
+        blockedUserIds: blockedUserIds,
+        isUserMarkedAsSpammer: ref
+            .read(localUserSpamOverrideProvider.notifier)
+            .isUserMarkedAsSpammer,
+      ),
+    );
+  }
 
   String? _channelLastMessageIdFor(String channelId) {
     if (channelId.isEmpty) {
@@ -1251,13 +1275,11 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
     final ChatViewState chatState = ref.read(chatViewModelProvider);
     // Match the stream the reverse list was built with (visual unread).
-    final List<ChannelStreamItem> stream = ref.read(
-      channelMessageStreamProvider(
-        ChannelMessageStreamInput(
-          messages: chatState.messages,
-          oldestUnreadMessageId: _lastVisualUnreadId,
-        ),
-      ),
+    final List<ChannelStreamItem> stream = _channelStreamFor(
+      messages: chatState.messages,
+      oldestUnreadMessageId: _lastVisualUnreadId,
+      currentUserId: ref.read(currentUserIdProvider),
+      blockedUserIds: ref.read(blockedUserIdsProvider),
     );
     final int? renderIndex = findChannelStreamRenderIndex(stream, messageId);
     if (renderIndex == null) {
@@ -1489,13 +1511,11 @@ class _MessageListState extends ConsumerState<MessageList> {
     // unread anchor, not necessarily stickyUnreadMessageId alone.
     final String? unreadForStream =
         _centerAnchorMessageId ?? chatState.stickyUnreadMessageId;
-    final List<ChannelStreamItem> stream = ref.read(
-      channelMessageStreamProvider(
-        ChannelMessageStreamInput(
-          messages: chatState.messages,
-          oldestUnreadMessageId: unreadForStream,
-        ),
-      ),
+    final List<ChannelStreamItem> stream = _channelStreamFor(
+      messages: chatState.messages,
+      oldestUnreadMessageId: unreadForStream,
+      currentUserId: ref.read(currentUserIdProvider),
+      blockedUserIds: ref.read(blockedUserIdsProvider),
     );
     final String? anchorId = _centerAnchorMessageId;
     final int splitIndex = anchorId == null
@@ -2406,6 +2426,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       ),
     );
     final Set<String> blockedUserIds = ref.watch(blockedUserIdsProvider);
+    ref.watch(localUserSpamOverrideProvider.select((state) => state.version));
     final bool hasMoreNewerMessages = ref.watch(
       chatViewModelProvider.select((ChatViewState s) => s.hasMoreNewerMessages),
     );
@@ -2492,13 +2513,11 @@ class _MessageListState extends ConsumerState<MessageList> {
       currentUserId: currentUserId,
     );
     _lastVisualUnreadId = visualUnreadId;
-    final List<ChannelStreamItem> channelStream = ref.watch(
-      channelMessageStreamProvider(
-        ChannelMessageStreamInput(
-          messages: messages,
-          oldestUnreadMessageId: visualUnreadId,
-        ),
-      ),
+    final List<ChannelStreamItem> channelStream = _channelStreamFor(
+      messages: messages,
+      oldestUnreadMessageId: visualUnreadId,
+      currentUserId: currentUserId,
+      blockedUserIds: blockedUserIds,
     );
     final bool hasJumpTarget =
         widget.targetMessageId != null || _pendingScrollTarget != null;
