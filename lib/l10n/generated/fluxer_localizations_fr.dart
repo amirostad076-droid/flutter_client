@@ -6847,6 +6847,27 @@ class FluxerLocalizationsFr extends FluxerLocalizations {
   String get personalNotesComposerHint => 'Envoyez-vous un message';
 
   @override
+  String channelComposerHint(String channelName) {
+    return 'Message #$channelName';
+  }
+
+  @override
+  String dmComposerHint(String recipientName) {
+    return 'Message @$recipientName';
+  }
+
+  @override
+  String groupDmNamedComposerHint(String groupName) {
+    return 'Message $groupName';
+  }
+
+  @override
+  String get groupDmComposerHint => 'Message group';
+
+  @override
+  String get composerHint => 'Message';
+
+  @override
   String get personalNotesPrivateSpace => 'Votre espace privé';
 
   @override
@@ -15393,6 +15414,27 @@ class FluxerLocalizationsFrCa extends FluxerLocalizationsFr {
 
   @override
   String get personalNotesComposerHint => 'Envoyez-vous un message';
+
+  @override
+  String channelComposerHint(String channelName) {
+    return 'Message #$channelName';
+  }
+
+  @override
+  String dmComposerHint(String recipientName) {
+    return 'Message @$recipientName';
+  }
+
+  @override
+  String groupDmNamedComposerHint(String groupName) {
+    return 'Message $groupName';
+  }
+
+  @override
+  String get groupDmComposerHint => 'Message group';
+
+  @override
+  String get composerHint => 'Message';
 
   @override
   String get personalNotesPrivateSpace => 'Votre espace privé';

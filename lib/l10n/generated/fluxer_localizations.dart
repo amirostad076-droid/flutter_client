@@ -11454,6 +11454,36 @@ abstract class FluxerLocalizations {
   /// **'Message yourself'**
   String get personalNotesComposerHint;
 
+  /// Placeholder in the message composer for a text channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Message #{channelName}'**
+  String channelComposerHint(String channelName);
+
+  /// Placeholder in the message composer for a one-to-one DM.
+  ///
+  /// In en, this message translates to:
+  /// **'Message @{recipientName}'**
+  String dmComposerHint(String recipientName);
+
+  /// Placeholder in the message composer for a named group DM.
+  ///
+  /// In en, this message translates to:
+  /// **'Message {groupName}'**
+  String groupDmNamedComposerHint(String groupName);
+
+  /// Placeholder in the message composer for a group DM without a custom name.
+  ///
+  /// In en, this message translates to:
+  /// **'Message group'**
+  String get groupDmComposerHint;
+
+  /// Generic fallback placeholder in the message composer.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get composerHint;
+
   /// Short subtitle in channel details for personal notes.
   ///
   /// In en, this message translates to:

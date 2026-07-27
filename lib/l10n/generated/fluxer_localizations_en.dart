@@ -6752,6 +6752,27 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get personalNotesComposerHint => 'Message yourself';
 
   @override
+  String channelComposerHint(String channelName) {
+    return 'Message #$channelName';
+  }
+
+  @override
+  String dmComposerHint(String recipientName) {
+    return 'Message @$recipientName';
+  }
+
+  @override
+  String groupDmNamedComposerHint(String groupName) {
+    return 'Message $groupName';
+  }
+
+  @override
+  String get groupDmComposerHint => 'Message group';
+
+  @override
+  String get composerHint => 'Message';
+
+  @override
   String get personalNotesPrivateSpace => 'Your private space';
 
   @override
@@ -15251,6 +15272,27 @@ class FluxerLocalizationsEnGb extends FluxerLocalizationsEn {
   String get personalNotesComposerHint => 'Message yourself';
 
   @override
+  String channelComposerHint(String channelName) {
+    return 'Message #$channelName';
+  }
+
+  @override
+  String dmComposerHint(String recipientName) {
+    return 'Message @$recipientName';
+  }
+
+  @override
+  String groupDmNamedComposerHint(String groupName) {
+    return 'Message $groupName';
+  }
+
+  @override
+  String get groupDmComposerHint => 'Message group';
+
+  @override
+  String get composerHint => 'Message';
+
+  @override
   String get personalNotesPrivateSpace => 'Your private space';
 
   @override
@@ -22309,6 +22351,27 @@ class FluxerLocalizationsEnUs extends FluxerLocalizationsEn {
 
   @override
   String get personalNotesComposerHint => 'Message yourself';
+
+  @override
+  String channelComposerHint(String channelName) {
+    return 'Message #$channelName';
+  }
+
+  @override
+  String dmComposerHint(String recipientName) {
+    return 'Message @$recipientName';
+  }
+
+  @override
+  String groupDmNamedComposerHint(String groupName) {
+    return 'Message $groupName';
+  }
+
+  @override
+  String get groupDmComposerHint => 'Message group';
+
+  @override
+  String get composerHint => 'Message';
 
   @override
   String get personalNotesPrivateSpace => 'Your private space';

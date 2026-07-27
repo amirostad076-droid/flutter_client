@@ -6549,6 +6549,27 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
   String get personalNotesComposerHint => '자신에게 메시지 보내기';
 
   @override
+  String channelComposerHint(String channelName) {
+    return 'Message #$channelName';
+  }
+
+  @override
+  String dmComposerHint(String recipientName) {
+    return 'Message @$recipientName';
+  }
+
+  @override
+  String groupDmNamedComposerHint(String groupName) {
+    return 'Message $groupName';
+  }
+
+  @override
+  String get groupDmComposerHint => 'Message group';
+
+  @override
+  String get composerHint => 'Message';
+
+  @override
   String get personalNotesPrivateSpace => '나만의 공간';
 
   @override

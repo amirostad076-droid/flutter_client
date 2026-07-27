@@ -6813,6 +6813,27 @@ class FluxerLocalizationsHu extends FluxerLocalizations {
   String get personalNotesComposerHint => 'Írj magadnak üzenetet';
 
   @override
+  String channelComposerHint(String channelName) {
+    return 'Message #$channelName';
+  }
+
+  @override
+  String dmComposerHint(String recipientName) {
+    return 'Message @$recipientName';
+  }
+
+  @override
+  String groupDmNamedComposerHint(String groupName) {
+    return 'Message $groupName';
+  }
+
+  @override
+  String get groupDmComposerHint => 'Message group';
+
+  @override
+  String get composerHint => 'Message';
+
+  @override
   String get personalNotesPrivateSpace => 'A saját privát helyed';
 
   @override
