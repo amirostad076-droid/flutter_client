@@ -81,6 +81,44 @@ void main() {
       },
     );
   });
+
+  group('shouldResyncStrandedEmptyChannel', () {
+    test('requests resync for matched empty idle channel', () {
+      expect(
+        shouldResyncStrandedEmptyChannel(
+          widgetChannelId: 'channel-1',
+          state: _chatState(channelId: 'channel-1'),
+          alreadyResyncedChannelId: null,
+          canSyncForRoute: true,
+        ),
+        isTrue,
+      );
+    });
+
+    test('skips when already resynced once', () {
+      expect(
+        shouldResyncStrandedEmptyChannel(
+          widgetChannelId: 'channel-1',
+          state: _chatState(channelId: 'channel-1'),
+          alreadyResyncedChannelId: 'channel-1',
+          canSyncForRoute: true,
+        ),
+        isFalse,
+      );
+    });
+
+    test('skips while loading', () {
+      expect(
+        shouldResyncStrandedEmptyChannel(
+          widgetChannelId: 'channel-1',
+          state: _chatState(channelId: 'channel-1', isLoading: true),
+          alreadyResyncedChannelId: null,
+          canSyncForRoute: true,
+        ),
+        isFalse,
+      );
+    });
+  });
 }
 
 ChatViewState _chatState({

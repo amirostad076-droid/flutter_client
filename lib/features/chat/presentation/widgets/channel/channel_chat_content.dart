@@ -43,6 +43,7 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
   ({String channelId, String? targetMessageId})? _lastClosedPanelRequest;
   bool? _lastMobileLayout;
   String? _mismatchResyncChannelId;
+  String? _strandedEmptyResyncChannelId;
 
   @override
   void initState() {
@@ -57,6 +58,7 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
         oldWidget.targetMessageId != widget.targetMessageId) {
       _lastSwitchRequest = null;
       _mismatchResyncChannelId = null;
+      _strandedEmptyResyncChannelId = null;
     }
     _scheduleSyncChannelIfNeeded();
   }
@@ -167,6 +169,26 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
     _scheduleSyncChannelIfNeeded();
   }
 
+  void _maybeResyncStrandedEmptyChannel(ChatViewState state) {
+    if (!shouldResyncStrandedEmptyChannel(
+      widgetChannelId: widget.channelId,
+      state: state,
+      alreadyResyncedChannelId: _strandedEmptyResyncChannelId,
+      canSyncForRoute: _canSyncForRoute(),
+    )) {
+      if (state.channelId != widget.channelId || state.messages.isNotEmpty) {
+        _strandedEmptyResyncChannelId = null;
+      }
+      return;
+    }
+    _strandedEmptyResyncChannelId = widget.channelId;
+    _lastSwitchRequest = null;
+    talker.debug(
+      '[ChannelChatContent] resync stranded empty channel=${widget.channelId}',
+    );
+    _scheduleSyncChannelIfNeeded();
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isMobile = isMobileLayout(context);
@@ -190,6 +212,11 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
         _maybeResyncChannelMismatch(next);
       },
     );
+    ref.listen<ChatViewState>(chatViewModelProvider, (previous, next) {
+      _maybeResyncStrandedEmptyChannel(next);
+    });
+    _maybeResyncStrandedEmptyChannel(ref.read(chatViewModelProvider));
+
     _maybeResyncChannelMismatch(viewModelChannelId);
     listenChatViewModelErrors(ref);
 
@@ -246,4 +273,32 @@ bool shouldDedupChannelChatSwitchRequest({
     );
   }
   return state.messages.isNotEmpty && !state.messageLoadFailed;
+}
+
+@visibleForTesting
+bool shouldResyncStrandedEmptyChannel({
+  required String widgetChannelId,
+  required ChatViewState state,
+  required String? alreadyResyncedChannelId,
+  required bool canSyncForRoute,
+}) {
+  if (widgetChannelId.isEmpty) {
+    return false;
+  }
+  if (state.channelId != widgetChannelId) {
+    return false;
+  }
+  if (state.messages.isNotEmpty) {
+    return false;
+  }
+  if (state.isLoading || state.isSyncingMessages || state.messageLoadFailed) {
+    return false;
+  }
+  if (!canSyncForRoute) {
+    return false;
+  }
+  if (alreadyResyncedChannelId == widgetChannelId) {
+    return false;
+  }
+  return true;
 }

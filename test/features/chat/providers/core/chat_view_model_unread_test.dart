@@ -1098,6 +1098,67 @@ void main() {
     expect(loadedState.messages.last.id, latestId);
   });
 
+  test(
+    'superseded same-channel switch does not strand empty channel',
+    () async {
+      final db = openTestDatabase();
+      final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(latestId),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(latestId),
+          mentionCount: const Value(0),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        initialMessages: [
+          _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+        ],
+      )..holdMessageFetch = true;
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      final Future<void> firstLoad = notifier.switchChannel('channel-1');
+      await _flushAsync();
+
+      final ChatViewState loadingState = container.read(chatViewModelProvider);
+      expect(loadingState.channelId, 'channel-1');
+      expect(loadingState.isLoading, isTrue);
+      expect(loadingState.messages, isEmpty);
+
+      final Future<void> secondLoad = notifier.switchChannel('channel-1');
+      await _flushAsync();
+
+      final ChatViewState supersededState = container.read(
+        chatViewModelProvider,
+      );
+      expect(supersededState.channelId, 'channel-1');
+      expect(
+        supersededState.isLoading || supersededState.messages.isNotEmpty,
+        isTrue,
+        reason: 'must not strand empty idle channel during supersede',
+      );
+
+      adapter.releaseMessageFetch();
+      await Future.wait(<Future<void>>[firstLoad, secondLoad]);
+      await _flushAsync();
+
+      final ChatViewState loadedState = container.read(chatViewModelProvider);
+      expect(loadedState.isLoading, isFalse);
+      expect(loadedState.messages, isNotEmpty);
+      expect(loadedState.messages.last.id, latestId);
+    },
+  );
+
   test('stale channel fetch does not overwrite active channel state', () async {
     final db = openTestDatabase();
     final channel1CachedId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 10));
