@@ -3424,15 +3424,33 @@ class ChatViewModel extends _$ChatViewModel {
       scrollToMessage(messageId);
       return;
     }
-    if (state.isSyncingMessages || state.isLoading) {
-      return;
-    }
+    // PREEMPT, never drop. Returning here while a load was in flight left the
+    // older request current, so it completed, scrolled to ITS target and
+    // overwrote this window: the user saw a highlight flash on the message they
+    // asked for and then landed on the previous one. Preempt rather than queue
+    // because the in-flight page is for a target the user no longer wants, and
+    // every shared write below happens after the generation check, so a
+    // preempted load touches neither the window nor _contiguity.
+    final int jumpGeneration = ++_channelSwitchGeneration;
+    // Also invalidate window-scoped work: _refreshMessagesFromNetwork and
+    // jump-to-latest gate on _windowGeneration, not on the switch generation,
+    // so without this an in-flight refresh that started before this jump would
+    // complete after it and overwrite the window we are about to install.
+    _windowGeneration++;
+    bool isCurrentJump() =>
+        jumpGeneration == _channelSwitchGeneration &&
+        state.channelId == channelId;
+    // Same arm/drain/swap/replay protocol the refresh path uses: a realtime
+    // event arriving during the await would otherwise be applied to the OLD
+    // window and then thrown away by the wholesale replace below.
+    final int swapToken = _armWindowSwap(channelId);
+    List<MessageRealtimeEvent> bufferedEvents = const <MessageRealtimeEvent>[];
     state = state.copyWith(isSyncingMessages: true);
     try {
       final page = await ref
           .read(messageRepositoryProvider)
           .loadMessagePage(channelId: channelId, around: messageId);
-      if (state.channelId != channelId) {
+      if (!isCurrentJump()) {
         return;
       }
       if (page.messages.isEmpty) {
@@ -3443,7 +3461,7 @@ class ChatViewModel extends _$ChatViewModel {
         page.messages.last.id,
         detachedWindow: true,
       );
-      if (state.channelId != channelId) {
+      if (!isCurrentJump()) {
         return;
       }
       await _hydrateGuildMembersForMessages(
@@ -3451,27 +3469,48 @@ class ChatViewModel extends _$ChatViewModel {
         page.messages,
         embeddedReplyParents: page.embeddedReplyParents,
       );
-      if (state.channelId != channelId) {
+      if (!isCurrentJump()) {
         return;
       }
+      // Drain immediately before the swap so nothing lands between the two.
+      bufferedEvents = _drainWindowSwap(swapToken);
       state = state.copyWith(
         messages: page.messages,
         hasMoreMessages: page.messages.length >= _kPageSize,
         hasMoreNewerMessages: hasMoreNewer,
+        // The preempted switch set isLoading and can no longer reach any of its
+        // own clearing paths, so the winner owns BOTH flags or the channel is
+        // wedged busy forever: no jump button, dedupe stuck, and even the
+        // stranded-empty recovery locked out.
+        isLoading: false,
       );
       _contiguity.setVerified(channelId, page.messages);
       _contiguityTrusted = true;
+      // Replay in arrival order so edits keep their revision and deletes stay
+      // deleted.
+      await _replayWindowSwapEvents(bufferedEvents, channelId);
+      bufferedEvents = const <MessageRealtimeEvent>[];
       _notifyMessageReferencesLoaded(
         channelId: channelId,
-        messages: page.messages,
+        messages: state.messages,
         embeddedReplyParents: page.embeddedReplyParents,
       );
       scrollToMessage(messageId);
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to jump to replied message: $e');
     } finally {
-      if (state.channelId == channelId && state.isSyncingMessages) {
-        state = state.copyWith(isSyncingMessages: false);
+      // A failed or superseded jump must still not swallow realtime events.
+      final List<MessageRealtimeEvent> pending = <MessageRealtimeEvent>[
+        ...bufferedEvents,
+        ..._drainWindowSwap(swapToken),
+      ];
+      if (pending.isNotEmpty) {
+        await _replayWindowSwapEvents(pending, channelId);
+      }
+      // Only the winning jump clears the flags, and it clears BOTH: it may have
+      // superseded a switch that owned isLoading.
+      if (isCurrentJump() && (state.isSyncingMessages || state.isLoading)) {
+        state = state.copyWith(isSyncingMessages: false, isLoading: false);
       }
     }
   }

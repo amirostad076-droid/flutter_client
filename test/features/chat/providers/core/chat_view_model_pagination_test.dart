@@ -829,6 +829,128 @@ void main() {
     },
   );
 
+  // Mutation (h) guard. Tapping B while A's around-load is still in flight used
+  // to hit a silent drop: B highlighted, then A completed, scrolled to A and
+  // overwrote the window. The user landed on the message they did NOT ask for.
+  test(
+    'a jump requested mid-load preempts the in-flight one and lands',
+    () async {
+      final db = openTestDatabase();
+      final List<Map<String, Object?>> all = _channelMessages('channel-1', 350);
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(all.last['id']! as String),
+        ),
+      );
+      final adapter = _PaginatingAdapter(messagesByChannel: {'channel-1': all});
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      ChatViewState st() => container.read(chatViewModelProvider);
+
+      await notifier.switchChannel('channel-1');
+      await _flushAsync();
+
+      final String targetA = all[20]['id']! as String;
+      final String targetB = all[60]['id']! as String;
+      expect(st().messages.map((e) => e.id).contains(targetA), isFalse);
+      expect(st().messages.map((e) => e.id).contains(targetB), isFalse);
+
+      // A is a ROUTE LOAD, not a jump: switchChannel owns isLoading via
+      // _switchedChannelState, and that is the flag the preempt can strand.
+      adapter.holdAroundFetch = true;
+      unawaited(notifier.switchChannel('channel-1', targetMessageId: targetA));
+      await _flushAsync();
+      expect(
+        adapter.aroundFetchHeld,
+        isTrue,
+        reason: 'A must genuinely be in flight when B preempts it',
+      );
+      expect(
+        st().isLoading,
+        isTrue,
+        reason: 'and it must have taken ownership of isLoading',
+      );
+
+      // The user taps B while A is still loading. This must NOT be dropped.
+      final Future<void> jumpB = notifier.goToRepliedMessage(
+        channelId: 'channel-1',
+        messageId: targetB,
+      );
+      await _flushAsync();
+      adapter.releaseAroundFetch();
+      await jumpB;
+      await _flushAsync();
+      await _flushAsync();
+
+      final ChatViewState finalState = st();
+      expect(
+        finalState.messages.map((e) => e.id).contains(targetB),
+        isTrue,
+        reason:
+            'B must LAND: its window has to be applied, not just highlighted',
+      );
+      expect(
+        finalState.scrollToMessageSignal?.$1,
+        targetB,
+        reason: 'and the view must be told to scroll to B, not to A',
+      );
+      // Flag ownership: the preempted switch set isLoading and can no longer
+      // reach its own clearing paths, so the winner must clear both or the
+      // channel is wedged busy with no exit.
+      expect(
+        finalState.isLoading,
+        isFalse,
+        reason:
+            'a stuck isLoading kills the jump button, freezes the sync dedupe '
+            'and locks out the stranded-empty recovery: a permanent spinner',
+      );
+      expect(finalState.isSyncingMessages, isFalse);
+    },
+  );
+
+  // The failure path of the same preempt: B preempts A and then comes back
+  // empty. The flags must still clear, or the stranded-empty recovery that
+  // would rescue the channel is itself locked out by isLoading.
+  test(
+    'a preempting jump that returns nothing still releases the channel',
+    () async {
+      final db = openTestDatabase();
+      final List<Map<String, Object?>> all = _channelMessages('channel-1', 60);
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(all.last['id']! as String),
+        ),
+      );
+      final adapter = _PaginatingAdapter(messagesByChannel: {'channel-1': all});
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      await _flushAsync();
+
+      // A target that does not exist, so the around page comes back empty.
+      await notifier.goToRepliedMessage(channelId: 'channel-1', messageId: '1');
+      await _flushAsync();
+
+      final ChatViewState state = container.read(chatViewModelProvider);
+      expect(
+        state.isLoading,
+        isFalse,
+        reason: 'an empty result must not leave the channel busy',
+      );
+      expect(state.isSyncingMessages, isFalse);
+    },
+  );
+
   test('refreshAfterSessionRecovery preserves a scrolled-up window', () async {
     final db = openTestDatabase();
     // Newest message far ahead so the loaded window stays in history.
@@ -1065,6 +1187,12 @@ class _PaginatingAdapter implements HttpClientAdapter {
   Completer<void>? _beforeCompleter;
   Completer<void>? _afterCompleter;
   Completer<void>? _aroundCompleter;
+
+  /// True while a hold is actually engaged, so a test can PIN the interleaving
+  /// instead of assuming the race happened.
+  bool get beforeFetchHeld => _beforeCompleter != null;
+
+  bool get aroundFetchHeld => _aroundCompleter != null;
 
   void releaseBeforeFetch() {
     holdBeforeFetch = false;
