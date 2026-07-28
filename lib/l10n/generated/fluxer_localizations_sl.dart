@@ -3452,6 +3452,13 @@ class FluxerLocalizationsSl extends FluxerLocalizations {
   String get chatAttachmentDownload => 'Prenesi';
 
   @override
+  String get chatAttachmentDownloadedToast => 'Saved to photos';
+
+  @override
+  String get chatAttachmentDownloadFailedToast =>
+      'Couldn\'t download attachment';
+
+  @override
   String get chatAttachmentExpiredTooltip => 'Priloga je potekla';
 
   @override

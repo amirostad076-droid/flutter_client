@@ -5836,6 +5836,18 @@ abstract class FluxerLocalizations {
   /// **'Download'**
   String get chatAttachmentDownload;
 
+  /// Toast shown after an attachment is saved to the device.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to photos'**
+  String get chatAttachmentDownloadedToast;
+
+  /// Toast shown when an attachment download fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t download attachment'**
+  String get chatAttachmentDownloadFailedToast;
+
   /// Tooltip when a file attachment link is no longer available.
   ///
   /// In en, this message translates to:

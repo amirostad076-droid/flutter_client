@@ -3294,6 +3294,13 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get chatAttachmentDownload => '下载';
 
   @override
+  String get chatAttachmentDownloadedToast => 'Saved to photos';
+
+  @override
+  String get chatAttachmentDownloadFailedToast =>
+      'Couldn\'t download attachment';
+
+  @override
   String get chatAttachmentExpiredTooltip => '附件已过期';
 
   @override

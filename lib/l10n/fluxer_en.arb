@@ -4431,6 +4431,14 @@
   "@chatAttachmentDownload": {
     "description": "Tooltip and accessibility label for downloading a non-media file attachment."
   },
+  "chatAttachmentDownloadedToast": "Saved to photos",
+  "@chatAttachmentDownloadedToast": {
+    "description": "Toast shown after an attachment is saved to the device."
+  },
+  "chatAttachmentDownloadFailedToast": "Couldn't download attachment",
+  "@chatAttachmentDownloadFailedToast": {
+    "description": "Toast shown when an attachment download fails."
+  },
   "chatAttachmentExpiredTooltip": "Attachment expired",
   "@chatAttachmentExpiredTooltip": {
     "description": "Tooltip when a file attachment link is no longer available."

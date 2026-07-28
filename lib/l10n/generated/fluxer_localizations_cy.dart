@@ -3454,6 +3454,13 @@ class FluxerLocalizationsCy extends FluxerLocalizations {
   String get chatAttachmentDownload => 'Llwytho i lawr';
 
   @override
+  String get chatAttachmentDownloadedToast => 'Saved to photos';
+
+  @override
+  String get chatAttachmentDownloadFailedToast =>
+      'Couldn\'t download attachment';
+
+  @override
   String get chatAttachmentExpiredTooltip => 'Dododd yr atodiad i ben';
 
   @override

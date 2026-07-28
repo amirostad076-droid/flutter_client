@@ -3469,6 +3469,13 @@ class FluxerLocalizationsHu extends FluxerLocalizations {
   String get chatAttachmentDownload => 'Letöltés';
 
   @override
+  String get chatAttachmentDownloadedToast => 'Saved to photos';
+
+  @override
+  String get chatAttachmentDownloadFailedToast =>
+      'Couldn\'t download attachment';
+
+  @override
   String get chatAttachmentExpiredTooltip => 'A melléklet lejárt';
 
   @override

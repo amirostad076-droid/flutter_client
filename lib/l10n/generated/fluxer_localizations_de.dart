@@ -3474,6 +3474,13 @@ class FluxerLocalizationsDe extends FluxerLocalizations {
   String get chatAttachmentDownload => 'Herunterladen';
 
   @override
+  String get chatAttachmentDownloadedToast => 'Saved to photos';
+
+  @override
+  String get chatAttachmentDownloadFailedToast =>
+      'Couldn\'t download attachment';
+
+  @override
   String get chatAttachmentExpiredTooltip => 'Anhang abgelaufen';
 
   @override
