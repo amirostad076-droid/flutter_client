@@ -705,30 +705,21 @@ class ComposerAutocompleteFieldState
       final Map<String, GroupMemberInfo> cachedById = <String, GroupMemberInfo>{
         for (final GroupMemberInfo g in dm.groupMembers) g.id: g,
       };
-      final List<Member> members = <Member>[];
-      for (final String id in participantIds) {
-        final db.User? user = userById[id];
-        final GroupMemberInfo? cached = cachedById[id];
-        members.add(
-          Member(
-            id: id,
-            username: user?.username ?? cached?.name ?? '',
-            globalName: user?.globalName ?? cached?.name,
-            status: user?.status ?? 'offline',
-            isBot: user?.bot ?? false,
+      return <Member>[
+        for (final String id in participantIds)
+          dmGroupParticipantMentionMember(
+            participantId: id,
+            user: userById[id],
+            cached: cachedById[id],
           ),
-        );
-      }
-      return members;
+      ];
     }
+    final db.User? recipientUser = await ref
+        .read(fluxerDatabaseProvider)
+        .userDao
+        .getUserById(dm.recipientId);
     return <Member>[
-      Member(
-        id: dm.recipientId,
-        username: dm.recipientUsername ?? dm.recipientName,
-        globalName: dm.recipientName,
-        status: dm.recipientStatus,
-        isBot: dm.isBot,
-      ),
+      dmRecipientMentionMember(dm: dm, recipientUser: recipientUser),
     ];
   }
 
