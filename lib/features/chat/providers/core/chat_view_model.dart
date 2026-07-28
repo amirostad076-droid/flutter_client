@@ -472,6 +472,12 @@ class ChatViewModel extends _$ChatViewModel {
   /// Arming is idempotent, so a replacement that supersedes another still
   /// replays everything. The returned token identifies the owner, and a
   /// superseded owner's drain is a no-op.
+  /// Bumped by every WHOLESALE window write. _nextMessagesFor snapshots
+  /// state.messages at entry and then awaits the database, so without this a
+  /// swap completing inside that await would be rolled back wholesale by the
+  /// stale copy computed before it.
+  int _windowEpoch = 0;
+
   int _armWindowSwap(String channelId) {
     _windowSwapEvents ??= <MessageRealtimeEvent>[];
     _windowSwapChannelId = channelId;
@@ -486,6 +492,11 @@ class ChatViewModel extends _$ChatViewModel {
         _windowSwapEvents ?? const <MessageRealtimeEvent>[];
     _windowSwapEvents = null;
     _windowSwapChannelId = null;
+    // Every wholesale window write is required to drain immediately before it,
+    // so bumping here covers all three swap apply sites (refresh, jump-to-latest
+    // and the in-place jump) from one place. A drain that ends up not writing
+    // only costs an idempotent recompute.
+    _windowEpoch++;
     return events;
   }
 
@@ -505,15 +516,31 @@ class ChatViewModel extends _$ChatViewModel {
   /// Every event is idempotent against a window that already reflects it:
   /// a create for a present id is skipped, and the replace and remove helpers
   /// both return null when nothing changes.
+  /// [token] is the owner's swap token. Replay yields to the event loop on
+  /// every event, so a NEWER swap can arm mid-loop; the remaining events must
+  /// then be handed to that owner rather than applied over its fresh window.
+  /// Applying them anyway regresses revisions, which is exactly what the
+  /// buffering exists to prevent, and the idempotence noted above covers
+  /// presence only, not ordering.
   Future<void> _replayWindowSwapEvents(
     List<MessageRealtimeEvent> events,
     String channelId,
+    int token,
   ) async {
-    for (final MessageRealtimeEvent ev in events) {
+    for (int i = 0; i < events.length; i++) {
       if (!ref.mounted || state.channelId != channelId) {
         return;
       }
-      await _applyRealtimeEvent(ev);
+      if (token != _windowSwapToken) {
+        final List<MessageRealtimeEvent>? buffer = _windowSwapEvents;
+        if (buffer != null && _windowSwapChannelId == channelId) {
+          // These are OLDER than anything the newer owner has buffered, so they
+          // go in FRONT to keep arrival order.
+          buffer.insertAll(0, events.sublist(i));
+        }
+        return;
+      }
+      await _applyRealtimeEvent(events[i]);
     }
   }
 
@@ -527,8 +554,37 @@ class ChatViewModel extends _$ChatViewModel {
     await _applyRealtimeEvent(ev);
   }
 
-  Future<void> _applyRealtimeEvent(MessageRealtimeEvent ev) async {
+  Future<void> _applyRealtimeEvent(
+    MessageRealtimeEvent ev, {
+    int depth = 0,
+  }) async {
+    final int epoch = _windowEpoch;
     final next = await _nextMessagesFor(ev);
+    // Two ways this computation can be stale, and both must route through the
+    // buffer rather than write directly:
+    //   - the window was replaced wholesale inside the await (epoch moved), or
+    //   - a swap has ARMED and not yet written. The epoch does not move at arm,
+    //     so an event that entered before the arm would otherwise pass a
+    //     pre-write epoch check, write onto the old window, and be erased by
+    //     the swap's wholesale write moments later. It is in no buffer either,
+    //     because capture only sees arrivals after the arm.
+    final List<MessageRealtimeEvent>? activeSwapBuffer = _windowSwapEvents;
+    final bool swapOwnsChannel =
+        activeSwapBuffer != null && _windowSwapChannelId == state.channelId;
+    if (epoch != _windowEpoch || swapOwnsChannel) {
+      if (swapOwnsChannel) {
+        // This event arrived BEFORE anything already buffered, so it prepends.
+        activeSwapBuffer.insert(0, ev);
+        return;
+      }
+      // No owner left: recompute against the new window. The reducer is
+      // idempotent per the note on _replayWindowSwapEvents, and the depth cap
+      // keeps a pathological swap storm from looping.
+      if (depth < 3) {
+        await _applyRealtimeEvent(ev, depth: depth + 1);
+      }
+      return;
+    }
     final Set<String> deletedIds = _deletedMessageIdsFor(ev);
     final bool clearEditing =
         ev is MessageUpdated && state.editingMessage?.id == ev.event.message.id;
@@ -1482,7 +1538,7 @@ class ChatViewModel extends _$ChatViewModel {
       _contiguityTrusted = true;
       // Realtime mutations that raced the swap: replay in arrival order so
       // edits keep their revision and deletes stay deleted.
-      await _replayWindowSwapEvents(bufferedEvents, channelId);
+      await _replayWindowSwapEvents(bufferedEvents, channelId, swapToken);
       bufferedEvents = const <MessageRealtimeEvent>[];
       _notifyMessageReferencesLoaded(
         channelId: channelId,
@@ -1516,7 +1572,7 @@ class ChatViewModel extends _$ChatViewModel {
         ..._drainWindowSwap(swapToken),
       ];
       if (pending.isNotEmpty) {
-        await _replayWindowSwapEvents(pending, channelId);
+        await _replayWindowSwapEvents(pending, channelId, swapToken);
       }
     }
   }
@@ -1987,7 +2043,7 @@ class ChatViewModel extends _$ChatViewModel {
       );
       // Replay against the fresh tail window: creates append, edits keep
       // their revision, deletes stay deleted.
-      await _replayWindowSwapEvents(bufferedEvents, channelId);
+      await _replayWindowSwapEvents(bufferedEvents, channelId, swapToken);
       bufferedEvents = const <MessageRealtimeEvent>[];
       _notifyMessageReferencesLoaded(
         channelId: channelId,
@@ -2006,7 +2062,7 @@ class ChatViewModel extends _$ChatViewModel {
         ..._drainWindowSwap(swapToken),
       ];
       if (pending.isNotEmpty) {
-        await _replayWindowSwapEvents(pending, channelId);
+        await _replayWindowSwapEvents(pending, channelId, swapToken);
       }
       if (state.channelId == channelId && state.isSyncingMessages) {
         state = state.copyWith(isSyncingMessages: false);
@@ -3488,7 +3544,7 @@ class ChatViewModel extends _$ChatViewModel {
       _contiguityTrusted = true;
       // Replay in arrival order so edits keep their revision and deletes stay
       // deleted.
-      await _replayWindowSwapEvents(bufferedEvents, channelId);
+      await _replayWindowSwapEvents(bufferedEvents, channelId, swapToken);
       bufferedEvents = const <MessageRealtimeEvent>[];
       _notifyMessageReferencesLoaded(
         channelId: channelId,
@@ -3505,7 +3561,7 @@ class ChatViewModel extends _$ChatViewModel {
         ..._drainWindowSwap(swapToken),
       ];
       if (pending.isNotEmpty) {
-        await _replayWindowSwapEvents(pending, channelId);
+        await _replayWindowSwapEvents(pending, channelId, swapToken);
       }
       // Only the winning jump clears the flags, and it clears BOTH: it may have
       // superseded a switch that owned isLoading.
