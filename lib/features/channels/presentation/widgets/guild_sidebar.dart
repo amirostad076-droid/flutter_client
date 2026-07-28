@@ -1261,6 +1261,7 @@ class _CategoryHeader extends ConsumerWidget {
             onAction: (CategoryMenuAction action) => _handleCategoryMenuAction(
               action,
               menuContext: sheetContext,
+              parentContext: context,
               ref: ref,
               close: close,
               menuState: menuState,
@@ -1281,6 +1282,7 @@ class _CategoryHeader extends ConsumerWidget {
         onAction: (CategoryMenuAction action) => _handleCategoryMenuAction(
           action,
           menuContext: menuContext,
+          parentContext: context,
           ref: ref,
           close: close,
           menuState: menuState,
@@ -1294,6 +1296,7 @@ class _CategoryHeader extends ConsumerWidget {
   void _handleCategoryMenuAction(
     CategoryMenuAction action, {
     required BuildContext menuContext,
+    required BuildContext parentContext,
     required WidgetRef ref,
     required VoidCallback close,
     required CategoryMenuState menuState,
@@ -1340,7 +1343,7 @@ class _CategoryHeader extends ConsumerWidget {
         );
       case CategoryMenuAction.deleteCategory:
         close();
-        unawaited(_deleteCategory(menuContext, ref));
+        unawaited(_deleteCategory(parentContext, ref));
       case CategoryMenuAction.copyCategoryId:
         close();
         unawaited(
@@ -1365,7 +1368,10 @@ class _CategoryHeader extends ConsumerWidget {
 
   Future<void> _deleteCategory(BuildContext context, WidgetRef ref) async {
     final Channel? channel = await _loadCategoryChannel(ref);
-    if (channel == null || !context.mounted) {
+    if (channel == null) {
+      return;
+    }
+    if (!context.mounted) {
       return;
     }
     await DeleteChannelFlow.confirmAndDelete(context, ref, channel: channel);
