@@ -263,6 +263,23 @@ void main() {
       },
     );
 
+    test(
+      'splits code block with same-line trailing text after closing fence',
+      () {
+        const String input = '```dart\ncode``` after';
+        final List<MessageContentSegment> segments =
+            parseMessageContentStructure(input, features);
+        expect(segments, hasLength(2));
+        expect(segments[0], isA<MessageBlockMarkdownSegment>());
+        expect(
+          (segments[0] as MessageBlockMarkdownSegment).text,
+          '```dart\ncode```',
+        );
+        expect(segments[1], isA<MessageTextFlowSegment>());
+        expect((segments[1] as MessageTextFlowSegment).text, ' after');
+      },
+    );
+
     test('routes table-only message to block markdown segment', () {
       const String input = '''
 | Header | Value |

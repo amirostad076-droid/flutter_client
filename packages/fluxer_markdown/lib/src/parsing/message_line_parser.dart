@@ -136,9 +136,24 @@ List<MessageContentSegment> _parseMessageContentStructureUncached(
     if (_isBlockStart(trimmedLeft, features)) {
       _flushTextFlow(textFlowBuffer, segments);
       final blockEnd = _findBlockEnd(lines, i, features);
-      segments.add(
-        MessageBlockMarkdownSegment(lines.sublist(i, blockEnd).join('\n')),
-      );
+      var blockLines = lines.sublist(i, blockEnd).toList();
+      String? trailingAfterClose;
+      if (features.allowCodeBlocks && trimmedLeft.startsWith('```')) {
+        final int? openingLength = parseOpeningBacktickFenceLength(trimmedLeft);
+        if (openingLength != null && blockLines.length >= 2) {
+          final InlineClosingFenceSplit? split =
+              splitInlineClosingBacktickFence(blockLines.last, openingLength);
+          if (split != null) {
+            blockLines[blockLines.length - 1] =
+                '${split.content}${split.fenceLine.trimLeft()}';
+            trailingAfterClose = split.trailingText;
+          }
+        }
+      }
+      segments.add(MessageBlockMarkdownSegment(blockLines.join('\n')));
+      if (trailingAfterClose != null && trailingAfterClose.trim().isNotEmpty) {
+        segments.add(MessageTextFlowSegment(trailingAfterClose));
+      }
       previousWasHeading = _isHeadingStart(trimmedLeft, features);
       i = blockEnd;
       continue;
