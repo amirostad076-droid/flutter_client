@@ -16,6 +16,7 @@ import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/chat/data/chat_unread_summary.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/domain/message_list_anchor.dart';
+import 'package:fluxer_app/features/chat/domain/message_window.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/attachment_alt_text_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
@@ -59,6 +60,7 @@ import 'package:fluxer_app/features/chat/utils/channel_message_stream.dart';
 import 'package:fluxer_app/features/chat/utils/chat_spinner_debug.dart';
 import 'package:fluxer_app/features/chat/utils/message_action_permissions.dart';
 import 'package:fluxer_app/features/chat/utils/message_grouping_utils.dart';
+import 'package:fluxer_app/features/chat/utils/message_page_sync.dart';
 import 'package:fluxer_app/features/chat/utils/pinned_system_message_navigation.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
@@ -203,6 +205,11 @@ class _MessageListState extends ConsumerState<MessageList> {
   // Pre-shrink visibility: tall items can stay visible past the 48px threshold.
   bool? _newestMessageVisibleLatch;
 
+  int _paginationSettleGeneration = 0;
+  int _activePaginationSettleGeneration = 0;
+  String? _oldestIdWhenLoadingMore;
+  String? _newestIdWhenLoadingNewer;
+
   @override
   void initState() {
     super.initState();
@@ -319,7 +326,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       hasMore: state.hasMoreMessages,
       isLoading: state.isLoadingMore,
       isUserDrivenScroll: _isUserDrivenScroll,
-      hasActiveJumpTarget: _hasActiveJumpTarget(),
+      hasActiveJumpTarget: _blocksEdgePagination(),
     )) {
       unawaited(_chatViewModel.loadMore());
     }
@@ -339,7 +346,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       hasMore: state.hasMoreNewerMessages,
       isLoading: state.isLoadingNewer,
       isUserDrivenScroll: _isUserDrivenScroll,
-      hasActiveJumpTarget: _hasActiveJumpTarget(),
+      hasActiveJumpTarget: _blocksEdgePagination(),
     )) {
       unawaited(_chatViewModel.loadNewer());
     }
@@ -368,7 +375,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       hasMore: state.hasMoreMessages,
       isLoading: state.isLoadingMore,
       isUserDrivenScroll: _isUserDrivenScroll,
-      hasActiveJumpTarget: _hasActiveJumpTarget(),
+      hasActiveJumpTarget: _blocksEdgePagination(),
     )) {
       unawaited(_chatViewModel.loadMore());
     }
@@ -388,7 +395,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       hasMore: state.hasMoreNewerMessages,
       isLoading: state.isLoadingNewer,
       isUserDrivenScroll: _isUserDrivenScroll,
-      hasActiveJumpTarget: _hasActiveJumpTarget(),
+      hasActiveJumpTarget: _blocksEdgePagination(),
     )) {
       unawaited(_chatViewModel.loadNewer());
     }
@@ -452,9 +459,6 @@ class _MessageListState extends ConsumerState<MessageList> {
         prev.isNotEmpty &&
         next.isNotEmpty) {
       final LeadingEdgeDelta delta = computeLeadingEdgeKeyDelta(prev, next);
-      if (delta.isUnchanged && !listEquals(prev, next)) {
-        _edgeLoadTrigger.reset();
-      }
       if (delta.addedNewest > 0) {
         final bool nearTail = _isLiveNearBottom();
         // Near-tail appends must reveal newest even when no viewport shrink
@@ -484,6 +488,8 @@ class _MessageListState extends ConsumerState<MessageList> {
           });
         }
       } else if (delta.removedNewest > 0) {
+        _expandScrollCacheNow();
+        _beginPaginationSettle();
         // Newest entries were trimmed/deleted while scrolled up: hold the first
         // displaying item fixed across the index shift. isRemove would skip the
         // position fix, and a cache-edge reference falls out of cache after the
@@ -553,6 +559,9 @@ class _MessageListState extends ConsumerState<MessageList> {
   }
 
   void _scheduleScrollCacheExpansion(int messageCount) {
+    if (messageCount >= kTrimmedMessageWindowSize) {
+      _expandScrollCacheNow();
+    }
     if (messageCount == 0 || !_useCompactScrollCache) {
       return;
     }
@@ -794,6 +803,40 @@ class _MessageListState extends ConsumerState<MessageList> {
       _pendingScrollTarget != null ||
       _messageJumpInFlight > 0 ||
       _activeSettleGeneration != null;
+
+  bool _blocksEdgePagination() =>
+      _hasActiveJumpTarget() || _activePaginationSettleGeneration != 0;
+
+  void _beginPaginationSettle() {
+    _activePaginationSettleGeneration = ++_paginationSettleGeneration;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        if (_activePaginationSettleGeneration == _paginationSettleGeneration) {
+          _activePaginationSettleGeneration = 0;
+        }
+      });
+    });
+  }
+
+  void _onPaginationLoadFinished({
+    required MessageLoadEdge edge,
+    required List<Message> messages,
+    required String? edgeIdAtStart,
+  }) {
+    if (edgeIdAtStart == null || messages.isEmpty) {
+      return;
+    }
+    final String? currentEdgeId = switch (edge) {
+      MessageLoadEdge.older => messages.first.id,
+      MessageLoadEdge.newer => newestServerBackedMessageId(messages),
+    };
+    if (currentEdgeId == edgeIdAtStart) {
+      _edgeLoadTrigger.clearEdge(edge);
+    }
+  }
 
   List<ChannelStreamItem> _channelStreamFor({
     required List<Message> messages,
@@ -2391,6 +2434,50 @@ class _MessageListState extends ConsumerState<MessageList> {
           } else {
             _applyChatAnchor(next);
           }
+        },
+      )
+      ..listen<bool>(
+        chatViewModelProvider.select((ChatViewState s) => s.isLoadingMore),
+        (bool? previous, bool next) {
+          if (next) {
+            final List<Message> messages = ref
+                .read(chatViewModelProvider)
+                .messages;
+            _oldestIdWhenLoadingMore = messages.isEmpty
+                ? null
+                : messages.first.id;
+            return;
+          }
+          if (previous != true) {
+            return;
+          }
+          _onPaginationLoadFinished(
+            edge: MessageLoadEdge.older,
+            messages: ref.read(chatViewModelProvider).messages,
+            edgeIdAtStart: _oldestIdWhenLoadingMore,
+          );
+          _oldestIdWhenLoadingMore = null;
+        },
+      )
+      ..listen<bool>(
+        chatViewModelProvider.select((ChatViewState s) => s.isLoadingNewer),
+        (bool? previous, bool next) {
+          if (next) {
+            final List<Message> messages = ref
+                .read(chatViewModelProvider)
+                .messages;
+            _newestIdWhenLoadingNewer = newestServerBackedMessageId(messages);
+            return;
+          }
+          if (previous != true) {
+            return;
+          }
+          _onPaginationLoadFinished(
+            edge: MessageLoadEdge.newer,
+            messages: ref.read(chatViewModelProvider).messages,
+            edgeIdAtStart: _newestIdWhenLoadingNewer,
+          );
+          _newestIdWhenLoadingNewer = null;
         },
       );
 

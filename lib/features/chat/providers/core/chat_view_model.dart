@@ -1082,7 +1082,10 @@ class ChatViewModel extends _$ChatViewModel {
         return;
       }
       final repo = ref.read(messageRepositoryProvider);
-      final cached = await repo.getCachedMessages(channelId);
+      final cached = await repo.getCachedMessages(
+        channelId,
+        limit: _kInitialPageSize,
+      );
       if (!isCurrentSwitch()) {
         return;
       }
@@ -1094,27 +1097,26 @@ class ChatViewModel extends _$ChatViewModel {
         final bool willRefresh = _shouldRefreshChannelFromNetwork(channelId);
         state = _switchedChannelState(
           channelId: channelId,
-          messages: willRefresh ? const [] : cached,
+          messages: cached,
           draft: draft,
           replyMentioning: replyMentioning,
           scrollToBottomSignal: state.scrollToBottomSignal,
-          isLoading: willRefresh,
-          isSyncingMessages: false,
+          isLoading: false,
+          isSyncingMessages: willRefresh,
           isLoadingMore: false,
           isLoadingNewer: false,
           hasMoreMessages: cached.length >= _kPageSize,
           hasMoreNewerMessages: false,
         );
         _invalidateMessageCacheTrust();
-        if (!willRefresh) {
-          _deferMessageReferencesLoaded(channelId: channelId, messages: cached);
-        }
+        _deferMessageReferencesLoaded(channelId: channelId, messages: cached);
         if (willRefresh) {
           unawaited(
             _refreshMessagesFromNetwork(
               channelId,
               limit: _kInitialPageSize,
-              isDirectLatestLoad: true,
+              isDirectLatestLoad: false,
+              preserveLoadedWindow: true,
               shouldApplyResult: isCurrentSwitch,
             ).whenComplete(() {
               if (!ref.mounted) {
@@ -1355,14 +1357,6 @@ class ChatViewModel extends _$ChatViewModel {
       if (state.channelId != channelId || !shouldApply()) {
         return;
       }
-      await _hydrateGuildMembersForMessages(
-        channelId,
-        merged,
-        embeddedReplyParents: page.embeddedReplyParents,
-      );
-      if (state.channelId != channelId || !shouldApply()) {
-        return;
-      }
       // Around pages are split before/after the anchor; near the live tail they
       // can be shorter than [limit] while older history still exists.
       final bool hasMoreOlder = preserveLoadedWindow
@@ -1382,10 +1376,12 @@ class ChatViewModel extends _$ChatViewModel {
         _contiguity.setVerified(channelId, page.messages);
       }
       _contiguityTrusted = true;
-      _notifyMessageReferencesLoaded(
-        channelId: channelId,
-        messages: merged,
-        embeddedReplyParents: page.embeddedReplyParents,
+      unawaited(
+        _onMessageBatchLoaded(
+          channelId: channelId,
+          messages: merged,
+          embeddedReplyParents: page.embeddedReplyParents,
+        ),
       );
       if (targetMessageId == null) {
         _markChannelNetworkRefresh(channelId);

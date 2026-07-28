@@ -258,7 +258,7 @@ void main() {
   });
 
   test(
-    'cache refresh shows loading skeleton while fetching from network',
+    'cache refresh shows cached messages while syncing from network',
     () async {
       final db = openTestDatabase();
       final cachedId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
@@ -298,15 +298,18 @@ void main() {
       await _flushAsync();
 
       final state = container.read(chatViewModelProvider);
-      expect(state.isLoading, isTrue);
-      expect(state.isSyncingMessages, isFalse);
-      expect(state.messages, isEmpty);
+      expect(state.isLoading, isFalse);
+      expect(state.isSyncingMessages, isTrue);
+      expect(state.messages, hasLength(1));
+      expect(state.messages.first.id, cachedId);
       expect(adapter.messageRequestUris, isNotEmpty);
 
       adapter.releaseMessageFetch();
       await _flushAsync();
-      expect(container.read(chatViewModelProvider).isLoading, isFalse);
-      expect(container.read(chatViewModelProvider).messages.last.id, networkId);
+      final synced = container.read(chatViewModelProvider);
+      expect(synced.isSyncingMessages, isFalse);
+      expect(synced.messages, hasLength(1));
+      expect(synced.messages.first.id, cachedId);
     },
   );
 
@@ -347,11 +350,11 @@ void main() {
       await _flushAsync();
 
       expect(adapter.ackedMessageIds, isEmpty);
-      expect(container.read(chatViewModelProvider).isLoading, isTrue);
-      expect(container.read(chatViewModelProvider).isSyncingMessages, isFalse);
+      expect(container.read(chatViewModelProvider).isLoading, isFalse);
+      expect(container.read(chatViewModelProvider).isSyncingMessages, isTrue);
       adapter.releaseMessageFetch();
       await _flushAsync();
-      expect(container.read(chatViewModelProvider).isLoading, isFalse);
+      expect(container.read(chatViewModelProvider).isSyncingMessages, isFalse);
     },
   );
 
