@@ -75,6 +75,20 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const _kSheetLoadMoreThreshold = 160.0;
 
+Widget _scrollableSheetPlaceholder(
+  BuildContext context,
+  ScrollController scrollController,
+  Widget child,
+) {
+  return ListView(
+    controller: scrollController,
+    physics: const AlwaysScrollableScrollPhysics(),
+    children: [
+      SizedBox(height: MediaQuery.sizeOf(context).height * 0.25, child: child),
+    ],
+  );
+}
+
 enum ChannelDetailsInitialTab { members, pins }
 
 Future<void> showChannelDetailsSheet(
@@ -1462,35 +1476,56 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
   Widget _buildResults(BuildContext context, ChannelSearchState state) {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     if (!state.hasSearched) {
-      return _EmptySheetState(
-        icon: PhosphorIconsBold.magnifyingGlass,
-        title: l10n.channelDetailsSearchEmptyTitle,
-        body: l10n.channelDetailsSearchEmptyBody,
+      return _scrollableSheetPlaceholder(
+        context,
+        widget.scrollController,
+        _EmptySheetState(
+          icon: PhosphorIconsBold.magnifyingGlass,
+          title: l10n.channelDetailsSearchEmptyTitle,
+          body: l10n.channelDetailsSearchEmptyBody,
+        ),
       );
     }
     if (state.isSearching) {
-      return const Center(child: FluxerLoadingSpinner());
+      return _scrollableSheetPlaceholder(
+        context,
+        widget.scrollController,
+        const Center(child: FluxerLoadingSpinner()),
+      );
     }
     if (state.errorMessage != null) {
-      return _ErrorSheetState(title: state.errorMessage!, onRetry: _runSearch);
+      return _scrollableSheetPlaceholder(
+        context,
+        widget.scrollController,
+        _ErrorSheetState(title: state.errorMessage!, onRetry: _runSearch),
+      );
     }
     if (state.indexing) {
-      return _EmptySheetState(
-        icon: PhosphorIconsBold.clockCounterClockwise,
-        title: l10n.channelDetailsSearchIndexingTitle,
-        body: l10n.channelDetailsSearchIndexingBody,
+      return _scrollableSheetPlaceholder(
+        context,
+        widget.scrollController,
+        _EmptySheetState(
+          icon: PhosphorIconsBold.clockCounterClockwise,
+          title: l10n.channelDetailsSearchIndexingTitle,
+          body: l10n.channelDetailsSearchIndexingBody,
+        ),
       );
     }
     if (state.results.isEmpty) {
-      return _EmptySheetState(
-        icon: PhosphorIconsBold.magnifyingGlass,
-        title: l10n.channelDetailsSearchNoResultsTitle,
-        body: l10n.channelDetailsSearchNoResultsBody,
+      return _scrollableSheetPlaceholder(
+        context,
+        widget.scrollController,
+        _EmptySheetState(
+          icon: PhosphorIconsBold.magnifyingGlass,
+          title: l10n.channelDetailsSearchNoResultsTitle,
+          body: l10n.channelDetailsSearchNoResultsBody,
+        ),
       );
     }
 
     return ListView.builder(
       controller: widget.scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.symmetric(horizontal: context.layout.s3),
       itemCount: state.results.length + (state.isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
@@ -2221,7 +2256,11 @@ class _DmUserFilterSheetLoaderState
       future: _usersFuture,
       builder: (BuildContext context, AsyncSnapshot<List<_PickerUser>> snap) {
         if (!snap.hasData) {
-          return const Center(child: FluxerLoadingSpinner());
+          return _scrollableSheetPlaceholder(
+            context,
+            widget.scrollController,
+            const Center(child: FluxerLoadingSpinner()),
+          );
         }
         return _UserFilterSheet(
           availableUsers: snap.data!,
@@ -2396,27 +2435,40 @@ class _GuildUserSearchFilterSheetState
           const SizedBox(height: 12),
           Expanded(
             child: _searchTerm.trim().isEmpty
-                ? Center(
-                    child: Text(
-                      l10n.channelDetailsSearchUsersTypeToSearch,
-                      style: context.textStyles.bodySmall.copyWith(
-                        color: colors.textSecondary,
+                ? _scrollableSheetPlaceholder(
+                    context,
+                    widget.scrollController,
+                    Center(
+                      child: Text(
+                        l10n.channelDetailsSearchUsersTypeToSearch,
+                        style: context.textStyles.bodySmall.copyWith(
+                          color: colors.textSecondary,
+                        ),
                       ),
                     ),
                   )
                 : _isLoading
-                ? const Center(child: FluxerLoadingSpinner())
+                ? _scrollableSheetPlaceholder(
+                    context,
+                    widget.scrollController,
+                    const Center(child: FluxerLoadingSpinner()),
+                  )
                 : _results.isEmpty
-                ? Center(
-                    child: Text(
-                      l10n.channelDetailsSearchUsersEmpty,
-                      style: context.textStyles.bodySmall.copyWith(
-                        color: colors.textSecondary,
+                ? _scrollableSheetPlaceholder(
+                    context,
+                    widget.scrollController,
+                    Center(
+                      child: Text(
+                        l10n.channelDetailsSearchUsersEmpty,
+                        style: context.textStyles.bodySmall.copyWith(
+                          color: colors.textSecondary,
+                        ),
                       ),
                     ),
                   )
                 : ListView.separated(
                     controller: widget.scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     itemCount: _results.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 4),
@@ -2551,18 +2603,23 @@ class _UserFilterSheetState extends State<_UserFilterSheet> {
           const SizedBox(height: 12),
           Expanded(
             child: filtered.isEmpty
-                ? Center(
-                    child: Text(
-                      _searchTerm.isNotEmpty
-                          ? l10n.channelDetailsSearchUsersEmpty
-                          : l10n.channelDetailsSearchUsersNoAvailable,
-                      style: context.textStyles.bodySmall.copyWith(
-                        color: colors.textSecondary,
+                ? _scrollableSheetPlaceholder(
+                    context,
+                    widget.scrollController,
+                    Center(
+                      child: Text(
+                        _searchTerm.isNotEmpty
+                            ? l10n.channelDetailsSearchUsersEmpty
+                            : l10n.channelDetailsSearchUsersNoAvailable,
+                        style: context.textStyles.bodySmall.copyWith(
+                          color: colors.textSecondary,
+                        ),
                       ),
                     ),
                   )
                 : ListView.separated(
                     controller: widget.scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     itemCount: filtered.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 4),

@@ -540,8 +540,10 @@ class _FluxerDraggableScrollableSheetState
                   if (widget.showDragHandle)
                     FluxerBottomSheetDragHandle(
                       sheetController: _sheetController,
+                      scrollController: scrollController,
                       minChildSize: widget.minChildSize,
                       maxChildSize: widget.maxChildSize,
+                      onDismiss: widget.onDismiss,
                       includeTopPadding: !widget.disableTopPadding,
                     ),
                   if (widget.hasHeader) ...[
@@ -578,6 +580,7 @@ class FluxerBottomSheetDragHandle extends StatefulWidget {
   const FluxerBottomSheetDragHandle({
     super.key,
     this.sheetController,
+    this.scrollController,
     this.minChildSize = 0,
     this.maxChildSize = 1,
     this.onDismiss,
@@ -587,6 +590,7 @@ class FluxerBottomSheetDragHandle extends StatefulWidget {
   });
 
   final DraggableScrollableController? sheetController;
+  final ScrollController? scrollController;
   final double minChildSize;
   final double maxChildSize;
   final VoidCallback? onDismiss;
@@ -608,6 +612,10 @@ class _FluxerBottomSheetDragHandleState
       widget.onDismiss != null ||
       widget.onVerticalDragUpdate != null ||
       widget.onVerticalDragEnd != null;
+
+  bool get _usesDismissFallback =>
+      widget.onDismiss != null &&
+      (widget.scrollController == null || !widget.scrollController!.hasClients);
 
   void _handleVerticalDragStart(DragStartDetails details) {
     _dragDistance = 0;
@@ -634,6 +642,9 @@ class _FluxerBottomSheetDragHandleState
           maxChildSize: widget.maxChildSize,
         ),
       );
+      if (_usesDismissFallback) {
+        _dragDistance += details.delta.dy;
+      }
       return;
     }
     if (widget.onDismiss != null) {
@@ -647,8 +658,13 @@ class _FluxerBottomSheetDragHandleState
       return;
     }
     if (widget.sheetController != null) {
-      // Scrollable sheets close via DraggableScrollableNotification when the
-      // sheet reaches min extent. Calling Navigator.pop here would double-pop.
+      if (_usesDismissFallback &&
+          fluxerBottomSheetShouldDismissAfterDrag(
+            dragDistance: _dragDistance,
+            velocity: details.primaryVelocity ?? 0,
+          )) {
+        widget.onDismiss!();
+      }
       _dragDistance = 0;
       return;
     }

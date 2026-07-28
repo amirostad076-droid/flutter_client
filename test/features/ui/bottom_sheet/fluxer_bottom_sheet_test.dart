@@ -259,6 +259,57 @@ void main() {
       expect(find.text('Open'), findsOneWidget);
     });
 
+    testWidgets(
+      'scrollable sheet dismisses from handle when scroll controller is unattached',
+      (tester) async {
+        await tester.pumpWidget(
+          buildTestApp(
+            Builder(
+              builder: (context) {
+                return ElevatedButton(
+                  onPressed: () {
+                    unawaited(
+                      FluxerBottomSheet.showScrollable(
+                        context,
+                        title: 'Search',
+                        builder: (context, scrollController, close) {
+                          return Column(
+                            children: [
+                              const SizedBox(
+                                height: 100,
+                                child: Text('Header'),
+                              ),
+                              const Expanded(
+                                child: Center(child: Text('Empty state')),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    );
+                  },
+                  child: const Text('Open'),
+                );
+              },
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+        expect(find.text('Search'), findsOneWidget);
+
+        await tester.drag(
+          find.byType(FluxerBottomSheetDragHandle),
+          const Offset(0, 300),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('Search'), findsNothing);
+        expect(find.text('Open'), findsOneWidget);
+      },
+    );
+
     testWidgets('non-scrollable sheet closes when dragging handle down', (
       tester,
     ) async {
