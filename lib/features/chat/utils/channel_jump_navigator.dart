@@ -206,6 +206,11 @@ Future<void> _applyChannelJumpResolution({
     case ChannelJumpPending(:final path):
       container.read(pendingPushNotificationPathProvider.notifier).store(path);
     case ChannelJumpInPlace(:final channelId, :final messageId):
+      // A fresh jump intent: re-opens consumption so a deliberate repeat tap
+      // on the same message is honoured rather than treated as already done.
+      container
+          .read(channelJumpTargetLedgerProvider.notifier)
+          .request(channelId: channelId, messageId: messageId);
       await container
           .read(chatViewModelProvider.notifier)
           .goToRepliedMessage(channelId: channelId, messageId: messageId);
@@ -232,7 +237,7 @@ Future<void> _applyChannelJumpResolution({
       );
     case ChannelJumpRedirectGuild(:final guildId):
       _navigateToPathViaContainer(container, RoutePaths.guild(guildId));
-    case ChannelJumpNavigate(:final path, :final channelId):
+    case ChannelJumpNavigate(:final path, :final channelId, :final messageId):
       final db.Channel? channel = await container
           .read(fluxerDatabaseProvider)
           .channelDao
@@ -258,6 +263,13 @@ Future<void> _applyChannelJumpResolution({
       );
       if (!canProceed) {
         return;
+      }
+      if (messageId != null && messageId.isNotEmpty) {
+        // Same fresh-intent reset as the in-place branch: the route is about to
+        // carry this message id durably, so consumption must start open.
+        container
+            .read(channelJumpTargetLedgerProvider.notifier)
+            .request(channelId: channelId, messageId: messageId);
       }
       _navigateToPathViaContainer(container, path);
   }
