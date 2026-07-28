@@ -246,6 +246,145 @@ class _WindowContiguity {
   }
 }
 
+/// One unit of realtime work on the ordered apply queue.
+///
+/// [ordinal] is stamped at ingestion, synchronously and before any await, and
+/// is what the queue orders by. [events] is a whole coalesced frame batch when
+/// the frame batcher grouped one, and a single event otherwise; the group
+/// shares one ordinal because its members arrived together.
+class _RealtimeWrite {
+  _RealtimeWrite(this.ordinal, this.events);
+
+  final int ordinal;
+  final List<MessageRealtimeEvent> events;
+}
+
+/// A wholesale window replacement that has started fetching but not yet
+/// committed. While one owns the channel the queue worker pauses.
+class _ArmedWindowSwap {
+  _ArmedWindowSwap({required this.token, required this.channelId});
+
+  final int token;
+  final String channelId;
+}
+
+/// Sentinel ack ordinal for a mutation the server has not confirmed yet. An
+/// unacknowledged mutation could become visible to ANY fetch, including one not
+/// started yet, so it protects all of them.
+const int _kUnacknowledgedOrdinal = 1 << 62;
+
+/// What the user did, as an OPERATION rather than a snapshot of the whole row.
+///
+/// A stored whole-message revision would own fields the mutation never touched:
+/// a page row carrying a newer remote text edit AND the pre-delete attachment
+/// would be replaced wholesale, correctly dropping the attachment and wrongly
+/// reverting the text. An operation only touches what it changed, and is
+/// idempotent against a page that already reflects it.
+///
+/// Client start order cannot order server visibility: a mutation started first
+/// can still reach the server AFTER a fetch started second, so the boundary is
+/// the ACKNOWLEDGEMENT, not the start.
+enum _LocalMutationKind { deleteMessage, removeAttachment, setAttachmentAlt }
+
+class _LocalMutation {
+  _LocalMutation({
+    required this.kind,
+    required this.startOrdinal,
+    this.attachmentId,
+    this.description,
+  });
+
+  final _LocalMutationKind kind;
+  final int startOrdinal;
+  final String? attachmentId;
+  final String? description;
+
+  /// Ordinal stamped when the server acknowledged. Every fetch that BEGAN
+  /// before this may still be serving pre-mutation content.
+  int ackOrdinal = _kUnacknowledgedOrdinal;
+}
+
+/// One user-issued attachment mutation, waiting its turn on its message.
+///
+/// The transport forces this: `deleteAttachment` is a targeted DELETE but
+/// `editMessageAttachments` PATCHes the WHOLE attachment array and returns the
+/// canonical row, so two of these in flight at once are last-writer-wins on the
+/// server. An edit dispatched from a snapshot that still lists a concurrently
+/// deleted attachment RE-CREATES it. No client-side rollback can undo that, so
+/// they are serialised per message instead and each request is built at
+/// dispatch time from the latest CONFIRMED row.
+///
+/// Serialisation only covers OUR requests. Against another client the only
+/// defence is to transmit nothing this operation does not own, which is why the
+/// request carries no content.
+///
+/// RESIDUAL, recorded rather than mechanised. The keep-set is a field this
+/// operation genuinely owns, but the write granularity is the WHOLE array, and
+/// that exceeds the operation once another client is involved: an attachment
+/// added remotely between our read and our write is not in our keep-set and is
+/// dropped, and one deleted remotely in that window is still listed and comes
+/// back. The endpoint offers no conditional request - no ETag, no `If-Match`,
+/// no version - so there is nothing to make the write fail on a changed base,
+/// and no client-side queue or prefetch can close the gap: any value we read
+/// can go stale before the PATCH lands. Fixing it needs the server side, as a
+/// conditional PATCH or an attachment endpoint scoped to one attachment the
+/// way DELETE already is. Until then the guarantee this queue provides is
+/// scoped to THIS client's requests.
+class _AttachmentOp {
+  _AttachmentOp({
+    required this.kind,
+    required this.attachmentId,
+    this.description,
+  });
+
+  final _LocalMutationKind kind;
+  final String attachmentId;
+  final String? description;
+  final Completer<void> done = Completer<void>();
+
+  /// Page-install overlay entry, acknowledged or withdrawn as usual. That layer
+  /// is orthogonal: it protects fetched pages, this queue protects the wire.
+  int overlayOrdinal = 0;
+}
+
+/// The commit half of a window replacement, run as a single queue item so no
+/// reducer can be half applied around the wholesale write.
+class _WindowSwapCommit {
+  _WindowSwapCommit({
+    required this.token,
+    required this.channelId,
+    required this.fetchOrdinal,
+    required this.stillValid,
+    required this.write,
+  });
+
+  final int token;
+  final String channelId;
+
+  /// Ordinal of the fetch that produced this commit's page. A queued commit is
+  /// still outstanding for retirement purposes, so the log cannot drop entries
+  /// newer than it while it waits in the lane.
+  final int fetchOrdinal;
+
+  /// The caller's own liveness check, carried to EXECUTION time.
+  ///
+  /// Token ownership alone is not validity. A channel switch that loads nothing
+  /// bumps the switch generation, writes the new channel's state directly and
+  /// returns without ever arming, so a commit queued before it still holds the
+  /// armed token and would wholesale-write its page into whatever channel the
+  /// user just landed on. Nor is a channel check enough: a same-channel no-load
+  /// switch keeps the id while the generation moves, and that swap was
+  /// superseded by user intent all the same.
+  final bool Function() stillValid;
+
+  final void Function() write;
+
+  /// Completes with whether [write] actually ran. A commit that reached the
+  /// front of the queue after a NEWER swap armed is superseded: it must not
+  /// write, and its caller must not run the effects that go with a write.
+  final Completer<bool> done = Completer<bool>();
+}
+
 @Riverpod(keepAlive: true)
 class ChatViewModel extends _$ChatViewModel {
   StreamSubscription<MessageRealtimeEvent>? _eventsSub;
@@ -280,10 +419,35 @@ class ChatViewModel extends _$ChatViewModel {
   // the window it was fetched for after a jump replaced it.
   int _windowGeneration = 0;
   bool _jumpToLatestActive = false;
-  // Realtime events that arrived while a window replacement was in flight.
-  List<MessageRealtimeEvent>? _windowSwapEvents;
-  String? _windowSwapChannelId;
+  // Ordered realtime apply queue. See the block comment on
+  // _onRealtimeEventsBatch for what each piece guarantees.
+  int _ingressOrdinal = 0;
+  final List<_RealtimeWrite> _realtimeQueue = <_RealtimeWrite>[];
+  final List<_WindowSwapCommit> _swapCommits = <_WindowSwapCommit>[];
+  _ArmedWindowSwap? _armedSwap;
   int _windowSwapToken = 0;
+  bool _realtimeWorkerActive = false;
+  Future<void> _realtimeWorkerIdle = Future<void>.value();
+  // LOCAL MUTATION LOG. A wholesale window write installs a page fetched before
+  // these landed, and their whole representation is the ABSENCE (delete) or the
+  // REPLACEMENT (edit) of a row, which no fresh read of state.messages can
+  // recover: the merge gives the page precedence, and a deleted row is simply
+  // not there to preserve.
+  //
+  // Keyed by ORDINAL, not by liveness. Retiring an entry when its own request
+  // completes reopens the hole it exists to close: the request can finish while
+  // an OLDER page still sits in the commit lane, and that page then reinstates
+  // a confirmed-deleted message. The hazard lasts as long as any page fetched
+  // before the mutation is still outstanding, which is what _retireLocalMutations
+  // measures.
+  /// Counts WHOLESALE window writes. _windowGeneration counts requests, not
+  /// installs, and a refresh replaces the window without touching it, so a
+  /// consumer that needs to know "was the window swapped under me" needs this.
+  int _windowWrites = 0;
+  int _pageFetchOrdinal = 0;
+  final Set<int> _outstandingFetchOrdinals = <int>{};
+  final Map<String, List<_LocalMutation>> _localMutations =
+      <String, List<_LocalMutation>>{};
   final Map<String, Future<void>> _pendingDeleteFutures =
       <String, Future<void>>{};
   final Map<String, DateTime> _lastNetworkRefreshByChannel =
@@ -373,40 +537,495 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
+  // ORDERED REALTIME APPLY QUEUE.
+  //
+  // Every mutation of state.messages that originates from the gateway goes
+  // through here, and exactly ONE writer runs at a time.
+  //
+  // Before the queue, four cooperating mechanisms approximated a single ordered
+  // writer from the outside: capture-on-arm, drain-before-write, a window epoch
+  // and a post-await arm fence. Each was individually right and jointly
+  // incomplete, because the applications themselves were launched unawaited and
+  // could still overlap one another, and a coalesced frame batch could still
+  // write a list it had computed from a snapshot taken before a swap.
+  //
+  // The queue makes the invariant structural instead of cooperative:
+  //   * ingestion stamps a MONOTONIC INGRESS ORDINAL before any await, the only
+  //     point at which arrival order is still known for certain;
+  //   * one worker drains strictly in ordinal order, so two reducers are never
+  //     in flight together and last-write-wins cannot lose anybody's work;
+  //   * a wholesale window replacement COMMITS AS A QUEUE ITEM, so a reducer
+  //     parked in its database read and a swap's write can no longer overlap in
+  //     either direction. This is what lets the epoch go away: the only code
+  //     that replaces the window wholesale now runs between queue items;
+  //   * while a swap owns the channel the worker pauses. The swap's page
+  //     reflects server state at FETCH time, so everything the queue is holding
+  //     has to replay AFTER the wholesale write rather than be clobbered by it,
+  //     and it replays in ordinal order. A reducer that was already parked when
+  //     the swap armed puts itself back on the queue at its own ordinal for the
+  //     same reason, which is the arm fence restated as a queue operation. The
+  //     reducers are idempotent, so replaying an event the page already
+  //     reflects is a no-op.
   void _onRealtimeEventsBatch(List<MessageRealtimeEvent> events) {
-    if (events.length == 1) {
-      unawaited(_onRealtimeEvent(events.first));
+    if (events.isEmpty) {
       return;
     }
+    // References track the whole channel, not the loaded window, so they are
+    // never deferred and never queued.
     for (final MessageRealtimeEvent event in events) {
       _forwardRealtimeToMessageReferences(event);
     }
-    if (_windowSwapEvents != null) {
-      // Preserve arrival order across the swap; the batch fast path cannot.
-      var captured = false;
-      for (final MessageRealtimeEvent event in events) {
-        captured = _captureDuringWindowSwap(event) || captured;
-      }
-      if (captured) {
-        return;
-      }
-    }
-    unawaited(_applyRealtimeBatch(events));
+    _realtimeQueue.add(_RealtimeWrite(++_ingressOrdinal, events));
+    _pumpRealtimeQueue();
   }
 
-  Future<void> _applyRealtimeBatch(List<MessageRealtimeEvent> events) async {
+  bool get _swapOwnsChannel {
+    final _ArmedWindowSwap? swap = _armedSwap;
+    return swap != null && swap.channelId == state.channelId;
+  }
+
+  /// Eligible work exists when a commit is queued, or when the queue is
+  /// non-empty and no swap owns the channel.
+  bool get _realtimeQueueEligible =>
+      ref.mounted &&
+      (_swapCommits.isNotEmpty ||
+          (!_swapOwnsChannel && _realtimeQueue.isNotEmpty));
+
+  void _pumpRealtimeQueue() {
+    if (_realtimeWorkerActive) {
+      return;
+    }
+    _realtimeWorkerActive = true;
+    _realtimeWorkerIdle = _runRealtimeQueue().whenComplete(() {
+      _realtimeWorkerActive = false;
+      // LOST WAKEUP. The worker returns, and the flag stays true until this
+      // callback runs a microtask later. An enqueue landing in that gap pumps
+      // while the flag is still set, no-ops, and strands its work until some
+      // unrelated later traffic happens to pump again: on a quiet channel that
+      // is an event applied minutes late, or never. Re-pump here instead.
+      // Terminating: each pump either consumes a queue item or returns, so a
+      // re-pump that finds nothing eligible simply falls straight back out.
+      if (_realtimeQueueEligible) {
+        _pumpRealtimeQueue();
+      }
+    });
+  }
+
+  Future<void> _runRealtimeQueue() async {
+    while (true) {
+      // A commit is the transaction boundary and jumps the held events by
+      // design: they are what has to replay ON TOP of the window it installs.
+      if (_swapCommits.isNotEmpty) {
+        await _runSwapCommit(_swapCommits.removeAt(0));
+        continue;
+      }
+      if (!ref.mounted || _swapOwnsChannel || _realtimeQueue.isEmpty) {
+        return;
+      }
+      await _applyRealtimeWriteSafely(_realtimeQueue.removeAt(0));
+    }
+  }
+
+  /// One bad event must never wedge the queue behind it.
+  Future<void> _applyRealtimeWriteSafely(_RealtimeWrite write) async {
+    try {
+      if (write.events.length == 1) {
+        await _applyRealtimeEvent(write, write.events.first);
+      } else {
+        // Creates need nothing from the database, so a whole frame batch is one
+        // synchronous commit and there is no window to lose a write in. If a
+        // batched event type ever needs IO, prefetch it HERE, in the await
+        // phase, and hand it to the commit.
+        _commitRealtimeCreateBatch(write);
+      }
+    } on Object catch (error, stack) {
+      talker.warning('[ChatViewModel] realtime apply failed', error, stack);
+    }
+  }
+
+  int _armWindowSwap(String channelId) {
+    final int token = ++_windowSwapToken;
+    _armedSwap = _ArmedWindowSwap(token: token, channelId: channelId);
+    return token;
+  }
+
+  /// Runs [write] as a single queue transaction, then replays everything the
+  /// swap held onto the window it just installed.
+  ///
+  /// The network fetch deliberately stays OUTSIDE the queue: serialising fetch
+  /// latency behind event application would stall the live channel for the
+  /// whole round trip. Only the commit is a queue item.
+  ///
+  /// Returns whether the write ran. Callers own effects that only make sense
+  /// alongside it (publishing the window, scrolling, acking) and MUST skip them
+  /// when it did not.
+  Future<bool> _commitWindowSwap(
+    int token,
+    String channelId,
+    int fetchOrdinal,
+    bool Function() stillValid,
+    void Function() write,
+  ) {
+    final _WindowSwapCommit commit = _WindowSwapCommit(
+      token: token,
+      channelId: channelId,
+      fetchOrdinal: fetchOrdinal,
+      stillValid: stillValid,
+      write: write,
+    );
+    _swapCommits.add(commit);
+    _pumpRealtimeQueue();
+    return commit.done.future;
+  }
+
+  Future<void> _runSwapCommit(_WindowSwapCommit commit) async {
+    // VALIDITY IS CHECKED HERE, AT EXECUTION TIME, not where the caller
+    // enqueued. A commit waits in the lane behind whatever reducer was mid
+    // application, and the world can move in that gap. The caller's own checks
+    // all ran before the enqueue and cannot see it.
+    //
+    // Three conditions, and each catches something the others miss:
+    //   * the armed token still ours -- a NEWER swap arming replaces it, and a
+    //     disarm nulls it. Neither is visible to a generation counter.
+    //   * the channel still ours -- a switch that loads nothing never arms, so
+    //     the token check alone would let this page land in another channel.
+    //   * the caller's own predicate -- a same-channel no-load switch keeps the
+    //     id and never arms, yet still supersedes by user intent.
+    final bool applied =
+        _armedSwap?.token == commit.token &&
+        commit.channelId == state.channelId &&
+        commit.stillValid();
+    Object? failure;
+    StackTrace? failureStack;
+    try {
+      if (applied) {
+        commit.write();
+        _windowWrites++;
+        _armedSwap = null;
+      }
+      // This commit has left the lane, so it no longer holds the retirement
+      // boundary down.
+      _retireLocalMutations();
+      // A superseded commit still has to leave the queue moving. When a newer
+      // swap owns the channel this loop correctly does nothing, because that
+      // owner's barrier is the one now in force.
+      while (ref.mounted &&
+          _swapCommits.isEmpty &&
+          !_swapOwnsChannel &&
+          _realtimeQueue.isNotEmpty) {
+        await _applyRealtimeWriteSafely(_realtimeQueue.removeAt(0));
+      }
+    } on Object catch (error, stack) {
+      failure = error;
+      failureStack = stack;
+    }
+    if (failure != null) {
+      commit.done.completeError(failure, failureStack);
+    } else {
+      commit.done.complete(applied);
+    }
+  }
+
+  /// THE WINNER OWNS THE FLAG. A pagination request that clears the busy flag
+  /// after a same-channel switch reset it takes down its SUCCESSOR's flag while
+  /// that successor is still running, and a third load then starts on top of
+  /// it: the exact overlap these flags exist to prevent. Ownership is the
+  /// request's own fetch ordinal, which is already unique per invocation.
+  /// Per message: the operations still to run, oldest first, the running one at
+  /// index 0. Present iff that message has unfinished attachment work.
+  final Map<String, List<_AttachmentOp>> _attachmentOpQueues =
+      <String, List<_AttachmentOp>>{};
+
+  /// Per message: the newest row the SERVER has confirmed. Requests derive from
+  /// this, never from the optimistic row, and the optimistic row is always
+  /// re-derived as confirmed + the queue. A failure therefore needs no inverse
+  /// at all: dropping the op from the queue re-derives the right UI.
+  final Map<String, Message> _confirmedAttachmentRows = <String, Message>{};
+
+  int? _loadingMoreOwner;
+  int? _loadingNewerOwner;
+
+  void _releaseLoadingMore(int ordinal) {
+    if (_loadingMoreOwner != ordinal) {
+      return;
+    }
+    _loadingMoreOwner = null;
+    if (state.isLoadingMore) {
+      state = state.copyWith(isLoadingMore: false);
+    }
+  }
+
+  void _releaseLoadingNewer(int ordinal) {
+    if (_loadingNewerOwner != ordinal) {
+      return;
+    }
+    _loadingNewerOwner = null;
+    if (state.isLoadingNewer) {
+      state = state.copyWith(isLoadingNewer: false);
+    }
+  }
+
+  /// Visible for testing: the unread-boundary key must record SUCCESSFUL loads
+  /// only, so a discarded attempt leaves it empty and a later attempt proceeds.
+  @visibleForTesting
+  int get loadedUnreadBoundaryKeyCount => _loadedUnreadBoundaryKeys.length;
+
+  @visibleForTesting
+  int get pendingLocalMutationCount => _localMutations.values.fold<int>(
+    0,
+    (int sum, List<_LocalMutation> ops) => sum + ops.length,
+  );
+
+  /// Opens a page fetch and returns its FETCH ORDINAL, taken before the await
+  /// so it names a point the page's content is at or before.
+  int _beginPageFetch() {
+    final int ordinal = ++_pageFetchOrdinal;
+    _outstandingFetchOrdinals.add(ordinal);
+    return ordinal;
+  }
+
+  void _endPageFetch(int ordinal) {
+    _outstandingFetchOrdinals.remove(ordinal);
+    _retireLocalMutations();
+  }
+
+  /// Records a local mutation the server has not confirmed yet. Returns the
+  /// start ordinal, which the caller keeps so it can acknowledge or withdraw
+  /// exactly its own operation.
+  int _recordLocalMutation(
+    String messageId,
+    _LocalMutationKind kind, {
+    String? attachmentId,
+    String? description,
+  }) {
+    final int ordinal = ++_pageFetchOrdinal;
+    _localMutations
+        .putIfAbsent(messageId, () => <_LocalMutation>[])
+        .add(
+          _LocalMutation(
+            kind: kind,
+            startOrdinal: ordinal,
+            attachmentId: attachmentId,
+            description: description,
+          ),
+        );
+    return ordinal;
+  }
+
+  _LocalMutation? _findLocalMutation(String messageId, int startOrdinal) {
+    for (final _LocalMutation op in _localMutations[messageId] ?? const []) {
+      if (op.startOrdinal == startOrdinal) {
+        return op;
+      }
+    }
+    return null;
+  }
+
+  /// The server took it. From here on, only fetches that BEGAN before this
+  /// point still need protecting; anything started later is guaranteed to see
+  /// the mutation, and its page must win.
+  ///
+  /// HTTP success is the boundary. If the read path lags the write path
+  /// server-side this is optimistic, but it is the only acknowledgement a
+  /// client has.
+  void _acknowledgeLocalMutation(String messageId, int startOrdinal) {
+    _findLocalMutation(messageId, startOrdinal)?.ackOrdinal =
+        ++_pageFetchOrdinal;
+    _retireLocalMutations();
+  }
+
+  /// Failure path. The caller restores the row separately, and this runs
+  /// whether or not that restore applied, so a withdrawn operation never
+  /// depends on the rollback having happened.
+  void _withdrawLocalMutation(String messageId, int startOrdinal) {
+    final List<_LocalMutation>? ops = _localMutations[messageId];
+    if (ops == null) {
+      return;
+    }
+    ops.removeWhere((_LocalMutation op) => op.startOrdinal == startOrdinal);
+    if (ops.isEmpty) {
+      _localMutations.remove(messageId);
+    }
+  }
+
+  /// Drops every ACKNOWLEDGED operation that no outstanding page operation
+  /// began before. An unacknowledged one never retires: a fetch that has not
+  /// even started yet can still be served pre-mutation content.
+  ///
+  /// Called whenever a fetch closes, whenever one acknowledges, and after every
+  /// commit, so the log holds only operations still owed protection and empties
+  /// completely once the lanes drain.
+  void _retireLocalMutations() {
+    if (_localMutations.isEmpty) {
+      return;
+    }
+    int? oldestOutstanding;
+    for (final int ordinal in _outstandingFetchOrdinals) {
+      if (oldestOutstanding == null || ordinal < oldestOutstanding) {
+        oldestOutstanding = ordinal;
+      }
+    }
+    for (final _WindowSwapCommit commit in _swapCommits) {
+      if (oldestOutstanding == null ||
+          commit.fetchOrdinal < oldestOutstanding) {
+        oldestOutstanding = commit.fetchOrdinal;
+      }
+    }
+    final int? boundary = oldestOutstanding;
+    _localMutations.removeWhere((_, List<_LocalMutation> ops) {
+      ops.removeWhere((_LocalMutation op) {
+        if (op.ackOrdinal == _kUnacknowledgedOrdinal) {
+          return false;
+        }
+        return boundary == null || boundary >= op.ackOrdinal;
+      });
+      return ops.isEmpty;
+    });
+  }
+
+  /// Re-applies local operations the page being installed is older than.
+  ///
+  /// A fresh read of state.messages is not enough on its own. It rescues an
+  /// optimistic SEND, whose row is present locally and survives the merge, but
+  /// not the other two: a DELETE removed the row entirely, so there is nothing
+  /// left to preserve and the page, fetched before it, puts it straight back;
+  /// and an attachment edit loses because mergeMessagesSorted gives the page
+  /// precedence.
+  ///
+  /// The comparison is against the ACKNOWLEDGEMENT and is load-bearing in BOTH
+  /// directions. A fetch that began after the server confirmed the operation is
+  /// guaranteed to reflect it, so its page must win, or a delete-then-recreate
+  /// and every later server-side edit would be masked forever. A fetch that
+  /// began before the ack may still be serving pre-operation content no matter
+  /// which of the two the client started first, so it is overlaid.
+  ///
+  /// Attachment operations are applied to the PAGE's own row, so a newer remote
+  /// edit to any field they do not touch survives untouched, and an operation
+  /// the page already reflects is a no-op. Deletes are whole-row tombstones and
+  /// need no content clock: absence carries no timestamp, and a recreate gets a
+  /// new snowflake id, so a tombstone can never mask genuinely newer content.
+  /// That asymmetry is deliberate; do not make it symmetric.
+  ///
+  /// RESIDUAL: a newer REMOTE change to the SAME attachment's description,
+  /// racing our acknowledged alt-text set, has no per-attachment clock to
+  /// arbitrate. The operation shape confines that to the one field instead of
+  /// the whole message.
+  ///
+  /// Only the two attachment paths are optimistic. The content edit paths
+  /// (saveEditedMessage, applyComposerReplace) await the server and write the
+  /// confirmed row, so they have nothing local to protect.
+  List<Message> _applyPendingLocalMutations(
+    List<Message> messages,
+    int fetchOrdinal,
+  ) {
+    if (_localMutations.isEmpty) {
+      return messages;
+    }
+    final List<Message> result = <Message>[];
+    for (final Message message in messages) {
+      final List<_LocalMutation>? ops = _localMutations[message.id];
+      if (ops == null || ops.isEmpty) {
+        result.add(message);
+        continue;
+      }
+      Message current = message;
+      var deleted = false;
+      for (final _LocalMutation op in ops) {
+        if (fetchOrdinal >= op.ackOrdinal) {
+          continue;
+        }
+        switch (op.kind) {
+          case _LocalMutationKind.deleteMessage:
+            deleted = true;
+          case _LocalMutationKind.removeAttachment:
+            current = current.copyWith(
+              attachments: current.attachments
+                  .where((Attachment a) => a.id != op.attachmentId)
+                  .toList(),
+            );
+          case _LocalMutationKind.setAttachmentAlt:
+            current = current.copyWith(
+              attachments: <Attachment>[
+                for (final Attachment a in current.attachments)
+                  if (a.id == op.attachmentId)
+                    a.copyWithDescription(op.description)
+                  else
+                    a,
+              ],
+            );
+        }
+      }
+      if (!deleted) {
+        result.add(current);
+      }
+    }
+    return result;
+  }
+
+  /// Releases the barrier of a swap that will never commit: it failed, it was
+  /// superseded, or it short-circuited before reaching its write. Whatever the
+  /// queue held for it then drains in ordinal order against the window that is
+  /// actually loaded.
+  Future<void> _disarmWindowSwap(int token) async {
+    if (_armedSwap?.token != token) {
+      return;
+    }
+    _armedSwap = null;
+    // Clearing the barrier is an eligibility transition, so it MUST wake the
+    // worker: the worker returned the moment the swap armed, and without this
+    // everything enqueued during a swap that never commits sits in the queue
+    // until unrelated later traffic happens to pump. Wait for genuine idle
+    // rather than for one particular worker future, because a worker caught
+    // mid-return hands off to the re-pump in its own completion callback.
+    while (_realtimeQueueEligible || _realtimeWorkerActive) {
+      _pumpRealtimeQueue();
+      await _realtimeWorkerIdle;
+    }
+  }
+
+  /// True when a swap armed while [write] was awaiting. The swap's page
+  /// predates this event, so writing now would either be erased by the
+  /// wholesale write moments later or erase it. [write] goes back on the queue
+  /// AT ITS OWN ORDINAL, ahead of everything that arrived after it, and replays
+  /// once the swap has committed.
+  bool _deferForArmedSwap(_RealtimeWrite write) {
+    if (!_swapOwnsChannel) {
+      return false;
+    }
+    int index = 0;
+    while (index < _realtimeQueue.length &&
+        _realtimeQueue[index].ordinal < write.ordinal) {
+      index++;
+    }
+    _realtimeQueue.insert(index, write);
+    return true;
+  }
+
+  /// Commits a coalesced frame of creates.
+  ///
+  /// SYNCHRONOUS BY SIGNATURE, and that is the whole point. The window is read
+  /// at the top and assigned at the bottom with NO suspension point in between,
+  /// so nothing can land in the gap and be erased.
+  ///
+  /// Carrying a base across awaits is not safe even when every await looks
+  /// microtask-only: microtasks already queued when the batch starts run at its
+  /// first yield, and one of them can be the continuation of an optimistic send
+  /// whose IO completed in the same macrotask slot. It writes the user's own
+  /// message into state.messages, the batch resumes holding a base from before
+  /// it, and the commit erases it. A void method cannot have that gap.
+  void _commitRealtimeCreateBatch(_RealtimeWrite write) {
     List<Message>? workingMessages = state.messages;
     var droppedOlder = false;
     var shouldAck = false;
     var clearSticky = false;
     String? ackWatermark;
-    for (final MessageRealtimeEvent event in events) {
+    for (final MessageRealtimeEvent event in write.events) {
       if (event is! MessageCreated) {
         continue;
       }
-      final List<Message>? next = await _nextMessagesFor(
+      final List<Message>? next = _nextMessagesForSync(
         event,
-        baseMessages: workingMessages,
+        messages: workingMessages!,
       );
       if (next == null) {
         continue;
@@ -459,132 +1078,34 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
-  /// Buffers realtime events while a wholesale window replacement runs.
-  ///
-  /// A replacement computes its merged list from a snapshot and then awaits.
-  /// Every realtime mutation landing in that gap is applied to state.messages
-  /// and then overwritten by the stale snapshot: creates vanish, edits roll
-  /// back to the fetched revision, and deletes are resurrected by a REST page
-  /// fetched before the delete. Buffering the raw events and replaying them
-  /// through the normal reducer after the swap preserves both the mutations
-  /// and their order, and inherits every per-event rule for free.
-  ///
-  /// Arming is idempotent, so a replacement that supersedes another still
-  /// replays everything. The returned token identifies the owner, and a
-  /// superseded owner's drain is a no-op.
-  /// Bumped by every WHOLESALE window write. _nextMessagesFor snapshots
-  /// state.messages at entry and then awaits the database, so without this a
-  /// swap completing inside that await would be rolled back wholesale by the
-  /// stale copy computed before it.
-  int _windowEpoch = 0;
-
-  int _armWindowSwap(String channelId) {
-    _windowSwapEvents ??= <MessageRealtimeEvent>[];
-    _windowSwapChannelId = channelId;
-    return ++_windowSwapToken;
-  }
-
-  List<MessageRealtimeEvent> _drainWindowSwap(int token) {
-    if (token != _windowSwapToken) {
-      return const <MessageRealtimeEvent>[];
-    }
-    final List<MessageRealtimeEvent> events =
-        _windowSwapEvents ?? const <MessageRealtimeEvent>[];
-    _windowSwapEvents = null;
-    _windowSwapChannelId = null;
-    // Every wholesale window write is required to drain immediately before it,
-    // so bumping here covers all three swap apply sites (refresh, jump-to-latest
-    // and the in-place jump) from one place. A drain that ends up not writing
-    // only costs an idempotent recompute.
-    _windowEpoch++;
-    return events;
-  }
-
-  /// Captures [ev] if a window swap owns the channel. Returns true when the
-  /// caller must not apply it now.
-  bool _captureDuringWindowSwap(MessageRealtimeEvent ev) {
-    final List<MessageRealtimeEvent>? buffer = _windowSwapEvents;
-    if (buffer == null || _windowSwapChannelId != state.channelId) {
-      return false;
-    }
-    buffer.add(ev);
-    return true;
-  }
-
-  /// Replays buffered events in arrival order through the normal reducer.
-  ///
-  /// Every event is idempotent against a window that already reflects it:
-  /// a create for a present id is skipped, and the replace and remove helpers
-  /// both return null when nothing changes.
-  /// [token] is the owner's swap token. Replay yields to the event loop on
-  /// every event, so a NEWER swap can arm mid-loop; the remaining events must
-  /// then be handed to that owner rather than applied over its fresh window.
-  /// Applying them anyway regresses revisions, which is exactly what the
-  /// buffering exists to prevent, and the idempotence noted above covers
-  /// presence only, not ordering.
-  Future<void> _replayWindowSwapEvents(
-    List<MessageRealtimeEvent> events,
-    String channelId,
-    int token,
-  ) async {
-    for (int i = 0; i < events.length; i++) {
-      if (!ref.mounted || state.channelId != channelId) {
-        return;
-      }
-      if (token != _windowSwapToken) {
-        final List<MessageRealtimeEvent>? buffer = _windowSwapEvents;
-        if (buffer != null && _windowSwapChannelId == channelId) {
-          // These are OLDER than anything the newer owner has buffered, so they
-          // go in FRONT to keep arrival order.
-          buffer.insertAll(0, events.sublist(i));
-        }
-        return;
-      }
-      await _applyRealtimeEvent(events[i]);
-    }
-  }
-
-  Future<void> _onRealtimeEvent(MessageRealtimeEvent ev) async {
-    // References track the whole channel, not the loaded window, so they are
-    // never deferred.
-    _forwardRealtimeToMessageReferences(ev);
-    if (_captureDuringWindowSwap(ev)) {
-      return;
-    }
-    await _applyRealtimeEvent(ev);
-  }
-
+  /// AWAIT PHASE. Everything a reducer needs from the database is fetched here,
+  /// up front, so the reduction that follows can be synchronous. Nothing may be
+  /// awaited after this point: the commit reads the window and assigns it in
+  /// one uninterrupted block, which is what stops a writer the queue does not
+  /// own (an optimistic send, a page load, an edit) from being erased by a
+  /// reducer that entered before it.
   Future<void> _applyRealtimeEvent(
-    MessageRealtimeEvent ev, {
-    int depth = 0,
-  }) async {
-    final int epoch = _windowEpoch;
-    final next = await _nextMessagesFor(ev);
-    // Two ways this computation can be stale, and both must route through the
-    // buffer rather than write directly:
-    //   - the window was replaced wholesale inside the await (epoch moved), or
-    //   - a swap has ARMED and not yet written. The epoch does not move at arm,
-    //     so an event that entered before the arm would otherwise pass a
-    //     pre-write epoch check, write onto the old window, and be erased by
-    //     the swap's wholesale write moments later. It is in no buffer either,
-    //     because capture only sees arrivals after the arm.
-    final List<MessageRealtimeEvent>? activeSwapBuffer = _windowSwapEvents;
-    final bool swapOwnsChannel =
-        activeSwapBuffer != null && _windowSwapChannelId == state.channelId;
-    if (epoch != _windowEpoch || swapOwnsChannel) {
-      if (swapOwnsChannel) {
-        // This event arrived BEFORE anything already buffered, so it prepends.
-        activeSwapBuffer.insert(0, ev);
-        return;
-      }
-      // No owner left: recompute against the new window. The reducer is
-      // idempotent per the note on _replayWindowSwapEvents, and the depth cap
-      // keeps a pathological swap storm from looping.
-      if (depth < 3) {
-        await _applyRealtimeEvent(ev, depth: depth + 1);
-      }
+    _RealtimeWrite write,
+    MessageRealtimeEvent ev,
+  ) async {
+    final db.Message? prefetchedRow = await _prefetchRowFor(ev);
+    if (_deferForArmedSwap(write)) {
       return;
     }
+    _commitRealtimeEvent(ev, prefetchedRow);
+  }
+
+  /// COMMIT PHASE. Synchronous by signature, from the read below to the last
+  /// assignment.
+  void _commitRealtimeEvent(
+    MessageRealtimeEvent ev,
+    db.Message? prefetchedRow,
+  ) {
+    final List<Message>? next = _nextMessagesForSync(
+      ev,
+      messages: state.messages,
+      prefetchedRow: prefetchedRow,
+    );
     final Set<String> deletedIds = _deletedMessageIdsFor(ev);
     final bool clearEditing =
         ev is MessageUpdated && state.editingMessage?.id == ev.event.message.id;
@@ -733,11 +1254,41 @@ class ChatViewModel extends _$ChatViewModel {
     };
   }
 
-  Future<List<Message>?> _nextMessagesFor(
+  /// The one and only database read a reducer performs, hoisted out of the
+  /// reduction so the reduction can be synchronous. The guards here decide
+  /// whether a read is worth doing; the reduction re-checks everything against
+  /// the window as it stands when it commits.
+  Future<db.Message?> _prefetchRowFor(MessageRealtimeEvent ev) async {
+    final dao = ref.read(fluxerDatabaseProvider).messageDao;
+    switch (ev) {
+      case MessageUpdated(:final event):
+        final String messageId = event.message.id;
+        if (event.message.channelId != state.channelId ||
+            state.messages.any((Message m) => m.id == messageId) ||
+            !_isMessageInLoadedWindow(messageId)) {
+          return null;
+        }
+        return dao.getMessage(messageId);
+      case MessageReactionsChanged(:final channelId, :final messageId):
+        if (channelId != state.channelId) {
+          return null;
+        }
+        return dao.getMessage(messageId);
+      case MessageCreated():
+      case MessageDeleted():
+      case MessagesDeletedBulk():
+        return null;
+    }
+  }
+
+  /// The reduction itself: pure with respect to IO, so a caller can run it
+  /// between a fresh read of [messages] and the assignment with nothing able to
+  /// interleave. [prefetchedRow] carries whatever [_prefetchRowFor] fetched.
+  List<Message>? _nextMessagesForSync(
     MessageRealtimeEvent ev, {
-    List<Message>? baseMessages,
-  }) async {
-    final List<Message> messages = baseMessages ?? state.messages;
+    required List<Message> messages,
+    db.Message? prefetchedRow,
+  }) {
     switch (ev) {
       case MessageCreated(:final event, :final snapshot):
         if (event.message.channelId != state.channelId) {
@@ -781,48 +1332,33 @@ class ChatViewModel extends _$ChatViewModel {
           return null;
         }
         final String messageId = event.message.id;
-        final int idx = state.messages.indexWhere((m) => m.id == messageId);
-        final String? currentUserId = ref.read(currentUserIdProvider);
+        final int idx = messages.indexWhere((m) => m.id == messageId);
         if (idx != -1) {
-          final Message merged = state.messages[idx].applyGatewayUpdate(
+          final Message merged = messages[idx].applyGatewayUpdate(
             event.message,
-            currentUserId: currentUserId,
+            currentUserId: ref.read(currentUserIdProvider),
           );
-          return _replaceById(state.messages, merged);
+          return _replaceById(messages, merged);
         }
-        if (!_isMessageInLoadedWindow(messageId)) {
+        if (prefetchedRow == null) {
           return null;
         }
-        final row = await ref
-            .read(fluxerDatabaseProvider)
-            .messageDao
-            .getMessage(messageId);
-        if (row == null) {
-          return null;
-        }
-        return _replaceById(state.messages, Message.fromRow(row));
+        return _replaceById(messages, Message.fromRow(prefetchedRow));
       case MessageDeleted(:final event):
         if (event.channelId != state.channelId) {
           return null;
         }
-        return _removeIds(state.messages, {event.messageId});
+        return _removeIds(messages, {event.messageId});
       case MessagesDeletedBulk(:final event):
         if (event.channelId != state.channelId) {
           return null;
         }
-        return _removeIds(state.messages, event.ids.toSet());
-      case MessageReactionsChanged(:final channelId, :final messageId):
-        if (channelId != state.channelId) {
+        return _removeIds(messages, event.ids.toSet());
+      case MessageReactionsChanged(:final channelId):
+        if (channelId != state.channelId || prefetchedRow == null) {
           return null;
         }
-        final row = await ref
-            .read(fluxerDatabaseProvider)
-            .messageDao
-            .getMessage(messageId);
-        if (row == null || state.channelId != channelId) {
-          return null;
-        }
-        return _replaceById(state.messages, Message.fromRow(row));
+        return _replaceById(messages, Message.fromRow(prefetchedRow));
     }
   }
 
@@ -1062,6 +1598,8 @@ class ChatViewModel extends _$ChatViewModel {
     }
     final int switchGeneration = ++_channelSwitchGeneration;
     bool isCurrentSwitch() => switchGeneration == _channelSwitchGeneration;
+    // The cached-window install below is a page-producing read like any other.
+    int? cacheFetchOrdinal;
     try {
       final String? currentUserId = ref.read(currentUserIdProvider);
       if (isPersonalNotesChannelRoute(
@@ -1212,18 +1750,13 @@ class ChatViewModel extends _$ChatViewModel {
             shouldApplyResult: isCurrentSwitch,
             isDirectLatestLoad: false,
             preserveLoadedWindow: true,
-          ).whenComplete(() {
-            if (!ref.mounted) {
-              return;
-            }
-            if (isCurrentSwitch() && state.channelId == channelId) {
-              _markMessagesReconciled(channelId);
-            }
-          }),
+          ),
         );
         return;
       }
       final repo = ref.read(messageRepositoryProvider);
+      final int cacheOrdinal = _beginPageFetch();
+      cacheFetchOrdinal = cacheOrdinal;
       final cached = await repo.getCachedMessages(channelId);
       if (!isCurrentSwitch()) {
         return;
@@ -1236,7 +1769,9 @@ class ChatViewModel extends _$ChatViewModel {
         final bool willRefresh = _shouldRefreshChannelFromNetwork(channelId);
         state = _switchedChannelState(
           channelId: channelId,
-          messages: willRefresh ? const [] : cached,
+          messages: willRefresh
+              ? const []
+              : _applyPendingLocalMutations(cached, cacheOrdinal),
           draft: draft,
           replyMentioning: replyMentioning,
           scrollToBottomSignal: state.scrollToBottomSignal,
@@ -1258,14 +1793,7 @@ class ChatViewModel extends _$ChatViewModel {
               limit: _kInitialPageSize,
               isDirectLatestLoad: true,
               shouldApplyResult: isCurrentSwitch,
-            ).whenComplete(() {
-              if (!ref.mounted) {
-                return;
-              }
-              if (isCurrentSwitch() && state.channelId == channelId) {
-                _markMessagesReconciled(channelId);
-              }
-            }),
+            ),
           );
         }
         return;
@@ -1306,6 +1834,9 @@ class ChatViewModel extends _$ChatViewModel {
         shouldApplyResult: isCurrentSwitch,
       );
     } finally {
+      if (cacheFetchOrdinal != null) {
+        _endPageFetch(cacheFetchOrdinal);
+      }
       debugPrint(
         '[ChatViewModel] switchChannel($channelId) completed in '
         '${switchStopwatch.elapsedMilliseconds}ms',
@@ -1350,6 +1881,18 @@ class ChatViewModel extends _$ChatViewModel {
     if (state.isLoading || state.isSyncingMessages) {
       return;
     }
+    // Ownership, captured before the flag becomes ours. Only three sites move
+    // these counters: a channel switch and an around jump bump the switch
+    // generation, a jump to latest bumps the window generation. Our OWN refresh
+    // bumps neither — its commit moves _windowWrites only — so this reads
+    // exactly as "nobody has taken the window away from us", and stays true
+    // through our own success.
+    final int windowGeneration = _windowGeneration;
+    final int switchGeneration = _channelSwitchGeneration;
+    bool stillOurs() =>
+        windowGeneration == _windowGeneration &&
+        switchGeneration == _channelSwitchGeneration &&
+        state.channelId == channelId;
     _lastNetworkRefreshByChannel.remove(channelId);
     state = state.copyWith(isSyncingMessages: true);
     try {
@@ -1359,11 +1902,16 @@ class ChatViewModel extends _$ChatViewModel {
         isDirectLatestLoad: false,
         preserveLoadedWindow: state.messages.isNotEmpty,
       );
-      if (state.channelId == channelId) {
-        _markMessagesReconciled(channelId);
-      }
+      // Nothing to mark here. The refresh is the ONLY layer that decides
+      // "reconciled", and it decides it on the path that applied; re-deriving it
+      // out here is how a superseded refresh came to mark a window it never
+      // touched. m15 pins the regression.
     } finally {
-      if (state.channelId == channelId && state.isSyncingMessages) {
+      // Only the owner clears the flag. A jump that superseded us set
+      // isSyncingMessages for ITSELF, and clearing it mid-flight leaves the
+      // channel reading as not-busy to every dedup guard and busy gate for the
+      // rest of its run. Same shape as jumpToLatestMessages' finally; m15 pins.
+      if (stillOurs() && state.isSyncingMessages) {
         state = state.copyWith(isSyncingMessages: false);
       }
     }
@@ -1403,9 +1951,28 @@ class ChatViewModel extends _$ChatViewModel {
     bool preserveLoadedWindow = false,
   }) async {
     final int windowGeneration = _windowGeneration;
+    final int switchGeneration = _channelSwitchGeneration;
     bool shouldApply() =>
         windowGeneration == _windowGeneration &&
         (shouldApplyResult?.call() ?? true);
+    // What the commit is gated on: everything shouldApply covers, plus channel
+    // switches, which move the switch generation without touching the window
+    // generation and, when they load nothing, without arming either.
+    bool stillCurrent() =>
+        shouldApply() &&
+        switchGeneration == _channelSwitchGeneration &&
+        state.channelId == channelId;
+    // ONE guard shape for every path below that writes state:
+    // stillCurrent() && ownsSwap(). They compose, and neither subsumes the
+    // other. Generations catch what never re-arms — a same-channel no-load
+    // switch keeps the window and writes its own flags, and for the callers
+    // that pass no shouldApplyResult (the recovery reconcile, retry, reload)
+    // shouldApply is the window generation ALONE, blind to it. The arm catches
+    // what bumps no generation — a sibling refresh on the same channel. The one
+    // exception is the spinner write directly below: it runs synchronously,
+    // before the arm and the first await, so nothing can have superseded us
+    // yet, and a targeted load legitimately runs before state.channelId has
+    // become [channelId].
     if (showLoadingSpinner) {
       if (!shouldApply()) {
         return;
@@ -1418,7 +1985,20 @@ class ChatViewModel extends _$ChatViewModel {
       );
     }
     final int swapToken = _armWindowSwap(channelId);
-    List<MessageRealtimeEvent> bufferedEvents = const <MessageRealtimeEvent>[];
+    // The identity generations cannot express, and it is scoped to the paths
+    // BEFORE the commit plus the failure path. Two refreshes on ONE channel
+    // (retry plus a DM-list reload, say) bump no counter at all: the second's
+    // arm simply replaces the first's token, so only the arm tells them apart.
+    //
+    // NEVER fold this into stillCurrent or into anything the post-commit path
+    // reads. A landed commit NULLS the arm before it completes the commit
+    // future, so the same null means OPPOSITE things on the two sides of the
+    // commit: before it, "somebody took the window, write nothing"; after it,
+    // "our own write landed". A unified predicate cannot exist, and one that
+    // included the token would reject every successful refresh and silently
+    // skip publish and the reconcile mark.
+    bool ownsSwap() => _armedSwap?.token == swapToken;
+    final int fetchOrdinal = _beginPageFetch();
     try {
       final String? effectiveAroundMessageId =
           targetMessageId ?? aroundMessageId;
@@ -1449,7 +2029,7 @@ class ChatViewModel extends _$ChatViewModel {
           limit: effectiveLimit,
         );
       }
-      if (state.channelId != channelId || !shouldApply()) {
+      if (!stillCurrent() || !ownsSwap()) {
         return;
       }
       if (preserveLoadedWindow &&
@@ -1468,19 +2048,26 @@ class ChatViewModel extends _$ChatViewModel {
         );
         return;
       }
-      final String? syncBaselineOldestId = state.messages.isEmpty
-          ? null
-          : state.messages.first.id;
-      final List<Message> merged = preserveLoadedWindow
-          ? reconcileStaleDeletionsInLoadedWindow(
-              current: state.messages,
-              networkPage: page.messages,
-            )
-          : reconcileMessagesWithNetworkPage(
-              current: state.messages,
-              networkPage: page.messages,
-              syncBaselineOldestId: syncBaselineOldestId,
-            );
+      // The reduction, as a function of the window it is given. Called twice:
+      // once here on a pre-lane snapshot, purely to DERIVE things that need an
+      // await (the channel-pointer consult and member hydration), and once
+      // again inside the commit closure against the window as it stands at
+      // write time. Only the second result is ever installed.
+      List<Message> reduceAgainst(List<Message> current) {
+        final List<Message> reconciled = preserveLoadedWindow
+            ? reconcileStaleDeletionsInLoadedWindow(
+                current: current,
+                networkPage: page.messages,
+              )
+            : reconcileMessagesWithNetworkPage(
+                current: current,
+                networkPage: page.messages,
+                syncBaselineOldestId: current.isEmpty ? null : current.first.id,
+              );
+        return _applyPendingLocalMutations(reconciled, fetchOrdinal);
+      }
+
+      final List<Message> merged = reduceAgainst(state.messages);
       final String? mergedServerTailId = newestServerBackedMessageId(merged);
       // Only direct latest-page loads can prove that a short page reaches the
       // live tail. Reconcile and around-window pages must still consult the
@@ -1504,7 +2091,7 @@ class ChatViewModel extends _$ChatViewModel {
                 .map((Message message) => message.id)
                 .toSet(),
           );
-      if (state.channelId != channelId || !shouldApply()) {
+      if (!stillCurrent() || !ownsSwap()) {
         return;
       }
       await _hydrateGuildMembersForMessages(
@@ -1512,7 +2099,7 @@ class ChatViewModel extends _$ChatViewModel {
         merged,
         embeddedReplyParents: page.embeddedReplyParents,
       );
-      if (state.channelId != channelId || !shouldApply()) {
+      if (!stillCurrent() || !ownsSwap()) {
         return;
       }
       // Around pages are split before/after the anchor; near the live tail they
@@ -1521,25 +2108,45 @@ class ChatViewModel extends _$ChatViewModel {
           ? state.hasMoreMessages
           : page.messages.length >= effectiveLimit ||
                 (effectiveAroundMessageId != null && page.messages.isNotEmpty);
-      // Drain immediately before the swap so nothing lands between the two.
-      bufferedEvents = _drainWindowSwap(swapToken);
-      state = state.copyWith(
-        messages: merged,
-        isLoading: false,
-        isSyncingMessages: false,
-        hasMoreMessages: hasMoreOlder,
-        hasMoreNewerMessages: hasMoreNewer,
-        errorMessage: null,
-        messageLoadFailed: false,
+      // The wholesale write commits as ONE queue item, and it composes its list
+      // INSIDE the closure, from the window as it stands at write time. The
+      // page is prefetched input; the merge against local state is a reduction,
+      // and a reduction computed before the lane installs a list that predates
+      // whatever the user did while the commit waited.
+      final bool applied = await _commitWindowSwap(
+        swapToken,
+        channelId,
+        fetchOrdinal,
+        stillCurrent,
+        () {
+          state = state.copyWith(
+            messages: reduceAgainst(state.messages),
+            isLoading: false,
+            isSyncingMessages: false,
+            hasMoreMessages: hasMoreOlder,
+            hasMoreNewerMessages: hasMoreNewer,
+            errorMessage: null,
+            messageLoadFailed: false,
+          );
+          if (!preserveLoadedWindow) {
+            _contiguity.setVerified(channelId, page.messages);
+          }
+          _contiguityTrusted = true;
+        },
       );
-      if (!preserveLoadedWindow) {
-        _contiguity.setVerified(channelId, page.messages);
+      // TWO windows, two guards. [applied] closes the lane wait: the commit sat
+      // behind a reducer and may have been superseded before it ran. The
+      // predicate recheck closes the continuation resume: completing the
+      // commit's future hands control back a microtask later, and a superseding
+      // intent whose own continuation was already queued can bump the
+      // generation, arm and write in between. Publishing or reconciling on a
+      // stale true would claim this channel is up to date on the strength of a
+      // page the winner has already replaced. NO token here, deliberately: our
+      // own commit nulled the arm on its way out, so ownsSwap() is false for
+      // exactly the refresh that succeeded.
+      if (!applied || !stillCurrent()) {
+        return;
       }
-      _contiguityTrusted = true;
-      // Realtime mutations that raced the swap: replay in arrival order so
-      // edits keep their revision and deletes stay deleted.
-      await _replayWindowSwapEvents(bufferedEvents, channelId, swapToken);
-      bufferedEvents = const <MessageRealtimeEvent>[];
       _notifyMessageReferencesLoaded(
         channelId: channelId,
         messages: state.messages,
@@ -1547,6 +2154,10 @@ class ChatViewModel extends _$ChatViewModel {
       );
       if (targetMessageId == null) {
         _markChannelNetworkRefresh(channelId);
+        // THE decision, made once, only on the path that installed the page.
+        // No caller may re-derive it: an outer mark on channel equality fires
+        // for superseded refreshes too, and the skip machinery then suppresses
+        // the next resync of a stale window.
         _markMessagesReconciled(channelId);
         await _onMessagesLoaded(channelId);
         if (isDirectLatestLoad && page.messages.length < effectiveLimit) {
@@ -1555,7 +2166,11 @@ class ChatViewModel extends _$ChatViewModel {
       }
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to load messages: $e');
-      if (state.channelId != channelId || !shouldApply()) {
+      // The failure belongs to THIS refresh; the state may already belong to
+      // whoever superseded it. Writing a banner and clearing busy flags over a
+      // successor that did not fail is the same ownership bug as the finally.
+      // m15b pins the superseding switch, m15c the superseding sibling refresh.
+      if (!stillCurrent() || !ownsSwap()) {
         return;
       }
       final bool hasCachedMessages = state.messages.isNotEmpty;
@@ -1567,13 +2182,8 @@ class ChatViewModel extends _$ChatViewModel {
       );
     } finally {
       // A failed or superseded load must still not swallow realtime events.
-      final List<MessageRealtimeEvent> pending = <MessageRealtimeEvent>[
-        ...bufferedEvents,
-        ..._drainWindowSwap(swapToken),
-      ];
-      if (pending.isNotEmpty) {
-        await _replayWindowSwapEvents(pending, channelId, swapToken);
-      }
+      _endPageFetch(fetchOrdinal);
+      await _disarmWindowSwap(swapToken);
     }
   }
 
@@ -1720,6 +2330,14 @@ class ChatViewModel extends _$ChatViewModel {
     final String channelId = state.channelId;
     final String requestedBeforeId = state.messages.first.id;
     state = state.copyWith(isLoadingMore: true);
+    // Pagination is a page-producing fetch like any other, so it joins the
+    // protocol. Registering at ENTRY covers the cache read as well as the
+    // network one: a cached window can predate an optimistic delete too, and
+    // being invisible here would let _retireLocalMutations drop an acked
+    // operation while this fetch is still in flight, which no amount of
+    // overlay at the install site could repair.
+    final int fetchOrdinal = _beginPageFetch();
+    _loadingMoreOwner = fetchOrdinal;
     try {
       final repo = ref.read(messageRepositoryProvider);
       talker.debug('[ChatPagination] older request oldest=$requestedBeforeId');
@@ -1755,15 +2373,18 @@ class ChatViewModel extends _$ChatViewModel {
           switch (result) {
             case WindowPageSuperseded():
               talker.debug('[ChatPagination] older page superseded');
-              state = state.copyWith(isLoadingMore: false);
+              _releaseLoadingMore(fetchOrdinal);
               return;
             case WindowPageApplied(:final window):
               state = state.copyWith(
-                messages: window.messages,
-                isLoadingMore: false,
+                messages: _applyPendingLocalMutations(
+                  window.messages,
+                  fetchOrdinal,
+                ),
                 hasMoreMessages: window.hasMoreOlder,
                 hasMoreNewerMessages: window.hasMoreNewer,
               );
+              _releaseLoadingMore(fetchOrdinal);
               unawaited(
                 _onMessageBatchLoaded(
                   channelId: channelId,
@@ -1794,7 +2415,7 @@ class ChatViewModel extends _$ChatViewModel {
       switch (result) {
         case WindowPageSuperseded():
           talker.debug('[ChatPagination] older page superseded');
-          state = state.copyWith(isLoadingMore: false);
+          _releaseLoadingMore(fetchOrdinal);
           return;
         case WindowPageApplied(:final window):
           if (page.messages.isNotEmpty) {
@@ -1802,11 +2423,14 @@ class ChatViewModel extends _$ChatViewModel {
           }
           _contiguityTrusted = true;
           state = state.copyWith(
-            messages: window.messages,
-            isLoadingMore: false,
+            messages: _applyPendingLocalMutations(
+              window.messages,
+              fetchOrdinal,
+            ),
             hasMoreMessages: window.hasMoreOlder,
             hasMoreNewerMessages: window.hasMoreNewer,
           );
+          _releaseLoadingMore(fetchOrdinal);
           talker.debug(
             '[ChatPagination] older loaded count=${page.messages.length} '
             'hasMore=${window.hasMoreOlder}',
@@ -1821,13 +2445,10 @@ class ChatViewModel extends _$ChatViewModel {
       }
     } on Exception catch (e) {
       talker.warning('[ChatPagination] older load failed', e);
-      if (state.channelId == channelId) {
-        state = state.copyWith(isLoadingMore: false);
-      }
+      _releaseLoadingMore(fetchOrdinal);
     } finally {
-      if (state.channelId == channelId && state.isLoadingMore) {
-        state = state.copyWith(isLoadingMore: false);
-      }
+      _endPageFetch(fetchOrdinal);
+      _releaseLoadingMore(fetchOrdinal);
     }
   }
 
@@ -1845,6 +2466,9 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     state = state.copyWith(isLoadingNewer: true);
+    // Same protocol membership as loadMore, for the same two reasons.
+    final int fetchOrdinal = _beginPageFetch();
+    _loadingNewerOwner = fetchOrdinal;
     try {
       final repo = ref.read(messageRepositoryProvider);
       talker.debug('[ChatPagination] newer request newest=$requestedAfterId');
@@ -1888,15 +2512,18 @@ class ChatViewModel extends _$ChatViewModel {
           switch (result) {
             case WindowPageSuperseded():
               talker.debug('[ChatPagination] newer page superseded');
-              state = state.copyWith(isLoadingNewer: false);
+              _releaseLoadingNewer(fetchOrdinal);
               return;
             case WindowPageApplied(:final window):
               state = state.copyWith(
-                messages: window.messages,
-                isLoadingNewer: false,
+                messages: _applyPendingLocalMutations(
+                  window.messages,
+                  fetchOrdinal,
+                ),
                 hasMoreMessages: window.hasMoreOlder,
                 hasMoreNewerMessages: window.hasMoreNewer,
               );
+              _releaseLoadingNewer(fetchOrdinal);
               unawaited(
                 _onMessageBatchLoaded(
                   channelId: channelId,
@@ -1935,7 +2562,7 @@ class ChatViewModel extends _$ChatViewModel {
       switch (result) {
         case WindowPageSuperseded():
           talker.debug('[ChatPagination] newer page superseded');
-          state = state.copyWith(isLoadingNewer: false);
+          _releaseLoadingNewer(fetchOrdinal);
           return;
         case WindowPageApplied(:final window):
           if (page.messages.isNotEmpty) {
@@ -1943,11 +2570,14 @@ class ChatViewModel extends _$ChatViewModel {
           }
           _contiguityTrusted = true;
           state = state.copyWith(
-            messages: window.messages,
-            isLoadingNewer: false,
+            messages: _applyPendingLocalMutations(
+              window.messages,
+              fetchOrdinal,
+            ),
             hasMoreMessages: window.hasMoreOlder,
             hasMoreNewerMessages: window.hasMoreNewer,
           );
+          _releaseLoadingNewer(fetchOrdinal);
           talker.debug(
             '[ChatPagination] newer loaded count=${page.messages.length} '
             'hasMore=${window.hasMoreNewer}',
@@ -1962,13 +2592,10 @@ class ChatViewModel extends _$ChatViewModel {
       }
     } on Exception catch (e) {
       talker.warning('[ChatPagination] newer load failed', e);
-      if (state.channelId == channelId) {
-        state = state.copyWith(isLoadingNewer: false);
-      }
+      _releaseLoadingNewer(fetchOrdinal);
     } finally {
-      if (state.channelId == channelId && state.isLoadingNewer) {
-        state = state.copyWith(isLoadingNewer: false);
-      }
+      _endPageFetch(fetchOrdinal);
+      _releaseLoadingNewer(fetchOrdinal);
     }
   }
 
@@ -2002,10 +2629,16 @@ class ChatViewModel extends _$ChatViewModel {
     if (_jumpToLatestActive || state.isLoading) {
       return false;
     }
-    _windowGeneration++;
+    final int windowGeneration = ++_windowGeneration;
+    final int switchGeneration = _channelSwitchGeneration;
+    // Superseded by a newer window replacement, or by any channel switch,
+    // including one that loads nothing and therefore never arms.
+    bool stillCurrent() =>
+        windowGeneration == _windowGeneration &&
+        switchGeneration == _channelSwitchGeneration;
     _jumpToLatestActive = true;
     final int swapToken = _armWindowSwap(channelId);
-    List<MessageRealtimeEvent> bufferedEvents = const <MessageRealtimeEvent>[];
+    final int fetchOrdinal = _beginPageFetch();
     state = state.copyWith(isSyncingMessages: true);
     try {
       final page = await ref
@@ -2025,26 +2658,38 @@ class ChatViewModel extends _$ChatViewModel {
       if (state.channelId != channelId) {
         return false;
       }
-      final List<Message> pendingLocal = state.messages
-          .where(isLocalOnlyMessage)
-          .toList();
-      final List<Message> merged = mergeMessagesSorted(
-        pendingLocal,
-        page.messages,
+      // The wholesale write commits as ONE queue item, and composes its list
+      // INSIDE the closure: the local-only rows it preserves have to be the
+      // ones present at WRITE time, or a send that landed while this commit
+      // waited in the lane is erased by a snapshot taken before it.
+      final bool applied = await _commitWindowSwap(
+        swapToken,
+        channelId,
+        fetchOrdinal,
+        stillCurrent,
+        () {
+          _contiguity.setVerified(channelId, page.messages);
+          _contiguityTrusted = true;
+          final List<Message> pendingLocal = state.messages
+              .where(isLocalOnlyMessage)
+              .toList();
+          state = state.copyWith(
+            messages: _applyPendingLocalMutations(
+              mergeMessagesSorted(pendingLocal, page.messages),
+              fetchOrdinal,
+            ),
+            hasMoreMessages: page.messages.length >= _kJumpToPresentPageSize,
+            hasMoreNewerMessages: false,
+          );
+        },
       );
-      _contiguity.setVerified(channelId, page.messages);
-      _contiguityTrusted = true;
-      // Drain immediately before the swap so nothing lands between the two.
-      bufferedEvents = _drainWindowSwap(swapToken);
-      state = state.copyWith(
-        messages: merged,
-        hasMoreMessages: page.messages.length >= _kJumpToPresentPageSize,
-        hasMoreNewerMessages: false,
-      );
-      // Replay against the fresh tail window: creates append, edits keep
-      // their revision, deletes stay deleted.
-      await _replayWindowSwapEvents(bufferedEvents, channelId, swapToken);
-      bufferedEvents = const <MessageRealtimeEvent>[];
+      // Two windows, two guards: [applied] for the lane wait, the predicate for
+      // the microtask between the commit completing and this resuming. Either
+      // way the tail window is not what the user is looking at, so nothing is
+      // published, nothing is scrolled, and this must NOT report success.
+      if (!applied || !stillCurrent()) {
+        return false;
+      }
       _notifyMessageReferencesLoaded(
         channelId: channelId,
         messages: state.messages,
@@ -2056,15 +2701,23 @@ class ChatViewModel extends _$ChatViewModel {
       talker.warning('[ChatPagination] jump to latest failed', e);
       return false;
     } finally {
+      // Unconditional, unlike the flag below, and safe because this jump owns
+      // it exclusively: the entry guard turns any second jump away while it is
+      // true, and this line runs before the first await in the finally, so no
+      // other jump can have set it true in between. It is also REQUIRED: this
+      // is a mutex no successor can own, so gating it the way the flag below is
+      // gated wedges jump-to-latest shut forever after one superseded jump.
+      // m14b pins that; the flag below is pinned by m14.
       _jumpToLatestActive = false;
-      final List<MessageRealtimeEvent> pending = <MessageRealtimeEvent>[
-        ...bufferedEvents,
-        ..._drainWindowSwap(swapToken),
-      ];
-      if (pending.isNotEmpty) {
-        await _replayWindowSwapEvents(pending, channelId, swapToken);
-      }
-      if (state.channelId == channelId && state.isSyncingMessages) {
+      _endPageFetch(fetchOrdinal);
+      await _disarmWindowSwap(swapToken);
+      // Only the winning jump clears the busy flag. A same-channel operation
+      // that superseded this one owns its own isSyncingMessages, and clearing
+      // that while it is still in flight makes the channel read as not-busy to
+      // every dedup guard and busy gate for the rest of its run.
+      if (stillCurrent() &&
+          state.channelId == channelId &&
+          state.isSyncingMessages) {
         state = state.copyWith(isSyncingMessages: false);
       }
     }
@@ -2323,21 +2976,55 @@ class ChatViewModel extends _$ChatViewModel {
     if (_loadedUnreadBoundaryKeys.contains(key)) {
       return;
     }
-    _loadedUnreadBoundaryKeys.add(key);
 
+    // The rows below are qualified against the window AS IT IS NOW (the
+    // boundary checks above). Every post-await guard here used to be a channel
+    // check, which is blind to a jump or refresh replacing the window in the
+    // same channel while the fetch runs: the rows would be merged into a window
+    // they were never checked against, and extendNewer would then assert a
+    // contiguity nobody validated.
+    // ALL THREE generations, which is the convention the refresh path already
+    // uses. Neither counter above moves when switchChannel's targeted branch
+    // blanks the window synchronously in the SAME channel: that is a direct
+    // write, not a swap commit, and switchChannel bumps only the switch
+    // generation. Without this, the rows below would be merged into a blanked
+    // window, becoming the ENTIRE window, and extendNewer would stamp
+    // contiguity on that phantom.
+    final int switchGeneration = _channelSwitchGeneration;
+    final int windowGeneration = _windowGeneration;
+    final int windowWrites = _windowWrites;
+    // A page-producing fetch like any other. getMessages is database-or-network
+    // backed, and the repository only deletes the local row at ACK, so a cached
+    // answer can carry a tombstoned message exactly as a network one can: no
+    // exemption.
+    final int fetchOrdinal = _beginPageFetch();
     try {
       final messages = await ref
           .read(messageRepositoryProvider)
           .getMessages(channelId: channelId, after: ackMessageId);
-      if (messages.isEmpty || state.channelId != channelId) {
+      if (messages.isEmpty ||
+          state.channelId != channelId ||
+          switchGeneration != _channelSwitchGeneration ||
+          windowGeneration != _windowGeneration ||
+          windowWrites != _windowWrites) {
         return;
       }
       state = state.copyWith(
-        messages: mergeMessagesSorted(state.messages, messages),
+        messages: mergeMessagesSorted(
+          state.messages,
+          _applyPendingLocalMutations(messages, fetchOrdinal),
+        ),
       );
       _contiguity.extendNewer(channelId, messages.last.id);
+      // COMMITTED ONLY ON A SUCCESSFUL INSTALL. Adding it before the fetch
+      // deduped ATTEMPTS, not loads, so one empty result, one exception or one
+      // stale discard suppressed this boundary for the rest of the session.
+      // Commit-on-success is simpler than unwinding on every failure path.
+      _loadedUnreadBoundaryKeys.add(key);
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to load unread boundary: $e');
+    } finally {
+      _endPageFetch(fetchOrdinal);
     }
   }
 
@@ -3232,6 +3919,7 @@ class ChatViewModel extends _$ChatViewModel {
     if (pending != null) {
       return pending;
     }
+    final String channelId = state.channelId;
     final int messageIndex = state.messages.indexWhere(
       (Message message) => message.id == messageId,
     );
@@ -3244,13 +3932,28 @@ class ChatViewModel extends _$ChatViewModel {
     if (optimisticallyRemoved != null) {
       state = state.copyWith(messages: optimisticallyRemoved);
     }
+    // A page already in flight was fetched before the server saw this, so it
+    // still carries the row. The tombstone survives the request completing,
+    // because that page can still be waiting in the commit lane.
+    final int mutationOrdinal = _recordLocalMutation(
+      messageId,
+      _LocalMutationKind.deleteMessage,
+    );
     final Future<void> deleteFuture = () async {
       try {
         await ref
             .read(messageRepositoryProvider)
-            .deleteMessage(channelId: state.channelId, messageId: messageId);
+            .deleteMessage(channelId: channelId, messageId: messageId);
+        _acknowledgeLocalMutation(messageId, mutationOrdinal);
       } on Exception catch (e) {
         debugPrint('[ChatViewModel] Failed to delete message: $e');
+        // Withdrawn unconditionally, BEFORE the channel gate: the overlay must
+        // not keep killing a message whose delete failed, whether or not this
+        // window is still the one to restore it into.
+        _withdrawLocalMutation(messageId, mutationOrdinal);
+        if (state.channelId != channelId) {
+          return;
+        }
         if (deletedSnapshot != null) {
           state = state.copyWith(
             messages: mergeMessagesSorted(state.messages, [deletedSnapshot]),
@@ -3270,112 +3973,193 @@ class ChatViewModel extends _$ChatViewModel {
   Future<void> deleteMessageAttachment({
     required String messageId,
     required String attachmentId,
-  }) async {
-    if (state.channelId.isEmpty) {
-      return;
-    }
-    final int messageIndex = state.messages.indexWhere(
-      (Message message) => message.id == messageId,
-    );
-    if (messageIndex == -1) {
-      return;
-    }
-    final Message message = state.messages[messageIndex];
-    Attachment? attachment;
-    for (final Attachment candidate in message.attachments) {
-      if (candidate.id == attachmentId) {
-        attachment = candidate;
-        break;
-      }
-    }
-    if (attachment == null) {
-      return;
-    }
-    final Message updatedMessage = message.copyWith(
-      attachments: message.attachments
-          .where((Attachment a) => a.id != attachmentId)
-          .toList(),
-    );
-    final List<Message> optimisticMessages = List<Message>.from(state.messages);
-    optimisticMessages[messageIndex] = updatedMessage;
-    state = state.copyWith(messages: optimisticMessages);
-    try {
-      await ref
-          .read(messageRepositoryProvider)
-          .deleteAttachment(
-            channelId: state.channelId,
-            messageId: messageId,
-            attachmentId: attachmentId,
-          );
-    } on Exception catch (e) {
-      debugPrint('[ChatViewModel] Failed to delete attachment: $e');
-      final List<Message> rollback = List<Message>.from(state.messages);
-      rollback[messageIndex] = message;
-      state = state.copyWith(
-        messages: rollback,
-        errorMessage: 'Failed to delete attachment',
-      );
-    }
-  }
+  }) => _enqueueAttachmentOp(
+    messageId,
+    _AttachmentOp(
+      kind: _LocalMutationKind.removeAttachment,
+      attachmentId: attachmentId,
+    ),
+  );
 
   Future<void> editAttachmentAltText({
     required String messageId,
     required String attachmentId,
     required String? description,
-  }) async {
+  }) => _enqueueAttachmentOp(
+    messageId,
+    _AttachmentOp(
+      kind: _LocalMutationKind.setAttachmentAlt,
+      attachmentId: attachmentId,
+      description: description,
+    ),
+  );
+
+  /// Admits one attachment mutation and returns when it has settled.
+  ///
+  /// The FIRST op on a message freezes the row it finds as the confirmed
+  /// baseline: nothing of ours is in flight at that moment, so the row is
+  /// server truth. Later ops join the queue behind it and change no baseline.
+  Future<void> _enqueueAttachmentOp(String messageId, _AttachmentOp op) {
     if (state.channelId.isEmpty) {
-      return;
+      return Future<void>.value();
     }
     final int messageIndex = state.messages.indexWhere(
       (Message message) => message.id == messageId,
     );
     if (messageIndex == -1) {
-      return;
+      return Future<void>.value();
     }
     final Message message = state.messages[messageIndex];
-    final List<MessageAttachmentUpdate> updates = message.attachments.map((
-      Attachment attachment,
-    ) {
-      if (attachment.id == attachmentId) {
-        return MessageAttachmentUpdate.withDescription(
-          id: attachment.id,
-          description: description,
-        );
-      }
-      return MessageAttachmentUpdate(id: attachment.id);
-    }).toList();
-    final List<Attachment> updatedAttachments = message.attachments.map((
-      Attachment attachment,
-    ) {
-      if (attachment.id == attachmentId) {
-        return attachment.copyWithDescription(description);
-      }
-      return attachment;
-    }).toList();
-    final Message updatedMessage = message.copyWith(
-      attachments: updatedAttachments,
-    );
-    final List<Message> optimisticMessages = List<Message>.from(state.messages);
-    optimisticMessages[messageIndex] = updatedMessage;
-    state = state.copyWith(messages: optimisticMessages);
-    try {
-      await ref
-          .read(messageRepositoryProvider)
-          .editMessageAttachments(
-            channelId: state.channelId,
-            messageId: messageId,
-            content: message.content,
-            attachmentUpdates: updates,
-          );
-    } on Exception catch (e) {
-      debugPrint('[ChatViewModel] Failed to edit attachment alt text: $e');
-      final List<Message> rollback = List<Message>.from(state.messages);
-      rollback[messageIndex] = message;
-      state = state.copyWith(
-        messages: rollback,
-        errorMessage: 'Failed to edit attachment alt text',
-      );
+    if (!message.attachments.any((Attachment a) => a.id == op.attachmentId)) {
+      // Nothing to operate on. An op already queued may be the reason it is
+      // absent, and that op owns the outcome.
+      return Future<void>.value();
     }
+    final String channelId = state.channelId;
+    op.overlayOrdinal = _recordLocalMutation(
+      messageId,
+      op.kind,
+      attachmentId: op.attachmentId,
+      description: op.description,
+    );
+    final List<_AttachmentOp> queue = _attachmentOpQueues.putIfAbsent(
+      messageId,
+      () {
+        _confirmedAttachmentRows[messageId] = message;
+        return <_AttachmentOp>[];
+      },
+    )..add(op);
+    _rederiveAttachmentRow(messageId);
+    if (queue.length == 1) {
+      unawaited(_runAttachmentOpQueue(messageId, channelId));
+    }
+    return op.done.future;
+  }
+
+  /// Runs one message's attachment ops strictly in start order, one request at
+  /// a time, until the queue drains.
+  Future<void> _runAttachmentOpQueue(String messageId, String channelId) async {
+    while (true) {
+      final List<_AttachmentOp>? queue = _attachmentOpQueues[messageId];
+      final Message? confirmed = _confirmedAttachmentRows[messageId];
+      if (queue == null || queue.isEmpty || confirmed == null) {
+        break;
+      }
+      final _AttachmentOp op = queue.first;
+      try {
+        switch (op.kind) {
+          case _LocalMutationKind.removeAttachment:
+            await ref
+                .read(messageRepositoryProvider)
+                .deleteAttachment(
+                  channelId: channelId,
+                  messageId: messageId,
+                  attachmentId: op.attachmentId,
+                );
+            // Void response: derive the new baseline by applying the removal
+            // to the old one.
+            _confirmedAttachmentRows[messageId] = _applyAttachmentOp(
+              confirmed,
+              op,
+            );
+          case _LocalMutationKind.setAttachmentAlt:
+            // Whole-array PATCH, so the array must be the CONFIRMED one with
+            // just this op applied. It carries no content: this operation does
+            // not own the text, and the per-message queue cannot serialise
+            // against another client editing it mid-flight.
+            final Message intended = _applyAttachmentOp(confirmed, op);
+            final Message acked = await ref
+                .read(messageRepositoryProvider)
+                .editMessageAttachments(
+                  channelId: channelId,
+                  messageId: messageId,
+                  attachmentUpdates: <MessageAttachmentUpdate>[
+                    for (final Attachment a in intended.attachments)
+                      if (a.id == op.attachmentId)
+                        MessageAttachmentUpdate.withDescription(
+                          id: a.id,
+                          description: a.description,
+                        )
+                      else
+                        MessageAttachmentUpdate(id: a.id),
+                  ],
+                );
+            _confirmedAttachmentRows[messageId] = acked;
+          case _LocalMutationKind.deleteMessage:
+            break;
+        }
+        _acknowledgeLocalMutation(messageId, op.overlayOrdinal);
+      } on Exception catch (e) {
+        debugPrint('[ChatViewModel] Attachment mutation failed: $e');
+        _withdrawLocalMutation(messageId, op.overlayOrdinal);
+        if (state.channelId == channelId) {
+          state = state.copyWith(
+            errorMessage: op.kind == _LocalMutationKind.removeAttachment
+                ? 'Failed to delete attachment'
+                : 'Failed to edit attachment alt text',
+          );
+        }
+      }
+      queue.removeAt(0);
+      _rederiveAttachmentRow(messageId);
+      if (queue.isEmpty) {
+        _attachmentOpQueues.remove(messageId);
+        _confirmedAttachmentRows.remove(messageId);
+      }
+      op.done.complete();
+    }
+  }
+
+  Message _applyAttachmentOp(Message row, _AttachmentOp op) {
+    switch (op.kind) {
+      case _LocalMutationKind.removeAttachment:
+        return row.copyWith(
+          attachments: row.attachments
+              .where((Attachment a) => a.id != op.attachmentId)
+              .toList(),
+        );
+      case _LocalMutationKind.setAttachmentAlt:
+        return row.copyWith(
+          attachments: <Attachment>[
+            for (final Attachment a in row.attachments)
+              if (a.id == op.attachmentId)
+                a.copyWithDescription(op.description)
+              else
+                a,
+          ],
+        );
+      case _LocalMutationKind.deleteMessage:
+        return row;
+    }
+  }
+
+  /// The optimistic row IS confirmed + replay(queue). Every enqueue, ack and
+  /// failure ends here, which is why no failure path needs an inverse.
+  ///
+  /// Only the attachments are composed onto the live row: a gateway update
+  /// landing mid-queue owns every other field, and substituting a whole
+  /// derived row would revert it.
+  void _rederiveAttachmentRow(String messageId) {
+    final Message? confirmed = _confirmedAttachmentRows[messageId];
+    if (confirmed == null) {
+      return;
+    }
+    final int index = state.messages.indexWhere(
+      (Message m) => m.id == messageId,
+    );
+    if (index == -1) {
+      // The row is gone. Its absence is newer truth, exactly as for the
+      // overlay.
+      return;
+    }
+    Message derived = confirmed;
+    for (final _AttachmentOp op
+        in _attachmentOpQueues[messageId] ?? const <_AttachmentOp>[]) {
+      derived = _applyAttachmentOp(derived, op);
+    }
+    final List<Message> next = List<Message>.from(state.messages);
+    next[index] = next[index].copyWith(attachments: derived.attachments);
+    state = state.copyWith(messages: next);
   }
 
   void startReply(Message message) {
@@ -3496,11 +4280,11 @@ class ChatViewModel extends _$ChatViewModel {
     bool isCurrentJump() =>
         jumpGeneration == _channelSwitchGeneration &&
         state.channelId == channelId;
-    // Same arm/drain/swap/replay protocol the refresh path uses: a realtime
-    // event arriving during the await would otherwise be applied to the OLD
-    // window and then thrown away by the wholesale replace below.
+    // Same arm/commit protocol the refresh path uses: a realtime event
+    // arriving during the await would otherwise be applied to the OLD window
+    // and then thrown away by the wholesale replace below.
     final int swapToken = _armWindowSwap(channelId);
-    List<MessageRealtimeEvent> bufferedEvents = const <MessageRealtimeEvent>[];
+    final int fetchOrdinal = _beginPageFetch();
     state = state.copyWith(isSyncingMessages: true);
     try {
       final page = await ref
@@ -3528,24 +4312,43 @@ class ChatViewModel extends _$ChatViewModel {
       if (!isCurrentJump()) {
         return;
       }
-      // Drain immediately before the swap so nothing lands between the two.
-      bufferedEvents = _drainWindowSwap(swapToken);
-      state = state.copyWith(
-        messages: page.messages,
-        hasMoreMessages: page.messages.length >= _kPageSize,
-        hasMoreNewerMessages: hasMoreNewer,
-        // The preempted switch set isLoading and can no longer reach any of its
-        // own clearing paths, so the winner owns BOTH flags or the channel is
-        // wedged busy forever: no jump button, dedupe stuck, and even the
-        // stranded-empty recovery locked out.
-        isLoading: false,
+      // The wholesale write commits as ONE queue item, so no reducer can be
+      // half applied around it, and everything the queue held replays in
+      // ordinal order once it lands.
+      //
+      // An around jump installs the server's window for that range wholesale,
+      // by design: local-only rows live at the live tail, and a DETACHED window
+      // legitimately excludes them. What it must not do is resurrect a message
+      // the user just deleted, because the page was fetched before the server
+      // saw the delete. The overlay re-applies exactly the local mutations the
+      // page cannot know about, and nothing else.
+      final bool applied = await _commitWindowSwap(
+        swapToken,
+        channelId,
+        fetchOrdinal,
+        isCurrentJump,
+        () {
+          state = state.copyWith(
+            messages: _applyPendingLocalMutations(page.messages, fetchOrdinal),
+            hasMoreMessages: page.messages.length >= _kPageSize,
+            hasMoreNewerMessages: hasMoreNewer,
+            // The preempted switch set isLoading and can no longer reach any of
+            // its own clearing paths, so the winner owns BOTH flags or the
+            // channel is wedged busy forever: no jump button, dedupe stuck, and
+            // even the stranded-empty recovery locked out.
+            isLoading: false,
+          );
+          _contiguity.setVerified(channelId, page.messages);
+          _contiguityTrusted = true;
+        },
       );
-      _contiguity.setVerified(channelId, page.messages);
-      _contiguityTrusted = true;
-      // Replay in arrival order so edits keep their revision and deletes stay
-      // deleted.
-      await _replayWindowSwapEvents(bufferedEvents, channelId, swapToken);
-      bufferedEvents = const <MessageRealtimeEvent>[];
+      // Two windows, two guards: [applied] for the lane wait, isCurrentJump for
+      // the microtask between the commit completing and this resuming.
+      // Publishing this page's references and scrolling to THIS target would
+      // drag the user away from the message they actually asked for.
+      if (!applied || !isCurrentJump()) {
+        return;
+      }
       _notifyMessageReferencesLoaded(
         channelId: channelId,
         messages: state.messages,
@@ -3556,13 +4359,8 @@ class ChatViewModel extends _$ChatViewModel {
       debugPrint('[ChatViewModel] Failed to jump to replied message: $e');
     } finally {
       // A failed or superseded jump must still not swallow realtime events.
-      final List<MessageRealtimeEvent> pending = <MessageRealtimeEvent>[
-        ...bufferedEvents,
-        ..._drainWindowSwap(swapToken),
-      ];
-      if (pending.isNotEmpty) {
-        await _replayWindowSwapEvents(pending, channelId, swapToken);
-      }
+      _endPageFetch(fetchOrdinal);
+      await _disarmWindowSwap(swapToken);
       // Only the winning jump clears the flags, and it clears BOTH: it may have
       // superseded a switch that owned isLoading.
       if (isCurrentJump() && (state.isSyncingMessages || state.isLoading)) {
@@ -3633,6 +4431,10 @@ class ChatViewModel extends _$ChatViewModel {
     if (channelId.isEmpty) {
       return;
     }
+    // Deliberately unguarded against an in-flight refresh: this is the escape
+    // hatch out of a failed load, and refusing while a stale request runs is
+    // the wedge it exists to break. Overlap is safe by ownership — the newest
+    // arm owns the window and the loser writes nothing.
     await _refreshMessagesFromNetwork(
       channelId,
       showLoadingSpinner: true,
@@ -3645,6 +4447,8 @@ class ChatViewModel extends _$ChatViewModel {
     if (channelId.isEmpty) {
       return;
     }
+    // Same as retryLoadMessages: reachable from the DM list while a retry is
+    // still out, and resolved by arm ownership rather than by refusing.
     await _refreshMessagesFromNetwork(
       channelId,
       showLoadingSpinner: true,

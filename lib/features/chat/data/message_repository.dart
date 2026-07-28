@@ -767,10 +767,16 @@ class MessageRepository {
     }
   }
 
+  /// Rewrites a message's attachment array and nothing else.
+  ///
+  /// `content` is deliberately NOT sent. The endpoint accepts it, but this
+  /// operation does not own the text: another client can edit it while our
+  /// request is in flight, and transmitting a value we merely read would
+  /// overwrite that edit. The SDK omits the part entirely when the argument is
+  /// null, so the server leaves the field untouched.
   Future<Message> editMessageAttachments({
     required String channelId,
     required String messageId,
-    required String content,
     required List<MessageAttachmentUpdate> attachmentUpdates,
   }) async {
     try {
@@ -780,7 +786,6 @@ class MessageRepository {
       final MessageResponseSchema schema = await _client.channels.editMessage(
         channelId: channelId,
         messageId: messageId,
-        content: content,
         attachments: attachments,
       );
       final Message message = Message.fromSdk(

@@ -368,7 +368,6 @@ void main() {
       final updatedMessage = await repo.editMessageAttachments(
         channelId: 'channel-1',
         messageId: messageId,
-        content: 'hello',
         attachmentUpdates: const [
           MessageAttachmentUpdate(id: 'att-1'),
           MessageAttachmentUpdate.withDescription(
