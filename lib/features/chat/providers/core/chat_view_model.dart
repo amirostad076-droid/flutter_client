@@ -2032,6 +2032,67 @@ class ChatViewModel extends _$ChatViewModel {
       if (!stillCurrent() || !ownsSwap()) {
         return;
       }
+      // THE BEFORE-CURSOR RESCUE, one shot, only for the one latest-page shape
+      // the direct proof below cannot cover: the raw top-N all filtered, the
+      // page EMPTY, older visible rows possibly within reach. The
+      // latest-equality probe is structurally out here (an empty window has no
+      // tail to anchor it, and _confirmProvisionalTail early-returns on a null
+      // tail), but the channel pointer IS a cursor, and `get_before` raw-scans
+      // DESCENDING from it BEFORE the visibility retain and orphan partition
+      // run (shard_impl.rs:380-397, 616-628): filtered rows consume limit
+      // slots, they cannot hide a visible row that falls within the raw reach.
+      // So ONE bounded before=<pointer> page recovers the window exactly when
+      // the filtered run below the pointer is shorter than the limit; a run at
+      // or past the limit comes back EMPTY, yields no new cursor to advance to
+      // (no rows, no id), and the install falls through to the sealed-empty
+      // behavior below - bounded honesty, no loop, same residual as before.
+      // A non-empty rescue page is NOT a latest-tail proof (its reach started
+      // at the pointer, not at the channel's newest bucket, and the pointer is
+      // an opinion), so the install drops the direct-latest short-circuit and
+      // lets the normal pointer consult rule on hasMoreNewer. m16t pins the
+      // recovery, m16u the stuck residual.
+      bool emptyLatestRescued = false;
+      // THE RESCUE IS ITS OWN PAGE FETCH. Its request goes on the wire a
+      // full await after the primary's response came back, and a local
+      // mutation can be ACKNOWLEDGED in that gap; under the primary's
+      // borrowed ordinal the overlay would read the rescue page as pre-ack
+      // and stamp a stale field op over post-ack server truth (and over any
+      // newer remote change to the same field). So the rescue takes a rescue
+      // ordinal of its own, minted at ITS request time, and an ADOPTED
+      // rescue page carries that ordinal into the install: the overlay in
+      // reduceAgainst and the commit's retirement bookkeeping both see the
+      // ordinal of the fetch that actually produced the page. The primary's
+      // ordinal keeps governing every no-rescue path. m16v pins the
+      // interleave, ledger M-AE the borrow.
+      int effectiveFetchOrdinal = fetchOrdinal;
+      if (isDirectLatestLoad && page.messages.isEmpty) {
+        final String? pointer = await _channelLastMessagePointer(channelId);
+        if (pointer != null && pointer.isNotEmpty) {
+          final int rescueOrdinal = _beginPageFetch();
+          try {
+            final MessageListLoadResult rescuePage = await repo.loadMessagePage(
+              channelId: channelId,
+              before: pointer,
+              limit: effectiveLimit,
+            );
+            if (!stillCurrent() || !ownsSwap()) {
+              return;
+            }
+            if (rescuePage.messages.isNotEmpty) {
+              page = rescuePage;
+              emptyLatestRescued = true;
+              effectiveFetchOrdinal = rescueOrdinal;
+            }
+          } finally {
+            // Adopted, empty, or superseded, the rescue's outstanding entry
+            // ends here; an adopted page's protection is carried onward by
+            // the commit's fetchOrdinal (and the primary, still open, spans
+            // the handoff), so retirement still empties once the lanes
+            // drain.
+            _endPageFetch(rescueOrdinal);
+          }
+        }
+      }
       if (preserveLoadedWindow &&
           !networkPageOverlapsWindow(
             window: state.messages,
@@ -2064,33 +2125,79 @@ class ChatViewModel extends _$ChatViewModel {
                 networkPage: page.messages,
                 syncBaselineOldestId: current.isEmpty ? null : current.first.id,
               );
-        return _applyPendingLocalMutations(reconciled, fetchOrdinal);
+        return _applyPendingLocalMutations(reconciled, effectiveFetchOrdinal);
       }
 
       final List<Message> merged = reduceAgainst(state.messages);
       final String? mergedServerTailId = newestServerBackedMessageId(merged);
-      // Only direct latest-page loads can prove that a short page reaches the
-      // live tail. Reconcile and around-window pages must still consult the
-      // channel pointer so detached windows remain detached.
-      final bool shouldConsultPointer =
-          !isDirectLatestLoad || page.messages.length >= limit;
-      final bool isSealedLatestTail =
-          isDirectLatestLoad && page.messages.length < effectiveLimit;
-      final bool hasMoreNewer =
-          shouldConsultPointer &&
-          mergedServerTailId != null &&
-          await _hasNewerMessagesThanChannel(
-            mergedServerTailId,
-            sealedTail: isSealedLatestTail,
-            // Detached by construction means built AROUND a target rather than
-            // from the tail. Not merely "not a direct latest load": a plain
-            // reconcile of a live-tail window is still at the tail, and
-            // treating it as detached would suppress auto-ack.
-            detachedWindow: aroundMessageId != null || targetMessageId != null,
-            knownLoadedMessageIds: merged
-                .map((Message message) => message.id)
-                .toSet(),
-          );
+      // A DIRECT latest load PROVES its own newer edge, and the row count has
+      // nothing to do with the proof. `get_latest` scans DESCENDING from the
+      // newest bucket with no cursor, and the visibility retain and the orphan
+      // partition run after that scan and can only REMOVE rows
+      // (shard_impl.rs:372-378, 623-628), so filtering cannot surface an older
+      // row as the page's newest: any visible row newer than it would have been
+      // scanned first. A NON-EMPTY latest page's newest row therefore IS the
+      // channel's newest visible row - the very monotonicity the tail
+      // confirmation is built on - and this install replaces the window with
+      // that page (all four isDirectLatestLoad call sites fetch with no anchor
+      // and no window preservation), so the window's tail becomes that row and
+      // nothing newer exists. Full page or short, the newer edge is settled;
+      // page fullness speaks to hasMoreOlder below and to nothing else.
+      //
+      // So it does NOT consult the pointer, and that is a cost decision as much
+      // as a correctness one: the consult would ask the server a question this
+      // fetch just answered, and the ladder's non-proof rungs would answer it
+      // PROVISIONALLY whenever the pointer is missing or stale-behind - a
+      // redundant confirmation fetch on an ordinary channel open, plus a
+      // transiently open flag on a window already known to be live. m16r pins
+      // both halves. An EMPTY direct latest page proves nothing (every row in
+      // the raw top-N may have been filtered), yet it still seals
+      // hasMoreNewer:false - INHERITED pre-existing parent behavior, not a
+      // verdict this ladder reaches: with no rows there is no merged tail to
+      // consult about. The LATEST-EQUALITY probe specifically can do no
+      // better: an empty window has no anchor to compare against, and
+      // _confirmProvisionalTail early-returns on a null tail. That
+      // impossibility is scoped to the probe, NOT to recovery as such - the
+      // channel pointer is a cursor, and the before-cursor rescue above
+      // recovers the window whenever the filtered run below the pointer is
+      // shorter than the limit. What remains sealed-empty here is the
+      // residual: a filtered run at or past the limit (rescue page empty, no
+      // cursor to advance to) plus the widget layer's stranded-empty resync
+      // (fires once), until the server reports the raw-exhaustion flag it does
+      // not have today. m16u pins the residual as-is.
+      //
+      // A RESCUED install is neither of those shapes: the page is real but its
+      // reach started at the pointer, so it proves nothing about the newer
+      // edge and takes the normal consult like any other anchored page.
+      final ({bool hasMoreNewer, bool needsTailProbe}) newerConsult =
+          (isDirectLatestLoad && !emptyLatestRescued) ||
+              mergedServerTailId == null
+          ? const (hasMoreNewer: false, needsTailProbe: false)
+          : await _hasNewerMessagesThanChannel(
+              mergedServerTailId,
+              // Detached by construction means built AROUND an anchor rather
+              // than from the tail. Not merely "not a direct latest load": a
+              // plain reconcile of a live-tail window is still at the tail, and
+              // treating it as detached would suppress auto-ack. An around page
+              // whose newer side came back SHORT of the server's quota for it
+              // is not detached either, since that IS the server reporting
+              // nothing newer than the page's own tail remains, and it is how
+              // opening an unread channel whose tail was deleted still reaches
+              // auto-ack. The quota is derived from the limit this fetch
+              // actually asked for, so the page and the yardstick always come
+              // from the same request.
+              detachedWindow:
+                  effectiveAroundMessageId != null &&
+                  !aroundPageReachesLiveTail(
+                    anchorId: effectiveAroundMessageId,
+                    page: page.messages,
+                    limit: effectiveLimit,
+                  ),
+              knownLoadedMessageIds: merged
+                  .map((Message message) => message.id)
+                  .toSet(),
+            );
+      final bool hasMoreNewer = newerConsult.hasMoreNewer;
       if (!stillCurrent() || !ownsSwap()) {
         return;
       }
@@ -2103,10 +2210,14 @@ class ChatViewModel extends _$ChatViewModel {
         return;
       }
       // Around pages are split before/after the anchor; near the live tail they
-      // can be shorter than [limit] while older history still exists.
+      // can be shorter than [limit] while older history still exists. A rescued
+      // window keeps older OPEN regardless of count: its page is a BEFORE page,
+      // and a before page short of the limit is the post-truncation-filter
+      // ambiguity, not proof of exhaustion - ordinary pagination settles it.
       final bool hasMoreOlder = preserveLoadedWindow
           ? state.hasMoreMessages
-          : page.messages.length >= effectiveLimit ||
+          : emptyLatestRescued ||
+                page.messages.length >= effectiveLimit ||
                 (effectiveAroundMessageId != null && page.messages.isNotEmpty);
       // The wholesale write commits as ONE queue item, and it composes its list
       // INSIDE the closure, from the window as it stands at write time. The
@@ -2116,7 +2227,7 @@ class ChatViewModel extends _$ChatViewModel {
       final bool applied = await _commitWindowSwap(
         swapToken,
         channelId,
-        fetchOrdinal,
+        effectiveFetchOrdinal,
         stillCurrent,
         () {
           state = state.copyWith(
@@ -2152,6 +2263,12 @@ class ChatViewModel extends _$ChatViewModel {
         messages: state.messages,
         embeddedReplyParents: page.embeddedReplyParents,
       );
+      // AFTER the commit, and only here: the probe pages forward from the window
+      // this install just published, so firing it before the commit would have
+      // it fetch from whatever the window used to end on.
+      if (newerConsult.needsTailProbe) {
+        _confirmProvisionalTail(channelId);
+      }
       if (targetMessageId == null) {
         _markChannelNetworkRefresh(channelId);
         // THE decision, made once, only on the path that installed the page.
@@ -2160,7 +2277,9 @@ class ChatViewModel extends _$ChatViewModel {
         // the next resync of a stale window.
         _markMessagesReconciled(channelId);
         await _onMessagesLoaded(channelId);
-        if (isDirectLatestLoad && page.messages.length < effectiveLimit) {
+        if (isDirectLatestLoad &&
+            !emptyLatestRescued &&
+            page.messages.length < effectiveLimit) {
           await _reconcileReadStateAfterLatestLoad(channelId);
         }
       }
@@ -2494,8 +2613,17 @@ class ChatViewModel extends _$ChatViewModel {
             newerInRange.length == cachedPage.length) {
           // A partial cache page means the contiguity filter clipped verified-
           // local rows; fall through to network instead of sealing the tail.
+          //
+          // The entry guard above means this window had unloaded newer history,
+          // and a page that stops where verified contiguity stops has proven
+          // nothing about the tail, so the consult is a detached one - which
+          // also means it can never come back provisional, since the ambiguous
+          // rung sits behind `detachedWindow` being false.
           final bool pageIndicatesMoreNewer =
-              await _hasNewerMessagesThanChannel(newerInRange.last.id);
+              (await _hasNewerMessagesThanChannel(
+                newerInRange.last.id,
+                detachedWindow: true,
+              )).hasMoreNewer;
           if (state.channelId != channelId) {
             return;
           }
@@ -2541,11 +2669,25 @@ class ChatViewModel extends _$ChatViewModel {
       if (state.channelId != channelId) {
         return;
       }
-      // Short network page seals the server tail; full pages re-check the
-      // channel pointer (orphaned high pointers must not keep hasMoreNewer).
-      final bool pageIndicatesMoreNewer =
-          page.messages.length >= _kPageSize &&
-          await _hasNewerMessagesThanChannel(page.messages.last.id);
+      // COUNTS ARE HINTS, ONLY PROOFS SEAL - the same epistemics the around
+      // install runs on, for the same reason. A full page was truncated at the
+      // limit, so the window still ends short of the tail: detached by
+      // construction. A SHORT page used to seal the tail here by itself, and it
+      // cannot: the server truncates the raw scan and filters invisible and
+      // orphaned rows afterwards (shard_impl.rs:610-628), so a page one row
+      // under the limit is either the side exhausted or a filtered row standing
+      // in front of real messages. Sealing on that count strands everything past
+      // it until a reselect, and welds the next MESSAGE_CREATE across the gap -
+      // the same failure as the around path, in the pagination class. So the
+      // ladder decides: a POSITIVE pointer proof (equality, or the pointer's own
+      // row present) still seals immediately, and only the genuinely ambiguous
+      // signature defers to a confirmation.
+      final ({bool hasMoreNewer, bool needsTailProbe}) newerConsult =
+          await _hasNewerMessagesThanChannel(
+            page.messages.isEmpty ? requestedAfterId : page.messages.last.id,
+            detachedWindow: page.messages.length >= _kPageSize,
+          );
+      final bool pageIndicatesMoreNewer = newerConsult.hasMoreNewer;
       if (state.channelId != channelId) {
         return;
       }
@@ -2578,6 +2720,11 @@ class ChatViewModel extends _$ChatViewModel {
             hasMoreNewerMessages: window.hasMoreNewer,
           );
           _releaseLoadingNewer(fetchOrdinal);
+          // Fired AFTER the install, so the confirmation captures THIS page's
+          // tail as its anchor rather than the one we paged away from.
+          if (newerConsult.needsTailProbe) {
+            _confirmProvisionalTail(channelId);
+          }
           talker.debug(
             '[ChatPagination] newer loaded count=${page.messages.length} '
             'hasMore=${window.hasMoreNewer}',
@@ -2723,32 +2870,76 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
-  Future<bool> _hasNewerMessagesThanChannel(
-    String messageId, {
-    bool sealedTail = false,
-    bool detachedWindow = false,
-    Set<String>? knownLoadedMessageIds,
-  }) async {
+  /// The channel's last-message pointer, guild row first, DM row as fallback:
+  /// DMs are not in the guild channel table, so without the fallback their
+  /// pointer always reads as unknown and every DM window looks detached.
+  Future<String?> _channelLastMessagePointer(String channelId) async {
     final db.Channel? channel = await ref
         .read(fluxerDatabaseProvider)
         .channelDao
-        .getChannelById(state.channelId);
-    String? lastMessageId = channel?.lastMessageId;
-    if (channel == null) {
-      // DMs are not in the guild channel table, so without this their pointer
-      // always reads as unknown and every DM window looks detached.
-      final db.DmChannel? dmChannel = await ref
-          .read(fluxerDatabaseProvider)
-          .dmChannelDao
-          .getDmChannelById(state.channelId);
-      lastMessageId = dmChannel?.lastMessageId;
+        .getChannelById(channelId);
+    if (channel != null) {
+      return channel.lastMessageId;
     }
+    final db.DmChannel? dmChannel = await ref
+        .read(fluxerDatabaseProvider)
+        .dmChannelDao
+        .getDmChannelById(channelId);
+    return dmChannel?.lastMessageId;
+  }
+
+  /// Verdict of the channel-pointer consult.
+  ///
+  /// `needsTailProbe` marks a NON-PROOF state: the ladder was asked to seal the
+  /// tail and has nothing to seal it with. Three signatures qualify, and each one
+  /// reaches it only when the caller's own row count was the alternative - a page
+  /// short of the limit it asked for, which proves nothing either, because the
+  /// server truncates the raw scan to the limit and filters invisible and orphaned
+  /// rows AFTER (shard_impl.rs:610-628, no backfill):
+  ///
+  ///   * the pointer is MISSING, which says nothing about any row (m16p);
+  ///   * the pointer is BEHIND our newest row, which says only that the local
+  ///     record is stale (m16q);
+  ///   * the pointer is AHEAD, its own row is nowhere to be found, and the ack has
+  ///     passed us - the genuinely ambiguous one, where an orphaned pointer (we
+  ///     really are at the tail) and valid rows a filtered short read hid (we are
+  ///     not) look exactly alike locally (m16j, m16i).
+  ///
+  /// `hasMoreNewer` is then computed PESSIMISTICALLY - one flag, still, just the
+  /// safe value - and the install site owes the window one confirmation fetch. The
+  /// POSITIVE proofs (pointer equal to our tail, or its row present) seal
+  /// immediately and owe nothing, and a caller holding a proof of its own does not
+  /// consult at all (a direct latest load: m16r).
+  Future<({bool hasMoreNewer, bool needsTailProbe})>
+  _hasNewerMessagesThanChannel(
+    String messageId, {
+    bool detachedWindow = false,
+    Set<String>? knownLoadedMessageIds,
+  }) async {
+    final String? lastMessageId = await _channelLastMessagePointer(
+      state.channelId,
+    );
     if (lastMessageId == null || lastMessageId.isEmpty) {
-      // An unknown pointer cannot settle the question, so defer to how the
-      // window was built: a window built around a target, or reconciled from
-      // one, is detached by construction. A spurious true costs one fetch, a
-      // spurious false strands the user in history with no way back.
-      return detachedWindow;
+      // A NON-PROOF STATE, and that is the whole content of this rung: a
+      // MISSING pointer proves nothing at all - not that the channel ends at
+      // our newest row, not that it does not. So it cannot seal, and what it
+      // defers to depends on whether anything else in this consult can.
+      // `detachedWindow` true is already the pessimistic answer and needs no
+      // help. `detachedWindow` false is not a proof, it is a COUNT: the caller
+      // saw a page come back under the limit it asked for, and a page under the
+      // limit is either the side exhausted or a filtered row standing in front
+      // of real messages (the raw scan is truncated first and visibility and
+      // orphan filtering run after, shard_impl.rs:610-628). Returning it
+      // verbatim let that count seal the tail with zero proof behind it, which
+      // strands everything past the filtered row until a reselect and welds the
+      // next MESSAGE_CREATE across the gap. Answer provisionally instead and
+      // owe the window the SAME one-shot confirmation the ambiguous rung owes:
+      // a latest page compared by id, which either proves our tail or leaves
+      // the flag open for ordinary pagination. m16p pins this rung.
+      if (detachedWindow) {
+        return const (hasMoreNewer: true, needsTailProbe: false);
+      }
+      return const (hasMoreNewer: true, needsTailProbe: true);
     }
     // [messageId] is the newest message of a page just fetched from the network;
     // [lastMessageId] is a cached local pointer. The two cases differ and must
@@ -2759,43 +2950,256 @@ class ChatViewModel extends _$ChatViewModel {
     );
     if (pointerVsFetchedTail < 0) {
       // The fetched page contains messages NEWER than the pointer claims exist,
-      // so the pointer is behind reality and cannot settle whether more newer
-      // messages remain. A window built around a target defers to how it was
-      // constructed rather than trusting a value already shown to be out of
-      // date; a tail-built window really is the tail and reports so.
-      return detachedWindow;
+      // so the pointer is behind reality. The other non-proof state, and the
+      // more common one: a pointer BEHIND our newest row proves only that the
+      // local record is stale - never that nothing newer exists. Any fetch
+      // racing a MessageWriteBatcher flush lands here. So, exactly as for a
+      // missing pointer: an already-detached window keeps its pessimistic
+      // answer, and a count hint claiming the tail (a page short of the limit
+      // the caller asked for, which post-truncation filtering produces just as
+      // readily as an exhausted side) is not allowed to seal on its own. It
+      // returns provisional-true and the install site settles it with the one
+      // latest-page confirmation. m16q pins this rung.
+      if (detachedWindow) {
+        return const (hasMoreNewer: true, needsTailProbe: false);
+      }
+      return const (hasMoreNewer: true, needsTailProbe: true);
     }
     if (pointerVsFetchedTail == 0) {
-      // The pointer exactly matches our fetched tail. That is consistent with
-      // having genuinely reached the tail with an accurate pointer, and also
-      // with a stale pointer coinciding with where an around-page happened to
-      // end. It proves NEITHER. We choose the at-the-tail reading, because
-      // equality is the normal state of a window that has caught up, and
-      // failing open here suppresses auto-ack for every such window. Residual
-      // risk accepted: a pointer that is stale AND exactly equal to an
-      // around-page's newest message will still under-report newer messages.
-      return false;
+      // The pointer exactly matches our fetched tail: the page ended on the
+      // newest message the server has told us about. Trustworthy, and not by
+      // convention alone. The row pointer advances on every MESSAGE_CREATE in
+      // every channel, visited or not, subscribed or not
+      // (MessageWriteBatcher.enqueueMessage records last_message_id per
+      // channel unconditionally), and a connect re-seeds it from the READY
+      // snapshot authoritatively, so a pointer stale BEHIND reality needs an
+      // event this client never received and a reconnect repairs it. Failing
+      // open here would cost more than it buys: an unread open builds its
+      // window AROUND the ack and that window normally contains the tail, so
+      // every such open would show a phantom jump button with auto-ack
+      // suppressed until the user scrolled. m16c pins this branch.
+      return const (hasMoreNewer: false, needsTailProbe: false);
     }
+    // Past here the pointer is strictly AHEAD of our newest row, and every
+    // test below asks one question: is that pointer REAL, or an orphan left by
+    // a deleted tail? Fair for a tail-built window, and the wrong question for
+    // a window built AROUND a target, which ends mid-history by construction:
+    // whatever lies between it and a pointer ahead of it is unloaded newer
+    // history, and no verdict about the pointer's own existence can turn that
+    // into a live tail. A channel this session never opened is where it bites,
+    // because both orphan tests below misfire on it. READY seeds the row
+    // pointer and the read state for every channel but caches no messages, so
+    // the cache lookup misses and the ack, sitting at or past a searched
+    // message, seals the around-window as the tail: jump-to-latest
+    // short-circuits, loadNewer refuses, and MESSAGE_CREATE appends across the
+    // gap. Warm channels escape only because opening them cached the pointer's
+    // row. m16 pins this branch, on the shape a device log confirmed: a search
+    // hit two days behind a pointer READY had just seeded.
+    if (detachedWindow) {
+      return const (hasMoreNewer: true, needsTailProbe: false);
+    }
+    // Unreachable (ledger M-C): an in-window pointer is never strictly ahead.
     if (knownLoadedMessageIds?.contains(lastMessageId) ?? false) {
-      return true;
+      return const (hasMoreNewer: true, needsTailProbe: false);
     }
     final database = ref.read(fluxerDatabaseProvider);
     final pointerExists =
         await database.messageDao.getMessage(lastMessageId) != null;
     if (pointerExists) {
-      return true;
-    }
-    if (sealedTail) {
-      return false;
+      return const (hasMoreNewer: true, needsTailProbe: false);
     }
     final readState = await database.readStateDao.getReadState(state.channelId);
     final String? ackMessageId = readState?.lastMessageId;
     if (ackMessageId != null &&
         ackMessageId.isNotEmpty &&
         compareSnowflakeIds(ackMessageId, messageId) >= 0) {
-      return false;
+      // THE genuinely ambiguous signature, as opposed to the two rungs above
+      // that are merely uninformed. The pointer is ahead, its row is nowhere
+      // (not loaded, not cached), and the ack has passed our newest row. Two
+      // worlds fit that description exactly: an orphaned pointer left by a
+      // deleted tail, where this window IS the tail; and a short read whose
+      // missing rows were filtered out of a raw scan that had already been
+      // truncated (shard_impl.rs:610-628), where real messages sit just past
+      // us. This used to answer "tail", which glues the next MESSAGE_CREATE
+      // onto the far side of that gap and silently loses everything in
+      // between. Answer with the pessimistic flag instead and let the install
+      // site settle it with _runTailConfirmation's ONE LATEST page, compared
+      // by ID: equality with our newest server-backed row is positive proof of
+      // the live tail and seals the flag false; a mismatch installs NOTHING
+      // (that page is anchored to the channel's tail, not to our window) and
+      // leaves the flag true for ordinary pagination to fill the gap in order;
+      // an EMPTY page proves nothing and fails open, flag still true.
+      // m16j pins the orphan resolution, m16i the filtered one.
+      return const (hasMoreNewer: true, needsTailProbe: true);
     }
-    return true;
+    return const (hasMoreNewer: true, needsTailProbe: false);
+  }
+
+  /// Settles a provisionally detached window with ONE after-fetch from its own
+  /// tail, fired by the install that created the ambiguity rather than deferred
+  /// to a user gesture: the window is wrong RIGHT NOW or it is not, and a create
+  /// can arrive before any gesture ever happens.
+  ///
+  /// ARMED, and that is the whole correctness argument. A bare fetch cannot
+  /// confirm anything, because its response describes the channel as it was when
+  /// the SERVER evaluated it: a create landing between that snapshot and this
+  /// client applying the response would be dropped against the still-true flag
+  /// (`_nextMessagesForSync`'s hasMoreNewerMessages guard), and then the
+  /// answer would flip the flag false and put every fetch that could have
+  /// retrieved it out of reach - the message gone until the channel is
+  /// reselected, which is the exact bug this line of work is about. Arming
+  /// closes the window by construction:
+  /// the realtime worker holds events for an armed channel at INGESTION
+  /// (`_runRealtimeQueue`'s `_swapOwnsChannel` gate), upstream of the drop, and
+  /// `_runSwapCommit` replays them onto the window the commit installs. A create
+  /// during the confirmation is therefore captured, not dropped, and lands
+  /// against the POST-confirmation flag.
+  ///
+  /// The arm happens SYNCHRONOUSLY, before the first await, or the same race
+  /// just moves into the gap between the install and the fetch.
+  ///
+  /// The confirmation is a LATEST page compared by ID, never a row count. An
+  /// `after` page cannot settle this: it is truncated to the limit and filtered
+  /// afterwards, so a short one is the very ambiguity that got us here and
+  /// reading it as proof would re-glue the gap one request later. A latest page
+  /// has a property no other page shape has: `get_latest` scans DESCENDING from
+  /// the newest bucket with no cursor (`shard_impl.rs:372-378`), and the
+  /// visibility retain and orphan partition run after that scan
+  /// (`shard_impl.rs:623-628`) and can only REMOVE rows. Filtering therefore
+  /// cannot surface an older row as the page's newest: any visible row newer
+  /// than that row would have been scanned before it. So for a NON-EMPTY latest
+  /// page, its newest id IS the channel's newest visible id, and comparing it
+  /// with ours is a positive proof rather than an inference:
+  ///
+  /// - equal to our newest server-backed row: we hold the live tail, flag false;
+  /// - different: genuinely newer visible rows exist, flag stays TRUE and this
+  ///   page installs NOTHING - it is anchored to the channel tail, not to our
+  ///   window, and the true flag is what lets ordinary pagination fill the gap
+  ///   in order;
+  /// - EMPTY (every row in the raw top-N filtered away): nothing is provable, so
+  ///   fail open and leave the flag TRUE. A phantom jump button in a pathological
+  ///   state, and no message loss.
+  ///
+  /// Being armed makes the flag flip a SWAP-class write, so it validates at
+  /// execution time in the commit lane rather than on channel and anchor alone: a
+  /// newer same-channel swap (a preserveLoadedWindow reconcile, say) can replace
+  /// this confirmation's token while leaving the window's tail exactly where we
+  /// measured it, and an anchor check would wave that through.
+  ///
+  /// One shot: the equality proof leaves hasMoreNewerMessages false, which is the
+  /// condition [loadNewer] refuses on, and every other outcome leaves it true,
+  /// which is the state ordinary pagination already handles. Nothing re-arms and
+  /// no retry loop is needed. A create replayed after an equality proof becomes
+  /// the live tail with the flag false, which stays correct: it is loaded, and
+  /// nothing newer is unloaded. A create replayed after either open verdict is
+  /// dropped exactly as any event against a detached window, and pagination
+  /// brings it back in order.
+  ///
+  /// Dropping rather than buffering stays deliberate: buffering client-side
+  /// against a gap of unknown size reintroduces the ordering problem the drop
+  /// semantics exist to avoid, and server truth plus this confirmation covers the
+  /// ambiguous case without it.
+  void _confirmProvisionalTail(String channelId) {
+    final String? windowTailId = newestServerBackedMessageId(state.messages);
+    if (windowTailId == null) {
+      return;
+    }
+    final int windowGeneration = _windowGeneration;
+    final int switchGeneration = _channelSwitchGeneration;
+    final int swapToken = _armWindowSwap(channelId);
+    final int fetchOrdinal = _beginPageFetch();
+    unawaited(
+      _runTailConfirmation(
+        channelId: channelId,
+        windowTailId: windowTailId,
+        swapToken: swapToken,
+        fetchOrdinal: fetchOrdinal,
+        windowGeneration: windowGeneration,
+        switchGeneration: switchGeneration,
+      ),
+    );
+  }
+
+  Future<void> _runTailConfirmation({
+    required String channelId,
+    required String windowTailId,
+    required int swapToken,
+    required int fetchOrdinal,
+    required int windowGeneration,
+    required int switchGeneration,
+  }) async {
+    // ALL of this confirmation's validation, in the predicate the lane evaluates
+    // at EXECUTION time - because that is the lane's contract: the write closure
+    // is pure payload, and a closure that enters and then decides not to write is
+    // a contract violation, not defensive style. _runSwapCommit derives `applied`
+    // from the gate alone, so an early return inside the payload would still bump
+    // _windowWrites, clear the arm and report success: the confirmation would log
+    // a proof it never made, and the spurious _windowWrites bump would make the
+    // unread-boundary loader (which captures that counter and refuses to write if
+    // it moved) discard a page it was entitled to install.
+    //
+    // Three classes, three clauses:
+    //   * generations - intents that supersede without arming;
+    //   * channel - a switch that loads nothing and never arms;
+    //   * ANCHOR IDENTITY - pagination, the one writer class that moves the
+    //     window's tail while arming nothing and bumping no generation, and which
+    //     is reachable precisely here because the provisional flag is TRUE and
+    //     that is what lets loadNewer run. A proof about tail A must not certify
+    //     tail B. Skip conservatively rather than re-certify against B: the
+    //     pagination that moved the tail ran its own consult on fresher data, so
+    //     this proof is redundant, not merely late. m16l pins the race.
+    bool stillValid() =>
+        windowGeneration == _windowGeneration &&
+        switchGeneration == _channelSwitchGeneration &&
+        state.channelId == channelId &&
+        newestServerBackedMessageId(state.messages) == windowTailId;
+    try {
+      final MessageListLoadResult page = await ref
+          .read(messageRepositoryProvider)
+          .loadMessagePage(
+            channelId: channelId,
+            // ignore: avoid_redundant_argument_values -- the latest page, sized
+            limit: _kPageSize,
+          );
+      if (!stillValid()) {
+        return;
+      }
+      final String? channelNewestId = newestServerBackedMessageId(
+        page.messages,
+      );
+      if (channelNewestId == null || channelNewestId != windowTailId) {
+        // Unprovable (everything in the raw top-N was filtered) or disproved
+        // (newer visible rows exist). Either way the pessimistic flag already
+        // standing is the right answer and there is nothing to install: this
+        // page is anchored to the channel's tail, not to our window.
+        talker.debug(
+          '[ChatPagination] tail unconfirmed window=$windowTailId '
+          'channel=${channelNewestId ?? '<none>'}',
+        );
+        return;
+      }
+      // A latest page whose newest row IS ours: positive proof of the live tail.
+      final bool applied = await _commitWindowSwap(
+        swapToken,
+        channelId,
+        fetchOrdinal,
+        stillValid,
+        () => state = state.copyWith(hasMoreNewerMessages: false),
+      );
+      // Consumed like every other commit caller: the lane may have refused, and
+      // the resume after it can still land on a newer owner's window.
+      if (!applied || !stillValid()) {
+        talker.debug('[ChatPagination] tail confirmation superseded');
+        return;
+      }
+      talker.debug('[ChatPagination] tail confirmed at $windowTailId');
+    } on Exception catch (e) {
+      talker.warning('[ChatPagination] tail confirmation failed', e);
+    } finally {
+      _endPageFetch(fetchOrdinal);
+      // Replays whatever the arm held, even when nothing was committed.
+      await _disarmWindowSwap(swapToken);
+    }
   }
 
   /// Live-tail ack target: max(visibleTail, channel.lastMessageId) for web parity.
@@ -4287,20 +4691,39 @@ class ChatViewModel extends _$ChatViewModel {
     final int fetchOrdinal = _beginPageFetch();
     state = state.copyWith(isSyncingMessages: true);
     try {
+      // ONE limit, bound once, for the fetch AND for the tail verdict below,
+      // which measures this page's newer side against the server's quota for
+      // exactly this limit. Reading the fetch limit off the repository default
+      // instead would leave the yardstick and the page free to drift apart.
+      const int aroundLimit = _kPageSize;
       final page = await ref
           .read(messageRepositoryProvider)
-          .loadMessagePage(channelId: channelId, around: messageId);
+          .loadMessagePage(
+            channelId: channelId,
+            around: messageId,
+            // ignore: avoid_redundant_argument_values -- pinned, see above
+            limit: aroundLimit,
+          );
       if (!isCurrentJump()) {
         return;
       }
       if (page.messages.isEmpty) {
         return;
       }
-      // Around jumps consult the pointer: a short around page is not server tail.
-      final bool hasMoreNewer = await _hasNewerMessagesThanChannel(
-        page.messages.last.id,
-        detachedWindow: true,
-      );
+      // Around jumps consult the pointer, and the page's own shape says whether
+      // the pointer is even allowed to seal the tail: a newer side filled to the
+      // server's quota means the page was centred and truncated, not stopped at
+      // the tail.
+      final ({bool hasMoreNewer, bool needsTailProbe}) newerConsult =
+          await _hasNewerMessagesThanChannel(
+            page.messages.last.id,
+            detachedWindow: !aroundPageReachesLiveTail(
+              anchorId: messageId,
+              page: page.messages,
+              limit: aroundLimit,
+            ),
+          );
+      final bool hasMoreNewer = newerConsult.hasMoreNewer;
       if (!isCurrentJump()) {
         return;
       }
@@ -4354,6 +4777,9 @@ class ChatViewModel extends _$ChatViewModel {
         messages: state.messages,
         embeddedReplyParents: page.embeddedReplyParents,
       );
+      if (newerConsult.needsTailProbe) {
+        _confirmProvisionalTail(channelId);
+      }
       scrollToMessage(messageId);
     } on Exception catch (e) {
       debugPrint('[ChatViewModel] Failed to jump to replied message: $e');

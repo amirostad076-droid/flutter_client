@@ -195,9 +195,14 @@ void main() {
       expect(result.hasMoreNewer, isTrue);
     });
 
-    test('empty newer page closes only newer pagination', () {
+    test('empty newer page keeps the window and defers the verdict to the '
+        'caller', () {
+      // An empty newer page is NOT self-evident proof of the tail. The server
+      // truncates the raw scan before it filters invisible and orphaned rows, so
+      // an empty body can sit in front of rows that plainly exist, and the
+      // caller's pointer consult - not the absence of rows - owns the verdict.
       final List<Message> messages = _range(100, 2);
-      final MessageWindowSnapshot result = _applied(
+      final MessageWindowSnapshot open = _applied(
         applyNewerPage(
           window: MessageWindowSnapshot(
             messages: messages,
@@ -210,9 +215,34 @@ void main() {
         ),
       );
 
-      expect(result.messages, same(messages));
-      expect(result.hasMoreOlder, isTrue);
-      expect(result.hasMoreNewer, isFalse);
+      expect(open.messages, same(messages));
+      expect(open.hasMoreOlder, isTrue);
+      expect(
+        open.hasMoreNewer,
+        isTrue,
+        reason: 'the caller said newer rows remain, and it knows why',
+      );
+
+      final MessageWindowSnapshot closed = _applied(
+        applyNewerPage(
+          window: MessageWindowSnapshot(
+            messages: messages,
+            hasMoreOlder: true,
+            hasMoreNewer: true,
+          ),
+          page: const <Message>[],
+          requestedAfterId: messages.last.id,
+          pageIndicatesMoreNewer: false,
+        ),
+      );
+
+      expect(closed.messages, same(messages));
+      expect(closed.hasMoreOlder, isTrue);
+      expect(
+        closed.hasMoreNewer,
+        isFalse,
+        reason: 'and when the caller has settled it, the flag closes',
+      );
     });
 
     test('older page landing exactly at the cap is not trimmed', () {

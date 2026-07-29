@@ -136,11 +136,15 @@ WindowPageResult applyNewerPage({
     return const WindowPageSuperseded();
   }
   if (page.isEmpty) {
+    // An empty newer page is NOT self-evidently the tail either: the raw scan is
+    // truncated before invisible and orphaned rows are filtered out, so "nothing
+    // came back" can mean "everything that came back was filtered". The caller's
+    // consult owns that verdict, exactly as it does for a non-empty page.
     return WindowPageApplied(
       MessageWindowSnapshot(
         messages: window.messages,
         hasMoreOlder: window.hasMoreOlder,
-        hasMoreNewer: false,
+        hasMoreNewer: pageIndicatesMoreNewer,
       ),
     );
   }
