@@ -4503,6 +4503,105 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
   String get voiceControlDisconnect => '연결 끊기';
 
   @override
+  String get voiceInChat => 'In voice chat';
+
+  @override
+  String get voiceConnectionFailed => 'Connection failed';
+
+  @override
+  String get voiceConnectionRetry => 'Try again';
+
+  @override
+  String get voiceConnectionDismiss => 'Dismiss';
+
+  @override
+  String get voiceConnectionDisconnected => 'Disconnected';
+
+  @override
+  String voicePingMs(int currentLatency) {
+    return 'Ping: ${currentLatency}ms';
+  }
+
+  @override
+  String get voiceMeasuringLatency => 'Measuring latency...';
+
+  @override
+  String voiceJumpToChannel(String channelSourceLabel) {
+    return 'Jump to $channelSourceLabel';
+  }
+
+  @override
+  String get voiceConnectionTitle => 'Voice connection';
+
+  @override
+  String get voiceConnectionAdvancedStats => 'Advanced';
+
+  @override
+  String get voiceShowCallAvatars => 'Show call avatars';
+
+  @override
+  String get voiceShowConnectionId => 'Show connection ID';
+
+  @override
+  String get voiceAudioProcessing => 'Audio processing';
+
+  @override
+  String get voiceConnectionSessionSection => 'Session';
+
+  @override
+  String get voiceConnectionDurationLabel => 'Duration';
+
+  @override
+  String get voiceConnectionParticipantsLabel => 'Participants';
+
+  @override
+  String get voiceConnectionNetworkSection => 'Network';
+
+  @override
+  String get voiceConnectionPingLabel => 'Ping';
+
+  @override
+  String get voiceConnectionJitterLabel => 'Jitter';
+
+  @override
+  String get voiceConnectionSendLabel => 'Send';
+
+  @override
+  String get voiceConnectionReceiveLabel => 'Receive';
+
+  @override
+  String get voiceConnectionUnavailable => '—';
+
+  @override
+  String voiceConnectionDuration(int minutes, int seconds) {
+    return '${minutes}m ${seconds}s';
+  }
+
+  @override
+  String voiceConnectionLatencyMs(int latency) {
+    return '$latency ms';
+  }
+
+  @override
+  String voiceConnectionJitterMs(String jitter) {
+    return '$jitter ms';
+  }
+
+  @override
+  String voiceConnectionBandwidthKbps(String bandwidth) {
+    return '$bandwidth kbps';
+  }
+
+  @override
+  String get userAreaMuteMicrophone => 'Mute microphone';
+
+  @override
+  String get userAreaUnmuteMicrophone => 'Unmute microphone';
+
+  @override
+  String get userAreaUserSettings => 'User settings';
+
+  @override
   String get voiceParticipantMenuViewProfile => 'View profile';
 
   @override

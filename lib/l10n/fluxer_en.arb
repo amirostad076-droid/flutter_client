@@ -5942,6 +5942,155 @@
   "@voiceControlDisconnect": {
     "description": "Tooltip: leave the voice call in the voice call control bar."
   },
+  "voiceInChat": "In voice chat",
+  "@voiceInChat": {
+    "description": "Short status label shown when the user is currently connected to voice chat."
+  },
+  "voiceConnectionFailed": "Connection failed",
+  "@voiceConnectionFailed": {
+    "description": "Voice connection status when the most recent attempt to join the channel failed."
+  },
+  "voiceConnectionRetry": "Try again",
+  "@voiceConnectionRetry": {
+    "description": "Button that retries connecting to the voice channel after a failed attempt."
+  },
+  "voiceConnectionDismiss": "Dismiss",
+  "@voiceConnectionDismiss": {
+    "description": "Button that dismisses the failed voice connection status banner."
+  },
+  "voiceConnectionDisconnected": "Disconnected",
+  "@voiceConnectionDisconnected": {
+    "description": "Voice connection status when not connected."
+  },
+  "voicePingMs": "Ping: {currentLatency}ms",
+  "@voicePingMs": {
+    "description": "Compact latency badge on the voice control bar.",
+    "placeholders": {
+      "currentLatency": {
+        "type": "int"
+      }
+    }
+  },
+  "voiceMeasuringLatency": "Measuring latency...",
+  "@voiceMeasuringLatency": {
+    "description": "Tooltip on the latency badge while voice latency is still being sampled."
+  },
+  "voiceJumpToChannel": "Jump to {channelSourceLabel}",
+  "@voiceJumpToChannel": {
+    "description": "Tooltip on a button that jumps to the channel.",
+    "placeholders": {
+      "channelSourceLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "voiceConnectionTitle": "Voice connection",
+  "@voiceConnectionTitle": {
+    "description": "Voice status popout title."
+  },
+  "voiceConnectionAdvancedStats": "Advanced",
+  "@voiceConnectionAdvancedStats": {
+    "description": "Disclosure button label in the voice connection status popout."
+  },
+  "voiceShowCallAvatars": "Show call avatars",
+  "@voiceShowCallAvatars": {
+    "description": "Developer voice status menu option for displaying participant avatars."
+  },
+  "voiceShowConnectionId": "Show connection ID",
+  "@voiceShowConnectionId": {
+    "description": "Developer voice status menu option for displaying the voice connection identifier."
+  },
+  "voiceAudioProcessing": "Audio processing",
+  "@voiceAudioProcessing": {
+    "description": "Tooltip for the audio processing button in the voice connection status."
+  },
+  "voiceConnectionSessionSection": "Session",
+  "@voiceConnectionSessionSection": {
+    "description": "Section title for session stats in the voice connection details popout."
+  },
+  "voiceConnectionDurationLabel": "Duration",
+  "@voiceConnectionDurationLabel": {
+    "description": "Row label for voice session duration in the connection details popout."
+  },
+  "voiceConnectionParticipantsLabel": "Participants",
+  "@voiceConnectionParticipantsLabel": {
+    "description": "Row label for participant count in the voice connection details popout."
+  },
+  "voiceConnectionNetworkSection": "Network",
+  "@voiceConnectionNetworkSection": {
+    "description": "Section title for network stats in the voice connection details popout."
+  },
+  "voiceConnectionPingLabel": "Ping",
+  "@voiceConnectionPingLabel": {
+    "description": "Row label for ping latency in the voice connection details popout."
+  },
+  "voiceConnectionJitterLabel": "Jitter",
+  "@voiceConnectionJitterLabel": {
+    "description": "Row label for jitter in the voice connection details popout."
+  },
+  "voiceConnectionSendLabel": "Send",
+  "@voiceConnectionSendLabel": {
+    "description": "Row label for outbound bandwidth in the voice connection details popout."
+  },
+  "voiceConnectionReceiveLabel": "Receive",
+  "@voiceConnectionReceiveLabel": {
+    "description": "Row label for inbound bandwidth in the voice connection details popout."
+  },
+  "voiceConnectionUnavailable": "—",
+  "@voiceConnectionUnavailable": {
+    "description": "Placeholder when a voice connection stat is not available."
+  },
+  "voiceConnectionDuration": "{minutes}m {seconds}s",
+  "@voiceConnectionDuration": {
+    "description": "Formatted voice session duration in the connection details popout.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "voiceConnectionLatencyMs": "{latency} ms",
+  "@voiceConnectionLatencyMs": {
+    "description": "Formatted ping latency value in the voice connection details popout.",
+    "placeholders": {
+      "latency": {
+        "type": "int"
+      }
+    }
+  },
+  "voiceConnectionJitterMs": "{jitter} ms",
+  "@voiceConnectionJitterMs": {
+    "description": "Formatted jitter value in the voice connection details popout.",
+    "placeholders": {
+      "jitter": {
+        "type": "String"
+      }
+    }
+  },
+  "voiceConnectionBandwidthKbps": "{bandwidth} kbps",
+  "@voiceConnectionBandwidthKbps": {
+    "description": "Formatted bandwidth value in the voice connection details popout.",
+    "placeholders": {
+      "bandwidth": {
+        "type": "String"
+      }
+    }
+  },
+  "userAreaMuteMicrophone": "Mute microphone",
+  "@userAreaMuteMicrophone": {
+    "description": "Tooltip for the mute button in the desktop user area."
+  },
+  "userAreaUnmuteMicrophone": "Unmute microphone",
+  "@userAreaUnmuteMicrophone": {
+    "description": "Tooltip for the unmute button in the desktop user area."
+  },
+  "userAreaUserSettings": "User settings",
+  "@userAreaUserSettings": {
+    "description": "Tooltip for the settings button in the desktop user area."
+  },
   "voiceParticipantMenuViewProfile": "View profile",
   "@voiceParticipantMenuViewProfile": {
     "description": "Voice participant context menu item to open the user's profile."

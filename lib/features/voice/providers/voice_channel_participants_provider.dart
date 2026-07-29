@@ -294,6 +294,17 @@ List<VoiceChannelParticipantData> voiceChannelParticipants(
       .toList();
 }
 
+List<VoiceChannelParticipantData> uniqueVoiceChannelParticipants(
+  List<VoiceChannelParticipantData> participants,
+) {
+  final Map<String, VoiceChannelParticipantData> byUserId =
+      <String, VoiceChannelParticipantData>{};
+  for (final VoiceChannelParticipantData participant in participants) {
+    byUserId.putIfAbsent(participant.userId, () => participant);
+  }
+  return byUserId.values.toList();
+}
+
 class _VoiceSidebarAgg {
   bool selfMute = false;
   bool selfDeaf = false;

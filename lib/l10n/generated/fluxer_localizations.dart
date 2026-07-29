@@ -7864,6 +7864,180 @@ abstract class FluxerLocalizations {
   /// **'Disconnect'**
   String get voiceControlDisconnect;
 
+  /// Short status label shown when the user is currently connected to voice chat.
+  ///
+  /// In en, this message translates to:
+  /// **'In voice chat'**
+  String get voiceInChat;
+
+  /// Voice connection status when the most recent attempt to join the channel failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection failed'**
+  String get voiceConnectionFailed;
+
+  /// Button that retries connecting to the voice channel after a failed attempt.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get voiceConnectionRetry;
+
+  /// Button that dismisses the failed voice connection status banner.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get voiceConnectionDismiss;
+
+  /// Voice connection status when not connected.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnected'**
+  String get voiceConnectionDisconnected;
+
+  /// Compact latency badge on the voice control bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Ping: {currentLatency}ms'**
+  String voicePingMs(int currentLatency);
+
+  /// Tooltip on the latency badge while voice latency is still being sampled.
+  ///
+  /// In en, this message translates to:
+  /// **'Measuring latency...'**
+  String get voiceMeasuringLatency;
+
+  /// Tooltip on a button that jumps to the channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump to {channelSourceLabel}'**
+  String voiceJumpToChannel(String channelSourceLabel);
+
+  /// Voice status popout title.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice connection'**
+  String get voiceConnectionTitle;
+
+  /// Disclosure button label in the voice connection status popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get voiceConnectionAdvancedStats;
+
+  /// Developer voice status menu option for displaying participant avatars.
+  ///
+  /// In en, this message translates to:
+  /// **'Show call avatars'**
+  String get voiceShowCallAvatars;
+
+  /// Developer voice status menu option for displaying the voice connection identifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Show connection ID'**
+  String get voiceShowConnectionId;
+
+  /// Tooltip for the audio processing button in the voice connection status.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio processing'**
+  String get voiceAudioProcessing;
+
+  /// Section title for session stats in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Session'**
+  String get voiceConnectionSessionSection;
+
+  /// Row label for voice session duration in the connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get voiceConnectionDurationLabel;
+
+  /// Row label for participant count in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Participants'**
+  String get voiceConnectionParticipantsLabel;
+
+  /// Section title for network stats in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Network'**
+  String get voiceConnectionNetworkSection;
+
+  /// Row label for ping latency in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Ping'**
+  String get voiceConnectionPingLabel;
+
+  /// Row label for jitter in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Jitter'**
+  String get voiceConnectionJitterLabel;
+
+  /// Row label for outbound bandwidth in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get voiceConnectionSendLabel;
+
+  /// Row label for inbound bandwidth in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive'**
+  String get voiceConnectionReceiveLabel;
+
+  /// Placeholder when a voice connection stat is not available.
+  ///
+  /// In en, this message translates to:
+  /// **'—'**
+  String get voiceConnectionUnavailable;
+
+  /// Formatted voice session duration in the connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m {seconds}s'**
+  String voiceConnectionDuration(int minutes, int seconds);
+
+  /// Formatted ping latency value in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'{latency} ms'**
+  String voiceConnectionLatencyMs(int latency);
+
+  /// Formatted jitter value in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'{jitter} ms'**
+  String voiceConnectionJitterMs(String jitter);
+
+  /// Formatted bandwidth value in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'{bandwidth} kbps'**
+  String voiceConnectionBandwidthKbps(String bandwidth);
+
+  /// Tooltip for the mute button in the desktop user area.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute microphone'**
+  String get userAreaMuteMicrophone;
+
+  /// Tooltip for the unmute button in the desktop user area.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute microphone'**
+  String get userAreaUnmuteMicrophone;
+
+  /// Tooltip for the settings button in the desktop user area.
+  ///
+  /// In en, this message translates to:
+  /// **'User settings'**
+  String get userAreaUserSettings;
+
   /// Voice participant context menu item to open the user's profile.
   ///
   /// In en, this message translates to:
