@@ -5072,6 +5072,12 @@ class FluxerLocalizationsAf extends FluxerLocalizations {
       'Niemand het nog hiermee gereageer nie.';
 
   @override
+  String get chatReactionAddFailed => 'Failed to add reaction';
+
+  @override
+  String get chatReactionRemoveFailed => 'Failed to remove reaction';
+
+  @override
   String get chatMessageReport => 'Rapporteer Boodskap';
 
   @override

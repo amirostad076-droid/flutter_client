@@ -5079,6 +5079,12 @@ class FluxerLocalizationsCy extends FluxerLocalizations {
   String get chatReactionsSheetEmpty => 'Nid oes neb wedi ymateb gyda hyn eto.';
 
   @override
+  String get chatReactionAddFailed => 'Failed to add reaction';
+
+  @override
+  String get chatReactionRemoveFailed => 'Failed to remove reaction';
+
+  @override
   String get chatMessageReport => 'Adrodd ar Neges';
 
   @override

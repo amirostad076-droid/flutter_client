@@ -4881,6 +4881,12 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
   String get chatReactionsSheetEmpty => '아직 아무도 반응하지 않았습니다.';
 
   @override
+  String get chatReactionAddFailed => 'Failed to add reaction';
+
+  @override
+  String get chatReactionRemoveFailed => 'Failed to remove reaction';
+
+  @override
   String get chatMessageReport => '메시지 신고';
 
   @override

@@ -3571,6 +3571,7 @@ class ChatViewModel extends _$ChatViewModel {
     }
 
     final msg = state.messages[msgIndex];
+    final previousReactions = msg.reactions;
     final existingIdx = msg.reactions.indexWhere(
       (r) => r.emoji == emoji && r.emojiId == emojiId,
     );
@@ -3651,8 +3652,46 @@ class ChatViewModel extends _$ChatViewModel {
         );
       }
     } on Exception catch (e) {
-      debugPrint('[ChatViewModel] Reaction failed: $e');
+      talker.error('[ChatViewModel] Reaction failed', e);
+      final FluxerLocalizations l10n = ref.read(appLocalizationsProvider);
+      final String fallback = hasReacted
+          ? l10n.chatReactionRemoveFailed
+          : l10n.chatReactionAddFailed;
+      _restoreMessageReactions(
+        messageId,
+        previousReactions,
+        errorMessage: e is DioException
+            ? dioExceptionMessage(e, fallback)
+            : fallback,
+      );
     }
+  }
+
+  void _restoreMessageReactions(
+    String messageId,
+    List<Reaction> reactions, {
+    String? errorMessage,
+  }) {
+    final int rollbackIndex = state.messages.indexWhere(
+      (Message m) => m.id == messageId,
+    );
+    if (rollbackIndex == -1) {
+      return;
+    }
+    final List<Message> rollback = List<Message>.from(state.messages);
+    rollback[rollbackIndex] = rollback[rollbackIndex].copyWith(
+      reactions: reactions,
+    );
+    state = state.copyWith(messages: rollback, errorMessage: errorMessage);
+    unawaited(
+      ref
+          .read(fluxerDatabaseProvider)
+          .messageDao
+          .updateReactions(
+            messageId,
+            jsonEncode(reactions.map((Reaction r) => r.toJson()).toList()),
+          ),
+    );
   }
 
   /// Moderator/author action: drop every reaction from this message.

@@ -4894,6 +4894,12 @@ class FluxerLocalizationsJa extends FluxerLocalizations {
   String get chatReactionsSheetEmpty => 'まだ誰もリアクションしていません。';
 
   @override
+  String get chatReactionAddFailed => 'Failed to add reaction';
+
+  @override
+  String get chatReactionRemoveFailed => 'Failed to remove reaction';
+
+  @override
   String get chatMessageReport => 'メッセージを報告';
 
   @override

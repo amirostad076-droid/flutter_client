@@ -6446,6 +6446,14 @@
   "@chatReactionsSheetEmpty": {
     "description": "Empty state shown in the message reactions sheet when no users have reacted with the currently selected emoji."
   },
+  "chatReactionAddFailed": "Failed to add reaction",
+  "@chatReactionAddFailed": {
+    "description": "Toast shown when the server rejects adding a reaction after an optimistic update."
+  },
+  "chatReactionRemoveFailed": "Failed to remove reaction",
+  "@chatReactionRemoveFailed": {
+    "description": "Toast shown when the server rejects removing a reaction after an optimistic update."
+  },
   "chatMessageReport": "Report Message",
   "@chatMessageReport": {
     "description": "Action label that opens the report-message sheet so the user can flag the message to moderators."

@@ -8558,6 +8558,18 @@ abstract class FluxerLocalizations {
   /// **'Nobody has reacted with this yet.'**
   String get chatReactionsSheetEmpty;
 
+  /// Toast shown when the server rejects adding a reaction after an optimistic update.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to add reaction'**
+  String get chatReactionAddFailed;
+
+  /// Toast shown when the server rejects removing a reaction after an optimistic update.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to remove reaction'**
+  String get chatReactionRemoveFailed;
+
   /// Action label that opens the report-message sheet so the user can flag the message to moderators.
   ///
   /// In en, this message translates to:

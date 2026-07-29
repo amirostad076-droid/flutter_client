@@ -5118,6 +5118,12 @@ class FluxerLocalizationsSk extends FluxerLocalizations {
   String get chatReactionsSheetEmpty => 'Zatiaľ nikto nereagoval.';
 
   @override
+  String get chatReactionAddFailed => 'Failed to add reaction';
+
+  @override
+  String get chatReactionRemoveFailed => 'Failed to remove reaction';
+
+  @override
   String get chatMessageReport => 'Nahlásiť správu';
 
   @override

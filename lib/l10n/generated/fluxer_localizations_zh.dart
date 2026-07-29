@@ -4800,6 +4800,12 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get chatReactionsSheetEmpty => '尚无人对此做出反应。';
 
   @override
+  String get chatReactionAddFailed => 'Failed to add reaction';
+
+  @override
+  String get chatReactionRemoveFailed => 'Failed to remove reaction';
+
+  @override
   String get chatMessageReport => '举报消息';
 
   @override
