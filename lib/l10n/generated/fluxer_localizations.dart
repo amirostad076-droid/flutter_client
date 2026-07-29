@@ -1630,6 +1630,18 @@ abstract class FluxerLocalizations {
   /// **'Unmute Channel'**
   String get notificationUnmuteChannel;
 
+  /// Radio option to inherit notification settings from the channel category.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Category Default'**
+  String get notificationUseCategoryDefault;
+
+  /// Radio option to inherit notification settings from the community.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Community Default'**
+  String get notificationUseCommunityDefault;
+
   /// Fallback category name for channels without a parent category.
   ///
   /// In en, this message translates to:
@@ -10740,6 +10752,42 @@ abstract class FluxerLocalizations {
   /// **'You\'ve reached the end'**
   String get channelDetailsPinsEndReached;
 
+  /// Accessibility label for the channel header title area.
+  ///
+  /// In en, this message translates to:
+  /// **'Open channel details'**
+  String get channelHeaderOpenDetails;
+
+  /// Toolbar button label for pinned messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned messages'**
+  String get channelHeaderPinnedMessages;
+
+  /// Toolbar button label when pinned messages have unread items.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned messages, unread'**
+  String get channelHeaderPinnedMessagesUnread;
+
+  /// Toolbar button label for toggling the member list panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Member list'**
+  String get channelHeaderMemberList;
+
+  /// Toolbar button label for the inbox popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Inbox'**
+  String get channelHeaderInbox;
+
+  /// Toolbar button label for notification settings when the channel is muted.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification settings, muted'**
+  String get channelHeaderNotificationSettingsMuted;
+
   /// Title for the channel search bottom sheet.
   ///
   /// In en, this message translates to:
@@ -10769,6 +10817,144 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Sort'**
   String get channelDetailsSearchFilterSort;
+
+  /// Section header for inline channel search filter shortcuts.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Filters'**
+  String get channelHeaderSearchFiltersTitle;
+
+  /// Section header for inline channel search history.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Searches'**
+  String get channelHeaderSearchRecentTitle;
+
+  /// Section title for user filter autocomplete
+  ///
+  /// In en, this message translates to:
+  /// **'Users'**
+  String get channelHeaderSearchUsersTitle;
+
+  /// Section title for channel filter autocomplete
+  ///
+  /// In en, this message translates to:
+  /// **'Channels'**
+  String get channelHeaderSearchChannelsTitle;
+
+  /// Section title for filter value autocomplete
+  ///
+  /// In en, this message translates to:
+  /// **'Values'**
+  String get channelHeaderSearchValuesTitle;
+
+  /// Section title for date filter autocomplete
+  ///
+  /// In en, this message translates to:
+  /// **'Dates'**
+  String get channelHeaderSearchDatesTitle;
+
+  /// Badge shown on default filter value options
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get channelHeaderSearchDefaultBadge;
+
+  /// Button to clear recent channel search history.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get channelHeaderSearchClearHistory;
+
+  /// Description for the from: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'a user'**
+  String get channelHeaderSearchFilterDescFrom;
+
+  /// Description for the mentions: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'a user'**
+  String get channelHeaderSearchFilterDescMentions;
+
+  /// Description for the has: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'link, embed, image, video, sound, file, sticker, …'**
+  String get channelHeaderSearchFilterDescHas;
+
+  /// Description for the before: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'a date or date range'**
+  String get channelHeaderSearchFilterDescBefore;
+
+  /// Description for the on: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'a date or date range'**
+  String get channelHeaderSearchFilterDescOn;
+
+  /// Description for the during: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'a date or date range'**
+  String get channelHeaderSearchFilterDescDuring;
+
+  /// Description for the after: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'a date or date range'**
+  String get channelHeaderSearchFilterDescAfter;
+
+  /// Description for the in: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'a channel'**
+  String get channelHeaderSearchFilterDescIn;
+
+  /// Description for the pinned: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'true or false'**
+  String get channelHeaderSearchFilterDescPinned;
+
+  /// Description for the author-type: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'user, bot, or webhook'**
+  String get channelHeaderSearchFilterDescAuthorType;
+
+  /// Description for the link-from: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'a hostname, e.g. example.com'**
+  String get channelHeaderSearchFilterDescLinkFrom;
+
+  /// Description for the file-name: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'part of an attachment filename'**
+  String get channelHeaderSearchFilterDescFileName;
+
+  /// Description for the file-type: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'a file extension, e.g. png'**
+  String get channelHeaderSearchFilterDescFileType;
+
+  /// Description for the sort: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'timestamp or relevance'**
+  String get channelHeaderSearchFilterDescSort;
+
+  /// Description for the order: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'asc or desc'**
+  String get channelHeaderSearchFilterDescOrder;
 
   /// Result count label in channel message search.
   ///

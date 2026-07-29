@@ -8,9 +8,12 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_chat_panel.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_header.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/channel/search/channel_search_results_panel.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/upload_drop_overlay.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/voice/direct_voice_session_strip.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/voice/dm_embedded_voice_call_panel.dart';
+import 'package:fluxer_app/features/chat/providers/channel/channel_details_providers.dart';
+import 'package:fluxer_app/features/chat/providers/channel/channel_header_search_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
@@ -220,6 +223,17 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
     _maybeResyncChannelMismatch(viewModelChannelId);
     listenChatViewModelErrors(ref);
 
+    final ChannelHeaderSearchState searchState = ref.watch(
+      channelHeaderSearchProvider,
+    );
+    final bool isSearchActive =
+        searchState.isActive && searchState.channelId == widget.channelId;
+    final bool showInlineSearchPanel =
+        widget.showTopBar && isWideLayout(context) && isSearchActive;
+    if (widget.showTopBar && isWideLayout(context)) {
+      ref.watch(channelSearchProvider(widget.channelId, null));
+    }
+
     return ColoredBox(
       color: isMobile
           ? context.colors.chatInputBackground
@@ -235,10 +249,24 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
               if (isWideLayout(context))
                 DmEmbeddedVoiceCallPanel(channelId: widget.channelId),
               Expanded(
-                child: ChannelChatPanel(
-                  displayChannelId: widget.channelId,
-                  targetMessageId: widget.targetMessageId,
-                  showInlineEmojiPicker: widget.showInlineEmojiPicker,
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: ChannelChatPanel(
+                        displayChannelId: widget.channelId,
+                        targetMessageId: widget.targetMessageId,
+                        showInlineEmojiPicker: widget.showInlineEmojiPicker,
+                      ),
+                    ),
+                    if (showInlineSearchPanel)
+                      ChannelSearchResultsPanel(
+                        channelId: widget.channelId,
+                        guildId: null,
+                        onClose: () => ref
+                            .read(channelHeaderSearchProvider.notifier)
+                            .closeSearch(),
+                      ),
+                  ],
                 ),
               ),
             ],

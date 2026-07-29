@@ -81,7 +81,6 @@ void main() {
         shouldShowChannelWhenHidingMuted(
           channelId: 'channel-1',
           mutedChannelIds: const {'channel-1'},
-          hasMentions: false,
         ),
         isFalse,
       );

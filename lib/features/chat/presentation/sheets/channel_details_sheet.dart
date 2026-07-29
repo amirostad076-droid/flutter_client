@@ -22,16 +22,20 @@ import 'package:fluxer_app/features/channels/presentation/delete_channel_flow.da
 import 'package:fluxer_app/features/channels/presentation/sheets/channel_notification_settings_sheet.dart';
 import 'package:fluxer_app/features/channels/presentation/sheets/mute_duration_sheet.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.dart';
+import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
 import 'package:fluxer_app/features/channels/providers/unread_provider.dart';
 import 'package:fluxer_app/features/channels/utils/show_channel_debug_sheet.dart';
 import 'package:fluxer_app/features/chat/data/channel_pins_repository.dart';
+import 'package:fluxer_app/features/chat/data/channel_search_history_repository.dart';
+import 'package:fluxer_app/features/chat/data/channel_search_query_parser.dart';
 import 'package:fluxer_app/features/chat/data/message_search_repository.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_item.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_markdown.dart';
 import 'package:fluxer_app/features/chat/providers/channel/channel_details_providers.dart';
 import 'package:fluxer_app/features/chat/utils/channel_jump_navigator.dart';
+import 'package:fluxer_app/features/chat/utils/channel_search_utils.dart';
 import 'package:fluxer_app/features/chat/utils/composer_mention_query.dart';
 import 'package:fluxer_app/features/chat/utils/message_link.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
@@ -117,6 +121,8 @@ Future<void> showChannelSearchSheet(
   required String channelId,
   required String? guildId,
   required String title,
+  Channel? channel,
+  DmConversation? dm,
 }) {
   return FluxerBottomSheet.showScrollable<void>(
     context,
@@ -125,6 +131,8 @@ Future<void> showChannelSearchSheet(
     builder: (sheetContext, scrollController, close) => ChannelSearchSheet(
       channelId: channelId,
       guildId: guildId,
+      channel: channel,
+      dm: dm,
       scrollController: scrollController,
       close: close,
     ),
@@ -246,6 +254,8 @@ class _ChannelDetailsSheetState extends ConsumerState<ChannelDetailsSheet> {
         channelId: channelId,
         guildId: _targetGuildId,
         title: title,
+        channel: widget.channel,
+        dm: widget.dm,
       ),
     );
   }
@@ -1067,11 +1077,15 @@ class ChannelSearchSheet extends ConsumerStatefulWidget {
     required this.guildId,
     required this.scrollController,
     required this.close,
+    this.channel,
+    this.dm,
     super.key,
   });
 
   final String channelId;
   final String? guildId;
+  final Channel? channel;
+  final DmConversation? dm;
   final ScrollController scrollController;
   final VoidCallback close;
 
@@ -1084,6 +1098,7 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
   late final FocusNode _focusNode;
   final Set<String> _selectedAuthorIds = <String>{};
   final Map<String, String> _selectedAuthorNames = <String, String>{};
+  final Map<String, String> _userIdsByTag = <String, String>{};
 
   @override
   void initState() {
@@ -1114,7 +1129,7 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
   }
 
   void _onScroll() {
-    final position = widget.scrollController.position;
+    final ScrollPosition position = widget.scrollController.position;
     if (position.pixels >=
         position.maxScrollExtent - _kSheetLoadMoreThreshold) {
       unawaited(
@@ -1134,7 +1149,7 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
       return null;
     }
     if (_selectedAuthorIds.length == 1) {
-      final id = _selectedAuthorIds.first;
+      final String id = _selectedAuthorIds.first;
       return _selectedAuthorNames[id] ?? id;
     }
     return '${_selectedAuthorIds.length} users';
@@ -1144,10 +1159,21 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
     setState(() {
       _selectedAuthorIds
         ..clear()
-        ..addAll(selectedUsers.map((u) => u.id));
+        ..addAll(selectedUsers.map((_PickerUser u) => u.id));
       _selectedAuthorNames
         ..clear()
-        ..addEntries(selectedUsers.map((u) => MapEntry(u.id, u.displayName)));
+        ..addEntries(
+          selectedUsers.map(
+            (_PickerUser u) => MapEntry<String, String>(u.id, u.displayName),
+          ),
+        );
+      _userIdsByTag
+        ..clear()
+        ..addEntries(
+          selectedUsers.map(
+            (_PickerUser u) => MapEntry<String, String>(u.username, u.id),
+          ),
+        );
     });
     _runSearch();
   }
@@ -1156,26 +1182,100 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
     setState(() {
       _selectedAuthorIds.clear();
       _selectedAuthorNames.clear();
+      _userIdsByTag.clear();
     });
     _runSearch();
   }
 
-  void _runSearch() {
-    final state = ref.read(
+  String? _resolveChannelName(String channelName) {
+    final String? guildId = widget.guildId;
+    if (guildId == null) {
+      return null;
+    }
+    final String normalized = channelName.toLowerCase();
+    final List<ChannelCategory> categories = ref
+        .read(channelListViewModelProvider)
+        .categories;
+    for (final ChannelCategory category in categories) {
+      for (final Channel channel in category.channels) {
+        if (channel.name.toLowerCase() == normalized) {
+          return channel.id;
+        }
+      }
+    }
+    for (final ChannelCategory category in categories) {
+      for (final Channel channel in category.channels) {
+        if (channel.name.toLowerCase().contains(normalized)) {
+          return channel.id;
+        }
+      }
+    }
+    return null;
+  }
+
+  MessageSearchQuery _buildSearchQuery({
+    MessageSearchScopeFilter? scope,
+    MessageSearchSortFilter? sort,
+    Set<MessageSearchContentFilter>? contentTypes,
+  }) {
+    final ChannelSearchState state = ref.read(
       channelSearchProvider(widget.channelId, widget.guildId),
     );
+    return MessageSearchQuery.build(
+      channelId: widget.channelId,
+      guildId: widget.guildId,
+      rawQuery: _textController.text,
+      uiScope: scope ?? state.query.uiScope,
+      uiSort: sort ?? state.query.uiSort,
+      hints: ChannelSearchParseHints(usersByTag: _userIdsByTag),
+      context: ChannelSearchParseContext(
+        guildId: widget.guildId,
+        currentUserId: ref.read(currentUserIdProvider),
+        resolveChannelByName: _resolveChannelName,
+      ),
+      chipAuthorId: _authorIdsValue.isEmpty ? null : _authorIdsValue,
+      chipContentTypes: contentTypes ?? state.query.contentTypes,
+    );
+  }
+
+  void _runSearch() {
+    final MessageSearchQuery query = _buildSearchQuery();
+    if (!query.hasSearchTerms) {
+      return;
+    }
     unawaited(
       ref
           .read(
             channelSearchProvider(widget.channelId, widget.guildId).notifier,
           )
-          .search(
-            text: _textController.text,
-            authorId: _authorIdsValue,
-            scope: state.query.scope,
-            sort: state.query.sort,
-            contentTypes: state.query.contentTypes,
-          ),
+          .search(query: query),
+    );
+    unawaited(_saveSearchHistory(query));
+  }
+
+  Future<void> _saveSearchHistory(MessageSearchQuery query) async {
+    final AsyncValue<ChannelSearchHistoryRepository> repoAsync = ref.read(
+      channelSearchHistoryRepositoryProvider,
+    );
+    final ChannelSearchHistoryRepository? repo = repoAsync.value;
+    if (repo == null) {
+      return;
+    }
+    await repo.addEntry(
+      ChannelSearchHistoryEntry(
+        contextKey: channelSearchContextKey(
+          channelId: widget.channelId,
+          guildId: widget.guildId,
+        ),
+        displayText: _textController.text,
+        authorId: query.authorId,
+        scopeIndex: query.uiScope.index,
+        sortIndex: query.uiSort.index,
+        contentTypeIndices: query.contentTypes
+            .map((MessageSearchContentFilter f) => f.index)
+            .toList(),
+        timestampMs: DateTime.now().millisecondsSinceEpoch,
+      ),
     );
   }
 
@@ -1184,6 +1284,7 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
     setState(() {
       _selectedAuthorIds.clear();
       _selectedAuthorNames.clear();
+      _userIdsByTag.clear();
     });
     _updateFilters(
       scope: MessageSearchScopeFilter.current,
@@ -1193,40 +1294,44 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
   }
 
   bool get _hasActiveFilters {
-    final state = ref.read(
+    final ChannelSearchState state = ref.read(
       channelSearchProvider(widget.channelId, widget.guildId),
     );
     return _selectedAuthorIds.isNotEmpty ||
-        state.query.scope != MessageSearchScopeFilter.current ||
-        state.query.sort != MessageSearchSortFilter.newest ||
+        state.query.uiScope != MessageSearchScopeFilter.current ||
+        state.query.uiSort != MessageSearchSortFilter.newest ||
         state.query.contentTypes.isNotEmpty;
   }
 
-  bool get _canSearch =>
-      _textController.text.trim().isNotEmpty || _hasActiveFilters;
+  bool get _canSearch {
+    if (_textController.text.trim().isNotEmpty || _hasActiveFilters) {
+      return true;
+    }
+    return _buildSearchQuery().hasSearchTerms;
+  }
 
   @override
   Widget build(BuildContext context) {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-    final state = ref.watch(
+    final ChannelSearchState state = ref.watch(
       channelSearchProvider(widget.channelId, widget.guildId),
     );
-    final colors = context.colors;
-    final hasContent = _textController.text.isNotEmpty;
-    final hasAuthorFilter = _selectedAuthorIds.isNotEmpty;
-    final scopeIsCustom = state.query.scope != MessageSearchScopeFilter.current;
-    final hasContentFilter = state.query.contentTypes.isNotEmpty;
-    final hasChipValue = _hasChipValue(l10n, state.query.contentTypes);
-    final showResultCount =
+    final bool hasContent = _textController.text.isNotEmpty;
+    final bool hasAuthorFilter = _selectedAuthorIds.isNotEmpty;
+    final bool scopeIsCustom =
+        state.query.uiScope != MessageSearchScopeFilter.current;
+    final bool hasContentFilter = state.query.contentTypes.isNotEmpty;
+    final String? hasChipValue = _hasChipValue(l10n, state.query.contentTypes);
+    final bool showResultCount =
         state.hasSearched && !state.isSearching && state.total > 0;
-    final showClear = hasContent || _hasActiveFilters;
+    final bool showClear = hasContent || _hasActiveFilters;
 
     return Column(
-      children: [
+      children: <Widget>[
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
           child: Column(
-            children: [
+            children: <Widget>[
               FluxerInput(
                 controller: _textController,
                 focusNode: _focusNode,
@@ -1245,11 +1350,11 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: [
+                children: <Widget>[
                   _SearchFilterChip(
                     label: l10n.channelDetailsSearchFilterFrom,
                     value: _authorChipValue,
-                    icon: PhosphorIconsBold.user,
+                    icon: PhosphorIconsFill.user,
                     isActive: hasAuthorFilter,
                     onTap: _openFromSheet,
                     onRemove: hasAuthorFilter ? _clearAuthorSelection : null,
@@ -1257,7 +1362,7 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
                   _SearchFilterChip(
                     label: l10n.channelDetailsSearchFilterHas,
                     value: hasChipValue,
-                    icon: PhosphorIconsBold.funnel,
+                    icon: PhosphorIconsFill.funnel,
                     isActive: hasContentFilter,
                     onTap: _openHasSheet,
                     onRemove: hasContentFilter
@@ -1268,17 +1373,17 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
                   ),
                   _SearchFilterChip(
                     label: l10n.channelDetailsSearchFilterSort,
-                    value: _sortLabel(l10n, state.query.sort),
-                    icon: PhosphorIconsBold.sortAscending,
+                    value: channelSearchSortLabel(l10n, state.query.sort),
+                    icon: channelSearchSortIcon(state.query.sort),
                     onTap: _openSortSheet,
                   ),
                   _SearchFilterChip(
-                    label: _scopeLabel(
+                    label: channelSearchScopeLabel(
                       l10n,
-                      state.query.scope,
+                      state.query.uiScope,
                       isGuildChannel: widget.guildId != null,
                     ),
-                    icon: PhosphorIconsBold.caretDown,
+                    icon: channelSearchScopeIcon(state.query.uiScope),
                     isActive: scopeIsCustom,
                     onTap: _openScopeSheet,
                   ),
@@ -1292,12 +1397,12 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
                   onPressed: _canSearch ? _runSearch : null,
                 ),
               ),
-              if (showResultCount) ...[
+              if (showResultCount) ...<Widget>[
                 const SizedBox(height: 8),
                 Text(
                   l10n.channelDetailsSearchResultCount(state.total),
                   style: context.textStyles.bodySmall.copyWith(
-                    color: colors.textSecondary,
+                    color: context.colors.textSecondary,
                   ),
                 ),
               ],
@@ -1314,21 +1419,17 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
     MessageSearchSortFilter? sort,
     Set<MessageSearchContentFilter>? contentTypes,
   }) {
-    final state = ref.read(
-      channelSearchProvider(widget.channelId, widget.guildId),
+    final MessageSearchQuery query = _buildSearchQuery(
+      scope: scope,
+      sort: sort,
+      contentTypes: contentTypes,
     );
     unawaited(
       ref
           .read(
             channelSearchProvider(widget.channelId, widget.guildId).notifier,
           )
-          .search(
-            text: _textController.text,
-            authorId: _authorIdsValue,
-            scope: scope ?? state.query.scope,
-            sort: sort ?? state.query.sort,
-            contentTypes: contentTypes ?? state.query.contentTypes,
-          ),
+          .search(query: query),
     );
   }
 
@@ -1340,7 +1441,7 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
       return null;
     }
     if (contentTypes.length == 1) {
-      return _contentLabel(l10n, contentTypes.first);
+      return channelSearchContentLabel(l10n, contentTypes.first);
     }
     return l10n.channelDetailsSearchContentTypesCount(contentTypes.length);
   }
@@ -1382,11 +1483,11 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
   }
 
   Future<void> _openHasSheet() async {
-    final state = ref.read(
+    final ChannelSearchState state = ref.read(
       channelSearchProvider(widget.channelId, widget.guildId),
     );
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-    final selected =
+    final Set<MessageSearchContentFilter>? selected =
         await FluxerBottomSheet.showScrollable<Set<MessageSearchContentFilter>>(
           context,
           title: l10n.channelDetailsSearchFilterByContent,
@@ -1395,7 +1496,8 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
           builder: (sheetContext, scrollController, close) => _HasFilterSheet(
             initialSelected: state.query.contentTypes,
             scrollController: scrollController,
-            onDone: (chosen) => Navigator.of(sheetContext).pop(chosen),
+            onDone: (Set<MessageSearchContentFilter> chosen) =>
+                Navigator.of(sheetContext).pop(chosen),
           ),
         );
     if (selected != null) {
@@ -1404,74 +1506,86 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
   }
 
   Future<void> _openSortSheet() async {
-    final state = ref.read(
+    final ChannelSearchState state = ref.read(
       channelSearchProvider(widget.channelId, widget.guildId),
     );
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-    final selected = await FluxerBottomSheet.show<MessageSearchSortFilter>(
-      context,
-      title: l10n.channelDetailsSearchSortBy,
-      builder: (sheetContext, close) => FluxerBottomSheetContent(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final value in MessageSearchSortFilter.values) ...[
-              _SearchOptionCard(
-                icon: _sortIcon(value),
-                label: _sortLabel(l10n, value),
-                description: _sortDescription(l10n, value),
-                isSelected: state.query.sort == value,
-                onTap: () => Navigator.of(sheetContext).pop(value),
-              ),
-              const SizedBox(height: 8),
-            ],
-          ],
-        ),
-      ),
-    );
+    final MessageSearchSortFilter? selected =
+        await FluxerBottomSheet.show<MessageSearchSortFilter>(
+          context,
+          title: l10n.channelDetailsSearchSortBy,
+          builder: (sheetContext, close) => FluxerBottomSheetContent(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                for (final MessageSearchSortFilter value
+                    in MessageSearchSortFilter.values) ...<Widget>[
+                  _SearchOptionCard(
+                    icon: channelSearchSortIcon(value),
+                    label: channelSearchSortLabel(l10n, value),
+                    description: channelSearchSortDescription(l10n, value),
+                    isSelected: state.query.sort == value,
+                    onTap: () => Navigator.of(sheetContext).pop(value),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ],
+            ),
+          ),
+        );
     if (selected != null) {
       _updateFilters(sort: selected);
     }
   }
 
   Future<void> _openScopeSheet() async {
-    final state = ref.read(
+    final ChannelSearchState state = ref.read(
       channelSearchProvider(widget.channelId, widget.guildId),
     );
-    final isGuildChannel = widget.guildId != null;
-    final options = _scopeOptionsFor(isGuildChannel: isGuildChannel);
-    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-    final selected = await FluxerBottomSheet.show<MessageSearchScopeFilter>(
-      context,
-      title: l10n.channelDetailsSearchIn,
-      builder: (sheetContext, close) => FluxerBottomSheetContent(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final value in options) ...[
-              _SearchOptionCard(
-                icon: _scopeIcon(value),
-                label: _scopeLabel(l10n, value, isGuildChannel: isGuildChannel),
-                description: _scopeDescription(
-                  l10n,
-                  value,
-                  isGuildChannel: isGuildChannel,
-                ),
-                isSelected: state.query.scope == value,
-                onTap: () => Navigator.of(sheetContext).pop(value),
-              ),
-              const SizedBox(height: 8),
-            ],
-          ],
-        ),
-      ),
+    final bool isGuildChannel = widget.guildId != null;
+    final List<MessageSearchScopeFilter> options = channelSearchScopeOptions(
+      isGuildChannel: isGuildChannel,
     );
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    final MessageSearchScopeFilter? selected =
+        await FluxerBottomSheet.show<MessageSearchScopeFilter>(
+          context,
+          title: l10n.channelDetailsSearchIn,
+          builder: (sheetContext, close) => FluxerBottomSheetContent(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                for (final MessageSearchScopeFilter value
+                    in options) ...<Widget>[
+                  _SearchOptionCard(
+                    icon: channelSearchScopeIcon(value),
+                    label: channelSearchScopeLabel(
+                      l10n,
+                      value,
+                      isGuildChannel: isGuildChannel,
+                    ),
+                    description: channelSearchScopeDescription(
+                      l10n,
+                      value,
+                      isGuildChannel: isGuildChannel,
+                    ),
+                    isSelected: state.query.uiScope == value,
+                    onTap: () => Navigator.of(sheetContext).pop(value),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ],
+            ),
+          ),
+        );
     if (selected != null) {
       _updateFilters(scope: selected);
     }
   }
+
+  void _retrySearch() => _runSearch();
 
   Widget _buildResults(BuildContext context, ChannelSearchState state) {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
@@ -1497,7 +1611,7 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
       return _scrollableSheetPlaceholder(
         context,
         widget.scrollController,
-        _ErrorSheetState(title: state.errorMessage!, onRetry: _runSearch),
+        _ErrorSheetState(title: state.errorMessage!, onRetry: _retrySearch),
       );
     }
     if (state.indexing) {
@@ -3432,13 +3546,13 @@ Future<void> _jumpToMessage(
     return;
   }
 
-  close();
   final ChannelJumpLink link = MessageJumpLink(
     scope: resolvedGuildId ?? '@me',
     channelId: message.channelId,
     messageId: message.id,
   );
   await navigateToChannelJumpLink(ref: ref, context: context, link: link);
+  close();
 }
 
 String _formatDate(DateTime dateTime) {
@@ -3447,113 +3561,6 @@ String _formatDate(DateTime dateTime) {
   final m = local.minute.toString().padLeft(2, '0');
   return '${local.month}/${local.day}/${local.year} $h:$m';
 }
-
-List<MessageSearchScopeFilter> _scopeOptionsFor({
-  required bool isGuildChannel,
-}) {
-  if (isGuildChannel) {
-    return const [
-      MessageSearchScopeFilter.current,
-      MessageSearchScopeFilter.allGuilds,
-      MessageSearchScopeFilter.allDms,
-      MessageSearchScopeFilter.openDms,
-      MessageSearchScopeFilter.all,
-      MessageSearchScopeFilter.openDmsAndAllGuilds,
-    ];
-  }
-  return const [
-    MessageSearchScopeFilter.current,
-    MessageSearchScopeFilter.allDms,
-    MessageSearchScopeFilter.openDms,
-    MessageSearchScopeFilter.all,
-    MessageSearchScopeFilter.openDmsAndAllGuilds,
-  ];
-}
-
-String _scopeLabel(
-  FluxerLocalizations l10n,
-  MessageSearchScopeFilter value, {
-  required bool isGuildChannel,
-}) => switch (value) {
-  MessageSearchScopeFilter.current =>
-    isGuildChannel
-        ? l10n.channelDetailsSearchScopeCurrentCommunity
-        : l10n.channelDetailsSearchScopeCurrentDm,
-  MessageSearchScopeFilter.allGuilds =>
-    l10n.channelDetailsSearchScopeAllCommunities,
-  MessageSearchScopeFilter.allDms =>
-    isGuildChannel
-        ? l10n.channelDetailsSearchScopeAllDmsOnlyGuild
-        : l10n.channelDetailsSearchScopeAllDms,
-  MessageSearchScopeFilter.openDms =>
-    isGuildChannel
-        ? l10n.channelDetailsSearchScopeOpenDmsOnlyGuild
-        : l10n.channelDetailsSearchScopeOpenDms,
-  MessageSearchScopeFilter.all =>
-    l10n.channelDetailsSearchScopeAllDmsAndCommunities,
-  MessageSearchScopeFilter.openDmsAndAllGuilds =>
-    l10n.channelDetailsSearchScopeOpenDmsAndCommunities,
-};
-
-String _scopeDescription(
-  FluxerLocalizations l10n,
-  MessageSearchScopeFilter value, {
-  required bool isGuildChannel,
-}) => switch (value) {
-  MessageSearchScopeFilter.current =>
-    isGuildChannel
-        ? l10n.channelDetailsSearchScopeCurrentCommunityDescription
-        : l10n.channelDetailsSearchScopeCurrentDmDescription,
-  MessageSearchScopeFilter.allGuilds =>
-    l10n.channelDetailsSearchScopeAllCommunitiesDescription,
-  MessageSearchScopeFilter.allDms =>
-    isGuildChannel
-        ? l10n.channelDetailsSearchScopeAllDmsOnlyGuildDescription
-        : l10n.channelDetailsSearchScopeAllDmsDescription,
-  MessageSearchScopeFilter.openDms =>
-    isGuildChannel
-        ? l10n.channelDetailsSearchScopeOpenDmsOnlyGuildDescription
-        : l10n.channelDetailsSearchScopeOpenDmsDescription,
-  MessageSearchScopeFilter.all =>
-    l10n.channelDetailsSearchScopeAllDmsAndCommunitiesDescription,
-  MessageSearchScopeFilter.openDmsAndAllGuilds =>
-    l10n.channelDetailsSearchScopeOpenDmsAndCommunitiesDescription,
-};
-
-IconData _scopeIcon(MessageSearchScopeFilter value) => switch (value) {
-  MessageSearchScopeFilter.current => PhosphorIconsBold.hash,
-  MessageSearchScopeFilter.openDms => PhosphorIconsBold.chatCenteredDots,
-  MessageSearchScopeFilter.allDms => PhosphorIconsBold.envelopeSimple,
-  MessageSearchScopeFilter.allGuilds => PhosphorIconsBold.globe,
-  MessageSearchScopeFilter.all => PhosphorIconsBold.users,
-  MessageSearchScopeFilter.openDmsAndAllGuilds => PhosphorIconsBold.users,
-};
-
-String _sortLabel(FluxerLocalizations l10n, MessageSearchSortFilter value) =>
-    switch (value) {
-      MessageSearchSortFilter.newest => l10n.channelDetailsSearchSortNewest,
-      MessageSearchSortFilter.oldest => l10n.channelDetailsSearchSortOldest,
-      MessageSearchSortFilter.relevance =>
-        l10n.channelDetailsSearchSortRelevance,
-    };
-
-String _sortDescription(
-  FluxerLocalizations l10n,
-  MessageSearchSortFilter value,
-) => switch (value) {
-  MessageSearchSortFilter.newest =>
-    l10n.channelDetailsSearchSortNewestDescription,
-  MessageSearchSortFilter.oldest =>
-    l10n.channelDetailsSearchSortOldestDescription,
-  MessageSearchSortFilter.relevance =>
-    l10n.channelDetailsSearchSortRelevanceDescription,
-};
-
-IconData _sortIcon(MessageSearchSortFilter value) => switch (value) {
-  MessageSearchSortFilter.newest => PhosphorIconsBold.clockClockwise,
-  MessageSearchSortFilter.oldest => PhosphorIconsBold.clockCounterClockwise,
-  MessageSearchSortFilter.relevance => PhosphorIconsBold.sparkle,
-};
 
 String _contentLabel(
   FluxerLocalizations l10n,
@@ -3588,12 +3595,5 @@ String _contentDescription(
     l10n.channelDetailsSearchContentStickerDescription,
 };
 
-IconData _contentIcon(MessageSearchContentFilter value) => switch (value) {
-  MessageSearchContentFilter.image => PhosphorIconsBold.image,
-  MessageSearchContentFilter.video => PhosphorIconsBold.videoCamera,
-  MessageSearchContentFilter.audio => PhosphorIconsBold.musicNote,
-  MessageSearchContentFilter.file => PhosphorIconsBold.file,
-  MessageSearchContentFilter.link => PhosphorIconsBold.link,
-  MessageSearchContentFilter.embed => PhosphorIconsBold.browser,
-  MessageSearchContentFilter.sticker => PhosphorIconsBold.sticker,
-};
+IconData _contentIcon(MessageSearchContentFilter value) =>
+    channelSearchContentIcon(value);

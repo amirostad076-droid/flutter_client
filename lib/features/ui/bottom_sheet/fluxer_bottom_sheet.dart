@@ -986,6 +986,42 @@ List<Widget> _intersperseDividers(List<Widget> items, FluxerColorTheme colors) {
 // Menu items
 // ---------------------------------------------------------------------------
 
+class FluxerMenuRadioIndicator extends StatelessWidget {
+  const FluxerMenuRadioIndicator({required this.selected, super.key});
+
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final FluxerColorTheme colors = context.colors;
+
+    return Container(
+      width: 20,
+      height: 20,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: selected ? colors.brandPrimary : Colors.transparent,
+        border: Border.all(
+          color: selected ? colors.brandPrimary : colors.interactiveMuted,
+          width: 2,
+        ),
+      ),
+      child: selected
+          ? Center(
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: colors.textPrimary,
+                ),
+              ),
+            )
+          : null,
+    );
+  }
+}
+
 class FluxerBottomSheetMenuItem extends StatelessWidget {
   final String label;
   final String? hint;
@@ -1129,10 +1165,85 @@ class FluxerBottomSheetSubmenuItem extends StatelessWidget {
       icon: icon,
       onTap: onTap,
       trailing: PhosphorIcon(
-        PhosphorIconsBold.caretRight,
-        size: 20,
-        color: context.colors.textPrimaryMuted,
+        PhosphorIconsFill.caretRight,
+        size: 16,
+        color: context.colors.textSecondary,
       ),
+    );
+  }
+}
+
+class FluxerBottomSheetMenuRadioItem extends StatelessWidget {
+  const FluxerBottomSheetMenuRadioItem({
+    required this.label,
+    required this.onTap,
+    required this.isSelected,
+    super.key,
+    this.hint,
+    this.enabled = true,
+  });
+
+  final String label;
+  final String? hint;
+  final VoidCallback onTap;
+  final bool isSelected;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final FluxerColorTheme colors = context.colors;
+
+    return FluxerTappable(
+      enabled: enabled,
+      onTap: onTap,
+      semanticLabel: hint != null ? '$label. $hint' : label,
+      excludeChildSemantics: true,
+      builder: (BuildContext context, Set<WidgetState> states) {
+        final bool isPressed = states.contains(WidgetState.pressed);
+
+        return AnimatedContainer(
+          duration: context.motion.fast,
+          curve: context.motion.curve,
+          color: isPressed
+              ? colors.backgroundModifierHover.withValues(alpha: 0.6)
+              : Colors.transparent,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 56),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text(
+                          label,
+                          style: context.textStyles.username.copyWith(
+                            color: enabled
+                                ? colors.textPrimary
+                                : colors.textTertiary,
+                          ),
+                        ),
+                        if (hint != null)
+                          Text(
+                            hint!,
+                            style: context.textStyles.timestamp.copyWith(
+                              color: colors.textTertiary,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  FluxerMenuRadioIndicator(selected: isSelected),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

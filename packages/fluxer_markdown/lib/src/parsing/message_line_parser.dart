@@ -136,7 +136,7 @@ List<MessageContentSegment> _parseMessageContentStructureUncached(
     if (_isBlockStart(trimmedLeft, features)) {
       _flushTextFlow(textFlowBuffer, segments);
       final blockEnd = _findBlockEnd(lines, i, features);
-      var blockLines = lines.sublist(i, blockEnd).toList();
+      final blockLines = lines.sublist(i, blockEnd).toList();
       String? trailingAfterClose;
       if (features.allowCodeBlocks && trimmedLeft.startsWith('```')) {
         final int? openingLength = parseOpeningBacktickFenceLength(trimmedLeft);

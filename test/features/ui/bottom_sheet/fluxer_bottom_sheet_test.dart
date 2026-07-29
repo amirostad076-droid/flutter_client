@@ -273,13 +273,10 @@ void main() {
                         context,
                         title: 'Search',
                         builder: (context, scrollController, close) {
-                          return Column(
+                          return const Column(
                             children: [
-                              const SizedBox(
-                                height: 100,
-                                child: Text('Header'),
-                              ),
-                              const Expanded(
+                              SizedBox(height: 100, child: Text('Header')),
+                              Expanded(
                                 child: Center(child: Text('Empty state')),
                               ),
                             ],

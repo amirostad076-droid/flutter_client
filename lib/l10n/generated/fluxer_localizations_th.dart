@@ -832,6 +832,12 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
   String get notificationUnmuteChannel => 'เปิดเสียงช่อง';
 
   @override
+  String get notificationUseCategoryDefault => 'Use Category Default';
+
+  @override
+  String get notificationUseCommunityDefault => 'Use Community Default';
+
+  @override
   String get notificationNoCategory => 'ไม่มีหมวดหมู่';
 
   @override
@@ -6322,6 +6328,25 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
   String get channelDetailsPinsEndReached => 'You\'ve reached the end';
 
   @override
+  String get channelHeaderOpenDetails => 'Open channel details';
+
+  @override
+  String get channelHeaderPinnedMessages => 'Pinned messages';
+
+  @override
+  String get channelHeaderPinnedMessagesUnread => 'Pinned messages, unread';
+
+  @override
+  String get channelHeaderMemberList => 'Member list';
+
+  @override
+  String get channelHeaderInbox => 'Inbox';
+
+  @override
+  String get channelHeaderNotificationSettingsMuted =>
+      'Notification settings, muted';
+
+  @override
   String get channelDetailsSearchTitle => 'Search';
 
   @override
@@ -6337,11 +6362,88 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
   String get channelDetailsSearchFilterSort => 'Sort';
 
   @override
+  String get channelHeaderSearchFiltersTitle => 'Search Filters';
+
+  @override
+  String get channelHeaderSearchRecentTitle => 'Recent Searches';
+
+  @override
+  String get channelHeaderSearchUsersTitle => 'Users';
+
+  @override
+  String get channelHeaderSearchChannelsTitle => 'Channels';
+
+  @override
+  String get channelHeaderSearchValuesTitle => 'Values';
+
+  @override
+  String get channelHeaderSearchDatesTitle => 'Dates';
+
+  @override
+  String get channelHeaderSearchDefaultBadge => 'Default';
+
+  @override
+  String get channelHeaderSearchClearHistory => 'Clear';
+
+  @override
+  String get channelHeaderSearchFilterDescFrom => 'a user';
+
+  @override
+  String get channelHeaderSearchFilterDescMentions => 'a user';
+
+  @override
+  String get channelHeaderSearchFilterDescHas =>
+      'link, embed, image, video, sound, file, sticker, …';
+
+  @override
+  String get channelHeaderSearchFilterDescBefore => 'a date or date range';
+
+  @override
+  String get channelHeaderSearchFilterDescOn => 'a date or date range';
+
+  @override
+  String get channelHeaderSearchFilterDescDuring => 'a date or date range';
+
+  @override
+  String get channelHeaderSearchFilterDescAfter => 'a date or date range';
+
+  @override
+  String get channelHeaderSearchFilterDescIn => 'a channel';
+
+  @override
+  String get channelHeaderSearchFilterDescPinned => 'true or false';
+
+  @override
+  String get channelHeaderSearchFilterDescAuthorType => 'user, bot, or webhook';
+
+  @override
+  String get channelHeaderSearchFilterDescLinkFrom =>
+      'a hostname, e.g. example.com';
+
+  @override
+  String get channelHeaderSearchFilterDescFileName =>
+      'part of an attachment filename';
+
+  @override
+  String get channelHeaderSearchFilterDescFileType =>
+      'a file extension, e.g. png';
+
+  @override
+  String get channelHeaderSearchFilterDescSort => 'timestamp or relevance';
+
+  @override
+  String get channelHeaderSearchFilterDescOrder => 'asc or desc';
+
+  @override
   String channelDetailsSearchResultCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count Results',
+      other: '$countString Results',
       one: '1 Result',
     );
     return '$_temp0';

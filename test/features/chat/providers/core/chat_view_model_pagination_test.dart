@@ -838,10 +838,8 @@ void main() {
       );
       final List<Map<String, Object?>> all = _channelMessages('channel-1', 120);
       final String olderId = all[20]['id']! as String;
-      final adapter = _PaginatingAdapter(
-        messagesByChannel: {'channel-1': all},
-        pageLimit: 50,
-      )..beforeFetchFailuresRemaining = 1;
+      final adapter = _PaginatingAdapter(messagesByChannel: {'channel-1': all})
+        ..beforeFetchFailuresRemaining = 1;
       final container = _container(db, adapter);
       addTearDown(container.dispose);
 
