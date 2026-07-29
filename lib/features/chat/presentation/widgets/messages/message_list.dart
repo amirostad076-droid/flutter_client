@@ -197,7 +197,6 @@ class _MessageListState extends ConsumerState<MessageList> {
   String? _lastVisualUnreadId;
   BuildContext? _leadingSliverCtx;
   BuildContext? _trailingSliverCtx;
-  final MessageEdgeLoadTrigger _edgeLoadTrigger = MessageEdgeLoadTrigger();
   _MessageListOpenMode _openMode = _MessageListOpenMode.unresolved;
   String? _lastChannelId;
   List<Object>? _lastAnchorItemKeys;
@@ -325,8 +324,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
     final ScrollPosition position = _scrollController.position;
     final ChatViewState state = ref.read(chatViewModelProvider);
-    if (_edgeLoadTrigger.shouldRequest(
-      edge: MessageLoadEdge.older,
+    if (shouldRequestEdgeLoad(
       distanceFromEdge: position.maxScrollExtent - position.pixels,
       viewportHeight: position.viewportDimension,
       hasMore: state.hasMoreMessages,
@@ -345,8 +343,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
     final ScrollPosition position = _scrollController.position;
     final ChatViewState state = ref.read(chatViewModelProvider);
-    if (_edgeLoadTrigger.shouldRequest(
-      edge: MessageLoadEdge.newer,
+    if (shouldRequestEdgeLoad(
       distanceFromEdge: position.pixels - position.minScrollExtent,
       viewportHeight: position.viewportDimension,
       hasMore: state.hasMoreNewerMessages,
@@ -374,8 +371,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
     final ScrollPosition position = _scrollController.position;
     final ChatViewState state = ref.read(chatViewModelProvider);
-    if (_edgeLoadTrigger.shouldRequest(
-      edge: MessageLoadEdge.older,
+    if (shouldRequestEdgeLoad(
       distanceFromEdge: _centerLeadingDistance(position),
       viewportHeight: position.viewportDimension,
       hasMore: state.hasMoreMessages,
@@ -394,8 +390,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
     final ScrollPosition position = _scrollController.position;
     final ChatViewState state = ref.read(chatViewModelProvider);
-    if (_edgeLoadTrigger.shouldRequest(
-      edge: MessageLoadEdge.newer,
+    if (shouldRequestEdgeLoad(
       distanceFromEdge: _centerTrailingDistance(position),
       viewportHeight: position.viewportDimension,
       hasMore: state.hasMoreNewerMessages,
@@ -465,9 +460,6 @@ class _MessageListState extends ConsumerState<MessageList> {
         prev.isNotEmpty &&
         next.isNotEmpty) {
       final LeadingEdgeDelta delta = computeLeadingEdgeKeyDelta(prev, next);
-      if (delta.isUnchanged && !listEquals(prev, next)) {
-        _edgeLoadTrigger.reset();
-      }
       if (delta.addedNewest > 0) {
         final bool nearTail = _isLiveNearBottom();
         // Near-tail appends must reveal newest even when no viewport shrink
@@ -553,7 +545,6 @@ class _MessageListState extends ConsumerState<MessageList> {
       _clearPendingScrollTarget();
     }
     _openMode = _MessageListOpenMode.unresolved;
-    _edgeLoadTrigger.reset();
     _lastViewportDimension = null;
     _newestMessageVisibleLatch = null;
     _useCompactScrollCache = true;
@@ -630,12 +621,38 @@ class _MessageListState extends ConsumerState<MessageList> {
     if (notification is ScrollStartNotification &&
         notification.dragDetails != null) {
       _cancelBottomJumpSettle();
+      // A NEW gesture is a re-arm condition of the view model's pagination
+      // progress ledger: one deliberate retry may refetch a parked cursor.
+      _chatViewModel.rearmEdgeLoadsForUserGesture();
+      _evaluateEdgePagination();
+    } else if (notification is OverscrollNotification) {
+      // At the hard wall a gesture toward the loaded edge moves ZERO pixels,
+      // so the position listener never runs and a notification-starved
+      // trigger goes dead (device log: 8-24s of flings with no requests).
+      // The overscroll itself is the "give me more" signal — evaluate on it.
+      _evaluateEdgePagination();
     }
     return switch (_openMode) {
       _MessageListOpenMode.unresolved => false,
       _MessageListOpenMode.unread => _onScrollNotificationCenter(notification),
       _MessageListOpenMode.bottom => _onScrollNotificationBottom(notification),
     };
+  }
+
+  /// Edge-load evaluation for event sources that are not position changes
+  /// (gesture starts, overscroll at a hard edge). Position changes evaluate
+  /// through [_onScroll] as before.
+  void _evaluateEdgePagination() {
+    switch (_openMode) {
+      case _MessageListOpenMode.unresolved:
+        return;
+      case _MessageListOpenMode.unread:
+        _maybeLoadOlderCenter();
+        _maybeLoadNewerCenter();
+      case _MessageListOpenMode.bottom:
+        _maybeLoadOlder();
+        _maybeLoadNewer();
+    }
   }
 
   void _cancelBottomJumpSettle() {
@@ -1111,7 +1128,6 @@ class _MessageListState extends ConsumerState<MessageList> {
         _lastAnchorItemKeys = _anchorItemKeysForMessages(messages);
         _leadingSliverCtx = null;
         _trailingSliverCtx = null;
-        _edgeLoadTrigger.reset();
         _expandScrollCacheNow();
       });
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1133,7 +1149,6 @@ class _MessageListState extends ConsumerState<MessageList> {
     _lastAnchorItemKeys = _anchorItemKeysForMessages(messages);
     _leadingSliverCtx = null;
     _trailingSliverCtx = null;
-    _edgeLoadTrigger.reset();
     _expandScrollCacheNow();
   }
 
@@ -1278,7 +1293,6 @@ class _MessageListState extends ConsumerState<MessageList> {
       _convertUnreadOpenToBottom(next);
     }
     _lastAnchorItemKeys = _anchorItemKeysForMessages(next);
-    _edgeLoadTrigger.reset();
     if (_scrollController.hasClients) {
       // Reverse ListView newest edge is valid before the new window lays out.
       _scrollController.jumpTo(_scrollController.position.minScrollExtent);
@@ -1536,7 +1550,6 @@ class _MessageListState extends ConsumerState<MessageList> {
       }
       // Cancellation defers the publish to ScrollEnd or the replacement jump.
       if (naturalCompletion) {
-        _edgeLoadTrigger.reset();
         _publishReadViewportAfterJumpSettle();
       }
     }

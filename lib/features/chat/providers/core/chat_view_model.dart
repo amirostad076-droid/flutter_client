@@ -347,6 +347,25 @@ class _AttachmentOp {
   int overlayOrdinal = 0;
 }
 
+/// A pagination edge that proved unproductive: the exact request tuple that
+/// came back empty (or threw), parked so the level trigger in the scroll layer
+/// cannot refetch it on every notification. Keyed by cursor AND generations so
+/// any window progress, replacement or channel switch re-arms structurally —
+/// a stale park can never outlive the window it described.
+class _EdgeLoadPark {
+  const _EdgeLoadPark({
+    required this.channelId,
+    required this.cursor,
+    required this.windowGeneration,
+    required this.switchGeneration,
+  });
+
+  final String channelId;
+  final String cursor;
+  final int windowGeneration;
+  final int switchGeneration;
+}
+
 /// The commit half of a window replacement, run as a single queue item so no
 /// reducer can be half applied around the wholesale write.
 class _WindowSwapCommit {
@@ -763,6 +782,70 @@ class ChatViewModel extends _$ChatViewModel {
     if (state.isLoadingNewer) {
       state = state.copyWith(isLoadingNewer: false);
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // PAGINATION PROGRESS LEDGER. The edge trigger in the scroll layer is a
+  // LEVEL (fire whenever the viewport is inside the enter margin), so the
+  // knowledge that a cursor already proved unproductive has to live here, with
+  // the writer that learned it. An empty page installs nothing, which means
+  // the next edge evaluation derives the SAME after/before cursor and would
+  // refetch it on every scroll notification — the dead-cursor no-progress loop
+  // a device log caught verbatim (two identical `after=` fetches 2.4s apart,
+  // both `count=0 hasMore=true`, user quit the channel 13s later).
+  //
+  // A park names the exact (channel, cursor, generations) tuple that came back
+  // empty (or threw). Edge loads refuse a matching tuple and nothing else, so
+  // every re-arm condition is structural:
+  //   * window progress — any install moves the edge cursor, so the tuple no
+  //     longer matches (this is also why a SUPERSEDED page must never park:
+  //     supersession means the window moved mid-flight, i.e. the next
+  //     evaluation already carries a different cursor);
+  //   * a new user gesture — [rearmEdgeLoadsForUserGesture], one refetch per
+  //     deliberate retry instead of one per scroll notification;
+  //   * window replacement or channel switch — the generations in the tuple;
+  //   * a tail seal — hasMoreNewerMessages false stops edge loads upstream.
+  // A mismatch verdict from the tail confirmation deliberately does NOT
+  // re-arm: it proves rows exist past the WINDOW tail, not that the dead
+  // cursor can suddenly advance, so an automatic refetch would buy one more
+  // guaranteed-empty round trip. m17 pins the loop, m17b/m17c/m17e the
+  // re-arms, m17f the supersession rule.
+  _EdgeLoadPark? _olderEdgePark;
+  _EdgeLoadPark? _newerEdgePark;
+
+  /// One latest-page confirmation per (channel, tail, window generation):
+  /// repeated empty results on one cursor re-use the standing verdict instead
+  /// of paying a full latest fetch each (the device log priced one at 1.9s).
+  /// A confirmation that ends WITHOUT a verdict (network failure) clears its
+  /// entry so the next install may re-owe. m17d pins the dedupe.
+  ({String channelId, String tailId, int windowGeneration})? _tailProbeLedger;
+
+  bool _isEdgeParked(_EdgeLoadPark? park, String channelId, String cursor) =>
+      park != null &&
+      park.channelId == channelId &&
+      park.cursor == cursor &&
+      park.windowGeneration == _windowGeneration &&
+      park.switchGeneration == _channelSwitchGeneration;
+
+  _EdgeLoadPark _mintEdgePark(String channelId, String cursor) => _EdgeLoadPark(
+    channelId: channelId,
+    cursor: cursor,
+    windowGeneration: _windowGeneration,
+    switchGeneration: _channelSwitchGeneration,
+  );
+
+  /// Re-arm rule for parked edges: a NEW user gesture (drag start) is a
+  /// deliberate retry and buys exactly one refetch of a parked cursor — the
+  /// fetch re-parks if it comes back empty again. The scroll layer calls this
+  /// from its ScrollStart handling; everything else re-arms structurally (see
+  /// the ledger comment above).
+  void rearmEdgeLoadsForUserGesture() {
+    if (_olderEdgePark == null && _newerEdgePark == null) {
+      return;
+    }
+    talker.debug('[ChatPagination] edge parks re-armed by gesture');
+    _olderEdgePark = null;
+    _newerEdgePark = null;
   }
 
   /// Visible for testing: the unread-boundary key must record SUCCESSFUL loads
@@ -2448,6 +2531,11 @@ class ChatViewModel extends _$ChatViewModel {
 
     final String channelId = state.channelId;
     final String requestedBeforeId = state.messages.first.id;
+    if (_isEdgeParked(_olderEdgePark, channelId, requestedBeforeId)) {
+      // This exact tuple already came back unproductive; see the progress
+      // ledger. A gesture, window progress or a swap re-arms it.
+      return;
+    }
     state = state.copyWith(isLoadingMore: true);
     // Pagination is a page-producing fetch like any other, so it joins the
     // protocol. Registering at ENTRY covers the cache read as well as the
@@ -2539,6 +2627,15 @@ class ChatViewModel extends _$ChatViewModel {
         case WindowPageApplied(:final window):
           if (page.messages.isNotEmpty) {
             _contiguity.extendOlder(channelId, page.messages.first.id);
+            _olderEdgePark = null;
+          } else if (window.hasMoreOlder) {
+            // Nothing installed, so the next evaluation derives this same
+            // cursor: park the tuple or the level trigger refetches it on
+            // every scroll notification.
+            _olderEdgePark = _mintEdgePark(channelId, requestedBeforeId);
+            talker.debug(
+              '[ChatPagination] older edge parked cursor=$requestedBeforeId',
+            );
           }
           _contiguityTrusted = true;
           state = state.copyWith(
@@ -2564,6 +2661,9 @@ class ChatViewModel extends _$ChatViewModel {
       }
     } on Exception catch (e) {
       talker.warning('[ChatPagination] older load failed', e);
+      // A failed tuple parks too: transient errors recover through the same
+      // re-arms (the retry gesture is one), steady-state errors stop hammering.
+      _olderEdgePark = _mintEdgePark(channelId, requestedBeforeId);
       _releaseLoadingMore(fetchOrdinal);
     } finally {
       _endPageFetch(fetchOrdinal);
@@ -2582,6 +2682,13 @@ class ChatViewModel extends _$ChatViewModel {
       state.messages,
     );
     if (requestedAfterId == null) {
+      return;
+    }
+    if (_isEdgeParked(_newerEdgePark, channelId, requestedAfterId)) {
+      // This exact tuple already came back unproductive; see the progress
+      // ledger. A gesture, window progress or a swap re-arms it. The device
+      // log's no-progress loop (same after= cursor refetched per scroll
+      // notification, empty every time) dies here.
       return;
     }
     state = state.copyWith(isLoadingNewer: true);
@@ -2643,6 +2750,7 @@ class ChatViewModel extends _$ChatViewModel {
               _releaseLoadingNewer(fetchOrdinal);
               return;
             case WindowPageApplied(:final window):
+              _newerEdgePark = null;
               state = state.copyWith(
                 messages: _applyPendingLocalMutations(
                   window.messages,
@@ -2709,6 +2817,18 @@ class ChatViewModel extends _$ChatViewModel {
         case WindowPageApplied(:final window):
           if (page.messages.isNotEmpty) {
             _contiguity.extendNewer(channelId, page.messages.last.id);
+            _newerEdgePark = null;
+          } else if (window.hasMoreNewer) {
+            // Nothing installed, so the next evaluation derives this same
+            // cursor: park the tuple or the level trigger refetches it on
+            // every scroll notification. Honesty is untouched — the flag
+            // stays provisionally true and the confirmation below still
+            // settles it; the park only stops the dead cursor from being
+            // edge-triggered again before something changes.
+            _newerEdgePark = _mintEdgePark(channelId, requestedAfterId);
+            talker.debug(
+              '[ChatPagination] newer edge parked cursor=$requestedAfterId',
+            );
           }
           _contiguityTrusted = true;
           state = state.copyWith(
@@ -2739,6 +2859,9 @@ class ChatViewModel extends _$ChatViewModel {
       }
     } on Exception catch (e) {
       talker.warning('[ChatPagination] newer load failed', e);
+      // A failed tuple parks too: transient errors recover through the same
+      // re-arms (the retry gesture is one), steady-state errors stop hammering.
+      _newerEdgePark = _mintEdgePark(channelId, requestedAfterId);
       _releaseLoadingNewer(fetchOrdinal);
     } finally {
       _endPageFetch(fetchOrdinal);
@@ -3104,6 +3227,24 @@ class ChatViewModel extends _$ChatViewModel {
     if (windowTailId == null) {
       return;
     }
+    final ({String channelId, String tailId, int windowGeneration})? probed =
+        _tailProbeLedger;
+    if (probed != null &&
+        probed.channelId == channelId &&
+        probed.tailId == windowTailId &&
+        probed.windowGeneration == _windowGeneration) {
+      // This tail already has a standing verdict (or one in flight). A
+      // mismatch cannot age into equality while the tail sits still, so
+      // re-asking buys nothing and costs a full latest-page round trip —
+      // repeated empty pages on one cursor must not each pay one.
+      talker.debug('[ChatPagination] tail probe deduped tail=$windowTailId');
+      return;
+    }
+    _tailProbeLedger = (
+      channelId: channelId,
+      tailId: windowTailId,
+      windowGeneration: _windowGeneration,
+    );
     final int windowGeneration = _windowGeneration;
     final int switchGeneration = _channelSwitchGeneration;
     final int swapToken = _armWindowSwap(channelId);
@@ -3195,6 +3336,15 @@ class ChatViewModel extends _$ChatViewModel {
       talker.debug('[ChatPagination] tail confirmed at $windowTailId');
     } on Exception catch (e) {
       talker.warning('[ChatPagination] tail confirmation failed', e);
+      // No verdict was obtained, so the dedupe entry must not stand for one:
+      // the next install owing this tail may re-ask.
+      final ({String channelId, String tailId, int windowGeneration})? probed =
+          _tailProbeLedger;
+      if (probed != null &&
+          probed.channelId == channelId &&
+          probed.tailId == windowTailId) {
+        _tailProbeLedger = null;
+      }
     } finally {
       _endPageFetch(fetchOrdinal);
       // Replays whatever the arm held, even when nothing was committed.

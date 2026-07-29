@@ -4,17 +4,14 @@ import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_l
 void main() {
   const double viewportHeight = 800;
 
-  bool shouldRequest(
-    MessageEdgeLoadTrigger trigger, {
-    MessageLoadEdge edge = MessageLoadEdge.older,
+  bool shouldRequest({
     double? distanceFromEdge,
     bool hasMore = true,
     bool isLoading = false,
     bool isUserDrivenScroll = true,
     bool hasActiveJumpTarget = false,
   }) {
-    return trigger.shouldRequest(
-      edge: edge,
+    return shouldRequestEdgeLoad(
       distanceFromEdge:
           distanceFromEdge ?? messageListLoadEnterMargin(viewportHeight) - 1,
       viewportHeight: viewportHeight,
@@ -25,115 +22,49 @@ void main() {
     );
   }
 
-  group('MessageEdgeLoadTrigger', () {
-    test('requests the first user-driven in-threshold sample', () {
-      final MessageEdgeLoadTrigger trigger = MessageEdgeLoadTrigger();
-
-      expect(shouldRequest(trigger), isTrue);
+  group('shouldRequestEdgeLoad', () {
+    test('fires on a user-driven in-margin sample', () {
+      expect(shouldRequest(), isTrue);
     });
 
-    test(
-      'requires fresh progress toward the same edge before requesting again',
-      () {
-        final MessageEdgeLoadTrigger trigger = MessageEdgeLoadTrigger();
-        final double enterMargin = messageListLoadEnterMargin(viewportHeight);
-        final double progressDelta = messageListLoadProgressDelta(
-          viewportHeight,
-        );
+    test('fires at the margin boundary and refuses beyond it', () {
+      final double enterMargin = messageListLoadEnterMargin(viewportHeight);
 
-        expect(shouldRequest(trigger, distanceFromEdge: enterMargin), isTrue);
-        expect(
-          shouldRequest(
-            trigger,
-            distanceFromEdge: enterMargin - progressDelta + 1,
-          ),
-          isFalse,
-        );
-        expect(
-          shouldRequest(trigger, distanceFromEdge: enterMargin - progressDelta),
-          isTrue,
-        );
-      },
-    );
+      expect(shouldRequest(distanceFromEdge: enterMargin), isTrue);
+      expect(shouldRequest(distanceFromEdge: enterMargin + 1), isFalse);
+    });
 
-    test('skips in-threshold samples that are not user-driven', () {
-      final MessageEdgeLoadTrigger trigger = MessageEdgeLoadTrigger();
+    test('is a LEVEL: an unchanged in-margin position keeps firing', () {
+      // The dead-cursor and in-flight dedupe belong to the view model
+      // (progress ledger, isLoading); geometry must never latch. The previous
+      // baseline ratchet deadlocked at the hard newer edge: once a landing
+      // snapped the viewport to the wall, no reachable position could beat
+      // the recorded baseline by the progress delta again.
+      expect(shouldRequest(distanceFromEdge: 0), isTrue);
+      expect(shouldRequest(distanceFromEdge: 0), isTrue);
+      expect(shouldRequest(distanceFromEdge: 0), isTrue);
+    });
 
-      expect(shouldRequest(trigger, isUserDrivenScroll: false), isFalse);
+    test('skips in-margin samples that are not user-driven', () {
+      expect(shouldRequest(isUserDrivenScroll: false), isFalse);
     });
 
     test('skips while an anchor or jump target is active', () {
-      final MessageEdgeLoadTrigger trigger = MessageEdgeLoadTrigger();
-
-      expect(shouldRequest(trigger, hasActiveJumpTarget: true), isFalse);
+      expect(shouldRequest(hasActiveJumpTarget: true), isFalse);
     });
 
     test('skips while the same edge is already loading', () {
-      final MessageEdgeLoadTrigger trigger = MessageEdgeLoadTrigger();
-
-      expect(shouldRequest(trigger, isLoading: true), isFalse);
+      expect(shouldRequest(isLoading: true), isFalse);
     });
 
     test('skips when the edge has no more messages', () {
-      final MessageEdgeLoadTrigger trigger = MessageEdgeLoadTrigger();
-
-      expect(shouldRequest(trigger, hasMore: false), isFalse);
+      expect(shouldRequest(hasMore: false), isFalse);
     });
 
-    test('rearms after moving far enough away from an edge', () {
-      final MessageEdgeLoadTrigger trigger = MessageEdgeLoadTrigger();
-      final double enterMargin = messageListLoadEnterMargin(viewportHeight);
-      final double rearmMargin = messageListLoadRearmMargin(viewportHeight);
-
-      expect(shouldRequest(trigger, distanceFromEdge: 0), isTrue);
-      expect(
-        shouldRequest(trigger, distanceFromEdge: rearmMargin + 1),
-        isFalse,
-      );
-      expect(shouldRequest(trigger, distanceFromEdge: enterMargin), isTrue);
-    });
-
-    test('tracks older and newer progress independently', () {
-      final MessageEdgeLoadTrigger trigger = MessageEdgeLoadTrigger();
-      final double enterMargin = messageListLoadEnterMargin(viewportHeight);
-      final double progressDelta = messageListLoadProgressDelta(viewportHeight);
-      final double notEnoughOlderProgress = enterMargin - progressDelta + 1;
-
-      expect(shouldRequest(trigger, distanceFromEdge: enterMargin), isTrue);
-      expect(
-        shouldRequest(trigger, distanceFromEdge: notEnoughOlderProgress),
-        isFalse,
-      );
-      expect(
-        shouldRequest(
-          trigger,
-          edge: MessageLoadEdge.newer,
-          distanceFromEdge: notEnoughOlderProgress,
-        ),
-        isTrue,
-      );
-    });
-  });
-
-  group('message list load thresholds', () {
-    test('clamp enter margin at the low and high viewport bounds', () {
+    test('clamps the enter margin at the low and high viewport bounds', () {
       expect(messageListLoadEnterMargin(200), 480);
       expect(messageListLoadEnterMargin(800), 720);
       expect(messageListLoadEnterMargin(2000), 900);
-    });
-
-    test('clamp progress delta at the low and high viewport bounds', () {
-      expect(messageListLoadProgressDelta(200), 80);
-      expect(messageListLoadProgressDelta(800), 120);
-      expect(messageListLoadProgressDelta(2000), 160);
-    });
-
-    test('places the rearm margin beyond the enter margin', () {
-      expect(messageListLoadRearmMargin(800), 1120);
-      expect(
-        messageListLoadRearmMargin(800),
-        greaterThan(messageListLoadEnterMargin(800)),
-      );
     });
   });
 }

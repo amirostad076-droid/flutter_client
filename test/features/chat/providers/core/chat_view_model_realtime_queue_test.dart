@@ -2950,7 +2950,8 @@ void main() {
   //   M-U  loadNewer seals on a short-page count             -> m16j, m16k, m16l,
   //        m16m, m16o, m16p, m16q
   //   M-V  loadNewer never fires the confirmation it owes    -> m16i, m16j, m16k,
-  //        m16l, m16m, m16o, m16p, m16q
+  //        m16l, m16m, m16p, m16q (m16o moved to the dedupe row M-AJ: its
+  //        empty page now re-uses the open's verdict by design)
   //   M-W  applyNewerPage seals on an empty page             -> m16o, plus the
   //        message_window reducer contract test
   //   M-X  null-pointer rung returns detachedWindow verbatim -> m16p
@@ -2982,6 +2983,32 @@ void main() {
   //        pendingLocalMutationCount expects 0, gets 1. (The FIRST op alone
   //        cannot see this leak: its ack predates the rescue ordinal, so any
   //        boundary the leaked ordinal yields still satisfies it.)
+  //
+  //   --- Stage A of the history-pagination redesign: the PAGINATION PROGRESS
+  //   ledger (parked cursors + tail-probe dedupe). Same verification protocol.
+  //   M-AG  edge park guard deleted (a dead cursor is refetched on every
+  //         edge evaluation)                                 -> m17
+  //   M-AH  cursor identity dropped from the park tuple      -> NOT KILLABLE
+  //         alone, and not a coverage hole: it is mutually redundant with
+  //         clear-on-advance plus the generation keys — every reachable
+  //         schedule that moves the newer cursor first passes through a
+  //         non-empty install (which clears the park), a gesture, or a
+  //         generation bump. The pair is kept as defense in depth against
+  //         writers outside this harness's reach (an own-send ack promoting a
+  //         local row to server-backed moves the cursor with no install,
+  //         no gesture, no bump). m17b pins the combined contract: after a
+  //         successful retry the advanced edge pages with no gesture ceremony.
+  //   M-AI  gesture re-arm deleted                           -> m17
+  //   M-AJ  tail-probe dedupe deleted (every empty install on one tail
+  //         re-pays a full latest fetch)                     -> m17, m16o
+  //   M-AK  park outlives its window (generations dropped from the tuple)
+  //                                                          -> m17c
+  //   M-AL  the superseded-newer-page path strands its owner (both releases
+  //         dropped: isLoadingNewer survives the jump swap's copyWith and
+  //         wedges the edge)                                 -> m17d
+  //         Park-on-supersede, the other imaginable slip there, is
+  //         structurally harmless: supersession means the tail moved, so a
+  //         tuple parked at supersede time can never match a later request.
 
   test('m16: a search jump into a channel not yet opened this session leaves '
       'the live tail reachable', () async {
@@ -4266,6 +4293,13 @@ void main() {
     );
 
     final int beforeScroll = adapter.latestFetchCalls;
+    expect(
+      beforeScroll,
+      1,
+      reason:
+          'the ambiguous around open owed — and made — exactly one '
+          'confirmation for tail 215',
+    );
     await notifier.loadNewer();
     await _flushAsync();
     expect(
@@ -4290,8 +4324,13 @@ void main() {
     );
     expect(
       adapter.latestFetchCalls,
-      beforeScroll + 1,
-      reason: 'exactly one confirmation for the ambiguous empty page',
+      beforeScroll,
+      reason:
+          'and the empty page re-paid NOTHING for the same verdict: the open '
+          'already confirmed this exact (channel, tail, window generation) '
+          'and a mismatch cannot age into equality while the tail sits '
+          'still — repeated empty results on one cursor must not each buy a '
+          'latest fetch (ledger M-AJ)',
     );
 
     // The state is honest but stuck - the filtered rows block forward paging
@@ -5175,6 +5214,302 @@ void main() {
           "the rescue's included - leaked to hold the boundary down. The "
           "second op's ack sits ABOVE the rescue ordinal, so a leaked "
           'rescueOrdinal (ledger M-AF) strands it at count 1',
+    );
+  });
+
+  test('m17: an empty newer page parks its cursor; only a new gesture buys a '
+      'retry, and neither retry re-pays a confirmation', () async {
+    // The device log's no-progress loop, pinned end to end: 21:10:11 and
+    // 21:10:14, the SAME after= cursor on the wire twice, both answers
+    // count=0 hasMore=true, then a ~1.9s latest fetch — the user left the
+    // channel 13 seconds later. An empty page installs nothing, so the next
+    // edge evaluation derives the identical cursor; without a park every
+    // scroll notification at the edge re-buys the same dead round trip.
+    //
+    // Same world as m16o: window ends at 215, the whole of 216..245 filtered
+    // out of the raw scan, 246..399 real and unreachable by this cursor.
+    final _GatedDatabase database = await seedChannel(
+      lastMessageId: _snowflakeForIndex(500),
+    );
+    await database.readStateDao.upsertReadState(
+      db.ReadStatesCompanion(
+        channelId: const Value(_channelId),
+        lastMessageId: Value(_snowflakeForIndex(500)),
+      ),
+    );
+    final adapter = _MessageApiAdapter(messages: _channelMessages(400))
+      ..filteredMessageIds.add(_snowflakeForIndex(210))
+      ..filteredMessageIds.addAll(<String>[
+        for (var i = 216; i < 246; i++) _snowflakeForIndex(i),
+      ]);
+    final container = _container(database, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel(
+      _channelId,
+      targetMessageId: _snowflakeForIndex(200),
+    );
+    await _flushAsync();
+    final int latestAfterOpen = adapter.latestFetchCalls;
+
+    await notifier.loadNewer();
+    await _flushAsync();
+    expect(
+      adapter.afterFetchCalls,
+      1,
+      reason: 'the first evaluation really did ask for newer rows',
+    );
+    expect(
+      container.read(chatViewModelProvider).hasMoreNewerMessages,
+      isTrue,
+      reason: 'honesty is untouched: the flag stays provisionally true',
+    );
+    expect(
+      adapter.latestFetchCalls,
+      latestAfterOpen,
+      reason:
+          'and the empty install re-paid NO confirmation: the open already '
+          'bought the verdict for this exact tail and generation, and a '
+          'mismatch cannot age into equality while the tail sits still '
+          '(ledger M-AJ)',
+    );
+
+    // The loop killer (ledger M-AG): a second evaluation with no new gesture
+    // must not reach the network — the tuple is parked.
+    await notifier.loadNewer();
+    await _flushAsync();
+    expect(
+      adapter.afterFetchCalls,
+      1,
+      reason:
+          'the parked cursor is refused: same channel, same cursor, same '
+          'window — nothing changed, so nothing is owed the wire (M-AG)',
+    );
+
+    // A NEW deliberate gesture buys exactly one retry (ledger M-AI)...
+    notifier.rearmEdgeLoadsForUserGesture();
+    await notifier.loadNewer();
+    await _flushAsync();
+    expect(
+      adapter.afterFetchCalls,
+      2,
+      reason: 'a fresh gesture is a deliberate retry and gets one fetch',
+    );
+
+    // ...which re-parks on the same empty answer, and still re-pays no probe.
+    await notifier.loadNewer();
+    await _flushAsync();
+    expect(adapter.afterFetchCalls, 2, reason: 'the retry re-parked');
+    expect(
+      adapter.latestFetchCalls,
+      latestAfterOpen,
+      reason: 'no confirmation loop across the whole walk (M-AJ)',
+    );
+
+    // End-state truths, unchanged from m16o: window unmoved, flag honest,
+    // escape hatch alive.
+    final ChatViewState parked = container.read(chatViewModelProvider);
+    expect(parked.messages.last.id, _snowflakeForIndex(215));
+    expect(parked.hasMoreNewerMessages, isTrue);
+    expect(parked.isLoadingNewer, isFalse);
+    expect(await notifier.jumpToLatestMessages(), isTrue);
+    await _flushAsync();
+    expect(
+      container.read(chatViewModelProvider).messages.last.id,
+      _snowflakeForIndex(399),
+      reason: 'jump-to-latest still reaches the present',
+    );
+  });
+
+  test('m17b: window progress re-arms a parked edge — the park names the '
+      'cursor, not the direction', () async {
+    final _GatedDatabase database = await seedChannel(
+      lastMessageId: _snowflakeForIndex(500),
+    );
+    await database.readStateDao.upsertReadState(
+      db.ReadStatesCompanion(
+        channelId: const Value(_channelId),
+        lastMessageId: Value(_snowflakeForIndex(500)),
+      ),
+    );
+    final adapter = _MessageApiAdapter(messages: _channelMessages(400))
+      ..filteredMessageIds.add(_snowflakeForIndex(210))
+      ..filteredMessageIds.addAll(<String>[
+        for (var i = 216; i < 246; i++) _snowflakeForIndex(i),
+      ]);
+    final container = _container(database, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel(
+      _channelId,
+      targetMessageId: _snowflakeForIndex(200),
+    );
+    await _flushAsync();
+
+    await notifier.loadNewer();
+    await _flushAsync();
+    expect(adapter.afterFetchCalls, 1, reason: 'empty page, cursor parked');
+
+    // Server-side cleanup: the filtered rows become visible again.
+    adapter.filteredMessageIds.clear();
+    notifier.rearmEdgeLoadsForUserGesture();
+    await notifier.loadNewer();
+    await _flushAsync();
+    expect(adapter.afterFetchCalls, 2);
+    final ChatViewState advanced = container.read(chatViewModelProvider);
+    expect(
+      advanced.messages.last.id,
+      _snowflakeForIndex(245),
+      reason: 'the retry actually advanced the window',
+    );
+
+    // The park named the OLD cursor, so the advanced edge needs no gesture:
+    // window progress alone re-arms (ledger M-AH).
+    await notifier.loadNewer();
+    await _flushAsync();
+    expect(
+      adapter.afterFetchCalls,
+      3,
+      reason:
+          'a new cursor is a new tuple: paging keeps flowing with no gesture '
+          'ceremony once the edge moves (M-AH)',
+    );
+    expect(
+      container.read(chatViewModelProvider).messages.last.id,
+      _snowflakeForIndex(275),
+    );
+  });
+
+  test('m17c: a park dies with its window — a same-channel rejump onto the '
+      'same tail fetches again', () async {
+    final _GatedDatabase database = await seedChannel(
+      lastMessageId: _snowflakeForIndex(500),
+    );
+    await database.readStateDao.upsertReadState(
+      db.ReadStatesCompanion(
+        channelId: const Value(_channelId),
+        lastMessageId: Value(_snowflakeForIndex(500)),
+      ),
+    );
+    final adapter = _MessageApiAdapter(messages: _channelMessages(400))
+      ..filteredMessageIds.add(_snowflakeForIndex(210))
+      ..filteredMessageIds.addAll(<String>[
+        for (var i = 216; i < 246; i++) _snowflakeForIndex(i),
+      ]);
+    final container = _container(database, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel(
+      _channelId,
+      targetMessageId: _snowflakeForIndex(200),
+    );
+    await _flushAsync();
+
+    await notifier.loadNewer();
+    await _flushAsync();
+    expect(adapter.afterFetchCalls, 1, reason: 'empty page, cursor parked');
+
+    // A rejump rebuilds the window around the same target: same channel, same
+    // tail id, but a NEW window. The park must not follow it (ledger M-AK).
+    await notifier.switchChannel(
+      _channelId,
+      targetMessageId: _snowflakeForIndex(200),
+    );
+    await _flushAsync();
+
+    await notifier.loadNewer();
+    await _flushAsync();
+    expect(
+      adapter.afterFetchCalls,
+      2,
+      reason:
+          'the rebuilt window owes its own probe of the edge: a park is '
+          'scoped to the generations it was minted under (M-AK)',
+    );
+  });
+
+  test('m17d: a superseded newer page leaves a live edge — released owner, '
+      'no strand, next window immediately loadable', () async {
+    final _GatedDatabase database = await seedChannel(
+      lastMessageId: _snowflakeForIndex(399),
+    );
+    final adapter = _MessageApiAdapter(messages: _channelMessages(400));
+    final container = _container(database, adapter);
+    addTearDown(() {
+      adapter.releaseAfterFetch();
+      container.dispose();
+    });
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel(
+      _channelId,
+      targetMessageId: _snowflakeForIndex(200),
+    );
+    await _flushAsync();
+    final String firstTail = container
+        .read(chatViewModelProvider)
+        .messages
+        .last
+        .id;
+
+    adapter.holdAfterFetch = true;
+    final Future<void> stale = notifier.loadNewer();
+    await _flushAsync();
+    expect(adapter.afterFetchCalls, 1, reason: 'the stale fetch is in flight');
+
+    // Jump-to-latest replaces the window wholesale while that page is on the
+    // wire. Its swap commit is a copyWith, so a stranded isLoadingNewer would
+    // SURVIVE the swap — which is exactly what makes the release observable
+    // here, unlike a channel switch that rebuilds the state from scratch.
+    expect(await notifier.jumpToLatestMessages(), isTrue);
+    await _flushAsync();
+    final String swappedTail = container
+        .read(chatViewModelProvider)
+        .messages
+        .last
+        .id;
+    expect(swappedTail, isNot(firstTail));
+    expect(swappedTail, _snowflakeForIndex(399));
+
+    adapter.releaseAfterFetch();
+    await stale;
+    await _flushAsync();
+
+    final ChatViewState afterStale = container.read(chatViewModelProvider);
+    expect(
+      afterStale.messages.last.id,
+      swappedTail,
+      reason: 'the superseded page installed nothing',
+    );
+    expect(
+      afterStale.isLoadingNewer,
+      isFalse,
+      reason:
+          'and released its owner: supersession never strands the edge '
+          '(ledger M-AL)',
+    );
+
+    // The replacement window is immediately workable — a rejump into history
+    // rebuilds a detached window whose edge loads with no gesture ceremony.
+    await notifier.switchChannel(
+      _channelId,
+      targetMessageId: _snowflakeForIndex(100),
+    );
+    await _flushAsync();
+    await notifier.loadNewer();
+    await _flushAsync();
+    expect(adapter.afterFetchCalls, 2);
+    expect(
+      compareSnowflakeIds(
+            container.read(chatViewModelProvider).messages.last.id,
+            _snowflakeForIndex(125),
+          ) >=
+          0,
+      isTrue,
+      reason: 'and the window actually grew: the edge is alive (M-AL)',
     );
   });
 }

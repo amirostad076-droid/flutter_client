@@ -585,6 +585,83 @@ void main() {
 
       await _disposeMessageList(tester);
     });
+    testWidgets(
+      'a drag against the hard newer edge still requests newer pages',
+      (WidgetTester tester) async {
+        // The starvation case from the device log (21:19:01-21:19:24: seven
+        // fling gestures, zero requests, user bailed to jump-to-present). At
+        // the loaded newer edge a drag toward newer moves ZERO pixels, so no
+        // position listener ever runs; the trigger must hear the gesture
+        // itself (ScrollStart with drag details, and the overscroll at the
+        // clamped edge) or the edge goes dead while hasMoreNewerMessages is
+        // still true.
+        tester.view.physicalSize = const Size(420, 640);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final DateTime base = DateTime.utc(2026, 7, 4, 12);
+        final _InstrumentedChatViewModel chatViewModel =
+            _InstrumentedChatViewModel(
+              ChatViewState(
+                channelId: _messageListChannelId,
+                messages: <Message>[
+                  for (int index = 0; index < 30; index += 1)
+                    _message(
+                      id: _snowflakeForUtc(base.add(Duration(minutes: index))),
+                      content: 'message $index',
+                      timestamp: base.add(Duration(minutes: index)),
+                    ),
+                ],
+                replyingTo: null,
+                replyMentioning: false,
+                editingMessage: null,
+                messageText: '',
+                scrollToBottomSignal: 0,
+                isLoading: false,
+                isSyncingMessages: false,
+                isLoadingMore: false,
+                isLoadingNewer: false,
+                hasMoreMessages: true,
+                hasMoreNewerMessages: true,
+                errorMessage: null,
+              ),
+            );
+        final db.FluxerDatabase database = openTestDatabase();
+
+        await tester.pumpWidget(
+          _messageListApp(database: database, chatViewModel: chatViewModel),
+        );
+        await tester.pumpAndSettle();
+
+        final ScrollPosition position = _messageListScrollPosition(tester);
+        expect(
+          position.pixels,
+          moreOrLessEquals(position.minScrollExtent, epsilon: 1),
+          reason: 'a bottom open parks the viewport at the loaded newer edge',
+        );
+        final int loadNewerBefore = chatViewModel._loadNewerCallCount;
+
+        // Toward newer; the wall means the position cannot move at all.
+        await tester.drag(_messageListScrollable(), const Offset(0, -400));
+        await tester.pump();
+
+        expect(
+          position.pixels,
+          moreOrLessEquals(position.minScrollExtent, epsilon: 1),
+          reason: 'the drag really was against the wall',
+        );
+        expect(
+          chatViewModel._loadNewerCallCount,
+          greaterThan(loadNewerBefore),
+          reason:
+              'the gesture itself must arm and evaluate the newer-edge load: '
+              'a notification-starved trigger is the device-log stall',
+        );
+
+        await _disposeMessageList(tester);
+      },
+    );
 
     testWidgets(
       'scroll to bottom still works after a loaded message jump signal',
@@ -985,9 +1062,9 @@ void main() {
         );
         expect(
           scrollable.position.maxScrollExtent - scrollable.position.pixels,
-          greaterThan(
-            messageListLoadProgressDelta(scrollable.position.viewportDimension),
-          ),
+          // The appended rows land beyond the viewport; at least a row of
+          // extent must now separate it from the trailing edge.
+          greaterThan(80),
         );
         expect(harness.chatViewModel._loadNewerCallCount, 0);
 
@@ -1035,9 +1112,9 @@ void main() {
             scrollable.position.pixels - scrollable.position.minScrollExtent;
         expect(
           leadingDistanceAfter,
-          greaterThan(
-            messageListLoadProgressDelta(scrollable.position.viewportDimension),
-          ),
+          // The prepended rows land between the viewport and the leading
+          // edge; at least a row of extent must now separate them.
+          greaterThan(80),
         );
 
         await _disposeMessageList(tester);
@@ -2429,11 +2506,17 @@ void main() {
       await tester.drag(_messageListScrollable(), const Offset(0, -900));
       await tester.pump();
       expect(chatViewModel._loadNewerCallCount, greaterThan(loadNewerBefore));
-      expect(chatViewModel.state.hasMoreNewerMessages, isTrue);
+      // The trigger is a LEVEL: one sustained in-margin gesture keeps paging
+      // (the old baseline ratchet rationed one page per progress delta, which
+      // is exactly the mechanism that deadlocked at the hard newer edge). The
+      // instant fake serves both pages inside this drag, so the window
+      // reaches the present and the flag seals.
       expect(
-        int.parse(chatViewModel.state.messages.last.id),
-        greaterThan(int.parse(initialWindow.last.id)),
+        chatViewModel.state.messages.last.id,
+        allMessages.last.id,
+        reason: 'sustained scroll toward newer drains the fake pages',
       );
+      expect(chatViewModel.state.hasMoreNewerMessages, isFalse);
 
       await _disposeMessageList(tester);
     });
