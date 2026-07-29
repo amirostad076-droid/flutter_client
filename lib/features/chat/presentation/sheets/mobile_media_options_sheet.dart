@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/chat_fullscreen_video_launch_context.dart';
 import 'package:fluxer_app/features/chat/domain/media_options_launch_context.dart';
+import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_actions/message_bottom_sheet.dart';
 import 'package:fluxer_app/features/chat/utils/attachment_display_utils.dart';
 import 'package:fluxer_app/features/chat/utils/attachment_download_service.dart';
@@ -103,6 +104,15 @@ class _MobileMediaOptionsSheetBody extends ConsumerWidget {
           permissions: actionScope.permissions,
           onAction: (MessageAction action) =>
               unawaited(_handleMessageAction(actionScope, action)),
+          attachmentCallbacks: MessageActionCallbacks(
+            onDeleteAttachment: (Attachment attachment) {
+              actionScope.callbacks.onDeleteAttachment?.call(attachment);
+              onCloseViewer?.call();
+            },
+            onEditAttachmentAltText:
+                actionScope.callbacks.onEditAttachmentAltText,
+          ),
+          onCloseMenu: onCloseSheet,
         ),
       );
     }

@@ -200,6 +200,7 @@ List<Widget> buildMessageActionMenuGroups({
   required MessageActionPermissions permissions,
   required ValueChanged<MessageAction> onAction,
   MessageActionCallbacks? attachmentCallbacks,
+  VoidCallback? onCloseMenu,
 }) {
   final FluxerLocalizations l10n = FluxerLocalizations.of(context);
 
@@ -341,6 +342,9 @@ List<Widget> buildMessageActionMenuGroups({
       ),
   ];
 
+  final void Function() closeMenu =
+      onCloseMenu ?? () => Navigator.of(context).pop();
+
   final List<Widget> attachmentItems = <Widget>[
     for (final Attachment attachment in message.attachments) ...<Widget>[
       if (showMediaDeleteButton &&
@@ -356,7 +360,7 @@ List<Widget> buildMessageActionMenuGroups({
           isDanger: true,
           onTap: () {
             attachmentCallbacks?.onDeleteAttachment?.call(attachment);
-            Navigator.of(context).pop();
+            closeMenu();
           },
         ),
       if (canEditAttachmentAltText(
@@ -372,7 +376,7 @@ List<Widget> buildMessageActionMenuGroups({
           hint: attachment.filename,
           onTap: () {
             attachmentCallbacks?.onEditAttachmentAltText?.call(attachment);
-            Navigator.of(context).pop();
+            closeMenu();
           },
         ),
     ],
