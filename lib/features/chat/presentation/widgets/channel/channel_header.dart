@@ -372,11 +372,12 @@ class ChannelHeader extends ConsumerWidget {
               size: FluxerButtonSize.small,
               iconSize: 20,
               onPressed: () => unawaited(
-                showChannelDetailsSheet(
+                showChannelSearchSheet(
                   context,
+                  channelId: channel.id,
+                  guildId: channel.guildId,
+                  title: channel.name,
                   channel: channel,
-                  dm: null,
-                  openSearchImmediately: true,
                 ),
               ),
             ),
