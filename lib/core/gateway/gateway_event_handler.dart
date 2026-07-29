@@ -633,6 +633,7 @@ class GatewayEventHandler {
     );
 
     final List<String> prunedGuildIds = <String>[];
+    final List<VoiceState> readyVoiceStates = <VoiceState>[];
 
     // Drop unread writes queued against the previous session. The snapshot
     // applied below is authoritative.
@@ -781,7 +782,7 @@ class GatewayEventHandler {
             );
           }
           if (guildData.voiceStates.isNotEmpty) {
-            onVoiceStatesBulk?.call(guildData.voiceStates);
+            readyVoiceStates.addAll(guildData.voiceStates);
           }
           if (guildData.emojis.isNotEmpty) {
             emojiReplacements.add((
@@ -1105,6 +1106,9 @@ class GatewayEventHandler {
     }
     onUnavailableGuildsReady?.call(event.rawGuilds);
     onReady?.call();
+    if (readyVoiceStates.isNotEmpty) {
+      onVoiceStatesBulk?.call(readyVoiceStates);
+    }
     final int postMs = postPhase.elapsedMilliseconds;
 
     talker
