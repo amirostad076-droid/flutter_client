@@ -4607,6 +4607,9 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
   String get voiceChannelJoin => 'Σύνδεση στο Φωνητικό Κανάλι';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'Σύνδεση στη Φωνή';
 
   @override

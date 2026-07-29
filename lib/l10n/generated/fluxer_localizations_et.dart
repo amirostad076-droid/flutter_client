@@ -4561,6 +4561,9 @@ class FluxerLocalizationsEt extends FluxerLocalizations {
   String get voiceChannelJoin => 'Liitu häälkanaliga';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'Ühendu häälega';
 
   @override

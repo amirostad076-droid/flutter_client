@@ -4558,6 +4558,9 @@ class FluxerLocalizationsNb extends FluxerLocalizations {
   String get voiceChannelJoin => 'Bli med i stemmekanalen';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'Koble til stemme';
 
   @override

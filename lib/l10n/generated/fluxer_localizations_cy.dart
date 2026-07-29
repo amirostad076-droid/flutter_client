@@ -4577,6 +4577,9 @@ class FluxerLocalizationsCy extends FluxerLocalizations {
   String get voiceChannelJoin => 'Ymunwch â\'r Sianel Llais';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'Cysylltu â Llais';
 
   @override

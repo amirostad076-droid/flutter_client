@@ -4540,6 +4540,9 @@ class FluxerLocalizationsAr extends FluxerLocalizations {
   String get voiceChannelJoin => 'الانضمام إلى القناة الصوتية';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'الاتصال بالصوت';
 
   @override

@@ -4624,6 +4624,9 @@ class FluxerLocalizationsFr extends FluxerLocalizations {
   String get voiceChannelJoin => 'Rejoindre le canal vocal';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'Se connecter à la voix';
 
   @override

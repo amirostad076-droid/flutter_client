@@ -4557,6 +4557,9 @@ class FluxerLocalizationsFa extends FluxerLocalizations {
   String get voiceChannelJoin => 'به کانال صوتی ملحق شوید';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'به صدا وصل شوید';
 
   @override

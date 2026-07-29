@@ -4557,6 +4557,9 @@ class FluxerLocalizationsIs extends FluxerLocalizations {
   String get voiceChannelJoin => 'Tengjast raddrás';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'Tengjast rödd';
 
   @override

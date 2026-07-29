@@ -5808,9 +5808,13 @@
   "@voiceChannelEmptyDescription": {
     "description": "Empty state body when viewing a guild voice channel while not in the call."
   },
-  "voiceChannelJoin": "Join Voice Channel",
+  "voiceChannelJoin": "Join voice channel",
   "@voiceChannelJoin": {
     "description": "Primary action to connect to a voice channel from the empty state."
+  },
+  "voiceCallJoin": "Join call",
+  "@voiceCallJoin": {
+    "description": "Primary CTA in the DM or group DM pre-join call empty state."
   },
   "voiceChannelJoinConnect": "Connect to Voice",
   "@voiceChannelJoinConnect": {

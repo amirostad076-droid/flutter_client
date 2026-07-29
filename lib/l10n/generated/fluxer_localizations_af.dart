@@ -4570,6 +4570,9 @@ class FluxerLocalizationsAf extends FluxerLocalizations {
   String get voiceChannelJoin => 'Sluit aan by Stemkanaal';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'Koppel aan Stem';
 
   @override

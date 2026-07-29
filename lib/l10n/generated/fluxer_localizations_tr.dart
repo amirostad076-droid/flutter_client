@@ -4571,6 +4571,9 @@ class FluxerLocalizationsTr extends FluxerLocalizations {
   String get voiceChannelJoin => 'Sesli Kanala Katıl';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'Sese Bağlan';
 
   @override

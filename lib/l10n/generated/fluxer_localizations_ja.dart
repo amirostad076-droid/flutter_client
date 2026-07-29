@@ -4412,6 +4412,9 @@ class FluxerLocalizationsJa extends FluxerLocalizations {
   String get voiceChannelJoin => 'ボイスチャンネルに参加';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'ボイスに接続';
 
   @override

@@ -4327,6 +4327,9 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get voiceChannelJoin => '加入语音频道';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => '连接到语音';
 
   @override

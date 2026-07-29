@@ -7681,8 +7681,14 @@ abstract class FluxerLocalizations {
   /// Primary action to connect to a voice channel from the empty state.
   ///
   /// In en, this message translates to:
-  /// **'Join Voice Channel'**
+  /// **'Join voice channel'**
   String get voiceChannelJoin;
+
+  /// Primary CTA in the DM or group DM pre-join call empty state.
+  ///
+  /// In en, this message translates to:
+  /// **'Join call'**
+  String get voiceCallJoin;
 
   /// Primary action in the mobile bottom sheet before joining a voice channel from the channel list.
   ///

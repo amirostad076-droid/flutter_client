@@ -4576,6 +4576,9 @@ class FluxerLocalizationsFi extends FluxerLocalizations {
   String get voiceChannelJoin => 'Liity äänikanavaan';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'Yhdistä ääneen';
 
   @override

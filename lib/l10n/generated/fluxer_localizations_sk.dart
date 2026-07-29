@@ -4618,6 +4618,9 @@ class FluxerLocalizationsSk extends FluxerLocalizations {
   String get voiceChannelJoin => 'Pripojiť sa k hlasovému kanálu';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'Pripojiť sa k hlasovému kanálu';
 
   @override

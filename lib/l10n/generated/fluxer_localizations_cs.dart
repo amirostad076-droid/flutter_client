@@ -4568,6 +4568,9 @@ class FluxerLocalizationsCs extends FluxerLocalizations {
   String get voiceChannelJoin => 'Připojit se k hlasovému kanálu';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'Připojit se k hlasu';
 
   @override

@@ -4600,6 +4600,9 @@ class FluxerLocalizationsDe extends FluxerLocalizations {
   String get voiceChannelJoin => 'Sprachkanal beitreten';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'Sprachkanal beitreten';
 
   @override

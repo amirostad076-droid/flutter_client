@@ -4588,6 +4588,9 @@ class FluxerLocalizationsRu extends FluxerLocalizations {
   String get voiceChannelJoin => 'Подключиться к голосовому каналу';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'Подключиться к голосу';
 
   @override

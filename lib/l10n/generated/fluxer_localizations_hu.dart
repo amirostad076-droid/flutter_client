@@ -4592,6 +4592,9 @@ class FluxerLocalizationsHu extends FluxerLocalizations {
   String get voiceChannelJoin => 'Csatlakozás a hangcsatornához';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'Csatlakozás hanghoz';
 
   @override

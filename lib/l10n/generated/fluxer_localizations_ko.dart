@@ -4400,6 +4400,9 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
   String get voiceChannelJoin => '음성 채널 참여';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => '음성 연결';
 
   @override

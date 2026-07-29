@@ -4588,6 +4588,9 @@ class FluxerLocalizationsGa extends FluxerLocalizations {
   String get voiceChannelJoin => 'Ceangail le Cainéal Guth';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'Ceangail le Guth';
 
   @override

@@ -4628,6 +4628,9 @@ class FluxerLocalizationsLt extends FluxerLocalizations {
   String get voiceChannelJoin => 'Prisijungti prie balso kanalo';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'Prisijungti prie balso';
 
   @override

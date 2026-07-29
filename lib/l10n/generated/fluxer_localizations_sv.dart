@@ -4565,6 +4565,9 @@ class FluxerLocalizationsSv extends FluxerLocalizations {
   String get voiceChannelJoin => 'Anslut till röstkanal';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'Anslut till röst';
 
   @override

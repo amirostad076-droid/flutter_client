@@ -4563,6 +4563,9 @@ class FluxerLocalizationsDa extends FluxerLocalizations {
   String get voiceChannelJoin => 'Deltag i stemmekanal';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'Opret forbindelse til stemme';
 
   @override
