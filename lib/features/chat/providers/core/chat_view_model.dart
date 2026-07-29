@@ -1179,7 +1179,7 @@ class ChatViewModel extends _$ChatViewModel {
     List<Message>? embeddedReplyParents,
   }) {
     scheduleMicrotask(() async {
-      if (state.channelId != channelId) {
+      if (!ref.mounted || state.channelId != channelId) {
         return;
       }
       await _onMessageBatchLoaded(
