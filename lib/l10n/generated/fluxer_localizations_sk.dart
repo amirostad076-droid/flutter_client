@@ -8254,6 +8254,9 @@ class FluxerLocalizationsSk extends FluxerLocalizations {
   String get guildSettingsRolesBackToRoles => 'Späť na zoznam rolí';
 
   @override
+  String get guildSettingsBackToSettings => 'Back to settings';
+
+  @override
   String guildSettingsRolesEditTitle(String name) {
     return 'Upraviť \"$name\"';
   }

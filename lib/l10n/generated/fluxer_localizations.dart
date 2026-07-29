@@ -13932,6 +13932,12 @@ abstract class FluxerLocalizations {
   /// **'Back to roles'**
   String get guildSettingsRolesBackToRoles;
 
+  /// Button in community settings that returns from a nested sidebar to the main settings tab list.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to settings'**
+  String get guildSettingsBackToSettings;
+
   /// Title for the role editor panel.
   ///
   /// In en, this message translates to:

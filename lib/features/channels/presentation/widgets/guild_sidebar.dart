@@ -47,9 +47,11 @@ import 'package:fluxer_app/features/guilds/data/guild_user_settings_repository.d
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/presentation/widgets/guild_navbar.dart';
 import 'package:fluxer_app/features/guilds/presentation/widgets/guild_scroll_indicator.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_permissions_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_read_state_provider.dart';
 import 'package:fluxer_app/features/mature_content/providers/mature_content_agreements_provider.dart';
 import 'package:fluxer_app/features/mature_content/providers/sensitive_content_provider.dart';
+import 'package:fluxer_app/features/settings/domain/guild/guild_settings_tab.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
@@ -132,10 +134,17 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
           return;
         }
 
-        final guildId = ref.read(activeGuildIdProvider);
-        if (guildId != null) {
-          unawaited(context.push(RoutePaths.guildSettingsPath(guildId)));
+        final int permissions =
+            ref.read(guildPermissionsProvider)[guild.id] ?? 0;
+        if (!canOpenGuildSettingsForRef(
+          ref: ref,
+          permissions: permissions,
+          guild: guild,
+        )) {
+          return;
         }
+
+        unawaited(context.push(RoutePaths.guildSettingsPath(guild.id)));
       },
       child: Row(
         crossAxisAlignment: hasImage

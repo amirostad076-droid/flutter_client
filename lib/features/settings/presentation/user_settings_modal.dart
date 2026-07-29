@@ -36,6 +36,8 @@ import 'package:fluxer_app/features/settings/presentation/widgets/user_notificat
 import 'package:fluxer_app/features/settings/presentation/widgets/user_privacy_dashboard.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_profile.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_security_login.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/wide_settings_content_layout.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/wide_settings_modal_frame.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/settings/utils/user_settings_nav_l10n.dart';
 import 'package:fluxer_app/features/settings/utils/user_settings_staff_only_utils.dart';
@@ -96,27 +98,14 @@ class UserSettingsModal extends ConsumerStatefulWidget {
       );
     }
 
-    const double maxModalWidth = 1400;
-    return showModalBottomSheet<void>(
-      elevation: 7,
-      context: context,
-      useRootNavigator: true,
-      isScrollControlled: true,
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      constraints: const BoxConstraints(maxWidth: maxModalWidth),
-      builder: (sheetContext) {
-        final EdgeInsets insets = wideSettingsModalInsets(sheetContext);
-        return Padding(
-          padding: insets,
-          child: UserSettingsModal(
-            openProfileSection: openProfileSection,
-            openSecuritySection: openSecuritySection,
-            initialSection: initialSection,
-            guildId: guildId,
-          ),
-        );
-      },
+    return showWideSettingsBottomSheet(
+      context,
+      child: UserSettingsModal(
+        openProfileSection: openProfileSection,
+        openSecuritySection: openSecuritySection,
+        initialSection: initialSection,
+        guildId: guildId,
+      ),
     );
   }
 
@@ -180,28 +169,11 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
 
   @override
   Widget build(BuildContext context) {
-    final EdgeInsets insets = wideSettingsModalInsets(context);
-    final bool hasInset = insets != EdgeInsets.zero;
-    final BorderRadius borderRadius = hasInset
-        ? BorderRadius.circular(16)
-        : const BorderRadius.vertical(top: Radius.circular(16));
-    final double screenHeight = MediaQuery.sizeOf(context).height;
-    final double height = hasInset
-        ? screenHeight - insets.vertical
-        : screenHeight * 0.92;
     final state = ref.watch(userSettingsViewModelProvider);
 
-    return ClipRRect(
-      borderRadius: borderRadius,
-      child: Material(
-        color: context.colors.backgroundPrimary,
-        shape: RoundedRectangleBorder(
-          borderRadius: borderRadius,
-          side: BorderSide(color: context.colors.borderColor),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: SizedBox(height: height, child: _buildDesktopLayout(state)),
-      ),
+    return WideSettingsModalFrame(
+      includeOuterPadding: false,
+      child: _buildDesktopLayout(state),
     );
   }
 
@@ -214,7 +186,7 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
           child: Row(
             children: [
               SizedBox(
-                width: 300,
+                width: kWideSettingsSidebarWidth,
                 child: ColoredBox(
                   color: context.colors.backgroundPrimary,
                   child: SettingsSidebar(

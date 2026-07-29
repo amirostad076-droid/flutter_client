@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/webhooks/guild_webhooks_header.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/wide_settings_content_layout.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 
 class GuildWebhooksStatusBody extends StatelessWidget {
@@ -20,7 +20,10 @@ class GuildWebhooksStatusBody extends StatelessWidget {
       padding: EdgeInsets.zero,
       children: <Widget>[
         const GuildWebhooksHeader(),
-        Padding(padding: EdgeInsets.all(context.layout.s4), child: child),
+        Padding(
+          padding: guildSettingsScrollPadding(context, bottom: 16),
+          child: child,
+        ),
       ],
     );
   }

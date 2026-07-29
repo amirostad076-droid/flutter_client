@@ -8206,6 +8206,9 @@ class FluxerLocalizationsRu extends FluxerLocalizations {
   String get guildSettingsRolesBackToRoles => 'Back to roles';
 
   @override
+  String get guildSettingsBackToSettings => 'Back to settings';
+
+  @override
   String guildSettingsRolesEditTitle(String name) {
     return 'Edit \"$name\"';
   }

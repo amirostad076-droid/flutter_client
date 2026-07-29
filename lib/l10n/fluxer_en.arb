@@ -10428,6 +10428,10 @@
   "@guildSettingsRolesBackToRoles": {
     "description": "Button to return to the role list from the editor."
   },
+  "guildSettingsBackToSettings": "Back to settings",
+  "@guildSettingsBackToSettings": {
+    "description": "Button in community settings that returns from a nested sidebar to the main settings tab list."
+  },
   "guildSettingsRolesEditTitle": "Edit \"{name}\"",
   "@guildSettingsRolesEditTitle": {
     "description": "Title for the role editor panel.",

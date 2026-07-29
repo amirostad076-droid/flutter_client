@@ -67,6 +67,7 @@ import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provid
 import 'package:fluxer_app/features/guilds/utils/guild_folder_icon.dart';
 import 'package:fluxer_app/features/guilds/utils/leave_guild_action.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_report_guild.dart';
+import 'package:fluxer_app/features/settings/domain/guild/guild_settings_tab.dart';
 import 'package:fluxer_app/features/settings/presentation/user_settings_modal.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
@@ -76,6 +77,7 @@ import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/ui/warning_alert/fluxer_warning_alert.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
+import 'package:fluxer_app/shared/providers/input_modality_provider.dart';
 import 'package:fluxer_app/shared/utils/clipboard_utils.dart';
 import 'package:fluxer_app/shared/utils/display_name.dart';
 import 'package:fluxer_app/shared/utils/guild_name_abbreviation.dart';
@@ -3927,43 +3929,47 @@ class _GuildListItemState extends State<_GuildListItem>
 
   void _handleAction(BuildContext context, GuildAction action) {
     final guildId = widget.guild!.id;
+    final GuildSettingsTab? settingsTab = guildSettingsTabForAction(action);
+    if (settingsTab != null) {
+      if (isGuildSettingsTabComingSoon(settingsTab)) {
+        final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+        widget.onShowToast?.call(FluxerToast(message: l10n.comingSoon));
+        return;
+      }
+      final bool isTouchPrimary = ProviderScope.containerOf(
+        context,
+      ).read(inputModalityProvider);
+      if (!canOpenGuildSettings(
+        permissions: widget.permissions,
+        guild: widget.guild,
+        isTouchPrimary: isTouchPrimary,
+      )) {
+        return;
+      }
+      unawaited(
+        context.push(
+          RoutePaths.guildSettingsPath(
+            guildId,
+            tab: guildSettingsTabQuery(settingsTab),
+          ),
+        ),
+      );
+      return;
+    }
     switch (action) {
       case GuildAction.settingsOverview:
-        unawaited(
-          context.push(RoutePaths.guildSettingsPath(guildId, tab: 'overview')),
-        );
       case GuildAction.settingsRoles:
-        unawaited(
-          context.push(RoutePaths.guildSettingsPath(guildId, tab: 'roles')),
-        );
       case GuildAction.settingsEmoji:
-        unawaited(
-          context.push(RoutePaths.guildSettingsPath(guildId, tab: 'emoji')),
-        );
       case GuildAction.settingsStickers:
-        unawaited(
-          context.push(RoutePaths.guildSettingsPath(guildId, tab: 'stickers')),
-        );
       case GuildAction.settingsSafetyModeration:
       case GuildAction.settingsActivityLog:
       case GuildAction.settingsWebhooks:
       case GuildAction.settingsDiscovery:
-      case GuildAction.settingsInviteLinks:
-        unawaited(
-          context.push(RoutePaths.guildSettingsPath(guildId, tab: 'invites')),
-        );
       case GuildAction.settingsMembers:
-        unawaited(
-          context.push(RoutePaths.guildSettingsPath(guildId, tab: 'members')),
-        );
+      case GuildAction.settingsInviteLinks:
       case GuildAction.settingsBans:
-        unawaited(
-          context.push(RoutePaths.guildSettingsPath(guildId, tab: 'bans')),
-        );
       case GuildAction.settingsChannels:
-        unawaited(
-          context.push(RoutePaths.guildSettingsPath(guildId, tab: 'channels')),
-        );
+        return;
       case GuildAction.copyGuildId:
         unawaited(copyToClipboard(context: context, value: guildId));
       case GuildAction.markAsRead:
