@@ -96,19 +96,27 @@ class UserSettingsModal extends ConsumerStatefulWidget {
       );
     }
 
+    const double maxModalWidth = 1400;
     return showModalBottomSheet<void>(
       elevation: 7,
       context: context,
       useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
-      constraints: const BoxConstraints(maxWidth: 1400),
-      builder: (_) => UserSettingsModal(
-        openProfileSection: openProfileSection,
-        openSecuritySection: openSecuritySection,
-        initialSection: initialSection,
-        guildId: guildId,
-      ),
+      backgroundColor: Colors.transparent,
+      constraints: const BoxConstraints(maxWidth: maxModalWidth),
+      builder: (sheetContext) {
+        final EdgeInsets insets = wideSettingsModalInsets(sheetContext);
+        return Padding(
+          padding: insets,
+          child: UserSettingsModal(
+            openProfileSection: openProfileSection,
+            openSecuritySection: openSecuritySection,
+            initialSection: initialSection,
+            guildId: guildId,
+          ),
+        );
+      },
     );
   }
 
@@ -172,17 +180,26 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
 
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.sizeOf(context).height * 0.92;
+    final EdgeInsets insets = wideSettingsModalInsets(context);
+    final bool hasInset = insets != EdgeInsets.zero;
+    final BorderRadius borderRadius = hasInset
+        ? BorderRadius.circular(16)
+        : const BorderRadius.vertical(top: Radius.circular(16));
+    final double screenHeight = MediaQuery.sizeOf(context).height;
+    final double height = hasInset
+        ? screenHeight - insets.vertical
+        : screenHeight * 0.92;
     final state = ref.watch(userSettingsViewModelProvider);
 
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          border: Border.all(color: context.colors.borderColor),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      borderRadius: borderRadius,
+      child: Material(
+        color: context.colors.backgroundPrimary,
+        shape: RoundedRectangleBorder(
+          borderRadius: borderRadius,
+          side: BorderSide(color: context.colors.borderColor),
         ),
-        position: DecorationPosition.foreground,
+        clipBehavior: Clip.antiAlias,
         child: SizedBox(height: height, child: _buildDesktopLayout(state)),
       ),
     );
@@ -210,6 +227,7 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
                     username: state.displayName,
                     avatarUrl: state.avatarUrl,
                     avatarColor: state.avatarColor,
+                    footer: const _SettingsBuildInfoFooter(inSidebar: true),
                   ),
                 ),
               ),
@@ -235,7 +253,6 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
                       ),
                     ),
                     Expanded(child: _buildContent(state)),
-                    const _SettingsBuildInfoFooter(),
                   ],
                 ),
               ),
@@ -620,7 +637,9 @@ Widget _buildUserSettingsPlaceholder(
 }
 
 class _SettingsBuildInfoFooter extends ConsumerWidget {
-  const _SettingsBuildInfoFooter();
+  const _SettingsBuildInfoFooter({this.inSidebar = false});
+
+  final bool inSidebar;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -632,25 +651,29 @@ class _SettingsBuildInfoFooter extends ConsumerWidget {
         if (text.isEmpty) {
           return const SizedBox.shrink();
         }
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
-          child: Align(
-            child: Semantics(
-              button: true,
-              label: 'Copy app info',
-              child: GestureDetector(
-                onTap: () => _copyBuildInfoToClipboard(context, info),
-                child: Text(
-                  text,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: context.colors.textPrimaryMuted,
-                  ),
-                ),
+        final Widget buildInfo = Semantics(
+          button: true,
+          label: 'Copy app info',
+          child: GestureDetector(
+            onTap: () => _copyBuildInfoToClipboard(context, info),
+            child: Text(
+              text,
+              textAlign: inSidebar ? TextAlign.start : TextAlign.center,
+              style: TextStyle(
+                fontSize: 11,
+                color: inSidebar
+                    ? context.colors.textTertiarySecondary
+                    : context.colors.textPrimaryMuted,
               ),
             ),
           ),
+        );
+        if (inSidebar) {
+          return buildInfo;
+        }
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+          child: Align(child: buildInfo),
         );
       },
       loading: () => const SizedBox.shrink(),

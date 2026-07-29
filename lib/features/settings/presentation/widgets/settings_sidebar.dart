@@ -12,6 +12,7 @@ class SettingsSidebar extends StatelessWidget {
   final String? username;
   final String? avatarUrl;
   final int? avatarColor;
+  final Widget? footer;
 
   const SettingsSidebar({
     required this.items,
@@ -22,6 +23,7 @@ class SettingsSidebar extends StatelessWidget {
     this.username,
     this.avatarUrl,
     this.avatarColor,
+    this.footer,
     super.key,
   });
 
@@ -118,16 +120,8 @@ class SettingsSidebar extends StatelessWidget {
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: Text(
-            'fluxer_app',
-            style: TextStyle(
-              color: context.colors.textTertiarySecondary,
-              fontSize: 11,
-            ),
-          ),
-        ),
+        if (footer != null)
+          Padding(padding: const EdgeInsets.all(12), child: footer!),
       ],
     ),
   );
