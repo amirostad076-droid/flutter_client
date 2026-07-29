@@ -1826,8 +1826,6 @@ class _MessageListState extends ConsumerState<MessageList> {
             onMarkAsUnread: () => ref
                 .read(chatViewModelProvider.notifier)
                 .markMessageUnread(message.id),
-            onViewReactions: () =>
-                unawaited(showMessageReactionsSheet(context, message: message)),
             onReport: () => unawaited(
               showSimpleIarReportSheet(
                 context,

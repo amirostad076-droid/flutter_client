@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/features/chat/domain/chat_fullscreen_video_launch_context.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/sheets/message_debug_sheet.dart';
+import 'package:fluxer_app/features/chat/presentation/sheets/message_reactions_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/sheets/unpin_message_confirm_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_actions/quick_reaction_row.dart';
 import 'package:fluxer_app/features/chat/providers/channel/channel_details_providers.dart';
@@ -183,7 +184,12 @@ Future<void> dispatchMessageAction({
         ),
       );
     case MessageAction.viewReactions:
-      callbacks.onViewReactions?.call();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) {
+          return;
+        }
+        unawaited(showMessageReactionsSheet(context, message: message));
+      });
     case MessageAction.removeAllReactions:
       callbacks.onRemoveAllReactions?.call();
     case MessageAction.report:
