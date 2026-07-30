@@ -337,7 +337,8 @@ class _MessageListState extends ConsumerState<MessageList> {
         }
         final GlobalKey? key = _itemKeys[anchorId];
         final BuildContext? itemContext = key?.currentContext;
-        if (itemContext is! Element || !itemContext.debugIsActive) {
+        // debugIsActive is constant-false in profile/release; use mounted.
+        if (itemContext == null || !itemContext.mounted) {
           return;
         }
         final RenderObject? renderObject = itemContext.findRenderObject();
@@ -649,7 +650,8 @@ class _MessageListState extends ConsumerState<MessageList> {
     double bestDistance = double.infinity;
     for (final MapEntry<String, GlobalKey> entry in _itemKeys.entries) {
       final BuildContext? itemContext = entry.value.currentContext;
-      if (itemContext is! Element || !itemContext.debugIsActive) {
+      // debugIsActive is constant-false in profile/release; use mounted.
+      if (itemContext == null || !itemContext.mounted) {
         continue;
       }
       final int idx = state.messages.indexWhere(
