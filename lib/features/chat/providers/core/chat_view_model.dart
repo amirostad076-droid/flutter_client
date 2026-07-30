@@ -263,6 +263,7 @@ class ChatViewModel extends _$ChatViewModel {
   bool _autoAckEligible = false;
   int _foregroundResyncGeneration = 0;
   int _connectivityGapGeneration = 0;
+  bool _pendingSessionResync = false;
   final Map<String, int> _lastReconciledGatewayGenerationByChannel =
       <String, int>{};
   final Map<String, int> _lastReconciledForegroundGenerationByChannel =
@@ -1197,6 +1198,7 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     if (state.isLoading || state.isSyncingMessages) {
+      _pendingSessionResync = true;
       return;
     }
     await _reconcileCurrentChannelFromNetwork();
@@ -1208,23 +1210,42 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     if (state.isLoading || state.isSyncingMessages) {
+      _pendingSessionResync = true;
       return;
     }
     _lastNetworkRefreshByChannel.remove(channelId);
     state = state.copyWith(isSyncingMessages: true);
+    final bool loadLatestTail =
+        ref.read(chatReadViewportProvider).nearLoadedTail &&
+        !state.hasMoreNewerMessages;
     try {
-      await _refreshMessagesFromNetwork(
-        channelId,
-        limit: _kInitialPageSize,
-        isDirectLatestLoad: false,
-        preserveLoadedWindow: state.messages.isNotEmpty,
-      );
+      if (loadLatestTail) {
+        await _refreshMessagesFromNetwork(
+          channelId,
+          limit: _kJumpToPresentPageSize,
+          isDirectLatestLoad: true,
+        );
+        if (state.channelId == channelId) {
+          scrollToBottom();
+        }
+      } else {
+        await _refreshMessagesFromNetwork(
+          channelId,
+          limit: _kInitialPageSize,
+          isDirectLatestLoad: false,
+          preserveLoadedWindow: state.messages.isNotEmpty,
+        );
+      }
       if (state.channelId == channelId) {
         _markMessagesReconciled(channelId);
       }
     } finally {
       if (state.channelId == channelId && state.isSyncingMessages) {
         state = state.copyWith(isSyncingMessages: false);
+      }
+      if (_pendingSessionResync) {
+        _pendingSessionResync = false;
+        unawaited(_reconcileCurrentChannelFromNetwork());
       }
     }
   }
@@ -1235,6 +1256,10 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     _lastNetworkRefreshByChannel.remove(channelId);
+    if (state.isLoading || state.isSyncingMessages) {
+      _pendingSessionResync = true;
+      return;
+    }
     unawaited(_reconcileCurrentChannelFromNetwork());
   }
 
