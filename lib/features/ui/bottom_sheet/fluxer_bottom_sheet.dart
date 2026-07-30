@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet_drag.dart';
+import 'package:fluxer_app/features/ui/overlay/fluxer_overlay_back_handler.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_tappable.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -336,17 +337,10 @@ Widget _wrapSheetBackHandler({
   required VoidCallback? onBack,
   required Widget child,
 }) {
-  if (canDismiss && onBack == null) {
-    return child;
-  }
-  return PopScope(
-    canPop: false,
-    onPopInvokedWithResult: (bool didPop, _) {
-      if (didPop || !canDismiss) {
-        return;
-      }
-      onBack?.call();
-    },
+  return wrapFluxerOverlayBackHandler(
+    canDismiss: canDismiss,
+    onBack: onBack,
+    onDismiss: null,
     child: child,
   );
 }
