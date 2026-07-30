@@ -308,7 +308,28 @@ class MessagePaginationCoordinator implements PaginationDemandPort {
       ..requestsInPump += 1
       ..revisionAtRequest = pump.lastRevision
       ..requestInFlight = true;
-    unawaited(_runRequest(edge, pump));
+    // Deferred one microtask so a demand push arriving inside a layout-phase
+    // ScrollMetricsNotification cannot synchronously reach the VM's
+    // `state = copyWith(isLoading*: true)` write mid-build. The token is
+    // captured NOW: if a switch or wholesale swap adopts a new token before
+    // the microtask runs, this request must not fire against the new window
+    // - abort, free the edge, and arm the new context's cached demand
+    // exactly like a stale result discard does.
+    final ContextToken? scheduledToken = _token;
+    scheduleMicrotask(() {
+      if (_disposed) {
+        pump.requestInFlight = false;
+        return;
+      }
+      if (scheduledToken != _token || pump.phase != _PumpPhase.pumping) {
+        pump.requestInFlight = false;
+        if (pump.phase == _PumpPhase.idle && pump.demandActive) {
+          _startPump(edge, pump);
+        }
+        return;
+      }
+      unawaited(_runRequest(edge, pump));
+    });
   }
 
   Future<void> _runRequest(PaginationEdge edge, _EdgePump pump) async {

@@ -91,6 +91,71 @@ void main() {
     });
   });
 
+  group('trimMessageWindowAround', () {
+    test('under the cap returns the identical list untouched', () {
+      final messages = _build(kMaxLoadedMessages);
+      final trim = trimMessageWindowAround(
+        messages,
+        aroundId: messages[100].id,
+      );
+      expect(identical(trim.messages, messages), isTrue);
+      expect(trim.droppedOlder, isFalse);
+      expect(trim.droppedNewer, isFalse);
+    });
+
+    test('keeps the target rows centered on the pivot', () {
+      final messages = _build(300);
+      final trim = trimMessageWindowAround(
+        messages,
+        aroundId: messages[150].id,
+      );
+      expect(trim.messages.length, kTrimmedMessageWindowSize);
+      expect(trim.messages.first.id, messages[90].id);
+      expect(trim.messages.last.id, messages[209].id);
+      expect(trim.droppedOlder, isTrue);
+      expect(trim.droppedNewer, isTrue);
+    });
+
+    test('clamps the kept span at the window edge', () {
+      final messages = _build(300);
+      final trim = trimMessageWindowAround(messages, aroundId: messages[5].id);
+      expect(trim.messages.length, kTrimmedMessageWindowSize);
+      expect(trim.messages.first.id, messages[0].id);
+      expect(
+        trim.messages.last.id,
+        messages[kTrimmedMessageWindowSize - 1].id,
+      );
+      expect(trim.droppedOlder, isFalse);
+      expect(trim.droppedNewer, isTrue);
+    });
+
+    test('missing pivot falls back to keeping the newest', () {
+      final messages = _build(300);
+      final around = trimMessageWindowAround(messages, aroundId: 'absent');
+      final directional = trimMessageWindow(messages, keepNewest: true);
+      expect(
+        around.messages.map((Message m) => m.id),
+        directional.messages.map((Message m) => m.id),
+      );
+      expect(around.droppedOlder, isTrue);
+      expect(around.droppedNewer, isFalse);
+    });
+
+    test('re-appends local-only rows dropped from the newest side', () {
+      final Message sending = _localMessage(300, MessageDeliveryState.sending);
+      final Message failed = _localMessage(301, MessageDeliveryState.failed);
+      final List<Message> messages = <Message>[..._build(300), sending, failed];
+      final trim = trimMessageWindowAround(messages, aroundId: messages[10].id);
+      expect(
+        trim.messages.length,
+        kTrimmedMessageWindowSize + 2,
+      );
+      expect(trim.messages[kTrimmedMessageWindowSize].id, sending.id);
+      expect(trim.messages.last.id, failed.id);
+      expect(trim.droppedNewer, isTrue);
+    });
+  });
+
   group('window page reducers', () {
     test('supersedes older pages when the leading boundary moved', () {
       final MessageWindowSnapshot window = MessageWindowSnapshot(
@@ -126,7 +191,9 @@ void main() {
       expect(result, isA<WindowPageSuperseded>());
     });
 
-    test('older pages trim the newer side and reopen newer pagination', () {
+    test('older pages merge whole and keep the tail attached', () {
+      // Installs never trim: shrinking is the scroll-end around-trim's job
+      // (a directional trim landing mid-fling teleports the viewport).
       final MessageWindowSnapshot window = MessageWindowSnapshot(
         messages: _range(100, 150),
         hasMoreOlder: true,
@@ -142,17 +209,14 @@ void main() {
         ),
       );
 
-      expect(result.messages, hasLength(kTrimmedMessageWindowSize));
+      expect(result.messages, hasLength(250));
       expect(result.messages.first.id, _message(0).id);
-      expect(
-        result.messages.last.id,
-        _message(kTrimmedMessageWindowSize - 1).id,
-      );
+      expect(result.messages.last.id, _message(249).id);
       expect(result.hasMoreOlder, isFalse);
-      expect(result.hasMoreNewer, isTrue);
+      expect(result.hasMoreNewer, isFalse);
     });
 
-    test('newer pages trim the older side and reopen older pagination', () {
+    test('newer pages merge whole and keep the oldest side attached', () {
       final MessageWindowSnapshot window = MessageWindowSnapshot(
         messages: _range(0, 150),
         hasMoreOlder: false,
@@ -168,10 +232,10 @@ void main() {
         ),
       );
 
-      expect(result.messages, hasLength(kTrimmedMessageWindowSize));
-      expect(result.messages.first.id, _message(130).id);
+      expect(result.messages, hasLength(250));
+      expect(result.messages.first.id, _message(0).id);
       expect(result.messages.last.id, _message(249).id);
-      expect(result.hasMoreOlder, isTrue);
+      expect(result.hasMoreOlder, isFalse);
       expect(result.hasMoreNewer, isFalse);
     });
 
@@ -289,7 +353,9 @@ void main() {
       expect(result.hasMoreOlder, isFalse);
     });
 
-    test('older page trim preserves local-only tail rows', () {
+    test('older page merges past the old cap without trimming', () {
+      // Installs never trim: a directional trim landing mid-fling teleports
+      // the viewport. The scroll-end around-trim owns shrinking the window.
       final Message sending = _localMessage(250, MessageDeliveryState.sending);
       final Message failed = _localMessage(251, MessageDeliveryState.failed);
       final List<Message> messages = <Message>[
@@ -311,14 +377,10 @@ void main() {
         ),
       );
 
-      expect(result.messages, hasLength(kTrimmedMessageWindowSize + 2));
-      expect(
-        result.messages[kTrimmedMessageWindowSize - 1].id,
-        _message(kTrimmedMessageWindowSize - 1).id,
-      );
-      expect(result.messages[kTrimmedMessageWindowSize].id, sending.id);
+      expect(result.messages, hasLength(252));
+      expect(result.messages.first.id, _message(0).id);
       expect(result.messages.last.id, failed.id);
-      expect(result.hasMoreNewer, isTrue);
+      expect(result.hasMoreNewer, isFalse);
     });
 
     test('newer page anchors on the server tail past local-only rows', () {

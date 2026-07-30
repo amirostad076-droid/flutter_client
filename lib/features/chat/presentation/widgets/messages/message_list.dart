@@ -14,6 +14,7 @@ import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/chat/data/chat_unread_summary.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/domain/message_window.dart';
 import 'package:fluxer_app/features/chat/domain/pagination_pump_policy.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/attachment_alt_text_sheet.dart';
@@ -287,6 +288,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       isActive: false,
     );
     _chatViewModel
+      ..setUserScrollActive(channelId: _viewportChannelId, active: false)
       ..clearCurrentManualUnread()
       ..clearStickyUnreadAfterBuildForCurrentChannel();
     _scrollController
@@ -303,6 +305,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     String? anchorId,
     double fraction, {
     required MessageListAnchorEdge edge,
+    bool rebase = false,
   }) {
     setState(() {
       _anchorId = anchorId;
@@ -312,7 +315,10 @@ class _MessageListState extends ConsumerState<MessageList> {
       _uiEpoch++;
     });
     _demandSource.resetApproachVelocity();
-    if (anchorId != null && fraction < 1.0) {
+    // A rebase keeps pixels identical: the fraction was MEASURED off the
+    // live layout, so the half-height center correction (which centers a
+    // jump target's rect) and the unread underfill fallback must not run.
+    if (!rebase && anchorId != null && fraction < 1.0) {
       _scheduleAnchorCenterCorrection(anchorId);
       _scheduleUnreadUnderfillReanchor();
     }
@@ -549,11 +555,18 @@ class _MessageListState extends ConsumerState<MessageList> {
     if (notification.depth != 0) {
       return false;
     }
-    if (notification is ScrollStartNotification &&
-        notification.dragDetails != null) {
-      // A user finger/trackpad drag mints the retry gesture: one deliberate
-      // retry per parked cursor.
-      _demandSource.onDragStart();
+    if (notification is ScrollStartNotification) {
+      // Drag, ballistic, or programmatic - each pairs with an End, and the
+      // VM defers recovery window swaps while any of them is live.
+      _chatViewModel.setUserScrollActive(
+        channelId: _viewportChannelId,
+        active: true,
+      );
+      if (notification.dragDetails != null) {
+        // A user finger/trackpad drag mints the retry gesture: one deliberate
+        // retry per parked cursor.
+        _demandSource.onDragStart();
+      }
     } else if (notification is ScrollUpdateNotification) {
       final double? delta = notification.scrollDelta;
       if (delta != null && delta != 0) {
@@ -580,6 +593,10 @@ class _MessageListState extends ConsumerState<MessageList> {
   /// policy, trim the window at the tail, and republish the read viewport.
   void _onUserScrollSettled() {
     if (!_anchorResolved || !_scrollController.hasClients) {
+      _chatViewModel.setUserScrollActive(
+        channelId: _viewportChannelId,
+        active: false,
+      );
       return;
     }
     final ChatViewState state = ref.read(chatViewModelProvider);
@@ -596,7 +613,106 @@ class _MessageListState extends ConsumerState<MessageList> {
         _chatViewModel.trimToNewestWindow();
       }
       _maybeRecenterPinnedTail(state.messages);
+    } else {
+      _maybeTrimDetachedWindow(state);
     }
+    // Inactive is reported LAST so a deferred recovery resync lands on the
+    // trimmed window.
+    _chatViewModel.setUserScrollActive(
+      channelId: _viewportChannelId,
+      active: false,
+    );
+  }
+
+  /// Scroll-end trim of a detached window (the pinned tail path uses
+  /// trimToNewestWindow). Measures the sliver child nearest the viewport
+  /// center, re-anchors to it when the current anchor would fall outside
+  /// the kept span (epoch remount, pixel-exact: the measured leading-edge
+  /// fraction is exactly where the fresh before-edge layout places it),
+  /// then trims around it and re-arms pagination on the fresh geometry.
+  void _maybeTrimDetachedWindow(ChatViewState state) {
+    if (state.messages.length <= kMaxLoadedMessages) {
+      return;
+    }
+    final BuildContext? scrollableContext =
+        _scrollController.position.context.notificationContext;
+    final RenderObject? viewportRender = scrollableContext?.findRenderObject();
+    if (viewportRender is! RenderBox || !viewportRender.hasSize) {
+      return;
+    }
+    final double viewportTop = viewportRender.localToGlobal(Offset.zero).dy;
+    final double viewportH = _scrollController.position.viewportDimension;
+    final double centerY = viewportTop + viewportH / 2;
+    String? visibleId;
+    int visibleIdx = -1;
+    double visibleTop = 0;
+    double bestDistance = double.infinity;
+    for (final MapEntry<String, GlobalKey> entry in _itemKeys.entries) {
+      final BuildContext? itemContext = entry.value.currentContext;
+      if (itemContext is! Element || !itemContext.debugIsActive) {
+        continue;
+      }
+      final int idx = state.messages.indexWhere(
+        (Message m) => m.id == entry.key,
+      );
+      if (idx < 0) {
+        continue;
+      }
+      final RenderObject? inner = itemContext.findRenderObject();
+      if (inner is! RenderBox || !inner.hasSize || !inner.attached) {
+        continue;
+      }
+      // The anchor positions the OUTER sliver child (the separator wrapper
+      // around this MessageItem, dividers included) - ascend to it, or the
+      // rebase would shift by the wrapper prefix height.
+      RenderObject? node = inner;
+      while (node != null &&
+          node.parentData is! SliverMultiBoxAdaptorParentData) {
+        node = node.parent;
+      }
+      if (node is! RenderBox || !node.hasSize) {
+        continue;
+      }
+      final double top = node.localToGlobal(Offset.zero).dy;
+      final double distance = (top - centerY).abs();
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        visibleId = entry.key;
+        visibleIdx = idx;
+        visibleTop = top;
+      }
+    }
+    if (visibleId == null) {
+      // Nothing measurable this cycle; the next scroll end retries.
+      return;
+    }
+    final int len = state.messages.length;
+    final int start = (visibleIdx - kTrimmedMessageWindowSize ~/ 2)
+        .clamp(0, len - kTrimmedMessageWindowSize)
+        .toInt();
+    final int anchorIdx = _anchorId == null
+        ? -1
+        : state.messages.indexWhere((Message m) => m.id == _anchorId);
+    if (anchorIdx < start || anchorIdx >= start + kTrimmedMessageWindowSize) {
+      _reanchor(
+        visibleId,
+        ((visibleTop - viewportTop) / viewportH).clamp(0.0, 1.0),
+        edge: MessageListAnchorEdge.before,
+        rebase: true,
+      );
+    }
+    _chatViewModel.trimAroundVisible(visibleId);
+    // Re-arm pagination on the post-trim layout: the revision bump releases
+    // idle pumps; onWindowTrimmed buys parked ones (capped mid-fling) one
+    // retry. Epoch captured AFTER any rebase so the callback runs on the
+    // layout it describes.
+    final int epoch = _uiEpoch;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _runIfSameEpoch(epoch, () {
+        _publishDemandGeometry();
+        _demandSource.onWindowTrimmed();
+      });
+    });
   }
 
   /// Re-center policy: a pinned reader with a deep trailing run re-anchors

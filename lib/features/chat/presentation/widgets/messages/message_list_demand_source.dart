@@ -235,4 +235,25 @@ class MessageListDemandSource {
       EdgeRetry(edge: edge, context: context, gestureId: _gestureId),
     );
   }
+
+  /// A scroll-end trim shrank a capped window. Parked pumps ignore demand
+  /// levels by design, so the trim re-arms them explicitly: mint a fresh
+  /// gesture (the same one-retry-per-parked-cursor budget a drag start
+  /// buys) and push a retry for each edge whose demand is active on the
+  /// freshly sampled post-trim geometry. Idle pumps need nothing - the
+  /// geometry republication's revision bump re-arms them.
+  void onWindowTrimmed() {
+    final ContextToken? context = _context;
+    if (context == null) {
+      return;
+    }
+    _gestureId += 1;
+    for (final PaginationEdge edge in PaginationEdge.values) {
+      if (_edgeFor(edge).active) {
+        _port.onEdgeRetry(
+          EdgeRetry(edge: edge, context: context, gestureId: _gestureId),
+        );
+      }
+    }
+  }
 }

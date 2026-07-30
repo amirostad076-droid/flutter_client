@@ -182,6 +182,7 @@ void main() {
           viewportHeight: 720,
           sampledTailId: null,
         );
+    await _flushMicrotasks();
 
     expect(container.read(chatReadViewportProvider).distanceFromBottom, 48);
 
@@ -194,6 +195,7 @@ void main() {
           viewportHeight: 720,
           sampledTailId: null,
         );
+    await _flushMicrotasks();
     expect(
       container.read(chatReadViewportProvider).distanceFromBottom,
       48,
@@ -254,6 +256,7 @@ void main() {
             viewportHeight: 640,
             sampledTailId: null,
           );
+      await _flushMicrotasks();
       expect(
         container.read(chatReadViewportProvider).nearLoadedTail,
         isFalse,

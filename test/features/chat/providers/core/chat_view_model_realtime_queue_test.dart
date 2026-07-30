@@ -32,6 +32,7 @@ import 'package:fluxer_app/features/channels/data/ack_batcher.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/providers/ack_batcher_provider.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/domain/message_window.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_chat_content.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_read_viewport_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
@@ -229,19 +230,29 @@ void main() {
     return database;
   }
 
-  /// Opens the channel, then pages backwards until the window is detached from
-  /// the live tail, which is the state a jump to latest replaces wholesale.
+  /// Opens the channel, pages backwards past the trim cap, then applies the
+  /// scroll-end around-trim (the widget's settle path) near the oldest row,
+  /// which drops the newest side and detaches the window from the live
+  /// tail - the state a jump to latest replaces wholesale.
   Future<void> detachWindow(ChatViewModel notifier, ProviderContainer c) async {
     await notifier.switchChannel(_channelId);
     await _flushAsync();
     for (var i = 0; i < 8; i++) {
-      if (c.read(chatViewModelProvider).hasMoreNewerMessages) {
-        return;
+      if (c.read(chatViewModelProvider).messages.length > kMaxLoadedMessages) {
+        break;
       }
       await notifier.loadMore();
       await _flushAsync();
     }
-    fail('window never detached from the live tail');
+    final List<Message> loaded = c.read(chatViewModelProvider).messages;
+    if (loaded.length <= kMaxLoadedMessages) {
+      fail('window never exceeded the trim cap');
+    }
+    notifier.trimAroundVisible(loaded.first.id);
+    await _flushAsync();
+    if (!c.read(chatViewModelProvider).hasMoreNewerMessages) {
+      fail('window never detached from the live tail');
+    }
   }
 
   test('m1: a swap cannot commit while a reducer is parked in the '

@@ -16,6 +16,7 @@ import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/domain/message_window.dart';
 import 'package:fluxer_app/features/chat/domain/pagination_pump_policy.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/blocked_message_groups.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_item.dart';
@@ -3491,6 +3492,62 @@ void main() {
         reason: reason,
       );
     }
+
+    testWidgets(
+      'a scroll-end trim bounds the window without moving the visible rows',
+      (WidgetTester tester) async {
+        final _InstrumentedChatViewModel chatViewModel = await pumpBottomList(
+          tester,
+          hasMoreNewer: false,
+          count: 240,
+        );
+        expect(chatViewModel.state.messages, hasLength(240));
+
+        // A held gesture never trims: a destructive trim landing mid-scroll
+        // is exactly the teleport this design removes.
+        final TestGesture gesture = await tester.startGesture(
+          tester.getCenter(_messageListScrollable()),
+        );
+        for (int i = 0; i < 6; i += 1) {
+          await gesture.moveBy(const Offset(0, 120));
+          await tester.pump();
+        }
+        expect(
+          chatViewModel.state.messages,
+          hasLength(240),
+          reason: 'no trim while the gesture is held',
+        );
+
+        // Zero-velocity release: the settle applies the around-trim. The
+        // rows on screen keep their pixels - both removals land at the far
+        // sliver ends, away from the reader.
+        final String probeId = _centerVisibleMessageItemId(tester);
+        final ({String id, Rect rect}) before = anchorSample(tester, probeId);
+        await gesture.up();
+        await tester.pumpAndSettle();
+
+        expect(
+          chatViewModel.state.messages,
+          hasLength(kTrimmedMessageWindowSize),
+        );
+        expect(
+          chatViewModel.state.hasMoreMessages,
+          isTrue,
+          reason: 'the dropped older side re-opens pagination',
+        );
+        expect(
+          chatViewModel.state.hasMoreNewerMessages,
+          isFalse,
+          reason: 'the reader sits near the tail: the newer side is kept',
+        );
+        expectPreserved(
+          tester,
+          before,
+          reason: 'the trim must not move the reader',
+        );
+        await _disposeMessageList(tester);
+      },
+    );
 
     testWidgets(
       'case 1: the FINAL newer page — the one that flips hasMoreNewerMessages '

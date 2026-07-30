@@ -32,6 +32,7 @@ void main() {
         h.vm.scriptOlderHeld(held);
 
         h.demand(active: true, revision: 1);
+        await _flushAsync();
         expect(h.vm.loadMoreCalls, 1, reason: 'false→true arms one pump');
         expect(h.olderPhase, 'pumping');
 
@@ -128,12 +129,12 @@ void main() {
         h.now = h.now.add(PumpBudget.yieldCooldown);
         h.vm.scriptOlder(_applied(requestCursor: '96', installedBoundary: '46'));
         h.demand(active: true, revision: 6);
+        await _flushAsync();
         expect(
           h.vm.loadMoreCalls,
           5,
           reason: 'cooldown + revision progress resumes with a fresh budget',
         );
-        await _flushAsync();
         expect(h.olderPhase, 'awaitingGeometry');
       },
     );
@@ -165,8 +166,8 @@ void main() {
         // A deliberate NEW gesture buys exactly one attempt.
         h.vm.scriptOlder(_empty(requestCursor: '100'));
         h.retry(gestureId: 7);
-        expect(h.vm.loadMoreCalls, 2);
         await _flushAsync();
+        expect(h.vm.loadMoreCalls, 2);
         expect(h.olderPhase, 'parked', reason: 'the empty retry re-parks');
 
         // The same gesture cannot buy a second attempt.
@@ -188,6 +189,7 @@ void main() {
         h.vm.scriptOlderHeld(held);
 
         h.demand(active: true, revision: 1);
+        await _flushAsync();
         expect(h.vm.loadMoreCalls, 1);
         expect(h.olderPhase, 'pumping');
 
@@ -229,6 +231,7 @@ void main() {
         // Two overscrolls from the same drag: one attempt.
         h.retry(gestureId: 5);
         h.retry(gestureId: 5);
+        await _flushAsync();
         expect(h.vm.loadMoreCalls, 2);
 
         held.complete(_empty(requestCursor: '100'));
@@ -266,8 +269,8 @@ void main() {
         // One retry per new gesture, exactly one attempt each.
         h.vm.scriptNewer(_empty(edge: PaginationEdge.newer, requestCursor: '200'));
         h.retry(edge: PaginationEdge.newer, gestureId: 1);
-        expect(h.vm.loadNewerCalls, 2);
         await _flushAsync();
+        expect(h.vm.loadNewerCalls, 2);
         expect(h.newerPhase, 'parked');
 
         h.retry(edge: PaginationEdge.newer, gestureId: 1);
@@ -276,8 +279,8 @@ void main() {
 
         h.vm.scriptNewer(_empty(edge: PaginationEdge.newer, requestCursor: '200'));
         h.retry(edge: PaginationEdge.newer, gestureId: 2);
-        expect(h.vm.loadNewerCalls, 3, reason: 'a new gesture buys one retry');
         await _flushAsync();
+        expect(h.vm.loadNewerCalls, 3, reason: 'a new gesture buys one retry');
         expect(h.newerPhase, 'parked');
       },
     );
@@ -301,8 +304,8 @@ void main() {
 
       h.vm.scriptOlder(_applied(requestCursor: '100', installedBoundary: '40'));
       h.demand(active: true, revision: 3);
-      expect(h.vm.loadMoreCalls, 2, reason: 'the level cycle re-arms a pump');
       await _flushAsync();
+      expect(h.vm.loadMoreCalls, 2, reason: 'the level cycle re-arms a pump');
       expect(h.olderPhase, 'awaitingGeometry');
     });
 

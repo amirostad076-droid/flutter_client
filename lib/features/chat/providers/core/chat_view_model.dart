@@ -126,7 +126,7 @@ enum MessagesOrigin {
   /// client-system rows, rollbacks.
   localMutation,
 
-  /// Window trims that drop the oldest side.
+  /// Window trims that drop either side of the loaded window.
   trim,
 }
 
@@ -533,6 +533,8 @@ class ChatViewModel extends _$ChatViewModel {
   final Set<String> _loadedUnreadBoundaryKeys = <String>{};
   final _WindowContiguity _contiguity = _WindowContiguity();
   bool _contiguityTrusted = false;
+  bool _userScrollActive = false;
+  bool _pendingSessionResync = false;
   void Function()? _removeReadAckStateListener;
   bool _autoAckEligible = false;
   int _foregroundResyncGeneration = 0;
@@ -1747,6 +1749,10 @@ class ChatViewModel extends _$ChatViewModel {
         state.messages.isNotEmpty) {
       return;
     }
+    // A switch replaces the window wholesale; a stale scroll-active flag
+    // from the outgoing list must not defer recovery resyncs forever.
+    _userScrollActive = false;
+    _pendingSessionResync = false;
     final int switchGeneration = ++_channelSwitchGeneration;
     bool isCurrentSwitch() => switchGeneration == _channelSwitchGeneration;
     // The cached-window install below is a page-producing read like any other.
@@ -2034,6 +2040,13 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     if (state.isLoading || state.isSyncingMessages) {
+      return;
+    }
+    if (_userScrollActive) {
+      // A wholesale swap under an active fling resets the pagination pumps
+      // and thrashes the window (profile log, 20:56:51-57). Defer to the
+      // scroll end that setUserScrollActive(false) reports.
+      _pendingSessionResync = true;
       return;
     }
     // Ownership, captured before the flag becomes ours. Only three sites move
@@ -2623,6 +2636,16 @@ class ChatViewModel extends _$ChatViewModel {
         hasMoreAtEdge: state.hasMoreMessages,
       );
     }
+    if (state.messages.length >= kMaxLoadedMessagesHard) {
+      // At the in-memory cap: pause instead of installing - installs never
+      // trim (a directional trim mid-fling teleports the viewport). The
+      // coordinator parks this edge; the next scroll gesture re-arms it,
+      // after the scroll-end around-trim has shrunk the window.
+      return older(
+        status: PageLoadStatus.skipped,
+        hasMoreAtEdge: state.hasMoreMessages,
+      );
+    }
     final String requestedBeforeId = state.messages.first.id;
     // Load-bearing supersession key, not just result metadata: a same-channel
     // wholesale refresh can preserve the same boundary id, so the boundary
@@ -2831,6 +2854,16 @@ class ChatViewModel extends _$ChatViewModel {
     if (state.isLoadingNewer ||
         !state.hasMoreNewerMessages ||
         state.messages.isEmpty) {
+      return newer(
+        status: PageLoadStatus.skipped,
+        hasMoreAtEdge: state.hasMoreNewerMessages,
+      );
+    }
+    if (state.messages.length >= kMaxLoadedMessagesHard) {
+      // At the in-memory cap: pause instead of installing - installs never
+      // trim (a directional trim mid-fling teleports the viewport). The
+      // coordinator parks this edge; the scroll-end around-trim shrinks the
+      // window and re-arms it via MessageListDemandSource.onWindowTrimmed.
       return newer(
         status: PageLoadStatus.skipped,
         hasMoreAtEdge: state.hasMoreNewerMessages,
@@ -3091,6 +3124,44 @@ class ChatViewModel extends _$ChatViewModel {
       write: (messages: trim.messages, origin: MessagesOrigin.trim),
       hasMoreMessages: trim.droppedOlder || state.hasMoreMessages,
     );
+  }
+
+  /// Scroll-end trim for a detached window: keeps the rows around what the
+  /// user is looking at and re-opens pagination for whichever sides were
+  /// dropped. The widget re-anchors before calling this when the current
+  /// anchor falls outside the kept span, so the write is structurally
+  /// scroll-stable (both removals happen at the far sliver ends).
+  void trimAroundVisible(String visibleMessageId) {
+    if (state.messages.length <= kMaxLoadedMessages) {
+      return;
+    }
+    final MessageWindowTrim trim = trimMessageWindowAround(
+      state.messages,
+      aroundId: visibleMessageId,
+    );
+    if (identical(trim.messages, state.messages)) {
+      return;
+    }
+    state = state.copyWith(
+      write: (messages: trim.messages, origin: MessagesOrigin.trim),
+      hasMoreMessages: state.hasMoreMessages || trim.droppedOlder,
+      hasMoreNewerMessages: state.hasMoreNewerMessages || trim.droppedNewer,
+    );
+  }
+
+  /// Widget-reported scroll activity (drag or ballistic). While true,
+  /// gateway-recovery window reconciles are deferred: a wholesale swap under
+  /// an active fling resets the pagination pumps and thrashes the window
+  /// (profile log, 20:56:51-57).
+  void setUserScrollActive({required String channelId, required bool active}) {
+    if (state.channelId != channelId || _userScrollActive == active) {
+      return;
+    }
+    _userScrollActive = active;
+    if (!active && _pendingSessionResync) {
+      _pendingSessionResync = false;
+      unawaited(_reconcileCurrentChannelFromNetwork());
+    }
   }
 
   Future<bool> jumpToLatestMessages() async {

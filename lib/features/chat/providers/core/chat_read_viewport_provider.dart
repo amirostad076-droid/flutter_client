@@ -113,23 +113,30 @@ class ChatReadViewport extends _$ChatReadViewport {
     required double viewportHeight,
     required String? sampledTailId,
   }) {
-    if (_channelId != channelId) {
-      return;
-    }
-    final double quantizedDistance = quantizeReadViewportDistance(
-      distanceFromBottom,
+    // Deferred like the mutators above: the widget publishes from
+    // ScrollMetricsNotification handlers that run during layout, and the
+    // state write in _emit must never land mid-build.
+    unawaited(
+      Future<void>.microtask(() {
+        if (_channelId != channelId) {
+          return;
+        }
+        final double quantizedDistance = quantizeReadViewportDistance(
+          distanceFromBottom,
+        );
+        if (_nearLoadedTail == nearLoadedTail &&
+            _distanceFromBottom == quantizedDistance &&
+            _viewportHeight == viewportHeight &&
+            _sampledTailId == sampledTailId) {
+          return;
+        }
+        _nearLoadedTail = nearLoadedTail;
+        _distanceFromBottom = quantizedDistance;
+        _viewportHeight = viewportHeight;
+        _sampledTailId = sampledTailId;
+        _emit();
+      }),
     );
-    if (_nearLoadedTail == nearLoadedTail &&
-        _distanceFromBottom == quantizedDistance &&
-        _viewportHeight == viewportHeight &&
-        _sampledTailId == sampledTailId) {
-      return;
-    }
-    _nearLoadedTail = nearLoadedTail;
-    _distanceFromBottom = quantizedDistance;
-    _viewportHeight = viewportHeight;
-    _sampledTailId = sampledTailId;
-    _emit();
   }
 
   ChatReadViewportState _snapshot({required bool foreground}) =>

@@ -146,7 +146,7 @@ void main() {
     return (container, notifier, loaded);
   }
 
-  test('loadMore keeps a bounded oldest-side window', () async {
+  test('a scroll-end trim bounds the window around the reader', () async {
     final db = openTestDatabase();
     await db.channelDao.upsertChannel(
       ChannelsCompanion.insert(
@@ -177,13 +177,120 @@ void main() {
     await notifier.loadMore();
     await _flushAsync();
 
+    // Installs never trim: a directional trim landing mid-fling teleports
+    // the viewport. The full merge stays attached to the tail.
+    final merged = container.read(chatViewModelProvider);
+    expect(merged.messages, hasLength(250));
+    expect(merged.hasMoreNewerMessages, isFalse);
+
+    // The scroll-end around-trim (the widget's settle path) bounds the
+    // window around the reader and re-opens the dropped newer side.
+    notifier.trimAroundVisible(oldestId);
+    await _flushAsync();
+
     final bounded = container.read(chatViewModelProvider);
-    expect(bounded.messages.length, lessThanOrEqualTo(kMaxLoadedMessages));
     expect(bounded.messages, hasLength(kTrimmedMessageWindowSize));
     expect(bounded.messages.first.id, oldestId);
     expect(bounded.messages.last.id, all[kTrimmedMessageWindowSize - 1]['id']);
     expect(bounded.messages.last.id, isNot(newestId));
     expect(bounded.hasMoreNewerMessages, isTrue);
+  });
+
+  test('recovery reconcile defers while the user is scrolling', () async {
+    final db = openTestDatabase();
+    final List<Map<String, Object?>> all = _channelMessages('channel-1', 250);
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(all.last['id']! as String),
+      ),
+    );
+    final adapter = _PaginatingAdapter(
+      messagesByChannel: {'channel-1': all},
+      pageLimit: 150,
+    );
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel('channel-1');
+    await _flushAsync();
+    final int fetchesAfterOpen = adapter.messageFetchCount;
+    final int epochBefore = container.read(chatViewModelProvider).windowEpoch;
+
+    // A wholesale swap under an active fling resets the pagination pumps
+    // and thrashes the window - the reconcile must wait for the scroll end.
+    notifier.setUserScrollActive(channelId: 'channel-1', active: true);
+    await notifier.refreshAfterSessionRecovery();
+    await _flushAsync();
+    expect(adapter.messageFetchCount, fetchesAfterOpen);
+    expect(container.read(chatViewModelProvider).windowEpoch, epochBefore);
+
+    notifier.setUserScrollActive(channelId: 'channel-1', active: false);
+    await _flushAsync();
+    expect(
+      adapter.messageFetchCount,
+      greaterThan(fetchesAfterOpen),
+      reason: 'the deferred reconcile fires at scroll end',
+    );
+    expect(
+      container.read(chatViewModelProvider).windowEpoch,
+      greaterThan(epochBefore),
+      reason: 'the reconcile install is a wholesale replacement',
+    );
+  });
+  test('page loads pause at the in-memory cap until a trim shrinks the '
+      'window', () async {
+    final db = openTestDatabase();
+    final List<Map<String, Object?>> all = _channelMessages('channel-1', 600);
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+      ),
+    );
+    final adapter = _PaginatingAdapter(
+      messagesByChannel: {'channel-1': all},
+      pageLimit: 150,
+    );
+    final container = _container(db, adapter);
+    addTearDown(container.dispose);
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel('channel-1');
+    await _flushAsync();
+    expect(container.read(chatViewModelProvider).messages, hasLength(150));
+
+    await notifier.loadMore();
+    await _flushAsync();
+    await notifier.loadMore();
+    await _flushAsync();
+    expect(container.read(chatViewModelProvider).messages, hasLength(450));
+    expect(adapter.beforeFetchCount, 2);
+
+    // 450 >= the hard cap: pause instead of installing - a directional trim
+    // here would teleport a mid-fling viewport.
+    final PageLoadResult capped = await notifier.loadMore();
+    await _flushAsync();
+    expect(capped.status, PageLoadStatus.skipped);
+    expect(adapter.beforeFetchCount, 2, reason: 'no request at the cap');
+    expect(container.read(chatViewModelProvider).messages, hasLength(450));
+
+    // The scroll-end around-trim shrinks the window; loads resume.
+    notifier.trimAroundVisible(
+      container.read(chatViewModelProvider).messages.first.id,
+    );
+    await _flushAsync();
+    expect(
+      container.read(chatViewModelProvider).messages,
+      hasLength(kTrimmedMessageWindowSize),
+    );
+    await notifier.loadMore();
+    await _flushAsync();
+    expect(adapter.beforeFetchCount, 3, reason: 'the paused edge resumes');
   });
 
   test('trimToNewestWindow is a no-op while newer messages remain', () async {
@@ -989,6 +1096,12 @@ void main() {
     await _flushAsync();
     await notifier.loadMore();
     await _flushAsync();
+    // Detach the widget-settle way: the scroll-end around-trim near the
+    // oldest row drops the tail side.
+    notifier.trimAroundVisible(
+      container.read(chatViewModelProvider).messages.first.id,
+    );
+    await _flushAsync();
 
     // Near-bottom viewport isolates the hasMoreNewerMessages guard.
     container
@@ -1041,6 +1154,10 @@ void main() {
     await notifier.switchChannel('channel-1');
     await _flushAsync();
     await notifier.loadMore();
+    await _flushAsync();
+    notifier.trimAroundVisible(
+      container.read(chatViewModelProvider).messages.first.id,
+    );
     await _flushAsync();
 
     expect(container.read(chatViewModelProvider).hasMoreNewerMessages, isTrue);
@@ -1128,9 +1245,10 @@ void main() {
         name: 'general',
       ),
     );
-    // Detach by paging back until the older-page trim drops the newest side.
-    // The channel watermark deliberately stays unset: it may only confirm the
-    // tail, never manufacture "has newer".
+    // Detach by paging back past the cap, then applying the scroll-end
+    // around-trim near the oldest row. The channel watermark deliberately
+    // stays unset: it may only confirm the tail, never manufacture "has
+    // newer".
     final List<Map<String, Object?>> all = _channelMessages('channel-1', 350);
     final adapter = _PaginatingAdapter(
       messagesByChannel: {'channel-1': all},
@@ -1143,6 +1261,10 @@ void main() {
     await notifier.switchChannel('channel-1');
     await _flushAsync();
     await notifier.loadMore();
+    await _flushAsync();
+    notifier.trimAroundVisible(
+      container.read(chatViewModelProvider).messages.first.id,
+    );
     await _flushAsync();
 
     expect(container.read(chatViewModelProvider).hasMoreNewerMessages, isTrue);
@@ -1447,6 +1569,9 @@ class _PaginatingAdapter implements HttpClientAdapter {
   bool holdAroundFetch = false;
   int aroundFetchCount = 0;
   int afterFetchCount = 0;
+  int beforeFetchCount = 0;
+  int latestFetchCount = 0;
+  int messageFetchCount = 0;
   String? lastLimit;
   Completer<void>? _beforeCompleter;
   Completer<void>? _afterCompleter;
@@ -1497,6 +1622,7 @@ class _PaginatingAdapter implements HttpClientAdapter {
       r'/channels/([^/]+)/messages$',
     ).firstMatch(options.uri.path);
     if (options.method == 'GET' && match != null) {
+      messageFetchCount++;
       final channelId = match.group(1)!;
       final all = messagesByChannel[channelId] ?? const [];
       final before = options.uri.queryParameters['before'];
@@ -1520,6 +1646,7 @@ class _PaginatingAdapter implements HttpClientAdapter {
       }
       final List<Map<String, Object?>> page;
       if (before != null) {
+        beforeFetchCount++;
         final older = all
             .where((m) => _compare(m['id']! as String, before) < 0)
             .toList();
@@ -1543,6 +1670,7 @@ class _PaginatingAdapter implements HttpClientAdapter {
           page = all.sublist(start, end);
         }
       } else {
+        latestFetchCount++;
         page = all.length <= pageLimit
             ? all
             : all.sublist(all.length - pageLimit);
