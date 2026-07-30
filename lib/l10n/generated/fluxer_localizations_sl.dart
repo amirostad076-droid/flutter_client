@@ -2643,6 +2643,43 @@ class FluxerLocalizationsSl extends FluxerLocalizations {
   String get userProfileAboutMe => 'O meni';
 
   @override
+  String get userProfileRoles => 'Roles';
+
+  @override
+  String get memberRoleAdd => 'Add role';
+
+  @override
+  String memberRoleRemove(String roleName) {
+    return 'Remove role $roleName';
+  }
+
+  @override
+  String get userProfileNoRolesInCommunity =>
+      'This user has no roles in this community.';
+
+  @override
+  String memberRolesNoRolesYet(String rolesSettingsPath) {
+    return 'No roles yet. Add roles in $rolesSettingsPath';
+  }
+
+  @override
+  String get memberRolesNoRolesAvailable => 'No roles available';
+
+  @override
+  String memberRolesNoRolesAvailableDescription(String rolesSettingsPath) {
+    return 'There are no roles to assign in this community at this time, but you can create a new role in $rolesSettingsPath.';
+  }
+
+  @override
+  String get guildSettingsTitle => 'Community settings';
+
+  @override
+  String get guildSettingsRolesTab => 'Roles';
+
+  @override
+  String get memberRolesConfirmOk => 'OK';
+
+  @override
   String get userProfileLocalTime => 'Local time';
 
   @override

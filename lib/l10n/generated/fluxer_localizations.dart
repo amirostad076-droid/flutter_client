@@ -4678,6 +4678,66 @@ abstract class FluxerLocalizations {
   /// **'About Me'**
   String get userProfileAboutMe;
 
+  /// Section header for a member's community roles on their profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Roles'**
+  String get userProfileRoles;
+
+  /// Button label to add a role to a member.
+  ///
+  /// In en, this message translates to:
+  /// **'Add role'**
+  String get memberRoleAdd;
+
+  /// Button label to remove a role from a member.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove role {roleName}'**
+  String memberRoleRemove(String roleName);
+
+  /// Empty state when a member has no assigned roles.
+  ///
+  /// In en, this message translates to:
+  /// **'This user has no roles in this community.'**
+  String get userProfileNoRolesInCommunity;
+
+  /// Empty state in the role picker when the community has no roles.
+  ///
+  /// In en, this message translates to:
+  /// **'No roles yet. Add roles in {rolesSettingsPath}'**
+  String memberRolesNoRolesYet(String rolesSettingsPath);
+
+  /// Title when there are no roles to assign.
+  ///
+  /// In en, this message translates to:
+  /// **'No roles available'**
+  String get memberRolesNoRolesAvailable;
+
+  /// Body when there are no roles to assign.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no roles to assign in this community at this time, but you can create a new role in {rolesSettingsPath}.'**
+  String memberRolesNoRolesAvailableDescription(String rolesSettingsPath);
+
+  /// Root label for community settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Community settings'**
+  String get guildSettingsTitle;
+
+  /// Community settings tab label for roles.
+  ///
+  /// In en, this message translates to:
+  /// **'Roles'**
+  String get guildSettingsRolesTab;
+
+  /// Confirm button for the no roles available dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get memberRolesConfirmOk;
+
   /// Profile section title for a user's local time.
   ///
   /// In en, this message translates to:

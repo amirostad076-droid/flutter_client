@@ -856,7 +856,6 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                   textCapitalization: TextCapitalization.sentences,
                   focusNode: _bioFocusNode,
                   label: l10n.aboutMeLabel,
-                  minLines: 3,
                   maxLines: 3,
                   showCounter: true,
                   counterLength: () => controller.actualTextLength,

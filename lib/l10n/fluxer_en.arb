@@ -3382,6 +3382,61 @@
   "@userProfileAboutMe": {
     "description": "Header of the bio section in the bio card."
   },
+  "userProfileRoles": "Roles",
+  "@userProfileRoles": {
+    "description": "Section header for a member's community roles on their profile."
+  },
+  "memberRoleAdd": "Add role",
+  "@memberRoleAdd": {
+    "description": "Button label to add a role to a member."
+  },
+  "memberRoleRemove": "Remove role {roleName}",
+  "@memberRoleRemove": {
+    "description": "Button label to remove a role from a member.",
+    "placeholders": {
+      "roleName": {
+        "type": "String"
+      }
+    }
+  },
+  "userProfileNoRolesInCommunity": "This user has no roles in this community.",
+  "@userProfileNoRolesInCommunity": {
+    "description": "Empty state when a member has no assigned roles."
+  },
+  "memberRolesNoRolesYet": "No roles yet. Add roles in {rolesSettingsPath}",
+  "@memberRolesNoRolesYet": {
+    "description": "Empty state in the role picker when the community has no roles.",
+    "placeholders": {
+      "rolesSettingsPath": {
+        "type": "String"
+      }
+    }
+  },
+  "memberRolesNoRolesAvailable": "No roles available",
+  "@memberRolesNoRolesAvailable": {
+    "description": "Title when there are no roles to assign."
+  },
+  "memberRolesNoRolesAvailableDescription": "There are no roles to assign in this community at this time, but you can create a new role in {rolesSettingsPath}.",
+  "@memberRolesNoRolesAvailableDescription": {
+    "description": "Body when there are no roles to assign.",
+    "placeholders": {
+      "rolesSettingsPath": {
+        "type": "String"
+      }
+    }
+  },
+  "guildSettingsTitle": "Community settings",
+  "@guildSettingsTitle": {
+    "description": "Root label for community settings."
+  },
+  "guildSettingsRolesTab": "Roles",
+  "@guildSettingsRolesTab": {
+    "description": "Community settings tab label for roles."
+  },
+  "memberRolesConfirmOk": "OK",
+  "@memberRolesConfirmOk": {
+    "description": "Confirm button for the no roles available dialog."
+  },
   "userProfileLocalTime": "Local time",
   "@userProfileLocalTime": {
     "description": "Profile section title for a user's local time."

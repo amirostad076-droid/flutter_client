@@ -228,7 +228,7 @@ class FluxerBottomSheet {
     bool useRootNavigator = false,
     double initialChildSize = 0.9,
     double minChildSize = 0.4,
-    double maxChildSize = 0.95,
+    double maxChildSize = 0.85,
     ValueNotifier<bool>? canDismissNotifier,
     double? maxHeight,
     bool disableTopPadding = false,
