@@ -436,7 +436,13 @@ void main() {
               );
         });
         harness.chatViewModel._testState = harness.chatViewModel._testState
-            .copyWith(messages: harness.messages, isLoading: false);
+            .copyWith(
+              write: (
+                messages: harness.messages,
+                origin: MessagesOrigin.windowSwap,
+              ),
+              isLoading: false,
+            );
         await tester.pump();
         final ChatReadViewportState initialViewport = container.read(
           chatReadViewportProvider,
@@ -470,7 +476,13 @@ void main() {
         await tester.pump();
         await tester.pump();
         harness.chatViewModel._testState = harness.chatViewModel._testState
-            .copyWith(messages: harness.messages, isLoading: false);
+            .copyWith(
+              write: (
+                messages: harness.messages,
+                origin: MessagesOrigin.windowSwap,
+              ),
+              isLoading: false,
+            );
         await tester.pump();
         await tester.pump();
 
@@ -520,7 +532,13 @@ void main() {
       await tester.pump();
       await tester.pump();
       harness.chatViewModel._testState = harness.chatViewModel._testState
-          .copyWith(messages: harness.messages, isLoading: false);
+          .copyWith(
+            write: (
+              messages: harness.messages,
+              origin: MessagesOrigin.windowSwap,
+            ),
+            isLoading: false,
+          );
       await tester.pump();
       await tester.pump();
 
@@ -772,7 +790,10 @@ void main() {
         final double distanceFromOlderEdgeBefore =
             position.maxScrollExtent - position.pixels;
 
-        harness.appendNewerMessages(count: 1);
+        harness.appendNewerMessages(
+          count: 1,
+          origin: MessagesOrigin.liveCreate,
+        );
         await tester.pump();
         await tester.pump();
 
@@ -838,7 +859,11 @@ void main() {
         final double anchorTopBefore = tester.getRect(anchor).top;
         final double pixelsBefore = position.pixels;
 
-        harness.appendNewerMessages(count: 1, authorId: blockedAuthorId);
+        harness.appendNewerMessages(
+          count: 1,
+          authorId: blockedAuthorId,
+          origin: MessagesOrigin.liveCreate,
+        );
         await tester.pump();
         await tester.pump();
 
@@ -1231,7 +1256,10 @@ void main() {
         final double distanceFromOlderEdgeBefore =
             position.maxScrollExtent - position.pixels;
 
-        harness.appendNewerMessages(count: 1);
+        harness.appendNewerMessages(
+          count: 1,
+          origin: MessagesOrigin.liveCreate,
+        );
         await tester.pump();
         await tester.pump();
 
@@ -1693,7 +1721,7 @@ void main() {
       );
       final String previousNewestId =
           harness.chatViewModel._testState.messages.last.id;
-      harness.appendNewerMessages(count: 1);
+      harness.appendNewerMessages(count: 1, origin: MessagesOrigin.liveCreate);
       await tester.pump();
       await tester.pump();
       final String newestId = harness.chatViewModel._testState.messages.last.id;
@@ -1940,7 +1968,7 @@ void main() {
 
       final String previousNewestId =
           harness.chatViewModel._testState.messages.last.id;
-      harness.appendNewerMessages(count: 1);
+      harness.appendNewerMessages(count: 1, origin: MessagesOrigin.liveCreate);
       await tester.pump();
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 16));
@@ -2579,7 +2607,13 @@ void main() {
 
         // Around-window only — no scrollToMessage signal on this path.
         loadingChatViewModel._testState = loadingChatViewModel._testState
-            .copyWith(messages: source.messages, isLoading: false);
+            .copyWith(
+              write: (
+                messages: source.messages,
+                origin: MessagesOrigin.windowSwap,
+              ),
+              isLoading: false,
+            );
         await tester.pump();
         await tester.pump();
         expect(
@@ -2663,7 +2697,13 @@ void main() {
 
         // Around-window first, then scroll signal while still unresolved.
         loadingChatViewModel._testState = loadingChatViewModel._testState
-            .copyWith(messages: source.messages, isLoading: false);
+            .copyWith(
+              write: (
+                messages: source.messages,
+                origin: MessagesOrigin.windowSwap,
+              ),
+              isLoading: false,
+            );
         await tester.pump();
         expect(
           find.byType(Scrollable),
@@ -2759,7 +2799,7 @@ void main() {
         // The around window lands without the target, then the signal parks
         // while open mode is still unresolved.
         chatViewModel._testState = chatViewModel._testState.copyWith(
-          messages: source.messages,
+          write: (messages: source.messages, origin: MessagesOrigin.windowSwap),
           isLoading: false,
         );
         await tester.pump();
@@ -2894,7 +2934,10 @@ void main() {
 
       // Media above/target resolves taller while settle is still armed.
       chatViewModel._testState = chatViewModel._testState.copyWith(
-        messages: reflowedMessages,
+        write: (
+          messages: reflowedMessages,
+          origin: MessagesOrigin.localMutation,
+        ),
       );
       await tester.pump();
       for (int i = 0; i < 8; i++) {
@@ -3003,7 +3046,10 @@ void main() {
 
       // Media resolves after the old K=3 exit would have disarmed settle.
       chatViewModel._testState = chatViewModel._testState.copyWith(
-        messages: reflowedMessages,
+        write: (
+          messages: reflowedMessages,
+          origin: MessagesOrigin.localMutation,
+        ),
       );
       await tester.pump();
       for (int i = 0; i < 8; i++) {
@@ -3430,7 +3476,10 @@ void main() {
         expect(aroundWindow.any((Message m) => m.id == targetId), isTrue);
         harness.chatViewModel._testState = harness.chatViewModel._testState
             .copyWith(
-              messages: aroundWindow,
+              write: (
+                messages: aroundWindow,
+                origin: MessagesOrigin.windowSwap,
+              ),
               hasMoreMessages: true,
               hasMoreNewerMessages: false,
             );
@@ -3501,7 +3550,10 @@ void main() {
         );
         harness.chatViewModel._testState = harness.chatViewModel._testState
             .copyWith(
-              messages: aroundWindow,
+              write: (
+                messages: aroundWindow,
+                origin: MessagesOrigin.windowSwap,
+              ),
               hasMoreMessages: true,
               hasMoreNewerMessages: false,
             );
@@ -3601,7 +3653,7 @@ void main() {
         expect(trimmed.any((Message m) => m.id == preserveId), isTrue);
         harness.chatViewModel._testState = harness.chatViewModel._testState
             .copyWith(
-              messages: trimmed,
+              write: (messages: trimmed, origin: MessagesOrigin.trim),
               hasMoreMessages: true,
               hasMoreNewerMessages:
                   harness.chatViewModel._testState.hasMoreNewerMessages,
@@ -3981,6 +4033,547 @@ void main() {
       },
     );
   });
+  group('origin-authorized follow', () {
+    // The follow-vs-preserve decision spec, pinned case by case. Post-install
+    // state cannot distinguish the final page of the user's own pagination
+    // from a live arrival (byte-identical observables), so the write's ORIGIN
+    // decides — and the assertions here are first-visible-item identity plus
+    // pixel offset, never absence-of-scroll-call: the primary snap was a
+    // layout-time teleport that emitted no scroll call at all.
+    final DateTime seedBase = DateTime.utc(2026, 7, 4, 12);
+
+    List<Message> seedMessages(int count) => <Message>[
+      for (int index = 0; index < count; index += 1)
+        _message(
+          id: _snowflakeForUtc(seedBase.add(Duration(minutes: index))),
+          content: 'message $index',
+          timestamp: seedBase.add(Duration(minutes: index)),
+        ),
+    ];
+
+    List<Message> newerRows(
+      List<Message> after, {
+      required int count,
+      String label = 'newer',
+    }) {
+      final DateTime last = after.last.timestamp;
+      return <Message>[
+        for (int index = 0; index < count; index += 1)
+          _message(
+            id: _snowflakeForUtc(last.add(Duration(minutes: index + 1))),
+            content: '$label $index',
+            timestamp: last.add(Duration(minutes: index + 1)),
+          ),
+      ];
+    }
+
+    ChatViewState detachedState(
+      List<Message> messages, {
+      required bool hasMoreNewer,
+    }) => ChatViewState(
+      channelId: _messageListChannelId,
+      messages: messages,
+      replyingTo: null,
+      replyMentioning: false,
+      editingMessage: null,
+      messageText: '',
+      scrollToBottomSignal: 0,
+      isLoading: false,
+      isSyncingMessages: false,
+      isLoadingMore: false,
+      isLoadingNewer: false,
+      hasMoreMessages: true,
+      hasMoreNewerMessages: hasMoreNewer,
+      errorMessage: null,
+    );
+
+    Future<_InstrumentedChatViewModel> pumpBottomList(
+      WidgetTester tester, {
+      required bool hasMoreNewer,
+      int count = 60,
+    }) async {
+      tester.view.physicalSize = const Size(420, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final _InstrumentedChatViewModel chatViewModel =
+          _InstrumentedChatViewModel(
+            detachedState(seedMessages(count), hasMoreNewer: hasMoreNewer),
+          );
+      await tester.pumpWidget(
+        _messageListApp(
+          database: openTestDatabase(),
+          chatViewModel: chatViewModel,
+        ),
+      );
+      await tester.pumpAndSettle();
+      // The open's skeleton->content transition makes ChatScrollObserver
+      // reattach its observer contexts through a chain of post-frame
+      // callbacks (shrink-wrap check -> reattach -> clear+resetup ->
+      // repopulate), none of which schedule a frame themselves, so
+      // pumpAndSettle can stop anywhere inside the chain and a standby armed
+      // in that window silently no-ops. On device frames flow continuously;
+      // pump a few frames to model that.
+      for (int i = 0; i < 4; i += 1) {
+        await tester.pump();
+      }
+      return chatViewModel;
+    }
+
+    ({String id, Rect rect}) anchorSample(WidgetTester tester, String id) =>
+        (id: id, rect: tester.getRect(_messageItemFor(id)));
+
+    void expectPreserved(
+      WidgetTester tester,
+      ({String id, Rect rect}) before, {
+      required String reason,
+    }) {
+      expect(_messageItemFor(before.id), findsOneWidget, reason: reason);
+      expect(
+        tester.getRect(_messageItemFor(before.id)).top,
+        moreOrLessEquals(before.rect.top, epsilon: 1),
+        reason: reason,
+      );
+    }
+
+    testWidgets(
+      'case 1: the FINAL newer page — the one that flips hasMoreNewerMessages '
+      'false as it lands — preserves the reader at the wall',
+      (WidgetTester tester) async {
+        // The design discriminator. A follow decision gated on the flag
+        // (follow iff nearEdge && !hasMoreNewerMessages) authorizes the snap
+        // on exactly this landing, because messages and the flag move in one
+        // atomic write: the mutation MUST fail this case while case 2 stays
+        // green. Only the write's origin separates the two worlds.
+        final _InstrumentedChatViewModel chatViewModel = await pumpBottomList(
+          tester,
+          hasMoreNewer: true,
+        );
+        final ScrollPosition position = _messageListScrollPosition(tester);
+        expect(position.pixels, moreOrLessEquals(0, epsilon: 1));
+        final ({String id, Rect rect}) before = anchorSample(
+          tester,
+          chatViewModel._testState.messages.last.id,
+        );
+
+        final List<Message> old = chatViewModel._testState.messages;
+        chatViewModel._testState = chatViewModel._testState.copyWith(
+          write: (
+            messages: <Message>[...old, ...newerRows(old, count: 8)],
+            origin: MessagesOrigin.newerPage,
+          ),
+          hasMoreNewerMessages: false,
+        );
+        await tester.pump();
+        await tester.pump();
+
+        expectPreserved(
+          tester,
+          before,
+          reason:
+              "the terminal frame of the user's own pagination must not "
+              'teleport them to the new tail',
+        );
+        expect(
+          position.pixels - position.minScrollExtent,
+          greaterThan(kMessageListReadBottomThreshold),
+          reason: 'the appended page sits below the preserved viewport',
+        );
+
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets(
+      'case 2: an intermediate newer page (flag stays true) preserves',
+      (WidgetTester tester) async {
+        final _InstrumentedChatViewModel chatViewModel = await pumpBottomList(
+          tester,
+          hasMoreNewer: true,
+        );
+        final ({String id, Rect rect}) before = anchorSample(
+          tester,
+          chatViewModel._testState.messages.last.id,
+        );
+        final List<Message> old = chatViewModel._testState.messages;
+        chatViewModel._testState = chatViewModel._testState.copyWith(
+          write: (
+            messages: <Message>[...old, ...newerRows(old, count: 8)],
+            origin: MessagesOrigin.newerPage,
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+        expectPreserved(tester, before, reason: 'intermediate page landing');
+
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets(
+      'case 3: a newer landing with the viewport far above the edge preserves',
+      (WidgetTester tester) async {
+        final _InstrumentedChatViewModel chatViewModel = await pumpBottomList(
+          tester,
+          hasMoreNewer: true,
+          count: 80,
+        );
+        final ScrollPosition position = _messageListScrollPosition(tester);
+        position.jumpTo(position.minScrollExtent + 1500);
+        await tester.pumpAndSettle();
+        final ({String id, Rect rect}) before = anchorSample(
+          tester,
+          _centerVisibleMessageItemId(tester),
+        );
+        final List<Message> old = chatViewModel._testState.messages;
+        chatViewModel._testState = chatViewModel._testState.copyWith(
+          write: (
+            messages: <Message>[...old, ...newerRows(old, count: 8)],
+            origin: MessagesOrigin.newerPage,
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+        expectPreserved(
+          tester,
+          before,
+          reason: 'a fix that special-cases the exact edge is not a fix',
+        );
+
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets('case 4: a live arrival at the tail still follows', (
+      WidgetTester tester,
+    ) async {
+      final _InstrumentedChatViewModel chatViewModel = await pumpBottomList(
+        tester,
+        hasMoreNewer: false,
+      );
+      final ScrollPosition position = _messageListScrollPosition(tester);
+      final List<Message> old = chatViewModel._testState.messages;
+      final List<Message> live = newerRows(old, count: 1, label: 'live');
+      chatViewModel._testState = chatViewModel._testState.copyWith(
+        write: (
+          messages: <Message>[...old, ...live],
+          origin: MessagesOrigin.liveCreate,
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(_messageItemFor(live.single.id), findsOneWidget);
+      expect(
+        position.pixels,
+        moreOrLessEquals(position.minScrollExtent, epsilon: 1),
+        reason: 'live tail-follow must survive the origin cutover',
+      );
+
+      await _disposeMessageList(tester);
+    });
+
+    testWidgets(
+      'case 5: preserve on the final page does not leak into never-follow '
+      '— a later live arrival at the bottom still follows',
+      (WidgetTester tester) async {
+        final _InstrumentedChatViewModel chatViewModel = await pumpBottomList(
+          tester,
+          hasMoreNewer: true,
+        );
+        final ScrollPosition position = _messageListScrollPosition(tester);
+        final ({String id, Rect rect}) before = anchorSample(
+          tester,
+          chatViewModel._testState.messages.last.id,
+        );
+        final List<Message> old = chatViewModel._testState.messages;
+        chatViewModel._testState = chatViewModel._testState.copyWith(
+          write: (
+            messages: <Message>[...old, ...newerRows(old, count: 8)],
+            origin: MessagesOrigin.newerPage,
+          ),
+          hasMoreNewerMessages: false,
+        );
+        await tester.pump();
+        await tester.pump();
+        expectPreserved(tester, before, reason: 'final page preserves');
+
+        // The reader catches up to the real bottom, then a create lands.
+        position.jumpTo(position.minScrollExtent);
+        await tester.pumpAndSettle();
+        final List<Message> caughtUp = chatViewModel._testState.messages;
+        final List<Message> live = newerRows(caughtUp, count: 1, label: 'live');
+        chatViewModel._testState = chatViewModel._testState.copyWith(
+          write: (
+            messages: <Message>[...caughtUp, ...live],
+            origin: MessagesOrigin.liveCreate,
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+        expect(_messageItemFor(live.single.id), findsOneWidget);
+        expect(
+          position.pixels,
+          moreOrLessEquals(position.minScrollExtent, epsilon: 1),
+          reason: 'both conjuncts recover on their own — nothing latches',
+        );
+
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets(
+      'case 6: a preserve-class write at the wall preserves — the default is '
+      'preserve, not follow',
+      (WidgetTester tester) async {
+        final _InstrumentedChatViewModel chatViewModel = await pumpBottomList(
+          tester,
+          hasMoreNewer: false,
+        );
+        final ({String id, Rect rect}) before = anchorSample(
+          tester,
+          chatViewModel._testState.messages.last.id,
+        );
+        final List<Message> old = chatViewModel._testState.messages;
+        chatViewModel._testState = chatViewModel._testState.copyWith(
+          write: (
+            messages: <Message>[...old, ...newerRows(old, count: 2)],
+            origin: MessagesOrigin.localMutation,
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+        expectPreserved(
+          tester,
+          before,
+          reason:
+              'an untagged messages write is unrepresentable; every origin '
+              'except liveCreate lands as preserve',
+        );
+
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets(
+      'case 7: back-to-back pagination append then live create in consecutive '
+      'frames — each verdict binds to its own transition',
+      (WidgetTester tester) async {
+        final _InstrumentedChatViewModel chatViewModel = await pumpBottomList(
+          tester,
+          hasMoreNewer: true,
+        );
+        final ScrollPosition position = _messageListScrollPosition(tester);
+        final ({String id, Rect rect}) before = anchorSample(
+          tester,
+          chatViewModel._testState.messages.last.id,
+        );
+        final List<Message> old = chatViewModel._testState.messages;
+        chatViewModel._testState = chatViewModel._testState.copyWith(
+          write: (
+            messages: <Message>[...old, ...newerRows(old, count: 8)],
+            origin: MessagesOrigin.newerPage,
+          ),
+          hasMoreNewerMessages: false,
+        );
+        await tester.pump();
+        expectPreserved(tester, before, reason: 'frame N: pagination lands');
+
+        position.jumpTo(position.minScrollExtent);
+        await tester.pump();
+        final List<Message> paged = chatViewModel._testState.messages;
+        final List<Message> live = newerRows(paged, count: 1, label: 'live');
+        chatViewModel._testState = chatViewModel._testState.copyWith(
+          write: (
+            messages: <Message>[...paged, ...live],
+            origin: MessagesOrigin.liveCreate,
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+        expect(_messageItemFor(live.single.id), findsOneWidget);
+        expect(
+          position.pixels,
+          moreOrLessEquals(position.minScrollExtent, epsilon: 1),
+          reason:
+              'frame N+1: the create still follows — no shared cell '
+              "exists for the first frame's verdict to corrupt",
+        );
+
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets(
+      'case 8: a coalesced delivery (pagination and create observed as one '
+      'transition) preserves — the reader is mid-history',
+      (WidgetTester tester) async {
+        // Two writes, ONE notification: the listener is handed
+        // previous=pre-pagination, next=post-create. The authorization the
+        // create minted names before=post-pagination, which the delivered
+        // previous does not match by identity, so the verdict falls to
+        // preserve. Dropping the before-identity conjunct is the mutation
+        // this case kills: the mutant follows and snaps the reader past the
+        // page they were reading.
+        final _InstrumentedChatViewModel chatViewModel = await pumpBottomList(
+          tester,
+          hasMoreNewer: true,
+        );
+        final ({String id, Rect rect}) before = anchorSample(
+          tester,
+          chatViewModel._testState.messages.last.id,
+        );
+        final List<Message> old = chatViewModel._testState.messages;
+        final ChatViewState afterPage = chatViewModel._testState.copyWith(
+          write: (
+            messages: <Message>[...old, ...newerRows(old, count: 8)],
+            origin: MessagesOrigin.newerPage,
+          ),
+          hasMoreNewerMessages: false,
+        );
+        final List<Message> paged = afterPage.messages;
+        final List<Message> live = newerRows(paged, count: 1, label: 'live');
+        chatViewModel._testState = afterPage.copyWith(
+          write: (
+            messages: <Message>[...paged, ...live],
+            origin: MessagesOrigin.liveCreate,
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+        expectPreserved(
+          tester,
+          before,
+          reason:
+              'a coalesced batch is not a clean live arrival; transition '
+              'identity must refuse it',
+        );
+
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets(
+      'case 9: an authorization never outlives its write — re-assigning the '
+      'exact list instance a liveCreate once produced does not re-follow',
+      (WidgetTester tester) async {
+        final _InstrumentedChatViewModel chatViewModel = await pumpBottomList(
+          tester,
+          hasMoreNewer: false,
+        );
+        final ScrollPosition position = _messageListScrollPosition(tester);
+        final List<Message> old = chatViewModel._testState.messages;
+        final List<Message> live = newerRows(old, count: 1, label: 'live');
+        final List<Message> listC = <Message>[...old, ...live];
+        chatViewModel._testState = chatViewModel._testState.copyWith(
+          write: (messages: listC, origin: MessagesOrigin.liveCreate),
+        );
+        await tester.pump();
+        await tester.pump();
+        expect(
+          position.pixels,
+          moreOrLessEquals(position.minScrollExtent, epsilon: 1),
+          reason: 'the live authorization was real',
+        );
+
+        // A local mutation drops the live row, then cache re-derivation
+        // re-assigns the IDENTICAL earlier instance. Every write mints its
+        // own record inside copyWith, so the stale liveCreate cannot be
+        // reconstructed — inherit-on-omission is unrepresentable.
+        chatViewModel._testState = chatViewModel._testState.copyWith(
+          write: (messages: old, origin: MessagesOrigin.localMutation),
+        );
+        await tester.pump();
+        final ({String id, Rect rect}) before = anchorSample(
+          tester,
+          old.last.id,
+        );
+        chatViewModel._testState = chatViewModel._testState.copyWith(
+          write: (messages: listC, origin: MessagesOrigin.localMutation),
+        );
+        await tester.pump();
+        await tester.pump();
+        expectPreserved(
+          tester,
+          before,
+          reason: 'instance reuse must not resurrect a spent authorization',
+        );
+
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets(
+      'case 10: center mode — the final newer page does not follow, the next '
+      'live create does (the sibling defect in _followTailCenter)',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(420, 640);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        final _AroundAckMessageListHarness harness =
+            await _createAroundAckMessageListHarness(
+              messageCount: 60,
+              ackIndex: 42,
+            );
+        await tester.pumpWidget(
+          _messageListApp(
+            database: harness.database,
+            chatViewModel: harness.chatViewModel,
+          ),
+        );
+        await tester.pumpAndSettle();
+        final ScrollPosition position = _messageListScrollPosition(tester);
+        position.jumpTo(position.maxScrollExtent);
+        await tester.pumpAndSettle();
+        final double pixelsBefore = position.pixels;
+
+        final List<Message> cur = harness.chatViewModel._testState.messages;
+        harness.chatViewModel._testState = harness.chatViewModel._testState
+            .copyWith(
+              write: (
+                messages: <Message>[
+                  ...cur,
+                  ...newerRows(cur, count: 6, label: 'final page'),
+                ],
+                origin: MessagesOrigin.newerPage,
+              ),
+              hasMoreNewerMessages: false,
+            );
+        await tester.pump();
+        await tester.pump();
+        expect(
+          position.pixels,
+          moreOrLessEquals(pixelsBefore, epsilon: 1),
+          reason:
+              'the center-mode follow had the identical final-page hole: a '
+              'flag gate authorizes the jump on the terminal pagination frame',
+        );
+
+        // The preserved landing left the reader a page above the trailing
+        // edge; a follow is only legitimate once they are back at it.
+        position.jumpTo(position.maxScrollExtent);
+        await tester.pumpAndSettle();
+        final List<Message> paged = harness.chatViewModel._testState.messages;
+        final List<Message> live = newerRows(paged, count: 1, label: 'live');
+        harness.chatViewModel._testState = harness.chatViewModel._testState
+            .copyWith(
+              write: (
+                messages: <Message>[...paged, ...live],
+                origin: MessagesOrigin.liveCreate,
+              ),
+            );
+        await tester.pump();
+        await tester.pump();
+        expect(
+          position.pixels,
+          moreOrLessEquals(position.maxScrollExtent, epsilon: 1),
+          reason: 'a live arrival near the trailing edge still follows',
+        );
+
+        await _disposeMessageList(tester);
+      },
+    );
+  });
 }
 
 const String _messageListChannelId = 'message-list-anchor-channel';
@@ -4105,9 +4698,13 @@ class _AroundAckMessageListHarness {
   String get latestReplacementNewestId =>
       chatViewModel._latestReplacementNewestIdValue;
 
+  /// Appends [count] newer rows. Defaults to a pagination-shaped write
+  /// (preserve-class); follow tests pass [MessagesOrigin.liveCreate] to
+  /// simulate a live arrival.
   void appendNewerMessages({
     required int count,
     String authorId = _messageListAuthorId,
+    MessagesOrigin origin = MessagesOrigin.newerPage,
   }) {
     final List<Message> next = List<Message>.of(
       chatViewModel._testState.messages,
@@ -4127,7 +4724,7 @@ class _AroundAckMessageListHarness {
       );
     }
     chatViewModel._testState = chatViewModel._testState.copyWith(
-      messages: next,
+      write: (messages: next, origin: origin),
     );
   }
 
@@ -4143,7 +4740,7 @@ class _AroundAckMessageListHarness {
       _message(id: id, content: 'realtime message', timestamp: timestamp),
     );
     chatViewModel._testState = chatViewModel._testState.copyWith(
-      messages: next,
+      write: (messages: next, origin: MessagesOrigin.liveCreate),
       pendingAutoAckMessageId: acknowledgedByGateway ? id : null,
     );
     return id;
@@ -4163,7 +4760,7 @@ class _AroundAckMessageListHarness {
     ).join('\n');
     next.add(_message(id: id, content: content, timestamp: timestamp));
     chatViewModel._testState = chatViewModel._testState.copyWith(
-      messages: next,
+      write: (messages: next, origin: MessagesOrigin.liveCreate),
     );
     return id;
   }
@@ -4185,7 +4782,7 @@ class _AroundAckMessageListHarness {
     });
     next.insertAll(0, older);
     chatViewModel._testState = chatViewModel._testState.copyWith(
-      messages: next,
+      write: (messages: next, origin: MessagesOrigin.olderPage),
     );
   }
 }
@@ -4502,7 +5099,7 @@ class _InstrumentedChatViewModel extends ChatViewModel {
     final List<Message> latestMessages = _latestReplacementMessages();
     _latestReplacementNewestId = latestMessages.last.id;
     state = state.copyWith(
-      messages: latestMessages,
+      write: (messages: latestMessages, origin: MessagesOrigin.windowSwap),
       hasMoreNewerMessages: false,
     );
     scrollToBottom();
@@ -4535,7 +5132,10 @@ class _PagingInstrumentedChatViewModel extends _InstrumentedChatViewModel {
     }
     final List<Message> page = _newerPages.removeAt(0);
     state = state.copyWith(
-      messages: <Message>[...state.messages, ...page],
+      write: (
+        messages: <Message>[...state.messages, ...page],
+        origin: MessagesOrigin.newerPage,
+      ),
       hasMoreNewerMessages: _newerPages.isNotEmpty,
       isLoadingNewer: false,
     );

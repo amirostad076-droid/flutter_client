@@ -197,6 +197,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   String? _lastVisualUnreadId;
   BuildContext? _leadingSliverCtx;
   BuildContext? _trailingSliverCtx;
+  final GlobalKey _bottomListKey = GlobalKey();
   _MessageListOpenMode _openMode = _MessageListOpenMode.unresolved;
   String? _lastChannelId;
   List<Object>? _lastAnchorItemKeys;
@@ -448,10 +449,47 @@ class _MessageListState extends ConsumerState<MessageList> {
     });
   }
 
+  /// The bottom list's sliver context, resolved ON DEMAND. The observer
+  /// library caches sliver contexts behind a chain of post-frame callbacks
+  /// (populate at mount; clear-then-repopulate on every shrink-wrap
+  /// reattach), so a standby armed inside one of those windows finds an
+  /// empty cache and silently no-ops — a keep-position that fails exactly
+  /// when a landing races a channel open. Resolving the context at standby
+  /// time removes the race entirely.
+  BuildContext? _bottomListSliverContext() {
+    final BuildContext? root = _bottomListKey.currentContext;
+    if (root == null) {
+      return null;
+    }
+    BuildContext? sliverContext;
+    void visit(Element element) {
+      if (sliverContext != null) {
+        return;
+      }
+      if (element.renderObject is RenderSliverMultiBoxAdaptor) {
+        sliverContext = element;
+        return;
+      }
+      element.visitChildElements(visit);
+    }
+
+    (root as Element).visitChildElements(visit);
+    return sliverContext;
+  }
+
   // Keeps the viewport anchored across render-leading changes by snapshotting
   // the reference item before the rebuild lays out. Runs from the messages
   // listener, outside this widget's build phase, so markNeedsLayout is legal.
-  void _applyChatAnchor(List<Message> messages) {
+  //
+  // [origin] is the write's own name for itself, already transition-checked
+  // by the caller. It, not geometry, decides follow vs preserve: near the
+  // loaded edge is the TRIGGER condition for newer pagination, so "near the
+  // edge and newest entries appeared" describes every successful newer page
+  // as much as it describes a live arrival.
+  void _applyChatAnchor(
+    List<Message> messages, {
+    required MessagesOrigin? origin,
+  }) {
     final List<Object> next = _anchorItemKeysForMessages(messages);
     final List<Object>? prev = _lastAnchorItemKeys;
     _lastAnchorItemKeys = next;
@@ -461,16 +499,36 @@ class _MessageListState extends ConsumerState<MessageList> {
         next.isNotEmpty) {
       final LeadingEdgeDelta delta = computeLeadingEdgeKeyDelta(prev, next);
       if (delta.addedNewest > 0) {
-        final bool nearTail = _isLiveNearBottom();
-        // Near-tail appends must reveal newest even when no viewport shrink
-        // fires (e.g. keyboard already open).
+        // Follow iff a live arrival landed while the reader is at the loaded
+        // edge. Frozen into a local at listener time; the post-frame callback
+        // must not re-derive it (post-append distance legitimately exceeds
+        // the threshold under a tall newest item). Fails toward preserve when
+        // the controller has no clients yet.
+        final bool follow =
+            origin == MessagesOrigin.liveCreate &&
+            _scrollController.hasClients &&
+            _isLiveNearBottom();
+        // Both snap causes obey the verdict. Cause A is the physics bail:
+        // keep-position is SKIPPED whenever extentBefore <= fixedPositionOffset
+        // (chat_observer_scroll_physics_mixin.dart:30), which at the default
+        // 48 turns every wall-adjacent landing into a layout-time teleport
+        // with no scroll call. Preserve therefore arms the standby with the
+        // bail disabled; follow keeps it, since the pin below owns the move.
+        // -1, not 0: the physics bail is `extentBefore <= fixedPositionOffset`
+        // and the preserve case matters MOST at extentBefore == 0 (the wall),
+        // where `0 <= 0` would still skip the hold.
+        _chatObserver.fixedPositionOffset = follow
+            ? kMessageListReadBottomThreshold
+            : -1;
         unawaited(
           _chatObserver.standby(
+            sliverContext: _bottomListSliverContext(),
             changeCount: delta.addedNewest,
             isNeedObserveSwitchShrinkWrap: false,
           ),
         );
-        if (nearTail) {
+        if (follow) {
+          // Cause B, the explicit pin — authorized by the frozen verdict only.
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted ||
                 !_scrollController.hasClients ||
@@ -480,8 +538,6 @@ class _MessageListState extends ConsumerState<MessageList> {
               return;
             }
             final ScrollPosition position = _scrollController.position;
-            // Pre-append nearTail authorized this pin. Post-append distance can
-            // exceed 48px for a tall newest item — do not recheck isLiveNearBottom.
             if ((position.pixels - position.minScrollExtent).abs() < 0.5) {
               return;
             }
@@ -492,9 +548,15 @@ class _MessageListState extends ConsumerState<MessageList> {
         // Newest entries were trimmed/deleted while scrolled up: hold the first
         // displaying item fixed across the index shift. isRemove would skip the
         // position fix, and a cache-edge reference falls out of cache after the
-        // shift, so anchor on the displaying item via specified mode.
+        // shift, so anchor on the displaying item via specified mode. The bail
+        // offset is zeroed per-standby: at 48 the physics skips the hold for a
+        // reader within 48px of the edge — the same teleport as the append
+        // case, on the removal shift. -1 so the hold engages at the wall
+        // itself (`extentBefore <= 0` is true at exactly 0).
+        _chatObserver.fixedPositionOffset = -1;
         unawaited(
           _chatObserver.standby(
+            sliverContext: _bottomListSliverContext(),
             mode: ChatScrollObserverHandleMode.specified,
             refIndexType:
                 ChatScrollObserverRefIndexType.relativeIndexStartFromDisplaying,
@@ -504,8 +566,11 @@ class _MessageListState extends ConsumerState<MessageList> {
         );
       } else if (listEquals(prev, next)) {
         // A collapsed tail item can absorb a message without adding a child.
+        // Same per-standby bail-offset rule as the removal branch above.
+        _chatObserver.fixedPositionOffset = -1;
         unawaited(
           _chatObserver.standby(
+            sliverContext: _bottomListSliverContext(),
             mode: ChatScrollObserverHandleMode.specified,
             refIndexType:
                 ChatScrollObserverRefIndexType.relativeIndexStartFromDisplaying,
@@ -694,7 +759,10 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
     final GlobalKey? key = _itemKeys[messageId];
     final BuildContext? itemContext = key?.currentContext;
-    if (itemContext == null) {
+    // A cached key can briefly point at a deactivated element while the
+    // culled item awaits unmount; findRenderObject asserts on those (and
+    // `mounted` stays true through deactivation, so it is no guard).
+    if (itemContext is! Element || !itemContext.debugIsActive) {
       return null;
     }
     final RenderObject? itemRo = itemContext.findRenderObject();
@@ -1079,12 +1147,16 @@ class _MessageListState extends ConsumerState<MessageList> {
     );
   }
 
-  void _followTailCenter() {
+  void _followTailCenter({required MessagesOrigin? origin}) {
     if (!_scrollController.hasClients) {
       return;
     }
-    final ChatViewState state = ref.read(chatViewModelProvider);
-    if (state.hasMoreNewerMessages) {
+    // Same rule as the bottom-mode anchor path: only a live arrival may pull
+    // the viewport, and only its own write authorizes it. The flag gate this
+    // replaces had the final-page hole — the last page of the user's own
+    // pagination flips hasMoreNewerMessages false AS it lands and is
+    // byte-identical to a live arrival afterwards.
+    if (origin != MessagesOrigin.liveCreate) {
       return;
     }
     final bool isNearTrailing = isNearTrailingEdge(
@@ -2128,6 +2200,7 @@ class _MessageListState extends ConsumerState<MessageList> {
               child: NotificationListener<ScrollMetricsNotification>(
                 onNotification: _onScrollMetricsNotification,
                 child: ListView.builder(
+                  key: _bottomListKey,
                   controller: _scrollController,
                   reverse: true,
                   scrollCacheExtent: ScrollCacheExtent.pixels(
@@ -2494,16 +2567,28 @@ class _MessageListState extends ConsumerState<MessageList> {
       ..listen<List<Message>>(
         chatViewModelProvider.select((ChatViewState s) => s.messages),
         (List<Message>? previous, List<Message> next) {
+          // WHO asked decides what the viewport may do with this write. The
+          // verdict is computed here, against exactly the transition this
+          // invocation was handed, and frozen into a local — a later write
+          // cannot re-authorize it (there is no shared latest-value cell).
+          final MessagesOrigin? origin = ref
+              .read(chatViewModelProvider)
+              .writeOriginFor(previous: previous, next: next);
           if (_landAtLatestTailPending &&
+              origin == MessagesOrigin.windowSwap &&
               !ref.read(chatViewModelProvider).hasMoreNewerMessages) {
+            // Only the swap's own write may be read as the jump landing: a
+            // final newer page can flip the flag false while a jump is in
+            // flight, and consuming the pending land on it would pin the
+            // viewport onto a pagination install.
             _landAtLatestTailPending = false;
             _landAtLatestTail(next);
             return;
           }
           if (_openMode == _MessageListOpenMode.unread) {
-            _followTailCenter();
+            _followTailCenter(origin: origin);
           } else {
-            _applyChatAnchor(next);
+            _applyChatAnchor(next, origin: origin);
           }
         },
       );

@@ -88,6 +88,71 @@ enum _SendBlockReason {
   guildAccess,
 }
 
+/// WHO asked for a messages write. Post-install state cannot distinguish the
+/// final page of the user's own pagination from a live arrival at the tail —
+/// they are byte-identical in every observable — so the writer names itself
+/// and the scroll layer keys its follow-vs-preserve decision on that name.
+///
+/// Only [liveCreate] may authorize the scroll layer to follow the tail, and
+/// only [windowSwap] identifies a wholesale window replacement to the
+/// jump-landing machinery. Every other value is a preserve-class label: the
+/// enum spells them out so each write site names its writer honestly, but the
+/// scroll layer treats them uniformly (preserve the reader's position).
+enum MessagesOrigin {
+  /// Realtime MESSAGE_CREATE commits from the ordered queue.
+  liveCreate,
+
+  /// Realtime update/delete commits from the ordered queue.
+  realtimeEvent,
+
+  /// Older-direction pagination installs.
+  olderPage,
+
+  /// Newer-direction pagination installs.
+  newerPage,
+
+  /// Wholesale window replacements committed through the swap lane
+  /// (jump-to-latest, targeted jumps, network refresh).
+  windowSwap,
+
+  /// Unread-boundary backfill merged into the loaded window.
+  boundaryFill,
+
+  /// The user's own optimistic send appended locally.
+  ownSend,
+
+  /// Local row mutations: acks, retries, deletes, reactions, attachments,
+  /// client-system rows, rollbacks.
+  localMutation,
+
+  /// Window trims that drop the oldest side.
+  trim,
+}
+
+/// The authorization a messages write mints for the scroll layer, PRIVATE to
+/// this state layer by design: callers supply only `write: (messages, origin)`
+/// to [ChatViewState.copyWith], which mints the record internally with
+/// `before` set to the pre-assignment window. No caller ever constructs,
+/// sees, or passes one, so a `before` mismatch is unrepresentable at the same
+/// API boundary that makes an untagged messages write unrepresentable.
+///
+/// Transition binding (both ends compared by IDENTITY) is what survives the
+/// interleavings this feature has fought: a coalesced notification delivers a
+/// `previous` the authorization's `before` does not match, a superseded or
+/// deferred write never assigns its `after`, and an untagged-adjacent write
+/// mints its own record — the stale one dies with the transition it named.
+class _MessagesWriteAuthorization {
+  const _MessagesWriteAuthorization({
+    required this.origin,
+    required this.before,
+    required this.after,
+  });
+
+  final MessagesOrigin origin;
+  final List<Message> before;
+  final List<Message> after;
+}
+
 class ChatViewState {
   static const _unset = Object();
 
@@ -112,6 +177,7 @@ class ChatViewState {
   final bool hasMoreNewerMessages;
   final String? errorMessage;
   final bool messageLoadFailed;
+  final _MessagesWriteAuthorization? _writeAuthorization;
 
   const ChatViewState({
     required this.channelId,
@@ -135,13 +201,63 @@ class ChatViewState {
     this.highlightedMessageId,
     this.jumpHighlightSequence = 0,
     this.revealedCollapsedGroupKey,
+  }) : _writeAuthorization = null;
+
+  const ChatViewState._(
+    this._writeAuthorization, {
+    required this.channelId,
+    required this.messages,
+    required this.replyingTo,
+    required this.replyMentioning,
+    required this.editingMessage,
+    required this.messageText,
+    required this.scrollToBottomSignal,
+    required this.isLoading,
+    required this.isSyncingMessages,
+    required this.isLoadingMore,
+    required this.isLoadingNewer,
+    required this.hasMoreMessages,
+    required this.hasMoreNewerMessages,
+    required this.errorMessage,
+    required this.messageLoadFailed,
+    required this.scrollToMessageSignal,
+    required this.stickyUnreadMessageId,
+    required this.pendingAutoAckMessageId,
+    required this.highlightedMessageId,
+    required this.jumpHighlightSequence,
+    required this.revealedCollapsedGroupKey,
   });
+
+  /// The origin of the transition `previous -> next` — non-null iff THIS
+  /// state's messages write is exactly that transition, both ends compared by
+  /// identity. The scroll layer keys follow-vs-preserve on the result; a null
+  /// (fresh construction, coalesced delivery, or a list this write did not
+  /// produce) fails toward preserve, which is the safe side: a missed follow
+  /// self-corrects on the next arrival, a wrong follow teleports the reader.
+  MessagesOrigin? writeOriginFor({
+    required List<Message>? previous,
+    required List<Message> next,
+  }) {
+    final _MessagesWriteAuthorization? auth = _writeAuthorization;
+    if (auth == null ||
+        previous == null ||
+        !identical(auth.before, previous) ||
+        !identical(auth.after, next)) {
+      return null;
+    }
+    return auth.origin;
+  }
 
   bool get canSend => messageText.trim().isNotEmpty;
 
+  /// The `write` parameter is the ONLY way to change [messages], and it is
+  /// indivisible from its [MessagesOrigin]: an untagged messages write is
+  /// unrepresentable, so an authorization can never outlive the write that
+  /// minted it (omitting `write` inherits both the list and the record it
+  /// describes, which is harmless because the list is unchanged).
   ChatViewState copyWith({
     String? channelId,
-    List<Message>? messages,
+    ({List<Message> messages, MessagesOrigin origin})? write,
     Object? replyingTo = _unset,
     bool? replyMentioning,
     Object? editingMessage = _unset,
@@ -162,9 +278,16 @@ class ChatViewState {
     Object? errorMessage = _unset,
     bool? messageLoadFailed,
   }) {
-    return ChatViewState(
+    return ChatViewState._(
+      write == null
+          ? _writeAuthorization
+          : _MessagesWriteAuthorization(
+              origin: write.origin,
+              before: messages,
+              after: write.messages,
+            ),
       channelId: channelId ?? this.channelId,
-      messages: messages ?? this.messages,
+      messages: write == null ? messages : write.messages,
       replyingTo: replyingTo == _unset
           ? this.replyingTo
           : replyingTo as Message?,
@@ -1149,7 +1272,7 @@ class ChatViewModel extends _$ChatViewModel {
       pendingAutoAckMessageId = ackWatermark;
     }
     state = state.copyWith(
-      messages: workingMessages,
+      write: (messages: workingMessages, origin: MessagesOrigin.liveCreate),
       hasMoreMessages: droppedOlder || state.hasMoreMessages,
       pendingAutoAckMessageId: pendingAutoAckMessageId,
     );
@@ -1216,7 +1339,12 @@ class ChatViewModel extends _$ChatViewModel {
         pendingAutoAckMessageId = ev.event.message.id;
       }
       state = state.copyWith(
-        messages: nextMessages,
+        write: (
+          messages: nextMessages,
+          origin: ev is MessageCreated
+              ? MessagesOrigin.liveCreate
+              : MessagesOrigin.realtimeEvent,
+        ),
         editingMessage: clearEditing || clearComposerForDelete
             ? null
             : state.editingMessage,
@@ -2314,7 +2442,10 @@ class ChatViewModel extends _$ChatViewModel {
         stillCurrent,
         () {
           state = state.copyWith(
-            messages: reduceAgainst(state.messages),
+            write: (
+              messages: reduceAgainst(state.messages),
+              origin: MessagesOrigin.windowSwap,
+            ),
             isLoading: false,
             isSyncingMessages: false,
             hasMoreMessages: hasMoreOlder,
@@ -2584,9 +2715,12 @@ class ChatViewModel extends _$ChatViewModel {
               return;
             case WindowPageApplied(:final window):
               state = state.copyWith(
-                messages: _applyPendingLocalMutations(
-                  window.messages,
-                  fetchOrdinal,
+                write: (
+                  messages: _applyPendingLocalMutations(
+                    window.messages,
+                    fetchOrdinal,
+                  ),
+                  origin: MessagesOrigin.olderPage,
                 ),
                 hasMoreMessages: window.hasMoreOlder,
                 hasMoreNewerMessages: window.hasMoreNewer,
@@ -2639,9 +2773,12 @@ class ChatViewModel extends _$ChatViewModel {
           }
           _contiguityTrusted = true;
           state = state.copyWith(
-            messages: _applyPendingLocalMutations(
-              window.messages,
-              fetchOrdinal,
+            write: (
+              messages: _applyPendingLocalMutations(
+                window.messages,
+                fetchOrdinal,
+              ),
+              origin: MessagesOrigin.olderPage,
             ),
             hasMoreMessages: window.hasMoreOlder,
             hasMoreNewerMessages: window.hasMoreNewer,
@@ -2752,9 +2889,12 @@ class ChatViewModel extends _$ChatViewModel {
             case WindowPageApplied(:final window):
               _newerEdgePark = null;
               state = state.copyWith(
-                messages: _applyPendingLocalMutations(
-                  window.messages,
-                  fetchOrdinal,
+                write: (
+                  messages: _applyPendingLocalMutations(
+                    window.messages,
+                    fetchOrdinal,
+                  ),
+                  origin: MessagesOrigin.newerPage,
                 ),
                 hasMoreMessages: window.hasMoreOlder,
                 hasMoreNewerMessages: window.hasMoreNewer,
@@ -2832,9 +2972,12 @@ class ChatViewModel extends _$ChatViewModel {
           }
           _contiguityTrusted = true;
           state = state.copyWith(
-            messages: _applyPendingLocalMutations(
-              window.messages,
-              fetchOrdinal,
+            write: (
+              messages: _applyPendingLocalMutations(
+                window.messages,
+                fetchOrdinal,
+              ),
+              origin: MessagesOrigin.newerPage,
             ),
             hasMoreMessages: window.hasMoreOlder,
             hasMoreNewerMessages: window.hasMoreNewer,
@@ -2879,7 +3022,7 @@ class ChatViewModel extends _$ChatViewModel {
     }
     final trim = trimMessageWindow(state.messages, keepNewest: true);
     state = state.copyWith(
-      messages: trim.messages,
+      write: (messages: trim.messages, origin: MessagesOrigin.trim),
       hasMoreMessages: trim.droppedOlder || state.hasMoreMessages,
     );
   }
@@ -2944,9 +3087,12 @@ class ChatViewModel extends _$ChatViewModel {
               .where(isLocalOnlyMessage)
               .toList();
           state = state.copyWith(
-            messages: _applyPendingLocalMutations(
-              mergeMessagesSorted(pendingLocal, page.messages),
-              fetchOrdinal,
+            write: (
+              messages: _applyPendingLocalMutations(
+                mergeMessagesSorted(pendingLocal, page.messages),
+                fetchOrdinal,
+              ),
+              origin: MessagesOrigin.windowSwap,
             ),
             hasMoreMessages: page.messages.length >= _kJumpToPresentPageSize,
             hasMoreNewerMessages: false,
@@ -3564,9 +3710,12 @@ class ChatViewModel extends _$ChatViewModel {
         return;
       }
       state = state.copyWith(
-        messages: mergeMessagesSorted(
-          state.messages,
-          _applyPendingLocalMutations(messages, fetchOrdinal),
+        write: (
+          messages: mergeMessagesSorted(
+            state.messages,
+            _applyPendingLocalMutations(messages, fetchOrdinal),
+          ),
+          origin: MessagesOrigin.boundaryFill,
         ),
       );
       _contiguity.extendNewer(channelId, messages.last.id);
@@ -3893,7 +4042,10 @@ class ChatViewModel extends _$ChatViewModel {
     state = state.copyWith(
       replyingTo: null,
       replyMentioning: false,
-      messages: [...state.messages, optimisticMessage],
+      write: (
+        messages: [...state.messages, optimisticMessage],
+        origin: MessagesOrigin.ownSend,
+      ),
       errorMessage: null,
       scrollToBottomSignal: state.scrollToBottomSignal + 1,
     );
@@ -4055,7 +4207,10 @@ class ChatViewModel extends _$ChatViewModel {
       replyingTo: null,
       replyMentioning: false,
       messageText: clearMessageText ? '' : state.messageText,
-      messages: [...state.messages, optimisticMessage],
+      write: (
+        messages: [...state.messages, optimisticMessage],
+        origin: MessagesOrigin.ownSend,
+      ),
       errorMessage: null,
       scrollToBottomSignal: state.scrollToBottomSignal + 1,
     );
@@ -4146,7 +4301,9 @@ class ChatViewModel extends _$ChatViewModel {
           sendError: null,
         ),
       );
-      state = state.copyWith(messages: nextMessages);
+      state = state.copyWith(
+        write: (messages: nextMessages, origin: MessagesOrigin.localMutation),
+      );
     } on Object catch (error, st) {
       talker.error(
         '[ChatViewModel] send api_error channelId=$channelId',
@@ -4217,7 +4374,9 @@ class ChatViewModel extends _$ChatViewModel {
           sendError: null,
         ),
       );
-      state = state.copyWith(messages: nextMessages);
+      state = state.copyWith(
+        write: (messages: nextMessages, origin: MessagesOrigin.localMutation),
+      );
     } on MessageUploadSendCancelledException {
       return;
     } on Object catch (error, st) {
@@ -4325,14 +4484,19 @@ class ChatViewModel extends _$ChatViewModel {
           content: systemMessageContent,
         ),
       );
-      state = state.copyWith(messages: nextMessages);
+      state = state.copyWith(
+        write: (messages: nextMessages, origin: MessagesOrigin.localMutation),
+      );
       return;
     }
     if (optimisticIndex == -1) {
       state = state.copyWith(errorMessage: failedMessage);
       return;
     }
-    state = state.copyWith(messages: nextMessages, errorMessage: failedMessage);
+    state = state.copyWith(
+      write: (messages: nextMessages, origin: MessagesOrigin.localMutation),
+      errorMessage: failedMessage,
+    );
   }
 
   void dismissClientSystemMessage(String messageId) {
@@ -4347,7 +4511,9 @@ class ChatViewModel extends _$ChatViewModel {
     if (next == null) {
       return;
     }
-    state = state.copyWith(messages: next);
+    state = state.copyWith(
+      write: (messages: next, origin: MessagesOrigin.localMutation),
+    );
   }
 
   void cancelSendingMessage(String messageId) {
@@ -4371,7 +4537,9 @@ class ChatViewModel extends _$ChatViewModel {
     if (next == null) {
       return;
     }
-    state = state.copyWith(messages: next);
+    state = state.copyWith(
+      write: (messages: next, origin: MessagesOrigin.localMutation),
+    );
   }
 
   Future<void> retryMessageSend(String messageId) async {
@@ -4390,7 +4558,10 @@ class ChatViewModel extends _$ChatViewModel {
       deliveryState: MessageDeliveryState.sending,
       sendError: null,
     );
-    state = state.copyWith(messages: pendingMessages, errorMessage: null);
+    state = state.copyWith(
+      write: (messages: pendingMessages, origin: MessagesOrigin.localMutation),
+      errorMessage: null,
+    );
     try {
       final Message sent = await ref
           .read(messageRepositoryProvider)
@@ -4411,7 +4582,9 @@ class ChatViewModel extends _$ChatViewModel {
           sendError: null,
         ),
       );
-      state = state.copyWith(messages: nextMessages);
+      state = state.copyWith(
+        write: (messages: nextMessages, origin: MessagesOrigin.localMutation),
+      );
     } on Object catch (e) {
       debugPrint('[ChatViewModel] Retry failed: $e');
       final FluxerLocalizations l10n = ref.read(appLocalizationsProvider);
@@ -4441,11 +4614,13 @@ class ChatViewModel extends _$ChatViewModel {
             content: systemMessageContent,
           ),
         );
-        state = state.copyWith(messages: nextMessages);
+        state = state.copyWith(
+          write: (messages: nextMessages, origin: MessagesOrigin.localMutation),
+        );
         return;
       }
       state = state.copyWith(
-        messages: nextMessages,
+        write: (messages: nextMessages, origin: MessagesOrigin.localMutation),
         errorMessage: failedMessage,
       );
     }
@@ -4462,7 +4637,9 @@ class ChatViewModel extends _$ChatViewModel {
     if (next == null) {
       return;
     }
-    state = state.copyWith(messages: next);
+    state = state.copyWith(
+      write: (messages: next, origin: MessagesOrigin.localMutation),
+    );
   }
 
   Future<void> deleteMessage(String messageId) async {
@@ -4484,7 +4661,12 @@ class ChatViewModel extends _$ChatViewModel {
       messageId,
     });
     if (optimisticallyRemoved != null) {
-      state = state.copyWith(messages: optimisticallyRemoved);
+      state = state.copyWith(
+        write: (
+          messages: optimisticallyRemoved,
+          origin: MessagesOrigin.localMutation,
+        ),
+      );
     }
     // A page already in flight was fetched before the server saw this, so it
     // still carries the row. The tombstone survives the request completing,
@@ -4510,7 +4692,10 @@ class ChatViewModel extends _$ChatViewModel {
         }
         if (deletedSnapshot != null) {
           state = state.copyWith(
-            messages: mergeMessagesSorted(state.messages, [deletedSnapshot]),
+            write: (
+              messages: mergeMessagesSorted(state.messages, [deletedSnapshot]),
+              origin: MessagesOrigin.localMutation,
+            ),
             errorMessage: 'Failed to delete message',
           );
         } else {
@@ -4713,7 +4898,9 @@ class ChatViewModel extends _$ChatViewModel {
     }
     final List<Message> next = List<Message>.from(state.messages);
     next[index] = next[index].copyWith(attachments: derived.attachments);
-    state = state.copyWith(messages: next);
+    state = state.copyWith(
+      write: (messages: next, origin: MessagesOrigin.localMutation),
+    );
   }
 
   void startReply(Message message) {
@@ -4902,7 +5089,13 @@ class ChatViewModel extends _$ChatViewModel {
         isCurrentJump,
         () {
           state = state.copyWith(
-            messages: _applyPendingLocalMutations(page.messages, fetchOrdinal),
+            write: (
+              messages: _applyPendingLocalMutations(
+                page.messages,
+                fetchOrdinal,
+              ),
+              origin: MessagesOrigin.windowSwap,
+            ),
             hasMoreMessages: page.messages.length >= _kPageSize,
             hasMoreNewerMessages: hasMoreNewer,
             // The preempted switch set isLoading and can no longer reach any of
@@ -5133,7 +5326,10 @@ class ChatViewModel extends _$ChatViewModel {
         updatedMessage,
       );
       state = state.copyWith(
-        messages: nextMessages ?? state.messages,
+        write: (
+          messages: nextMessages ?? state.messages,
+          origin: MessagesOrigin.localMutation,
+        ),
         editingMessage: null,
         errorMessage: null,
       );
@@ -5196,7 +5392,10 @@ class ChatViewModel extends _$ChatViewModel {
         updatedMessage,
       );
       state = state.copyWith(
-        messages: nextMessages ?? state.messages,
+        write: (
+          messages: nextMessages ?? state.messages,
+          origin: MessagesOrigin.localMutation,
+        ),
         errorMessage: null,
       );
     } on Exception catch (e) {
@@ -5259,7 +5458,9 @@ class ChatViewModel extends _$ChatViewModel {
 
     final updatedMessages = List<Message>.from(state.messages);
     updatedMessages[msgIndex] = msg.copyWith(reactions: updatedReactions);
-    state = state.copyWith(messages: updatedMessages);
+    state = state.copyWith(
+      write: (messages: updatedMessages, origin: MessagesOrigin.localMutation),
+    );
     unawaited(
       ref
           .read(fluxerDatabaseProvider)
@@ -5316,7 +5517,9 @@ class ChatViewModel extends _$ChatViewModel {
     final previousReactions = msg.reactions;
     final updatedMessages = List<Message>.from(state.messages);
     updatedMessages[msgIndex] = msg.copyWith(reactions: const <Reaction>[]);
-    state = state.copyWith(messages: updatedMessages);
+    state = state.copyWith(
+      write: (messages: updatedMessages, origin: MessagesOrigin.localMutation),
+    );
     try {
       await ref
           .read(messageRepositoryProvider)
@@ -5329,7 +5532,9 @@ class ChatViewModel extends _$ChatViewModel {
         rollback[rollbackIndex] = rollback[rollbackIndex].copyWith(
           reactions: previousReactions,
         );
-        state = state.copyWith(messages: rollback);
+        state = state.copyWith(
+          write: (messages: rollback, origin: MessagesOrigin.localMutation),
+        );
       }
     }
   }
