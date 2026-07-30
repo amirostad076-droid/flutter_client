@@ -243,7 +243,7 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
           channelId: widget.channelId,
           child: Column(
             children: <Widget>[
-              if (widget.showTopBar) const ChannelHeader(),
+              if (widget.showTopBar) ChannelHeader(channelId: widget.channelId),
               DmCallE2eeFooter(channelId: widget.channelId),
               DirectVoiceSessionStrip(channelId: widget.channelId),
               if (isWideLayout(context))

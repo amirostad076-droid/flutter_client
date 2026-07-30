@@ -50,20 +50,26 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 /// The chat header bar showing channel name, topic, and action icons.
 class ChannelHeader extends ConsumerWidget {
   const ChannelHeader({
+    this.channelId,
     this.showMessageActions = true,
     this.forceVoiceCallStyle = false,
     super.key,
   });
 
+  final String? channelId;
   final bool showMessageActions;
   final bool forceVoiceCallStyle;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-    final String channelId = ref.watch(
+    final String viewModelChannelId = ref.watch(
       chatViewModelProvider.select((s) => s.channelId),
     );
+    final String channelId =
+        (this.channelId != null && this.channelId!.isNotEmpty)
+        ? this.channelId!
+        : viewModelChannelId;
     final Channel? channel = ref.watch(channelByIdProvider(channelId)).value;
     final String? currentUserId = ref.watch(currentUserIdProvider);
     final DmConversation? dm = channel == null

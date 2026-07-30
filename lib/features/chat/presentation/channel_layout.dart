@@ -150,6 +150,7 @@ class _ChannelLayoutState extends ConsumerState<ChannelLayout> {
             showTopBar: false,
           );
     final Widget header = ChannelHeader(
+      channelId: widget.channelId,
       forceVoiceCallStyle: forceVoiceCallStyle,
     );
 
