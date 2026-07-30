@@ -1101,6 +1101,14 @@
   "@notificationUnmuteChannel": {
     "description": "Action label for unmuting a channel from the context menu."
   },
+  "notificationUseCategoryDefault": "Use Category Default",
+  "@notificationUseCategoryDefault": {
+    "description": "Radio option to inherit notification settings from the channel category."
+  },
+  "notificationUseCommunityDefault": "Use Community Default",
+  "@notificationUseCommunityDefault": {
+    "description": "Radio option to inherit notification settings from the community."
+  },
   "notificationNoCategory": "No Category",
   "@notificationNoCategory": {
     "description": "Fallback category name for channels without a parent category."
@@ -4431,6 +4439,14 @@
   "@chatAttachmentDownload": {
     "description": "Tooltip and accessibility label for downloading a non-media file attachment."
   },
+  "chatAttachmentDownloadedToast": "Saved to photos",
+  "@chatAttachmentDownloadedToast": {
+    "description": "Toast shown after an attachment is saved to the device."
+  },
+  "chatAttachmentDownloadFailedToast": "Couldn't download attachment",
+  "@chatAttachmentDownloadFailedToast": {
+    "description": "Toast shown when an attachment download fails."
+  },
   "chatAttachmentExpiredTooltip": "Attachment expired",
   "@chatAttachmentExpiredTooltip": {
     "description": "Tooltip when a file attachment link is no longer available."
@@ -5792,9 +5808,13 @@
   "@voiceChannelEmptyDescription": {
     "description": "Empty state body when viewing a guild voice channel while not in the call."
   },
-  "voiceChannelJoin": "Join Voice Channel",
+  "voiceChannelJoin": "Join voice channel",
   "@voiceChannelJoin": {
     "description": "Primary action to connect to a voice channel from the empty state."
+  },
+  "voiceCallJoin": "Join call",
+  "@voiceCallJoin": {
+    "description": "Primary CTA in the DM or group DM pre-join call empty state."
   },
   "voiceChannelJoinConnect": "Connect to Voice",
   "@voiceChannelJoinConnect": {
@@ -5925,6 +5945,155 @@
   "voiceControlDisconnect": "Disconnect",
   "@voiceControlDisconnect": {
     "description": "Tooltip: leave the voice call in the voice call control bar."
+  },
+  "voiceInChat": "In voice chat",
+  "@voiceInChat": {
+    "description": "Short status label shown when the user is currently connected to voice chat."
+  },
+  "voiceConnectionFailed": "Connection failed",
+  "@voiceConnectionFailed": {
+    "description": "Voice connection status when the most recent attempt to join the channel failed."
+  },
+  "voiceConnectionRetry": "Try again",
+  "@voiceConnectionRetry": {
+    "description": "Button that retries connecting to the voice channel after a failed attempt."
+  },
+  "voiceConnectionDismiss": "Dismiss",
+  "@voiceConnectionDismiss": {
+    "description": "Button that dismisses the failed voice connection status banner."
+  },
+  "voiceConnectionDisconnected": "Disconnected",
+  "@voiceConnectionDisconnected": {
+    "description": "Voice connection status when not connected."
+  },
+  "voicePingMs": "Ping: {currentLatency}ms",
+  "@voicePingMs": {
+    "description": "Compact latency badge on the voice control bar.",
+    "placeholders": {
+      "currentLatency": {
+        "type": "int"
+      }
+    }
+  },
+  "voiceMeasuringLatency": "Measuring latency...",
+  "@voiceMeasuringLatency": {
+    "description": "Tooltip on the latency badge while voice latency is still being sampled."
+  },
+  "voiceJumpToChannel": "Jump to {channelSourceLabel}",
+  "@voiceJumpToChannel": {
+    "description": "Tooltip on a button that jumps to the channel.",
+    "placeholders": {
+      "channelSourceLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "voiceConnectionTitle": "Voice connection",
+  "@voiceConnectionTitle": {
+    "description": "Voice status popout title."
+  },
+  "voiceConnectionAdvancedStats": "Advanced",
+  "@voiceConnectionAdvancedStats": {
+    "description": "Disclosure button label in the voice connection status popout."
+  },
+  "voiceShowCallAvatars": "Show call avatars",
+  "@voiceShowCallAvatars": {
+    "description": "Developer voice status menu option for displaying participant avatars."
+  },
+  "voiceShowConnectionId": "Show connection ID",
+  "@voiceShowConnectionId": {
+    "description": "Developer voice status menu option for displaying the voice connection identifier."
+  },
+  "voiceAudioProcessing": "Audio processing",
+  "@voiceAudioProcessing": {
+    "description": "Tooltip for the audio processing button in the voice connection status."
+  },
+  "voiceConnectionSessionSection": "Session",
+  "@voiceConnectionSessionSection": {
+    "description": "Section title for session stats in the voice connection details popout."
+  },
+  "voiceConnectionDurationLabel": "Duration",
+  "@voiceConnectionDurationLabel": {
+    "description": "Row label for voice session duration in the connection details popout."
+  },
+  "voiceConnectionParticipantsLabel": "Participants",
+  "@voiceConnectionParticipantsLabel": {
+    "description": "Row label for participant count in the voice connection details popout."
+  },
+  "voiceConnectionNetworkSection": "Network",
+  "@voiceConnectionNetworkSection": {
+    "description": "Section title for network stats in the voice connection details popout."
+  },
+  "voiceConnectionPingLabel": "Ping",
+  "@voiceConnectionPingLabel": {
+    "description": "Row label for ping latency in the voice connection details popout."
+  },
+  "voiceConnectionJitterLabel": "Jitter",
+  "@voiceConnectionJitterLabel": {
+    "description": "Row label for jitter in the voice connection details popout."
+  },
+  "voiceConnectionSendLabel": "Send",
+  "@voiceConnectionSendLabel": {
+    "description": "Row label for outbound bandwidth in the voice connection details popout."
+  },
+  "voiceConnectionReceiveLabel": "Receive",
+  "@voiceConnectionReceiveLabel": {
+    "description": "Row label for inbound bandwidth in the voice connection details popout."
+  },
+  "voiceConnectionUnavailable": "—",
+  "@voiceConnectionUnavailable": {
+    "description": "Placeholder when a voice connection stat is not available."
+  },
+  "voiceConnectionDuration": "{minutes}m {seconds}s",
+  "@voiceConnectionDuration": {
+    "description": "Formatted voice session duration in the connection details popout.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "voiceConnectionLatencyMs": "{latency} ms",
+  "@voiceConnectionLatencyMs": {
+    "description": "Formatted ping latency value in the voice connection details popout.",
+    "placeholders": {
+      "latency": {
+        "type": "int"
+      }
+    }
+  },
+  "voiceConnectionJitterMs": "{jitter} ms",
+  "@voiceConnectionJitterMs": {
+    "description": "Formatted jitter value in the voice connection details popout.",
+    "placeholders": {
+      "jitter": {
+        "type": "String"
+      }
+    }
+  },
+  "voiceConnectionBandwidthKbps": "{bandwidth} kbps",
+  "@voiceConnectionBandwidthKbps": {
+    "description": "Formatted bandwidth value in the voice connection details popout.",
+    "placeholders": {
+      "bandwidth": {
+        "type": "String"
+      }
+    }
+  },
+  "userAreaMuteMicrophone": "Mute microphone",
+  "@userAreaMuteMicrophone": {
+    "description": "Tooltip for the mute button in the desktop user area."
+  },
+  "userAreaUnmuteMicrophone": "Unmute microphone",
+  "@userAreaUnmuteMicrophone": {
+    "description": "Tooltip for the unmute button in the desktop user area."
+  },
+  "userAreaUserSettings": "User settings",
+  "@userAreaUserSettings": {
+    "description": "Tooltip for the settings button in the desktop user area."
   },
   "voiceParticipantMenuViewProfile": "View profile",
   "@voiceParticipantMenuViewProfile": {
@@ -6429,6 +6598,14 @@
   "chatReactionsSheetEmpty": "Nobody has reacted with this yet.",
   "@chatReactionsSheetEmpty": {
     "description": "Empty state shown in the message reactions sheet when no users have reacted with the currently selected emoji."
+  },
+  "chatReactionAddFailed": "Failed to add reaction",
+  "@chatReactionAddFailed": {
+    "description": "Toast shown when the server rejects adding a reaction after an optimistic update."
+  },
+  "chatReactionRemoveFailed": "Failed to remove reaction",
+  "@chatReactionRemoveFailed": {
+    "description": "Toast shown when the server rejects removing a reaction after an optimistic update."
   },
   "chatMessageReport": "Report Message",
   "@chatMessageReport": {
@@ -8073,6 +8250,30 @@
   "@channelDetailsPinsEndReached": {
     "description": "Footer label when the user has scrolled through all pinned messages."
   },
+  "channelHeaderOpenDetails": "Open channel details",
+  "@channelHeaderOpenDetails": {
+    "description": "Accessibility label for the channel header title area."
+  },
+  "channelHeaderPinnedMessages": "Pinned messages",
+  "@channelHeaderPinnedMessages": {
+    "description": "Toolbar button label for pinned messages."
+  },
+  "channelHeaderPinnedMessagesUnread": "Pinned messages, unread",
+  "@channelHeaderPinnedMessagesUnread": {
+    "description": "Toolbar button label when pinned messages have unread items."
+  },
+  "channelHeaderMemberList": "Member list",
+  "@channelHeaderMemberList": {
+    "description": "Toolbar button label for toggling the member list panel."
+  },
+  "channelHeaderInbox": "Inbox",
+  "@channelHeaderInbox": {
+    "description": "Toolbar button label for the inbox popout."
+  },
+  "channelHeaderNotificationSettingsMuted": "Notification settings, muted",
+  "@channelHeaderNotificationSettingsMuted": {
+    "description": "Toolbar button label for notification settings when the channel is muted."
+  },
   "channelDetailsSearchTitle": "Search",
   "@channelDetailsSearchTitle": {
     "description": "Title for the channel search bottom sheet."
@@ -8093,12 +8294,105 @@
   "@channelDetailsSearchFilterSort": {
     "description": "Sort filter chip label in channel message search."
   },
+  "channelHeaderSearchFiltersTitle": "Search Filters",
+  "@channelHeaderSearchFiltersTitle": {
+    "description": "Section header for inline channel search filter shortcuts."
+  },
+  "channelHeaderSearchRecentTitle": "Recent Searches",
+  "@channelHeaderSearchRecentTitle": {
+    "description": "Section header for inline channel search history."
+  },
+  "channelHeaderSearchUsersTitle": "Users",
+  "@channelHeaderSearchUsersTitle": {
+    "description": "Section title for user filter autocomplete"
+  },
+  "channelHeaderSearchChannelsTitle": "Channels",
+  "@channelHeaderSearchChannelsTitle": {
+    "description": "Section title for channel filter autocomplete"
+  },
+  "channelHeaderSearchValuesTitle": "Values",
+  "@channelHeaderSearchValuesTitle": {
+    "description": "Section title for filter value autocomplete"
+  },
+  "channelHeaderSearchDatesTitle": "Dates",
+  "@channelHeaderSearchDatesTitle": {
+    "description": "Section title for date filter autocomplete"
+  },
+  "channelHeaderSearchDefaultBadge": "Default",
+  "@channelHeaderSearchDefaultBadge": {
+    "description": "Badge shown on default filter value options"
+  },
+  "channelHeaderSearchClearHistory": "Clear",
+  "@channelHeaderSearchClearHistory": {
+    "description": "Button to clear recent channel search history."
+  },
+  "channelHeaderSearchFilterDescFrom": "a user",
+  "@channelHeaderSearchFilterDescFrom": {
+    "description": "Description for the from: search filter."
+  },
+  "channelHeaderSearchFilterDescMentions": "a user",
+  "@channelHeaderSearchFilterDescMentions": {
+    "description": "Description for the mentions: search filter."
+  },
+  "channelHeaderSearchFilterDescHas": "link, embed, image, video, sound, file, sticker, …",
+  "@channelHeaderSearchFilterDescHas": {
+    "description": "Description for the has: search filter."
+  },
+  "channelHeaderSearchFilterDescBefore": "a date or date range",
+  "@channelHeaderSearchFilterDescBefore": {
+    "description": "Description for the before: search filter."
+  },
+  "channelHeaderSearchFilterDescOn": "a date or date range",
+  "@channelHeaderSearchFilterDescOn": {
+    "description": "Description for the on: search filter."
+  },
+  "channelHeaderSearchFilterDescDuring": "a date or date range",
+  "@channelHeaderSearchFilterDescDuring": {
+    "description": "Description for the during: search filter."
+  },
+  "channelHeaderSearchFilterDescAfter": "a date or date range",
+  "@channelHeaderSearchFilterDescAfter": {
+    "description": "Description for the after: search filter."
+  },
+  "channelHeaderSearchFilterDescIn": "a channel",
+  "@channelHeaderSearchFilterDescIn": {
+    "description": "Description for the in: search filter."
+  },
+  "channelHeaderSearchFilterDescPinned": "true or false",
+  "@channelHeaderSearchFilterDescPinned": {
+    "description": "Description for the pinned: search filter."
+  },
+  "channelHeaderSearchFilterDescAuthorType": "user, bot, or webhook",
+  "@channelHeaderSearchFilterDescAuthorType": {
+    "description": "Description for the author-type: search filter."
+  },
+  "channelHeaderSearchFilterDescLinkFrom": "a hostname, e.g. example.com",
+  "@channelHeaderSearchFilterDescLinkFrom": {
+    "description": "Description for the link-from: search filter."
+  },
+  "channelHeaderSearchFilterDescFileName": "part of an attachment filename",
+  "@channelHeaderSearchFilterDescFileName": {
+    "description": "Description for the file-name: search filter."
+  },
+  "channelHeaderSearchFilterDescFileType": "a file extension, e.g. png",
+  "@channelHeaderSearchFilterDescFileType": {
+    "description": "Description for the file-type: search filter."
+  },
+  "channelHeaderSearchFilterDescSort": "timestamp or relevance",
+  "@channelHeaderSearchFilterDescSort": {
+    "description": "Description for the sort: search filter."
+  },
+  "channelHeaderSearchFilterDescOrder": "asc or desc",
+  "@channelHeaderSearchFilterDescOrder": {
+    "description": "Description for the order: search filter."
+  },
   "channelDetailsSearchResultCount": "{count, plural, =1{1 Result} other{{count} Results}}",
   "@channelDetailsSearchResultCount": {
     "description": "Result count label in channel message search.",
     "placeholders": {
       "count": {
-        "type": "int"
+        "type": "int",
+        "format": "decimalPattern"
       }
     }
   },
@@ -10294,6 +10588,10 @@
   "guildSettingsRolesBackToRoles": "Back to roles",
   "@guildSettingsRolesBackToRoles": {
     "description": "Button to return to the role list from the editor."
+  },
+  "guildSettingsBackToSettings": "Back to settings",
+  "@guildSettingsBackToSettings": {
+    "description": "Button in community settings that returns from a nested sidebar to the main settings tab list."
   },
   "guildSettingsRolesEditTitle": "Edit \"{name}\"",
   "@guildSettingsRolesEditTitle": {

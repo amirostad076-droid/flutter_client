@@ -197,7 +197,10 @@ class _DiscoveryLanguageSelectSheetState
                 )
               : ListView(
                   controller: widget.scrollController,
-                  padding: EdgeInsets.only(bottom: layout.s4),
+                  padding: FluxerBottomSheet.scrollViewPadding(
+                    context,
+                    padding: EdgeInsets.only(bottom: layout.s4),
+                  ),
                   children: <Widget>[
                     FluxerBottomSheetSection(
                       child: FluxerMenuGroup(

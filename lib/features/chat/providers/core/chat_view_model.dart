@@ -1916,7 +1916,10 @@ class ChatViewModel extends _$ChatViewModel {
       final repo = ref.read(messageRepositoryProvider);
       final int cacheOrdinal = _beginPageFetch();
       cacheFetchOrdinal = cacheOrdinal;
-      final cached = await repo.getCachedMessages(channelId);
+      final cached = await repo.getCachedMessages(
+        channelId,
+        limit: _kInitialPageSize,
+      );
       if (!isCurrentSwitch()) {
         return;
       }
@@ -1928,14 +1931,12 @@ class ChatViewModel extends _$ChatViewModel {
         final bool willRefresh = _shouldRefreshChannelFromNetwork(channelId);
         state = _switchedChannelState(
           channelId: channelId,
-          messages: willRefresh
-              ? const []
-              : _applyPendingLocalMutations(cached, cacheOrdinal),
+          messages: _applyPendingLocalMutations(cached, cacheOrdinal),
           draft: draft,
           replyMentioning: replyMentioning,
           scrollToBottomSignal: state.scrollToBottomSignal,
-          isLoading: willRefresh,
-          isSyncingMessages: false,
+          isLoading: false,
+          isSyncingMessages: willRefresh,
           isLoadingMore: false,
           isLoadingNewer: false,
           hasMoreMessages: cached.length >= _kPageSize,
@@ -1943,15 +1944,14 @@ class ChatViewModel extends _$ChatViewModel {
           replaceWindow: true,
         );
         _invalidateMessageCacheTrust();
-        if (!willRefresh) {
-          _deferMessageReferencesLoaded(channelId: channelId, messages: cached);
-        }
+        _deferMessageReferencesLoaded(channelId: channelId, messages: cached);
         if (willRefresh) {
           unawaited(
             _refreshMessagesFromNetwork(
               channelId,
               limit: _kInitialPageSize,
-              isDirectLatestLoad: true,
+              isDirectLatestLoad: false,
+              preserveLoadedWindow: true,
               shouldApplyResult: isCurrentSwitch,
             ),
           );
@@ -2011,7 +2011,7 @@ class ChatViewModel extends _$ChatViewModel {
     List<Message>? embeddedReplyParents,
   }) {
     scheduleMicrotask(() async {
-      if (state.channelId != channelId) {
+      if (!ref.mounted || state.channelId != channelId) {
         return;
       }
       await _onMessageBatchLoaded(
@@ -2029,6 +2029,7 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     if (state.isLoading || state.isSyncingMessages) {
+      _pendingSessionResync = true;
       return;
     }
     await _reconcileCurrentChannelFromNetwork();
@@ -2040,6 +2041,7 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     if (state.isLoading || state.isSyncingMessages) {
+      _pendingSessionResync = true;
       return;
     }
     if (_userScrollActive) {
@@ -2063,13 +2065,29 @@ class ChatViewModel extends _$ChatViewModel {
         state.channelId == channelId;
     _lastNetworkRefreshByChannel.remove(channelId);
     state = state.copyWith(isSyncingMessages: true);
+    final bool loadLatestTail =
+        ref.read(chatReadViewportProvider).nearLoadedTail &&
+        !state.hasMoreNewerMessages;
     try {
-      await _refreshMessagesFromNetwork(
-        channelId,
-        limit: _kInitialPageSize,
-        isDirectLatestLoad: false,
-        preserveLoadedWindow: state.messages.isNotEmpty,
-      );
+      if (loadLatestTail) {
+        await _refreshMessagesFromNetwork(
+          channelId,
+          limit: _kJumpToPresentPageSize,
+          isDirectLatestLoad: true,
+          // Runs synchronously at the post-commit guarded point. Deciding
+          // after the outer await instead would race the refresh's own later
+          // awaits, where a same-channel sibling can replace the window
+          // through the arm token without moving any generation.
+          onApplied: scrollToBottom,
+        );
+      } else {
+        await _refreshMessagesFromNetwork(
+          channelId,
+          limit: _kInitialPageSize,
+          isDirectLatestLoad: false,
+          preserveLoadedWindow: state.messages.isNotEmpty,
+        );
+      }
       // Nothing to mark here. The refresh is the ONLY layer that decides
       // "reconciled", and it decides it on the path that applied; re-deriving it
       // out here is how a superseded refresh came to mark a window it never
@@ -2082,6 +2100,10 @@ class ChatViewModel extends _$ChatViewModel {
       if (stillOurs() && state.isSyncingMessages) {
         state = state.copyWith(isSyncingMessages: false);
       }
+      if (_pendingSessionResync) {
+        _pendingSessionResync = false;
+        unawaited(_reconcileCurrentChannelFromNetwork());
+      }
     }
   }
 
@@ -2091,6 +2113,10 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     _lastNetworkRefreshByChannel.remove(channelId);
+    if (state.isLoading || state.isSyncingMessages) {
+      _pendingSessionResync = true;
+      return;
+    }
     unawaited(_reconcileCurrentChannelFromNetwork());
   }
 
@@ -2117,6 +2143,10 @@ class ChatViewModel extends _$ChatViewModel {
     int limit = _kPageSize,
     bool Function()? shouldApplyResult,
     bool preserveLoadedWindow = false,
+    // Fires exactly once, on the path that installed the page - after the
+    // commit applied and survived the continuation recheck. Callers hang
+    // post-install scroll effects here instead of re-deriving "applied".
+    VoidCallback? onApplied,
   }) async {
     final int windowGeneration = _windowGeneration;
     final int switchGeneration = _channelSwitchGeneration;
@@ -2369,14 +2399,7 @@ class ChatViewModel extends _$ChatViewModel {
       if (!stillCurrent() || !ownsSwap()) {
         return;
       }
-      await _hydrateGuildMembersForMessages(
-        channelId,
-        merged,
-        embeddedReplyParents: page.embeddedReplyParents,
-      );
-      if (!stillCurrent() || !ownsSwap()) {
-        return;
-      }
+
       // Around pages are split before/after the anchor; near the live tail they
       // can be shorter than [limit] while older history still exists. A rescued
       // window keeps older OPEN regardless of count: its page is a BEFORE page,
@@ -2430,10 +2453,13 @@ class ChatViewModel extends _$ChatViewModel {
       if (!applied || !stillCurrent()) {
         return;
       }
-      _notifyMessageReferencesLoaded(
-        channelId: channelId,
-        messages: state.messages,
-        embeddedReplyParents: page.embeddedReplyParents,
+      onApplied?.call();
+      unawaited(
+        _onMessageBatchLoaded(
+          channelId: channelId,
+          messages: state.messages,
+          embeddedReplyParents: page.embeddedReplyParents,
+        ),
       );
       // AFTER the commit, and only here: the probe pages forward from the window
       // this install just published, so firing it before the commit would have
@@ -5612,6 +5638,7 @@ class ChatViewModel extends _$ChatViewModel {
     }
 
     final msg = state.messages[msgIndex];
+    final previousReactions = msg.reactions;
     final existingIdx = msg.reactions.indexWhere(
       (r) => r.emoji == emoji && r.emojiId == emojiId,
     );
@@ -5694,8 +5721,49 @@ class ChatViewModel extends _$ChatViewModel {
         );
       }
     } on Exception catch (e) {
-      debugPrint('[ChatViewModel] Reaction failed: $e');
+      talker.error('[ChatViewModel] Reaction failed', e);
+      final FluxerLocalizations l10n = ref.read(appLocalizationsProvider);
+      final String fallback = hasReacted
+          ? l10n.chatReactionRemoveFailed
+          : l10n.chatReactionAddFailed;
+      _restoreMessageReactions(
+        messageId,
+        previousReactions,
+        errorMessage: e is DioException
+            ? dioExceptionMessage(e, fallback)
+            : fallback,
+      );
     }
+  }
+
+  void _restoreMessageReactions(
+    String messageId,
+    List<Reaction> reactions, {
+    String? errorMessage,
+  }) {
+    final int rollbackIndex = state.messages.indexWhere(
+      (Message m) => m.id == messageId,
+    );
+    if (rollbackIndex == -1) {
+      return;
+    }
+    final List<Message> rollback = List<Message>.from(state.messages);
+    rollback[rollbackIndex] = rollback[rollbackIndex].copyWith(
+      reactions: reactions,
+    );
+    state = state.copyWith(
+      write: (messages: rollback, origin: MessagesOrigin.localMutation),
+      errorMessage: errorMessage,
+    );
+    unawaited(
+      ref
+          .read(fluxerDatabaseProvider)
+          .messageDao
+          .updateReactions(
+            messageId,
+            jsonEncode(reactions.map((Reaction r) => r.toJson()).toList()),
+          ),
+    );
   }
 
   /// Moderator/author action: drop every reaction from this message.

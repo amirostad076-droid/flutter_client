@@ -797,6 +797,11 @@ class _DMListState extends ConsumerState<DMList> {
     final timestampColor = isSelected
         ? context.colors.surfaceInteractiveSelectedColor
         : context.colors.textTertiary;
+    final titleStyle = context.textStyles.username.copyWith(
+      color: titleColor,
+      fontSize: isMobile ? 16 : 13,
+      height: isMobile ? null : 16 / 13,
+    );
     final secondaryStyle = TextStyle(
       color: secondaryColor,
       fontSize: 11,
@@ -884,9 +889,8 @@ class _DMListState extends ConsumerState<DMList> {
                           Flexible(
                             child: Text(
                               displayName,
-                              style: context.textStyles.username.copyWith(
-                                color: titleColor,
-                              ),
+                              style: titleStyle,
+                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),

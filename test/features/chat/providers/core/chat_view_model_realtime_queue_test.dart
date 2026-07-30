@@ -2528,6 +2528,107 @@ void main() {
     );
   });
 
+  test('m15d: a superseded tail recovery does not scroll to bottom - the '
+      'signal belongs to the install that applied', () async {
+    // The recovery reconcile scrolls to the tail when the reader sits at the
+    // loaded tail - but only on the install that applied. A same-channel
+    // sibling supersedes through the arm token ALONE (no generation moves),
+    // so a scroll gated on generations - a bare stillOurs() recheck - fires
+    // for a refresh that installed nothing. This pins exactly that, plus the
+    // ordinary winner path: superseded-before-commit never scrolls, applied
+    // scrolls once. It does NOT distinguish WHEN the applied path scrolls;
+    // the post-install ordering (commit-time callback vs a flag checked
+    // after the refresh's later awaits) has no deterministic seam here.
+    final _GatedDatabase database = await seedChannel();
+    final adapter = _MessageApiAdapter(messages: _channelMessages(400));
+    final container = _container(database, adapter);
+    addTearDown(() {
+      adapter.releaseLatestFetch();
+      container.dispose();
+    });
+
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel(_channelId);
+    await _flushAsync();
+    expect(
+      container.read(chatViewModelProvider).hasMoreNewerMessages,
+      isFalse,
+    );
+
+    // The reader sits at the loaded tail, so the reconcile takes the direct
+    // latest-tail branch - the only branch that scrolls on install.
+    container
+        .read(chatReadViewportProvider.notifier)
+        .updateViewport(
+          channelId: _channelId,
+          nearLoadedTail: true,
+          distanceFromBottom: 0,
+          viewportHeight: 600,
+          sampledTailId: null,
+        );
+    await _flushAsync();
+    expect(container.read(chatReadViewportProvider).nearLoadedTail, isTrue);
+
+    final int signalBefore = container
+        .read(chatViewModelProvider)
+        .scrollToBottomSignal;
+    final int fetchesAfterOpen = adapter.latestFetchCalls;
+
+    // A: the recovery reconcile, armed and parked in its latest fetch.
+    adapter.holdLatestFetch = true;
+    container.read(gatewaySessionRecoveryProvider.notifier).bump();
+    await _flushAsync();
+    expect(
+      adapter.latestFetchCalls,
+      fetchesAfterOpen + 1,
+      reason:
+          'A took the direct latest-tail branch and is in flight, or this '
+          'is vacuous',
+    );
+    expect(container.read(chatViewModelProvider).isSyncingMessages, isTrue);
+
+    // B: a manual retry on the SAME channel takes the arm from A. No
+    // generation moves; the token swap is the only trace. B's identical
+    // latest request coalesces onto A's parked response in the repository,
+    // so the wire count stays flat - the spinner is the proof B entered.
+    final Future<void> b = notifier.retryLoadMessages();
+    await _flushAsync();
+    expect(
+      container.read(chatViewModelProvider).isLoading,
+      isTrue,
+      reason: "B owns the spinner now - it armed over A, or this is vacuous",
+    );
+
+    // Both parked fetches complete together; only B's commit owns the arm.
+    adapter.releaseLatestFetch();
+    await b;
+    await _flushAsync();
+
+    final ChatViewState end = container.read(chatViewModelProvider);
+    expect(
+      end.messages.last.id,
+      _snowflakeForIndex(399),
+      reason: "B's page installed",
+    );
+    expect(
+      end.scrollToBottomSignal,
+      signalBefore,
+      reason:
+          'A installed nothing, so A must not scroll - and the retry never '
+          'scrolls by design',
+    );
+
+    // The same recovery WITHOUT a sibling applies, and the guarded
+    // post-commit callback is what scrolls: exactly one bump.
+    container.read(gatewaySessionRecoveryProvider.notifier).bump();
+    await _flushAsync();
+    expect(
+      container.read(chatViewModelProvider).scrollToBottomSignal,
+      signalBefore + 1,
+      reason: 'the install that applied owns the scroll',
+    );
+  });
+
   test('m13: a failed removal leaves the next operation on the confirmed '
       'baseline', () async {
     // The failure leg of the serialised queue. A is held and will fail; B is

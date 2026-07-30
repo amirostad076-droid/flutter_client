@@ -2202,6 +2202,7 @@ void main() {
       await _disposeMessageList(tester);
     });
 
+
     testWidgets(
       'centers a fresh targetMessageId after its around-window loads',
       (WidgetTester tester) async {
@@ -4752,6 +4753,7 @@ class _InstrumentedChatViewModel extends ChatViewModel {
 
   final ChatViewState _initialState;
   int _loadNewerCallCount = 0;
+  int _loadMoreCallCount = 0;
   String? _latestReplacementNewestId;
 
   @override
@@ -4908,3 +4910,4 @@ class _PagingInstrumentedChatViewModel extends _InstrumentedChatViewModel {
     );
   }
 }
+

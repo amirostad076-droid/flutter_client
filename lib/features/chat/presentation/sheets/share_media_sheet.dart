@@ -303,7 +303,10 @@ class _ShareMediaSheetBodyState extends ConsumerState<_ShareMediaSheetBody> {
 
     return ListView.builder(
       controller: widget.scrollController,
-      padding: EdgeInsets.zero,
+      padding: FluxerBottomSheet.scrollViewPadding(
+        context,
+        padding: EdgeInsets.zero,
+      ),
       itemCount: items.length,
       itemBuilder: (BuildContext context, int index) {
         final Object item = items[index];

@@ -44,7 +44,7 @@ class _SeededSearch extends ChannelSearch {
       query: MessageSearchQuery(
         channelId: channelId,
         guildId: guildId,
-        text: 'hello',
+        rawQuery: 'hello',
       ),
       hasSearched: true,
       total: 3,

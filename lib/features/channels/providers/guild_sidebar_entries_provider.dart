@@ -53,6 +53,24 @@ bool _hasVisibleUnreadForChannel({
   ).hasVisibleUnread;
 }
 
+bool _hasMentionsForChannel({
+  required UnreadState? unread,
+  required Set<String> mutedSet,
+  required String channelId,
+  required bool showFadedUnread,
+}) {
+  if (unread == null) {
+    return false;
+  }
+  return getChannelUnreadState(
+    unreadCount: unread.hasUnreadMessages ? 1 : 0,
+    mentionCount: unread.mentionCount,
+    isMuted: mutedSet.contains(channelId),
+    showFadedUnreadOnMutedChannels: showFadedUnread,
+    unreadBadgesLevel: unread.unreadBadgesLevel,
+  ).hasMentions;
+}
+
 List<GuildSidebarEntry> flattenGuildSidebarEntries({
   required List<ChannelCategory> categories,
   required Set<String> collapsed,
@@ -72,9 +90,9 @@ List<GuildSidebarEntry> flattenGuildSidebarEntries({
     final List<Channel> base = <Channel>[];
     for (final Channel channel in category.channels) {
       if (hideMuted) {
-        final bool hasVisibleUnread =
+        final bool hasMentions =
             mutedSet.contains(channel.id) &&
-            _hasVisibleUnreadForChannel(
+            _hasMentionsForChannel(
               unread: unreadForChannel(channel.id),
               mutedSet: mutedSet,
               channelId: channel.id,
@@ -85,7 +103,7 @@ List<GuildSidebarEntry> flattenGuildSidebarEntries({
           mutedChannelIds: mutedSet,
           selectedChannelId: selectedId,
           connectedChannelId: connectedChannelId,
-          hasVisibleUnread: hasVisibleUnread,
+          hasMentions: hasMentions,
         )) {
           continue;
         }

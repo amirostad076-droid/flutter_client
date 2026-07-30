@@ -57,10 +57,13 @@ class QuickSwitcherFriendsList extends ConsumerWidget {
     return ListView(
       controller: scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: EdgeInsets.only(
-        left: context.layout.s3,
-        right: context.layout.s3,
-        bottom: context.layout.s5,
+      padding: FluxerBottomSheet.scrollViewPadding(
+        context,
+        padding: EdgeInsets.only(
+          left: context.layout.s3,
+          right: context.layout.s3,
+          bottom: context.layout.s5,
+        ),
       ),
       children: <Widget>[
         for (final String letter in letters) ...<Widget>[

@@ -152,9 +152,12 @@ class _MessageReactionsSheetBodyState
               }
               return ListView.builder(
                 controller: widget.scrollController,
-                padding: EdgeInsets.symmetric(
-                  horizontal: context.layout.s4,
-                  vertical: context.layout.s2,
+                padding: FluxerBottomSheet.scrollViewPadding(
+                  context,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: context.layout.s4,
+                    vertical: context.layout.s2,
+                  ),
                 ),
                 itemCount: data.users.length + (data.isLoadingMore ? 1 : 0),
                 itemBuilder: (context, index) {

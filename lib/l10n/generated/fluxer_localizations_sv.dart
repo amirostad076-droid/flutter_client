@@ -838,6 +838,12 @@ class FluxerLocalizationsSv extends FluxerLocalizations {
   String get notificationUnmuteChannel => 'Avtysta kanal';
 
   @override
+  String get notificationUseCategoryDefault => 'Use Category Default';
+
+  @override
+  String get notificationUseCommunityDefault => 'Use Community Default';
+
+  @override
   String get notificationNoCategory => 'Ingen kategori';
 
   @override
@@ -3444,6 +3450,13 @@ class FluxerLocalizationsSv extends FluxerLocalizations {
   String get chatAttachmentDownload => 'Ladda ner';
 
   @override
+  String get chatAttachmentDownloadedToast => 'Saved to photos';
+
+  @override
+  String get chatAttachmentDownloadFailedToast =>
+      'Couldn\'t download attachment';
+
+  @override
   String get chatAttachmentExpiredTooltip => 'Bilagan har gått ut';
 
   @override
@@ -4552,6 +4565,9 @@ class FluxerLocalizationsSv extends FluxerLocalizations {
   String get voiceChannelJoin => 'Anslut till röstkanal';
 
   @override
+  String get voiceCallJoin => 'Join call';
+
+  @override
   String get voiceChannelJoinConnect => 'Anslut till röst';
 
   @override
@@ -4657,6 +4673,105 @@ class FluxerLocalizationsSv extends FluxerLocalizations {
 
   @override
   String get voiceControlDisconnect => 'Koppla från';
+
+  @override
+  String get voiceInChat => 'In voice chat';
+
+  @override
+  String get voiceConnectionFailed => 'Connection failed';
+
+  @override
+  String get voiceConnectionRetry => 'Try again';
+
+  @override
+  String get voiceConnectionDismiss => 'Dismiss';
+
+  @override
+  String get voiceConnectionDisconnected => 'Disconnected';
+
+  @override
+  String voicePingMs(int currentLatency) {
+    return 'Ping: ${currentLatency}ms';
+  }
+
+  @override
+  String get voiceMeasuringLatency => 'Measuring latency...';
+
+  @override
+  String voiceJumpToChannel(String channelSourceLabel) {
+    return 'Jump to $channelSourceLabel';
+  }
+
+  @override
+  String get voiceConnectionTitle => 'Voice connection';
+
+  @override
+  String get voiceConnectionAdvancedStats => 'Advanced';
+
+  @override
+  String get voiceShowCallAvatars => 'Show call avatars';
+
+  @override
+  String get voiceShowConnectionId => 'Show connection ID';
+
+  @override
+  String get voiceAudioProcessing => 'Audio processing';
+
+  @override
+  String get voiceConnectionSessionSection => 'Session';
+
+  @override
+  String get voiceConnectionDurationLabel => 'Duration';
+
+  @override
+  String get voiceConnectionParticipantsLabel => 'Participants';
+
+  @override
+  String get voiceConnectionNetworkSection => 'Network';
+
+  @override
+  String get voiceConnectionPingLabel => 'Ping';
+
+  @override
+  String get voiceConnectionJitterLabel => 'Jitter';
+
+  @override
+  String get voiceConnectionSendLabel => 'Send';
+
+  @override
+  String get voiceConnectionReceiveLabel => 'Receive';
+
+  @override
+  String get voiceConnectionUnavailable => '—';
+
+  @override
+  String voiceConnectionDuration(int minutes, int seconds) {
+    return '${minutes}m ${seconds}s';
+  }
+
+  @override
+  String voiceConnectionLatencyMs(int latency) {
+    return '$latency ms';
+  }
+
+  @override
+  String voiceConnectionJitterMs(String jitter) {
+    return '$jitter ms';
+  }
+
+  @override
+  String voiceConnectionBandwidthKbps(String bandwidth) {
+    return '$bandwidth kbps';
+  }
+
+  @override
+  String get userAreaMuteMicrophone => 'Mute microphone';
+
+  @override
+  String get userAreaUnmuteMicrophone => 'Unmute microphone';
+
+  @override
+  String get userAreaUserSettings => 'User settings';
 
   @override
   String get voiceParticipantMenuViewProfile => 'View profile';
@@ -5050,6 +5165,12 @@ class FluxerLocalizationsSv extends FluxerLocalizations {
 
   @override
   String get chatReactionsSheetEmpty => 'Ingen har reagerat på detta än.';
+
+  @override
+  String get chatReactionAddFailed => 'Failed to add reaction';
+
+  @override
+  String get chatReactionRemoveFailed => 'Failed to remove reaction';
 
   @override
   String get chatMessageReport => 'Anmäl meddelande';
@@ -6358,6 +6479,25 @@ class FluxerLocalizationsSv extends FluxerLocalizations {
   String get channelDetailsPinsEndReached => 'You\'ve reached the end';
 
   @override
+  String get channelHeaderOpenDetails => 'Open channel details';
+
+  @override
+  String get channelHeaderPinnedMessages => 'Pinned messages';
+
+  @override
+  String get channelHeaderPinnedMessagesUnread => 'Pinned messages, unread';
+
+  @override
+  String get channelHeaderMemberList => 'Member list';
+
+  @override
+  String get channelHeaderInbox => 'Inbox';
+
+  @override
+  String get channelHeaderNotificationSettingsMuted =>
+      'Notification settings, muted';
+
+  @override
   String get channelDetailsSearchTitle => 'Search';
 
   @override
@@ -6373,11 +6513,88 @@ class FluxerLocalizationsSv extends FluxerLocalizations {
   String get channelDetailsSearchFilterSort => 'Sort';
 
   @override
+  String get channelHeaderSearchFiltersTitle => 'Search Filters';
+
+  @override
+  String get channelHeaderSearchRecentTitle => 'Recent Searches';
+
+  @override
+  String get channelHeaderSearchUsersTitle => 'Users';
+
+  @override
+  String get channelHeaderSearchChannelsTitle => 'Channels';
+
+  @override
+  String get channelHeaderSearchValuesTitle => 'Values';
+
+  @override
+  String get channelHeaderSearchDatesTitle => 'Dates';
+
+  @override
+  String get channelHeaderSearchDefaultBadge => 'Default';
+
+  @override
+  String get channelHeaderSearchClearHistory => 'Clear';
+
+  @override
+  String get channelHeaderSearchFilterDescFrom => 'a user';
+
+  @override
+  String get channelHeaderSearchFilterDescMentions => 'a user';
+
+  @override
+  String get channelHeaderSearchFilterDescHas =>
+      'link, embed, image, video, sound, file, sticker, …';
+
+  @override
+  String get channelHeaderSearchFilterDescBefore => 'a date or date range';
+
+  @override
+  String get channelHeaderSearchFilterDescOn => 'a date or date range';
+
+  @override
+  String get channelHeaderSearchFilterDescDuring => 'a date or date range';
+
+  @override
+  String get channelHeaderSearchFilterDescAfter => 'a date or date range';
+
+  @override
+  String get channelHeaderSearchFilterDescIn => 'a channel';
+
+  @override
+  String get channelHeaderSearchFilterDescPinned => 'true or false';
+
+  @override
+  String get channelHeaderSearchFilterDescAuthorType => 'user, bot, or webhook';
+
+  @override
+  String get channelHeaderSearchFilterDescLinkFrom =>
+      'a hostname, e.g. example.com';
+
+  @override
+  String get channelHeaderSearchFilterDescFileName =>
+      'part of an attachment filename';
+
+  @override
+  String get channelHeaderSearchFilterDescFileType =>
+      'a file extension, e.g. png';
+
+  @override
+  String get channelHeaderSearchFilterDescSort => 'timestamp or relevance';
+
+  @override
+  String get channelHeaderSearchFilterDescOrder => 'asc or desc';
+
+  @override
   String channelDetailsSearchResultCount(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count Results',
+      other: '$countString Results',
       one: '1 Result',
     );
     return '$_temp0';
@@ -8071,6 +8288,9 @@ class FluxerLocalizationsSv extends FluxerLocalizations {
 
   @override
   String get guildSettingsRolesBackToRoles => 'Back to roles';
+
+  @override
+  String get guildSettingsBackToSettings => 'Back to settings';
 
   @override
   String guildSettingsRolesEditTitle(String name) {

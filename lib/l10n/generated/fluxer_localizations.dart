@@ -1630,6 +1630,18 @@ abstract class FluxerLocalizations {
   /// **'Unmute Channel'**
   String get notificationUnmuteChannel;
 
+  /// Radio option to inherit notification settings from the channel category.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Category Default'**
+  String get notificationUseCategoryDefault;
+
+  /// Radio option to inherit notification settings from the community.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Community Default'**
+  String get notificationUseCommunityDefault;
+
   /// Fallback category name for channels without a parent category.
   ///
   /// In en, this message translates to:
@@ -5836,6 +5848,18 @@ abstract class FluxerLocalizations {
   /// **'Download'**
   String get chatAttachmentDownload;
 
+  /// Toast shown after an attachment is saved to the device.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to photos'**
+  String get chatAttachmentDownloadedToast;
+
+  /// Toast shown when an attachment download fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t download attachment'**
+  String get chatAttachmentDownloadFailedToast;
+
   /// Tooltip when a file attachment link is no longer available.
   ///
   /// In en, this message translates to:
@@ -7657,8 +7681,14 @@ abstract class FluxerLocalizations {
   /// Primary action to connect to a voice channel from the empty state.
   ///
   /// In en, this message translates to:
-  /// **'Join Voice Channel'**
+  /// **'Join voice channel'**
   String get voiceChannelJoin;
+
+  /// Primary CTA in the DM or group DM pre-join call empty state.
+  ///
+  /// In en, this message translates to:
+  /// **'Join call'**
+  String get voiceCallJoin;
 
   /// Primary action in the mobile bottom sheet before joining a voice channel from the channel list.
   ///
@@ -7839,6 +7869,180 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Disconnect'**
   String get voiceControlDisconnect;
+
+  /// Short status label shown when the user is currently connected to voice chat.
+  ///
+  /// In en, this message translates to:
+  /// **'In voice chat'**
+  String get voiceInChat;
+
+  /// Voice connection status when the most recent attempt to join the channel failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection failed'**
+  String get voiceConnectionFailed;
+
+  /// Button that retries connecting to the voice channel after a failed attempt.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get voiceConnectionRetry;
+
+  /// Button that dismisses the failed voice connection status banner.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get voiceConnectionDismiss;
+
+  /// Voice connection status when not connected.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnected'**
+  String get voiceConnectionDisconnected;
+
+  /// Compact latency badge on the voice control bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Ping: {currentLatency}ms'**
+  String voicePingMs(int currentLatency);
+
+  /// Tooltip on the latency badge while voice latency is still being sampled.
+  ///
+  /// In en, this message translates to:
+  /// **'Measuring latency...'**
+  String get voiceMeasuringLatency;
+
+  /// Tooltip on a button that jumps to the channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump to {channelSourceLabel}'**
+  String voiceJumpToChannel(String channelSourceLabel);
+
+  /// Voice status popout title.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice connection'**
+  String get voiceConnectionTitle;
+
+  /// Disclosure button label in the voice connection status popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get voiceConnectionAdvancedStats;
+
+  /// Developer voice status menu option for displaying participant avatars.
+  ///
+  /// In en, this message translates to:
+  /// **'Show call avatars'**
+  String get voiceShowCallAvatars;
+
+  /// Developer voice status menu option for displaying the voice connection identifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Show connection ID'**
+  String get voiceShowConnectionId;
+
+  /// Tooltip for the audio processing button in the voice connection status.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio processing'**
+  String get voiceAudioProcessing;
+
+  /// Section title for session stats in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Session'**
+  String get voiceConnectionSessionSection;
+
+  /// Row label for voice session duration in the connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get voiceConnectionDurationLabel;
+
+  /// Row label for participant count in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Participants'**
+  String get voiceConnectionParticipantsLabel;
+
+  /// Section title for network stats in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Network'**
+  String get voiceConnectionNetworkSection;
+
+  /// Row label for ping latency in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Ping'**
+  String get voiceConnectionPingLabel;
+
+  /// Row label for jitter in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Jitter'**
+  String get voiceConnectionJitterLabel;
+
+  /// Row label for outbound bandwidth in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get voiceConnectionSendLabel;
+
+  /// Row label for inbound bandwidth in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive'**
+  String get voiceConnectionReceiveLabel;
+
+  /// Placeholder when a voice connection stat is not available.
+  ///
+  /// In en, this message translates to:
+  /// **'—'**
+  String get voiceConnectionUnavailable;
+
+  /// Formatted voice session duration in the connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m {seconds}s'**
+  String voiceConnectionDuration(int minutes, int seconds);
+
+  /// Formatted ping latency value in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'{latency} ms'**
+  String voiceConnectionLatencyMs(int latency);
+
+  /// Formatted jitter value in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'{jitter} ms'**
+  String voiceConnectionJitterMs(String jitter);
+
+  /// Formatted bandwidth value in the voice connection details popout.
+  ///
+  /// In en, this message translates to:
+  /// **'{bandwidth} kbps'**
+  String voiceConnectionBandwidthKbps(String bandwidth);
+
+  /// Tooltip for the mute button in the desktop user area.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute microphone'**
+  String get userAreaMuteMicrophone;
+
+  /// Tooltip for the unmute button in the desktop user area.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute microphone'**
+  String get userAreaUnmuteMicrophone;
+
+  /// Tooltip for the settings button in the desktop user area.
+  ///
+  /// In en, this message translates to:
+  /// **'User settings'**
+  String get userAreaUserSettings;
 
   /// Voice participant context menu item to open the user's profile.
   ///
@@ -8533,6 +8737,18 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Nobody has reacted with this yet.'**
   String get chatReactionsSheetEmpty;
+
+  /// Toast shown when the server rejects adding a reaction after an optimistic update.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to add reaction'**
+  String get chatReactionAddFailed;
+
+  /// Toast shown when the server rejects removing a reaction after an optimistic update.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to remove reaction'**
+  String get chatReactionRemoveFailed;
 
   /// Action label that opens the report-message sheet so the user can flag the message to moderators.
   ///
@@ -10728,6 +10944,42 @@ abstract class FluxerLocalizations {
   /// **'You\'ve reached the end'**
   String get channelDetailsPinsEndReached;
 
+  /// Accessibility label for the channel header title area.
+  ///
+  /// In en, this message translates to:
+  /// **'Open channel details'**
+  String get channelHeaderOpenDetails;
+
+  /// Toolbar button label for pinned messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned messages'**
+  String get channelHeaderPinnedMessages;
+
+  /// Toolbar button label when pinned messages have unread items.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned messages, unread'**
+  String get channelHeaderPinnedMessagesUnread;
+
+  /// Toolbar button label for toggling the member list panel.
+  ///
+  /// In en, this message translates to:
+  /// **'Member list'**
+  String get channelHeaderMemberList;
+
+  /// Toolbar button label for the inbox popout.
+  ///
+  /// In en, this message translates to:
+  /// **'Inbox'**
+  String get channelHeaderInbox;
+
+  /// Toolbar button label for notification settings when the channel is muted.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification settings, muted'**
+  String get channelHeaderNotificationSettingsMuted;
+
   /// Title for the channel search bottom sheet.
   ///
   /// In en, this message translates to:
@@ -10757,6 +11009,144 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Sort'**
   String get channelDetailsSearchFilterSort;
+
+  /// Section header for inline channel search filter shortcuts.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Filters'**
+  String get channelHeaderSearchFiltersTitle;
+
+  /// Section header for inline channel search history.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Searches'**
+  String get channelHeaderSearchRecentTitle;
+
+  /// Section title for user filter autocomplete
+  ///
+  /// In en, this message translates to:
+  /// **'Users'**
+  String get channelHeaderSearchUsersTitle;
+
+  /// Section title for channel filter autocomplete
+  ///
+  /// In en, this message translates to:
+  /// **'Channels'**
+  String get channelHeaderSearchChannelsTitle;
+
+  /// Section title for filter value autocomplete
+  ///
+  /// In en, this message translates to:
+  /// **'Values'**
+  String get channelHeaderSearchValuesTitle;
+
+  /// Section title for date filter autocomplete
+  ///
+  /// In en, this message translates to:
+  /// **'Dates'**
+  String get channelHeaderSearchDatesTitle;
+
+  /// Badge shown on default filter value options
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get channelHeaderSearchDefaultBadge;
+
+  /// Button to clear recent channel search history.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get channelHeaderSearchClearHistory;
+
+  /// Description for the from: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'a user'**
+  String get channelHeaderSearchFilterDescFrom;
+
+  /// Description for the mentions: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'a user'**
+  String get channelHeaderSearchFilterDescMentions;
+
+  /// Description for the has: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'link, embed, image, video, sound, file, sticker, …'**
+  String get channelHeaderSearchFilterDescHas;
+
+  /// Description for the before: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'a date or date range'**
+  String get channelHeaderSearchFilterDescBefore;
+
+  /// Description for the on: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'a date or date range'**
+  String get channelHeaderSearchFilterDescOn;
+
+  /// Description for the during: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'a date or date range'**
+  String get channelHeaderSearchFilterDescDuring;
+
+  /// Description for the after: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'a date or date range'**
+  String get channelHeaderSearchFilterDescAfter;
+
+  /// Description for the in: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'a channel'**
+  String get channelHeaderSearchFilterDescIn;
+
+  /// Description for the pinned: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'true or false'**
+  String get channelHeaderSearchFilterDescPinned;
+
+  /// Description for the author-type: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'user, bot, or webhook'**
+  String get channelHeaderSearchFilterDescAuthorType;
+
+  /// Description for the link-from: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'a hostname, e.g. example.com'**
+  String get channelHeaderSearchFilterDescLinkFrom;
+
+  /// Description for the file-name: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'part of an attachment filename'**
+  String get channelHeaderSearchFilterDescFileName;
+
+  /// Description for the file-type: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'a file extension, e.g. png'**
+  String get channelHeaderSearchFilterDescFileType;
+
+  /// Description for the sort: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'timestamp or relevance'**
+  String get channelHeaderSearchFilterDescSort;
+
+  /// Description for the order: search filter.
+  ///
+  /// In en, this message translates to:
+  /// **'asc or desc'**
+  String get channelHeaderSearchFilterDescOrder;
 
   /// Result count label in channel message search.
   ///
@@ -13733,6 +14123,12 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Back to roles'**
   String get guildSettingsRolesBackToRoles;
+
+  /// Button in community settings that returns from a nested sidebar to the main settings tab list.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to settings'**
+  String get guildSettingsBackToSettings;
 
   /// Title for the role editor panel.
   ///

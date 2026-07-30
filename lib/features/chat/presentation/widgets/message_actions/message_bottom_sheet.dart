@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/features/chat/domain/chat_fullscreen_video_launch_context.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/sheets/message_debug_sheet.dart';
+import 'package:fluxer_app/features/chat/presentation/sheets/message_reactions_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/sheets/unpin_message_confirm_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_actions/quick_reaction_row.dart';
 import 'package:fluxer_app/features/chat/providers/channel/channel_details_providers.dart';
@@ -183,7 +184,12 @@ Future<void> dispatchMessageAction({
         ),
       );
     case MessageAction.viewReactions:
-      callbacks.onViewReactions?.call();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) {
+          return;
+        }
+        unawaited(showMessageReactionsSheet(context, message: message));
+      });
     case MessageAction.removeAllReactions:
       callbacks.onRemoveAllReactions?.call();
     case MessageAction.report:
@@ -200,6 +206,7 @@ List<Widget> buildMessageActionMenuGroups({
   required MessageActionPermissions permissions,
   required ValueChanged<MessageAction> onAction,
   MessageActionCallbacks? attachmentCallbacks,
+  VoidCallback? onCloseMenu,
 }) {
   final FluxerLocalizations l10n = FluxerLocalizations.of(context);
 
@@ -341,6 +348,9 @@ List<Widget> buildMessageActionMenuGroups({
       ),
   ];
 
+  final void Function() closeMenu =
+      onCloseMenu ?? () => Navigator.of(context).pop();
+
   final List<Widget> attachmentItems = <Widget>[
     for (final Attachment attachment in message.attachments) ...<Widget>[
       if (showMediaDeleteButton &&
@@ -356,7 +366,7 @@ List<Widget> buildMessageActionMenuGroups({
           isDanger: true,
           onTap: () {
             attachmentCallbacks?.onDeleteAttachment?.call(attachment);
-            Navigator.of(context).pop();
+            closeMenu();
           },
         ),
       if (canEditAttachmentAltText(
@@ -372,7 +382,7 @@ List<Widget> buildMessageActionMenuGroups({
           hint: attachment.filename,
           onTap: () {
             attachmentCallbacks?.onEditAttachmentAltText?.call(attachment);
-            Navigator.of(context).pop();
+            closeMenu();
           },
         ),
     ],
@@ -461,7 +471,10 @@ class _MessageBottomSheetBody extends ConsumerWidget {
 
     return SingleChildScrollView(
       controller: scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: FluxerBottomSheet.scrollViewPadding(
+        context,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

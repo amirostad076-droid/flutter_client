@@ -25,8 +25,6 @@ import 'package:fluxer_app/features/chat/presentation/'
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/forward_message_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
-    'sheets/message_reactions_sheet.dart';
-import 'package:fluxer_app/features/chat/presentation/'
     'sheets/remove_all_reactions_confirm_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/system_message_actions_sheet.dart';
@@ -81,6 +79,7 @@ import 'package:fluxer_app/features/settings/providers/user_settings_view_model.
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/providers/input_modality_provider.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -503,6 +502,9 @@ class _MessageListState extends ConsumerState<MessageList> {
   }
 
   void _scheduleScrollCacheExpansion(int messageCount) {
+    if (messageCount >= kTrimmedMessageWindowSize) {
+      _expandScrollCacheNow();
+    }
     if (messageCount == 0 || !_useCompactScrollCache) {
       return;
     }
@@ -860,7 +862,6 @@ class _MessageListState extends ConsumerState<MessageList> {
     _pendingScrollTarget = null;
     _pendingScrollTargetChannelId = null;
   }
-
   List<ChannelStreamItem> _channelStreamFor({
     required List<Message> messages,
     required String? oldestUnreadMessageId,
@@ -1201,6 +1202,8 @@ class _MessageListState extends ConsumerState<MessageList> {
           channelPermissionBits: channelPermissionBits,
         );
         final bool isMobile = isMobileLayout(context);
+        final bool touchPrimary = isTouchPrimaryInput(ref);
+        final bool useTouchMessageActions = isMobile || touchPrimary;
         final bool isPinSystemMessage =
             message.type == messageTypeChannelPinnedMessage;
         return _withMessageSeparators(
@@ -1227,7 +1230,7 @@ class _MessageListState extends ConsumerState<MessageList> {
                     ),
                   )
                 : null,
-            onLongPress: isMobile
+            onLongPress: useTouchMessageActions
                 ? () => unawaited(
                     showSystemMessageActionsSheet(
                       context,
@@ -1242,7 +1245,7 @@ class _MessageListState extends ConsumerState<MessageList> {
                     ),
                   )
                 : null,
-            onSecondaryTapUp: !isMobile
+            onSecondaryTapUp: !useTouchMessageActions
                 ? (_) => unawaited(
                     showSystemMessageActionsSheet(
                       context,
@@ -1334,8 +1337,6 @@ class _MessageListState extends ConsumerState<MessageList> {
             onMarkAsUnread: () => ref
                 .read(chatViewModelProvider.notifier)
                 .markMessageUnread(message.id),
-            onViewReactions: () =>
-                unawaited(showMessageReactionsSheet(context, message: message)),
             onReport: () => unawaited(
               showSimpleIarReportSheet(
                 context,
