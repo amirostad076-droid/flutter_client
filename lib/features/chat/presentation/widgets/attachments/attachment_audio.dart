@@ -7,6 +7,7 @@ import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/utils/attachment_display_utils.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
+import 'package:fluxer_app/shared/widgets/playback_seek_gesture_target.dart';
 import 'package:fluxer_app/shared/widgets/volume_popout_control.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -246,15 +247,6 @@ class _AttachmentAudioState extends State<AttachmentAudio> {
     }
   }
 
-  Future<void> _seekFromGlobalPosition({
-    required double globalDx,
-    required RenderBox renderBox,
-  }) async {
-    final Offset local = renderBox.globalToLocal(Offset(globalDx, 0));
-    final double relative = local.dx / renderBox.size.width;
-    await _seekToRelativePosition(relative);
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -329,52 +321,27 @@ class _AttachmentAudioState extends State<AttachmentAudio> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 6),
           Row(
             children: [
               Expanded(
-                child: Builder(
-                  builder: (BuildContext context) {
-                    return GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTapDown: (TapDownDetails details) async {
-                        final RenderObject? renderObject = context
-                            .findRenderObject();
-                        if (renderObject is! RenderBox) {
-                          return;
-                        }
-                        await _seekFromGlobalPosition(
-                          globalDx: details.globalPosition.dx,
-                          renderBox: renderObject,
-                        );
-                      },
-                      onHorizontalDragUpdate:
-                          (DragUpdateDetails details) async {
-                            final RenderObject? renderObject = context
-                                .findRenderObject();
-                            if (renderObject is! RenderBox) {
-                              return;
-                            }
-                            await _seekFromGlobalPosition(
-                              globalDx: details.globalPosition.dx,
-                              renderBox: renderObject,
-                            );
-                          },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(99),
-                        child: LinearProgressIndicator(
-                          value: progress,
-                          minHeight: 4,
-                          backgroundColor: colors.textTertiary.withValues(
-                            alpha: 0.35,
-                          ),
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            colors.brandPrimary,
-                          ),
-                        ),
-                      ),
-                    );
+                child: PlaybackSeekGestureTarget(
+                  onSeekFraction: (double fraction) {
+                    unawaited(_seekToRelativePosition(fraction));
                   },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(99),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 4,
+                      backgroundColor: colors.textTertiary.withValues(
+                        alpha: 0.35,
+                      ),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        colors.brandPrimary,
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -387,7 +354,7 @@ class _AttachmentAudioState extends State<AttachmentAudio> {
               ),
             ],
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 2),
           Row(
             children: [
               VolumePopoutControl(
