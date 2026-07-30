@@ -511,7 +511,7 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
               layout.s4,
               layout.s2,
               layout.s4,
-              layout.s4,
+              layout.s4 + FluxerBottomSheet.scrollBottomPaddingOf(context),
             ),
             sliver: SliverList(
               delegate: SliverChildListDelegate.fixed(<Widget>[

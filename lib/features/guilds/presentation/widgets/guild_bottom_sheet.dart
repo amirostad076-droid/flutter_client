@@ -73,7 +73,10 @@ Future<GuildAction?> showGuildBottomSheet(
 
       return ListView(
         controller: scrollController,
-        padding: EdgeInsets.fromLTRB(layout.s4, 0, layout.s4, layout.s4),
+        padding: FluxerBottomSheet.scrollViewPadding(
+          sheetContext,
+          padding: EdgeInsets.fromLTRB(layout.s4, 0, layout.s4, layout.s4),
+        ),
         children: [FluxerBottomSheetGroupColumn(children: menuGroups)],
       );
     },
@@ -145,7 +148,10 @@ void _openMuteSubmenu(BuildContext context, GuildMenuSubmenu submenu) {
 
         return ListView(
           controller: scrollController,
-          padding: EdgeInsets.fromLTRB(layout.s4, 0, layout.s4, layout.s4),
+          padding: FluxerBottomSheet.scrollViewPadding(
+            sheetContext,
+            padding: EdgeInsets.fromLTRB(layout.s4, 0, layout.s4, layout.s4),
+          ),
           children: [
             FluxerBottomSheetGroupColumn(
               children: [
@@ -187,7 +193,10 @@ void _openGenericSubmenu(BuildContext context, GuildMenuSubmenu submenu) {
 
         return ListView(
           controller: scrollController,
-          padding: EdgeInsets.fromLTRB(layout.s4, 0, layout.s4, layout.s4),
+          padding: FluxerBottomSheet.scrollViewPadding(
+            sheetContext,
+            padding: EdgeInsets.fromLTRB(layout.s4, 0, layout.s4, layout.s4),
+          ),
           children: [
             FluxerBottomSheetGroupColumn(
               children: [

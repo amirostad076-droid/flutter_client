@@ -3405,203 +3405,201 @@ class _GuildListItemState extends State<_GuildListItem>
 
         return SingleChildScrollView(
           controller: scrollController,
-          child: Padding(
+          padding: FluxerBottomSheet.scrollViewPadding(
+            sheetContext,
             padding: EdgeInsets.symmetric(horizontal: layout.s4),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ValueListenableBuilder<bool>(
-                  valueListenable: muted,
-                  builder: (_, isMuted, _) => _PrivacySwitchRow(
-                    label: l10n.notificationMuteGuild(widget.guild!.name),
-                    description: l10n.notificationMuteDescription,
-                    value: isMuted,
-                    onChanged: (value) {
-                      muted.value = value;
-                      widget.onUpdateNotificationSetting?.call(muted: value);
-                    },
-                  ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ValueListenableBuilder<bool>(
+                valueListenable: muted,
+                builder: (_, isMuted, _) => _PrivacySwitchRow(
+                  label: l10n.notificationMuteGuild(widget.guild!.name),
+                  description: l10n.notificationMuteDescription,
+                  value: isMuted,
+                  onChanged: (value) {
+                    muted.value = value;
+                    widget.onUpdateNotificationSetting?.call(muted: value);
+                  },
                 ),
+              ),
 
-                SizedBox(height: layout.s6),
-                Text(
-                  l10n.notificationCommunitySettings,
-                  style: textStyles.bodySmall.copyWith(
-                    color: colors.textPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
+              SizedBox(height: layout.s6),
+              Text(
+                l10n.notificationCommunitySettings,
+                style: textStyles.bodySmall.copyWith(
+                  color: colors.textPrimary,
+                  fontWeight: FontWeight.w600,
                 ),
-                SizedBox(height: layout.s3),
-                ValueListenableBuilder<int>(
-                  valueListenable: notifLevel,
-                  builder: (_, level, _) => FluxerRadioGroup<int>(
-                    value: level,
-                    items: [
-                      FluxerRadioItem(
-                        value: 0,
-                        label: l10n.notificationAllMessages,
-                      ),
-                      FluxerRadioItem(
-                        value: 1,
-                        label: l10n.notificationOnlyMentions,
-                      ),
-                      FluxerRadioItem(
-                        value: 2,
-                        label: l10n.notificationNothing,
-                      ),
-                    ],
-                    onChanged: (value) {
-                      notifLevel.value = value;
-                      widget.onUpdateNotificationSetting?.call(
-                        messageNotifications: UserNotificationSettings.fromJson(
-                          value,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                SizedBox(height: layout.s6),
-                FluxerSwitchGroup(
-                  children: [
-                    ValueListenableBuilder<bool>(
-                      valueListenable: suppressEveryone,
-                      builder: (_, suppress, _) => FluxerSwitchGroupItem(
-                        label: l10n.notificationSuppressEveryone,
-                        value: suppress,
-                        onChanged: (value) {
-                          suppressEveryone.value = value;
-                          widget.onUpdateNotificationSetting?.call(
-                            suppressEveryone: value,
-                          );
-                        },
-                      ),
+              ),
+              SizedBox(height: layout.s3),
+              ValueListenableBuilder<int>(
+                valueListenable: notifLevel,
+                builder: (_, level, _) => FluxerRadioGroup<int>(
+                  value: level,
+                  items: [
+                    FluxerRadioItem(
+                      value: 0,
+                      label: l10n.notificationAllMessages,
                     ),
-                    ValueListenableBuilder<bool>(
-                      valueListenable: suppressRoles,
-                      builder: (_, suppress, _) => FluxerSwitchGroupItem(
-                        label: l10n.notificationSuppressRoles,
-                        value: suppress,
-                        onChanged: (value) {
-                          suppressRoles.value = value;
-                          widget.onUpdateNotificationSetting?.call(
-                            suppressRoles: value,
-                          );
-                        },
-                      ),
+                    FluxerRadioItem(
+                      value: 1,
+                      label: l10n.notificationOnlyMentions,
                     ),
+                    FluxerRadioItem(value: 2, label: l10n.notificationNothing),
                   ],
-                ),
-
-                SizedBox(height: layout.s6),
-                FluxerSwitchGroup(
-                  children: [
-                    ValueListenableBuilder<bool>(
-                      valueListenable: mobilePush,
-                      builder: (_, push, _) => FluxerSwitchGroupItem(
-                        label: l10n.notificationMobilePush,
-                        value: push,
-                        onChanged: (value) {
-                          mobilePush.value = value;
-                          widget.onUpdateNotificationSetting?.call(
-                            mobilePush: value,
-                          );
-                        },
+                  onChanged: (value) {
+                    notifLevel.value = value;
+                    widget.onUpdateNotificationSetting?.call(
+                      messageNotifications: UserNotificationSettings.fromJson(
+                        value,
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
+              ),
 
-                SizedBox(height: layout.s6),
-                Text(
-                  l10n.notificationOverrides,
-                  style: textStyles.bodySmall.copyWith(
-                    color: colors.textPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: layout.s3),
-                ValueListenableBuilder<
-                  Map<String, ({int messageNotifications, bool muted})>
-                >(
-                  valueListenable: overrides,
-                  builder: (_, currentOverrides, _) {
-                    final available = channels
-                        .where((c) => !currentOverrides.containsKey(c.id))
-                        .toList();
-                    return FluxerSelect<String>(
-                      hint: l10n.notificationSelectChannel,
-                      items: [
-                        for (final ch in available)
-                          FluxerSelectItem(
-                            value: ch.id,
-                            label: ch.name,
-                            icon: ChannelIcon.iconDataFor(
-                              ChannelType.fromWire(ch.type),
-                            ),
-                          ),
-                      ],
-                      onChanged: (channelId) {
-                        overrides.value = {
-                          ...overrides.value,
-                          channelId: (messageNotifications: 3, muted: false),
-                        };
-                        widget.onUpdateChannelOverride?.call(
-                          channelId,
-                          3,
-                          muted: false,
+              SizedBox(height: layout.s6),
+              FluxerSwitchGroup(
+                children: [
+                  ValueListenableBuilder<bool>(
+                    valueListenable: suppressEveryone,
+                    builder: (_, suppress, _) => FluxerSwitchGroupItem(
+                      label: l10n.notificationSuppressEveryone,
+                      value: suppress,
+                      onChanged: (value) {
+                        suppressEveryone.value = value;
+                        widget.onUpdateNotificationSetting?.call(
+                          suppressEveryone: value,
                         );
                       },
-                    );
-                  },
+                    ),
+                  ),
+                  ValueListenableBuilder<bool>(
+                    valueListenable: suppressRoles,
+                    builder: (_, suppress, _) => FluxerSwitchGroupItem(
+                      label: l10n.notificationSuppressRoles,
+                      value: suppress,
+                      onChanged: (value) {
+                        suppressRoles.value = value;
+                        widget.onUpdateNotificationSetting?.call(
+                          suppressRoles: value,
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: layout.s6),
+              FluxerSwitchGroup(
+                children: [
+                  ValueListenableBuilder<bool>(
+                    valueListenable: mobilePush,
+                    builder: (_, push, _) => FluxerSwitchGroupItem(
+                      label: l10n.notificationMobilePush,
+                      value: push,
+                      onChanged: (value) {
+                        mobilePush.value = value;
+                        widget.onUpdateNotificationSetting?.call(
+                          mobilePush: value,
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: layout.s6),
+              Text(
+                l10n.notificationOverrides,
+                style: textStyles.bodySmall.copyWith(
+                  color: colors.textPrimary,
+                  fontWeight: FontWeight.w600,
                 ),
-                ValueListenableBuilder<
-                  Map<String, ({int messageNotifications, bool muted})>
-                >(
-                  valueListenable: overrides,
-                  builder: (_, currentOverrides, _) {
-                    if (currentOverrides.isEmpty) {
-                      return const SizedBox.shrink();
-                    }
-
-                    final sorted = currentOverrides.entries.toList()
-                      ..sort((a, b) {
-                        final ca = channelMap[a.key];
-                        final cb = channelMap[b.key];
-                        if (ca == null && cb == null) {
-                          return 0;
-                        }
-                        if (ca == null) {
-                          return 1;
-                        }
-                        if (cb == null) {
-                          return -1;
-                        }
-                        final cmp = ca.position.compareTo(cb.position);
-                        return cmp != 0 ? cmp : a.key.compareTo(b.key);
-                      });
-
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(height: layout.s3),
-                        for (final entry in sorted)
-                          _buildOverrideCard(
-                            sheetContext,
-                            channelId: entry.key,
-                            channelOverride: entry.value,
-                            channel: channelMap[entry.key],
-                            channelMap: channelMap,
-                            overrides: overrides,
-                            guildNotifLevel: notifLevel.value,
+              ),
+              SizedBox(height: layout.s3),
+              ValueListenableBuilder<
+                Map<String, ({int messageNotifications, bool muted})>
+              >(
+                valueListenable: overrides,
+                builder: (_, currentOverrides, _) {
+                  final available = channels
+                      .where((c) => !currentOverrides.containsKey(c.id))
+                      .toList();
+                  return FluxerSelect<String>(
+                    hint: l10n.notificationSelectChannel,
+                    items: [
+                      for (final ch in available)
+                        FluxerSelectItem(
+                          value: ch.id,
+                          label: ch.name,
+                          icon: ChannelIcon.iconDataFor(
+                            ChannelType.fromWire(ch.type),
                           ),
-                      ],
-                    );
-                  },
-                ),
-              ],
-            ),
+                        ),
+                    ],
+                    onChanged: (channelId) {
+                      overrides.value = {
+                        ...overrides.value,
+                        channelId: (messageNotifications: 3, muted: false),
+                      };
+                      widget.onUpdateChannelOverride?.call(
+                        channelId,
+                        3,
+                        muted: false,
+                      );
+                    },
+                  );
+                },
+              ),
+              ValueListenableBuilder<
+                Map<String, ({int messageNotifications, bool muted})>
+              >(
+                valueListenable: overrides,
+                builder: (_, currentOverrides, _) {
+                  if (currentOverrides.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+
+                  final sorted = currentOverrides.entries.toList()
+                    ..sort((a, b) {
+                      final ca = channelMap[a.key];
+                      final cb = channelMap[b.key];
+                      if (ca == null && cb == null) {
+                        return 0;
+                      }
+                      if (ca == null) {
+                        return 1;
+                      }
+                      if (cb == null) {
+                        return -1;
+                      }
+                      final cmp = ca.position.compareTo(cb.position);
+                      return cmp != 0 ? cmp : a.key.compareTo(b.key);
+                    });
+
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(height: layout.s3),
+                      for (final entry in sorted)
+                        _buildOverrideCard(
+                          sheetContext,
+                          channelId: entry.key,
+                          channelOverride: entry.value,
+                          channel: channelMap[entry.key],
+                          channelMap: channelMap,
+                          overrides: overrides,
+                          guildNotifLevel: notifLevel.value,
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ],
           ),
         );
       },

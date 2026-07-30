@@ -364,7 +364,10 @@ class _EditGroupDmContentState extends ConsumerState<EditGroupDmContent> {
             child: SingleChildScrollView(
               controller: scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.symmetric(horizontal: context.layout.s4),
+              padding: FluxerBottomSheet.scrollViewPadding(
+                context,
+                padding: EdgeInsets.symmetric(horizontal: context.layout.s4),
+              ),
               child: form,
             ),
           ),
@@ -373,7 +376,8 @@ class _EditGroupDmContentState extends ConsumerState<EditGroupDmContent> {
               context.layout.s4,
               context.layout.s3,
               context.layout.s4,
-              context.layout.s4,
+              context.layout.s4 +
+                  FluxerBottomSheet.scrollBottomPaddingOf(context),
             ),
             child: saveButton,
           ),

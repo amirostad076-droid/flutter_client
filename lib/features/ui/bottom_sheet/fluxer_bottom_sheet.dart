@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/providers/obscuring_overlay_tracker_provider.dart';
@@ -130,11 +132,7 @@ class FluxerBottomSheet {
             reserveBottomInset,
             keyboardBottomInset: keyboardInset,
           );
-          final bool useExternalBottomInset =
-              variant == FluxerBottomSheetVariant.menu && bottomPadding > 0;
-          final double bottomScrollPadding = useExternalBottomInset
-              ? 0
-              : bottomPadding;
+          final bool isMenuVariant = variant == FluxerBottomSheetVariant.menu;
           final hasHeader =
               title != null ||
               subtitle != null ||
@@ -149,15 +147,9 @@ class FluxerBottomSheet {
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 maxHeight: maxHeight != null
-                    ? (mediaQuery.size.height -
-                              topPadding -
-                              (useExternalBottomInset ? bottomPadding : 0) -
-                              layout.s4) *
+                    ? (mediaQuery.size.height - topPadding - layout.s4) *
                           maxHeight
-                    : mediaQuery.size.height -
-                          topPadding -
-                          (useExternalBottomInset ? bottomPadding : 0) -
-                          layout.s4,
+                    : mediaQuery.size.height - topPadding - layout.s4,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -181,10 +173,21 @@ class FluxerBottomSheet {
                     ),
                   ],
                   Flexible(
-                    child: _FluxerBottomSheetInsetChild(
-                      bottomPadding: bottomScrollPadding,
-                      child: builder(sheetContext, close),
-                    ),
+                    child: isMenuVariant
+                        ? FluxerBottomSheetScope(
+                            bottomScrollPadding: bottomPadding,
+                            child: _FluxerBottomSheetInsetChild(
+                              bottomPadding: 0,
+                              child: Builder(
+                                builder: (scopedContext) =>
+                                    builder(scopedContext, close),
+                              ),
+                            ),
+                          )
+                        : _FluxerBottomSheetInsetChild(
+                            bottomPadding: bottomPadding,
+                            child: builder(sheetContext, close),
+                          ),
                   ),
                 ],
               ),
@@ -193,7 +196,6 @@ class FluxerBottomSheet {
 
           final sheetContent = _wrapBottomSheetSurface(
             context: sheetContext,
-            insetBelowSurface: useExternalBottomInset ? bottomPadding : 0,
             child: content,
           );
 
@@ -352,6 +354,13 @@ Widget _wrapSheetBackHandler({
 // Structural widgets
 // ---------------------------------------------------------------------------
 
+double _fluxerSystemBottomInset(MediaQueryData mediaQuery) {
+  return math.max(
+    mediaQuery.viewPadding.bottom,
+    math.max(mediaQuery.padding.bottom, mediaQuery.systemGestureInsets.bottom),
+  );
+}
+
 double _effectiveBottomSheetBottomPadding(
   BuildContext context,
   bool reserveBottomInset, {
@@ -360,18 +369,17 @@ double _effectiveBottomSheetBottomPadding(
   if (!reserveBottomInset || keyboardBottomInset > 0) {
     return 0;
   }
-  return MediaQuery.viewPaddingOf(context).bottom;
+  return _fluxerSystemBottomInset(MediaQuery.of(context));
 }
 
 Widget _wrapBottomSheetSurface({
   required BuildContext context,
   required Widget child,
-  double insetBelowSurface = 0,
 }) {
   final BottomSheetThemeData bottomSheetTheme = Theme.of(
     context,
   ).bottomSheetTheme;
-  final Widget sheetBody = Material(
+  return Material(
     color:
         bottomSheetTheme.modalBackgroundColor ??
         bottomSheetTheme.backgroundColor,
@@ -379,13 +387,6 @@ Widget _wrapBottomSheetSurface({
     shape: bottomSheetTheme.shape,
     clipBehavior: bottomSheetTheme.clipBehavior ?? Clip.antiAlias,
     child: child,
-  );
-  if (insetBelowSurface <= 0) {
-    return sheetBody;
-  }
-  return Padding(
-    padding: EdgeInsets.only(bottom: insetBelowSurface),
-    child: sheetBody,
   );
 }
 
@@ -559,10 +560,12 @@ class _FluxerDraggableScrollableSheetState
                   Expanded(
                     child: FluxerBottomSheetScope(
                       bottomScrollPadding: widget.bottomScrollPadding,
-                      child: widget.builder(
-                        widget.sheetContext,
-                        scrollController,
-                        widget.onDismiss,
+                      child: Builder(
+                        builder: (scopedContext) => widget.builder(
+                          scopedContext,
+                          scrollController,
+                          widget.onDismiss,
+                        ),
                       ),
                     ),
                   ),
@@ -924,7 +927,10 @@ class FluxerBottomSheetFooter extends StatelessWidget {
             : null,
       ),
       child: Padding(
-        padding: padding ?? EdgeInsets.all(layout.s4),
+        padding: FluxerBottomSheet.scrollViewPadding(
+          context,
+          padding: padding ?? EdgeInsets.all(layout.s4),
+        ),
         child: child,
       ),
     );

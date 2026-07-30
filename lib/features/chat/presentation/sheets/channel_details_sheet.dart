@@ -87,6 +87,7 @@ Widget _scrollableSheetPlaceholder(
   return ListView(
     controller: scrollController,
     physics: const AlwaysScrollableScrollPhysics(),
+    padding: FluxerBottomSheet.scrollViewPadding(context),
     children: [
       SizedBox(height: MediaQuery.sizeOf(context).height * 0.25, child: child),
     ],
@@ -867,7 +868,10 @@ class _MembersTab extends ConsumerWidget {
 
       return ListView(
         controller: scrollController,
-        padding: EdgeInsets.symmetric(horizontal: context.layout.s4),
+        padding: FluxerBottomSheet.scrollViewPadding(
+          context,
+          padding: EdgeInsets.symmetric(horizontal: context.layout.s4),
+        ),
         children: [
           if (canShowNewGroupCta)
             _NewGroupCtaRow(
@@ -939,7 +943,10 @@ class _PinsTab extends ConsumerWidget {
 
         return ListView.builder(
           controller: scrollController,
-          padding: EdgeInsets.symmetric(horizontal: context.layout.s4),
+          padding: FluxerBottomSheet.scrollViewPadding(
+            context,
+            padding: EdgeInsets.symmetric(horizontal: context.layout.s4),
+          ),
           itemCount:
               state.items.length +
               (state.isLoadingMore ||
@@ -1640,7 +1647,10 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
     return ListView.builder(
       controller: widget.scrollController,
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: EdgeInsets.symmetric(horizontal: context.layout.s3),
+      padding: FluxerBottomSheet.scrollViewPadding(
+        context,
+        padding: EdgeInsets.symmetric(horizontal: context.layout.s3),
+      ),
       itemCount: state.results.length + (state.isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index >= state.results.length) {
@@ -2528,7 +2538,10 @@ class _GuildUserSearchFilterSheetState
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     final colors = context.colors;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: FluxerBottomSheet.scrollViewPadding(
+        context,
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      ),
       child: Column(
         children: <Widget>[
           FluxerInput(
@@ -2583,7 +2596,10 @@ class _GuildUserSearchFilterSheetState
                 : ListView.separated(
                     controller: widget.scrollController,
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    padding: FluxerBottomSheet.scrollViewPadding(
+                      context,
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                    ),
                     itemCount: _results.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 4),
                     itemBuilder: (BuildContext context, int index) {
@@ -2697,7 +2713,10 @@ class _UserFilterSheetState extends State<_UserFilterSheet> {
     final filtered = _filteredUsers;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: FluxerBottomSheet.scrollViewPadding(
+        context,
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      ),
       child: Column(
         children: [
           FluxerInput(
@@ -2734,7 +2753,10 @@ class _UserFilterSheetState extends State<_UserFilterSheet> {
                 : ListView.separated(
                     controller: widget.scrollController,
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    padding: FluxerBottomSheet.scrollViewPadding(
+                      context,
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                    ),
                     itemCount: filtered.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 4),
                     itemBuilder: (context, index) {
@@ -2890,7 +2912,10 @@ class _HasFilterSheetState extends State<_HasFilterSheet> {
     final colors = context.colors;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: FluxerBottomSheet.scrollViewPadding(
+        context,
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      ),
       child: Column(
         children: [
           Padding(
@@ -2908,7 +2933,10 @@ class _HasFilterSheetState extends State<_HasFilterSheet> {
           Expanded(
             child: ListView.separated(
               controller: widget.scrollController,
-              padding: const EdgeInsets.symmetric(vertical: 4),
+              padding: FluxerBottomSheet.scrollViewPadding(
+                context,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+              ),
               itemCount: MessageSearchContentFilter.values.length,
               separatorBuilder: (_, _) => const SizedBox(height: 8),
               itemBuilder: (context, index) {

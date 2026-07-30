@@ -118,7 +118,10 @@ class _MobileMediaOptionsSheetBody extends ConsumerWidget {
     }
     return SingleChildScrollView(
       controller: scrollController,
-      padding: EdgeInsets.symmetric(horizontal: context.layout.s4),
+      padding: FluxerBottomSheet.scrollViewPadding(
+        context,
+        padding: EdgeInsets.symmetric(horizontal: context.layout.s4),
+      ),
       child: FluxerBottomSheetGroupColumn(children: groups),
     );
   }

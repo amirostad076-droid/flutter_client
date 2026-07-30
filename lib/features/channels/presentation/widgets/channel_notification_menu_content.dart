@@ -78,7 +78,10 @@ class ChannelNotificationMenuContent extends ConsumerWidget {
     ChannelNotificationMenuState menuState,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: FluxerBottomSheet.scrollViewPadding(
+        context,
+        padding: const EdgeInsets.symmetric(vertical: 4),
+      ),
       child: FluxerBottomSheetGroupColumn(
         children: <Widget>[
           FluxerMenuGroup(children: _muteItems(context, ref, l10n, menuState)),

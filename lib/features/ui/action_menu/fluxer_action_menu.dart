@@ -64,7 +64,10 @@ class FluxerActionMenu {
             // Clamping physics lets the list scroll when needed; at the top,
             // downward drags are handled by [FluxerBottomSheetDismissDragTarget].
             physics: const ClampingScrollPhysics(),
-            padding: EdgeInsets.only(bottom: sheetContext.layout.s2),
+            padding: FluxerBottomSheet.scrollViewPadding(
+              sheetContext,
+              padding: EdgeInsets.only(bottom: sheetContext.layout.s2),
+            ),
             children: [
               FluxerBottomSheetGroupColumn(
                 children: [

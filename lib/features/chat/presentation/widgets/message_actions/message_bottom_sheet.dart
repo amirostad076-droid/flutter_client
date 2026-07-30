@@ -471,7 +471,10 @@ class _MessageBottomSheetBody extends ConsumerWidget {
 
     return SingleChildScrollView(
       controller: scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: FluxerBottomSheet.scrollViewPadding(
+        context,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

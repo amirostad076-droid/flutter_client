@@ -123,7 +123,10 @@ class _IncomingVoiceCallSheetBody extends ConsumerWidget {
     final layout = context.layout;
     return SingleChildScrollView(
       controller: scrollController,
-      padding: EdgeInsets.symmetric(horizontal: layout.s4),
+      padding: FluxerBottomSheet.scrollViewPadding(
+        context,
+        padding: EdgeInsets.symmetric(horizontal: layout.s4),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
