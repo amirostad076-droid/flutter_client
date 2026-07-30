@@ -1570,7 +1570,6 @@ class _PaginatingAdapter implements HttpClientAdapter {
   int aroundFetchCount = 0;
   int afterFetchCount = 0;
   int beforeFetchCount = 0;
-  int latestFetchCount = 0;
   int messageFetchCount = 0;
   String? lastLimit;
   Completer<void>? _beforeCompleter;
@@ -1670,7 +1669,6 @@ class _PaginatingAdapter implements HttpClientAdapter {
           page = all.sublist(start, end);
         }
       } else {
-        latestFetchCount++;
         page = all.length <= pageLimit
             ? all
             : all.sublist(all.length - pageLimit);

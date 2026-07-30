@@ -111,32 +111,9 @@ class EmbedLink extends StatelessWidget {
                   // dimensions (fixed fallback when absent), so the load
                   // never shifts the chat and portrait sources cannot
                   // reserve unbounded height.
-                  child: Builder(
-                    builder: (BuildContext context) {
-                      final Size? displaySize = constrainMediaSize(
-                        dimensions: dimensions,
-                        width: embed.thumbnail!.width,
-                        height: embed.thumbnail!.height,
-                      );
-                      final CachedNetworkImage image = CachedNetworkImage(
-                        imageUrl:
-                            embed.thumbnail!.proxyUrl ?? embed.thumbnail!.url,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, e, s) => const SizedBox.shrink(),
-                      );
-                      if (displaySize != null) {
-                        return SizedBox(
-                          width: displaySize.width,
-                          height: displaySize.height,
-                          child: image,
-                        );
-                      }
-                      return SizedBox(
-                        width: double.infinity,
-                        height: kEmbedMediaFallbackHeight,
-                        child: image,
-                      );
-                    },
+                  child: _thumbnailBox(
+                    thumbnail: embed.thumbnail!,
+                    dimensions: dimensions,
                   ),
                 ),
               ),
@@ -151,6 +128,34 @@ class EmbedLink extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _thumbnailBox({
+    required EmbedMedia thumbnail,
+    required FluxerMediaDimensions dimensions,
+  }) {
+    final Size? displaySize = constrainMediaSize(
+      dimensions: dimensions,
+      width: thumbnail.width,
+      height: thumbnail.height,
+    );
+    final Widget image = CachedNetworkImage(
+      imageUrl: thumbnail.proxyUrl ?? thumbnail.url,
+      fit: BoxFit.cover,
+      errorBuilder: (_, e, s) => const SizedBox.shrink(),
+    );
+    if (displaySize != null) {
+      return SizedBox(
+        width: displaySize.width,
+        height: displaySize.height,
+        child: image,
+      );
+    }
+    return SizedBox(
+      width: double.infinity,
+      height: kEmbedMediaFallbackHeight,
+      child: image,
     );
   }
 }
