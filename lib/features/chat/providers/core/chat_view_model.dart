@@ -15,6 +15,7 @@ import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_session_recovery_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/core/utils/message_mention_resolver.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_permission_utils.dart';
@@ -618,6 +619,11 @@ class ChatViewModel extends _$ChatViewModel {
           final Message existing = messages[matchedIndex];
           if (existing.id == msg.id &&
               existing.deliveryState == MessageDeliveryState.sent) {
+            if (!existing.isMentioned && msg.isMentioned) {
+              final List<Message> updated = List<Message>.from(messages);
+              updated[matchedIndex] = existing.copyWith(isMentioned: true);
+              return updated;
+            }
             return null;
           }
           final List<Message> updated = List<Message>.from(messages);
@@ -627,7 +633,12 @@ class ChatViewModel extends _$ChatViewModel {
           );
           return updated;
         }
-        if (messages.any((Message m) => m.id == msg.id)) {
+        final int existingIndex = messages.indexWhere((m) => m.id == msg.id);
+        if (existingIndex != -1) {
+          final Message existing = messages[existingIndex];
+          if (!existing.isMentioned && msg.isMentioned) {
+            return _replaceById(messages, existing.copyWith(isMentioned: true));
+          }
           return null;
         }
         if (state.hasMoreNewerMessages) {
@@ -1083,9 +1094,9 @@ class ChatViewModel extends _$ChatViewModel {
         return;
       }
       final repo = ref.read(messageRepositoryProvider);
-      final cached = await repo.getCachedMessages(
-        channelId,
-        limit: _kInitialPageSize,
+      final cached = mergeMentionHighlightFlags(
+        await repo.getCachedMessages(channelId, limit: _kInitialPageSize),
+        currentUserId: currentUserId,
       );
       if (!isCurrentSwitch()) {
         return;
@@ -1388,8 +1399,12 @@ class ChatViewModel extends _$ChatViewModel {
           ? state.hasMoreMessages
           : page.messages.length >= effectiveLimit ||
                 (effectiveAroundMessageId != null && page.messages.isNotEmpty);
+      final List<Message> messagesWithMentionFlags = mergeMentionHighlightFlags(
+        merged,
+        currentUserId: ref.read(currentUserIdProvider),
+      );
       state = state.copyWith(
-        messages: merged,
+        messages: messagesWithMentionFlags,
         isLoading: false,
         isSyncingMessages: false,
         hasMoreMessages: hasMoreOlder,
@@ -1404,7 +1419,7 @@ class ChatViewModel extends _$ChatViewModel {
       unawaited(
         _onMessageBatchLoaded(
           channelId: channelId,
-          messages: merged,
+          messages: messagesWithMentionFlags,
           embeddedReplyParents: page.embeddedReplyParents,
         ),
       );
@@ -3830,15 +3845,29 @@ class ChatViewModel extends _$ChatViewModel {
       }
       deliveredIndex = -1;
     }
+    final String? currentUserId = ref.read(currentUserIdProvider);
     if (optimisticIndex != -1) {
-      updated[optimisticIndex] = delivered;
+      updated[optimisticIndex] = mergeMentionHighlightFlag(
+        incoming: delivered,
+        previous: updated[optimisticIndex],
+        currentUserId: currentUserId,
+      );
       return updated;
     }
     if (deliveredIndex != -1) {
-      updated[deliveredIndex] = delivered;
+      updated[deliveredIndex] = mergeMentionHighlightFlag(
+        incoming: delivered,
+        previous: updated[deliveredIndex],
+        currentUserId: currentUserId,
+      );
       return updated;
     }
-    updated.add(delivered);
+    updated.add(
+      mergeMentionHighlightFlag(
+        incoming: delivered,
+        currentUserId: currentUserId,
+      ),
+    );
     return updated;
   }
 

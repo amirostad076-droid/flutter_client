@@ -644,12 +644,7 @@ class MessageRepository {
         final MessageResponseSchema schema = MessageResponseSchema.fromJson(
           data,
         );
-        final Message message = Message.fromSdk(
-          schema,
-          currentUserId: _currentUserId,
-        ).copyWith(isMentioned: false);
-        await _db.messageDao.upsertMessage(message.toCompanion());
-        return message;
+        return _persistSdkMessage(channelId: channelId, schema: schema);
       }
 
       final Message sent = await _postMessage(channelId, body);
@@ -677,10 +672,28 @@ class MessageRepository {
       throw Exception('Empty response from sendMessage');
     }
     final MessageResponseSchema schema = MessageResponseSchema.fromJson(data);
-    final Message message = Message.fromSdk(
-      schema,
+    return _persistSdkMessage(channelId: channelId, schema: schema);
+  }
+
+  Future<Message> _persistSdkMessage({
+    required String channelId,
+    required MessageResponseSchema schema,
+  }) async {
+    final Message base = Message.fromSdk(schema, currentUserId: _currentUserId);
+    final mentionCtx = await buildMessageMentionContext(
+      _db,
       currentUserId: _currentUserId,
-    ).copyWith(isMentioned: false);
+      channelId: channelId,
+    );
+    final Message message = base.copyWith(
+      isMentioned: messageMentionsUser(
+        mentionCtx,
+        authorId: base.authorId,
+        mentionedUserIds: base.mentionedUserIds,
+        mentionEveryone: schema.mentionEveryone,
+        mentionRoleIds: schema.mentionRoles,
+      ),
+    );
     await _db.messageDao.upsertMessage(message.toCompanion());
     return message;
   }
@@ -740,12 +753,7 @@ class MessageRepository {
         messageId: messageId,
         content: content,
       );
-      final Message message = Message.fromSdk(
-        schema,
-        currentUserId: _currentUserId,
-      ).copyWith(isMentioned: false);
-      await _db.messageDao.upsertMessage(message.toCompanion());
-      return message;
+      return _persistSdkMessage(channelId: channelId, schema: schema);
     } on DioException catch (e) {
       throw Exception(dioExceptionMessage(e, 'Failed to edit message'));
     }
@@ -783,12 +791,7 @@ class MessageRepository {
         content: content,
         attachments: attachments,
       );
-      final Message message = Message.fromSdk(
-        schema,
-        currentUserId: _currentUserId,
-      ).copyWith(isMentioned: false);
-      await _db.messageDao.upsertMessage(message.toCompanion());
-      return message;
+      return _persistSdkMessage(channelId: channelId, schema: schema);
     } on DioException catch (e) {
       throw Exception(dioExceptionMessage(e, 'Failed to edit attachments'));
     }
@@ -805,12 +808,7 @@ class MessageRepository {
         messageId: messageId,
         flags: flags,
       );
-      final Message message = Message.fromSdk(
-        schema,
-        currentUserId: _currentUserId,
-      ).copyWith(isMentioned: false);
-      await _db.messageDao.upsertMessage(message.toCompanion());
-      return message;
+      return _persistSdkMessage(channelId: channelId, schema: schema);
     } on DioException catch (e) {
       throw Exception(
         e.response?.statusMessage ?? 'Failed to update message flags',
