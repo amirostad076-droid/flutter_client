@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/shared/gestures/nested_horizontal_scrollable.dart';
 
 class PlaybackSeekGestureTarget extends StatelessWidget {
   const PlaybackSeekGestureTarget({
@@ -27,6 +28,7 @@ class PlaybackSeekGestureTarget extends StatelessWidget {
       builder: (BuildContext context, BoxConstraints constraints) {
         final double width = constraints.maxWidth;
         return SizedBox(
+          key: kPlaybackSeekShellGestureBlockKey,
           height: touchTargetHeight,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
