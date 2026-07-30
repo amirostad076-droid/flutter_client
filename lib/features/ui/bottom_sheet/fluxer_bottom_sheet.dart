@@ -158,6 +158,7 @@ class FluxerBottomSheet {
                     FluxerBottomSheetDragHandle(
                       onDismiss: enableDrag ? close : null,
                     ),
+                  if (!showDragHandle && hasHeader) SizedBox(height: layout.s4),
                   if (hasHeader) ...[
                     FluxerBottomSheetHeader(
                       title: title ?? '',
@@ -547,6 +548,8 @@ class _FluxerDraggableScrollableSheetState
                       onDismiss: widget.onDismiss,
                       includeTopPadding: !widget.disableTopPadding,
                     ),
+                  if (!widget.showDragHandle && widget.hasHeader)
+                    SizedBox(height: layout.s4),
                   if (widget.hasHeader) ...[
                     FluxerBottomSheetHeader(
                       title: widget.title ?? '',
