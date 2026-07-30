@@ -107,11 +107,36 @@ class EmbedLink extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 4, bottom: 4),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
-                  child: CachedNetworkImage(
-                    imageUrl: embed.thumbnail!.proxyUrl ?? embed.thumbnail!.url,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, e, s) => const SizedBox.shrink(),
+                  // Reserve the extent from metadata, capped by the layout
+                  // dimensions (fixed fallback when absent), so the load
+                  // never shifts the chat and portrait sources cannot
+                  // reserve unbounded height.
+                  child: Builder(
+                    builder: (BuildContext context) {
+                      final Size? displaySize = constrainMediaSize(
+                        dimensions: dimensions,
+                        width: embed.thumbnail!.width,
+                        height: embed.thumbnail!.height,
+                      );
+                      final CachedNetworkImage image = CachedNetworkImage(
+                        imageUrl:
+                            embed.thumbnail!.proxyUrl ?? embed.thumbnail!.url,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, e, s) => const SizedBox.shrink(),
+                      );
+                      if (displaySize != null) {
+                        return SizedBox(
+                          width: displaySize.width,
+                          height: displaySize.height,
+                          child: image,
+                        );
+                      }
+                      return SizedBox(
+                        width: double.infinity,
+                        height: kEmbedMediaFallbackHeight,
+                        child: image,
+                      );
+                    },
                   ),
                 ),
               ),
