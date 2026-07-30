@@ -120,6 +120,33 @@ void main() {
     expect(adapter.getMessagesCount, 4);
   });
 
+  test('a fresh load never joins an in-flight identical latest page', () async {
+    final db = openTestDatabase();
+    final adapter = _CountingAdapter();
+    final dio = Dio(BaseOptions(baseUrl: 'https://api.fluxer.app/v1'))
+      ..httpClientAdapter = adapter;
+    final client = FluxerClient(dio, baseUrl: 'https://api.fluxer.app/v1');
+    final repo = MessageRepository(client, dio, db, 'me');
+
+    // A proof request must observe the server after its caller's pointer
+    // read; an in-flight identical page may carry an older snapshot, and
+    // joining it would launder a raced pointer into an orphan verdict
+    // (see _liveTailAckTargetId).
+    await Future.wait([
+      repo.loadMessagePage(channelId: 'channel-1'),
+      repo.loadMessagePage(channelId: 'channel-1', fresh: true),
+    ]);
+    expect(adapter.getMessagesCount, 2);
+
+    // Nor may a fresh request become a join target for ordinary loads: that
+    // would silently launder its freshness the other way.
+    await Future.wait([
+      repo.loadMessagePage(channelId: 'channel-1', fresh: true),
+      repo.loadMessagePage(channelId: 'channel-1'),
+    ]);
+    expect(adapter.getMessagesCount, 4);
+  });
+
   test('backfilled role-mention message persists a rich isMentioned', () async {
     final db = openTestDatabase();
     await db.channelDao.upsertChannel(

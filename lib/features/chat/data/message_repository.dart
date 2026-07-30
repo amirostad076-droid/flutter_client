@@ -183,7 +183,20 @@ class MessageRepository {
     String? before,
     String? after,
     String? around,
+    bool fresh = false,
   }) {
+    if (fresh) {
+      // A proof request: its soundness argument is "this fetch left after I
+      // observed X", so it must neither join an in-flight response (whose
+      // snapshot may predate X) nor become a join target for ordinary loads.
+      return _fetchMessagePage(
+        channelId: channelId,
+        limit: limit,
+        before: before,
+        after: after,
+        around: around,
+      );
+    }
     final String key =
         '$channelId|${before ?? ''}|${after ?? ''}|${around ?? ''}|$limit';
     final Future<MessageListLoadResult>? existing = _inFlightPages[key];
