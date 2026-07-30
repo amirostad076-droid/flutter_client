@@ -207,6 +207,7 @@ Future<void> _pumpPage(
     ProviderScope(
       overrides: _voicePageOverrides(db: db, session: session),
       child: MaterialApp(
+        locale: const Locale('en'),
         localizationsDelegates: FluxerLocalizations.localizationsDelegates,
         supportedLocales: FluxerLocalizations.supportedLocales,
         theme: buildFluxerTheme(
