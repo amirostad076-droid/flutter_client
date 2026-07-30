@@ -414,6 +414,9 @@ void main() {
           nearLoadedTail: true,
           distanceFromBottom: 0,
           viewportHeight: 600,
+          sampledTailId: newestServerBackedMessageId(
+            container.read(chatViewModelProvider).messages,
+          ),
         );
     await _flushAsync();
     expect(adapter.ackedMessageIds, [latestServerId]);

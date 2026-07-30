@@ -37,6 +37,7 @@ import 'package:fluxer_app/features/chat/providers/core/chat_read_viewport_provi
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_realtime_provider.dart';
+import 'package:fluxer_app/features/chat/utils/message_page_sync.dart';
 import 'package:fluxer_app/shared/services/guild_member_hydration_service.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
@@ -2985,30 +2986,18 @@ void main() {
   //        boundary the leaked ordinal yields still satisfies it.)
   //
   //   --- Stage A of the history-pagination redesign: the PAGINATION PROGRESS
-  //   ledger (parked cursors + tail-probe dedupe). Same verification protocol.
-  //   M-AG  edge park guard deleted (a dead cursor is refetched on every
-  //         edge evaluation)                                 -> m17
-  //   M-AH  cursor identity dropped from the park tuple      -> NOT KILLABLE
-  //         alone, and not a coverage hole: it is mutually redundant with
-  //         clear-on-advance plus the generation keys — every reachable
-  //         schedule that moves the newer cursor first passes through a
-  //         non-empty install (which clears the park), a gesture, or a
-  //         generation bump. The pair is kept as defense in depth against
-  //         writers outside this harness's reach (an own-send ack promoting a
-  //         local row to server-backed moves the cursor with no install,
-  //         no gesture, no bump). m17b pins the combined contract: after a
-  //         successful retry the advanced edge pages with no gesture ceremony.
-  //   M-AI  gesture re-arm deleted                           -> m17
+  //   ledger. The parked-cursor half (edge parks, cursor identity, gesture
+  //   re-arm: M-AG, M-AH, M-AI) moved out of the VM into
+  //   MessagePaginationCoordinator, and its contracts - the old m17/m17b
+  //   tests - are pinned by message_pagination_coordinator_test.dart. What
+  //   remains VM-owned keeps the same verification protocol:
   //   M-AJ  tail-probe dedupe deleted (every empty install on one tail
-  //         re-pays a full latest fetch)                     -> m17, m16o
-  //   M-AK  park outlives its window (generations dropped from the tuple)
-  //                                                          -> m17c
+  //         re-pays a full latest fetch)                     -> m16o
+  //   M-AK  a window's edge state outlives it (the epoch/generation keys
+  //         dropped from in-flight page supersession)        -> m17c
   //   M-AL  the superseded-newer-page path strands its owner (both releases
   //         dropped: isLoadingNewer survives the jump swap's copyWith and
   //         wedges the edge)                                 -> m17d
-  //         Park-on-supersede, the other imaginable slip there, is
-  //         structurally harmless: supersession means the tail moved, so a
-  //         tuple parked at supersede time can never match a later request.
 
   test('m16: a search jump into a channel not yet opened this session leaves '
       'the live tail reachable', () async {
@@ -3285,8 +3274,9 @@ void main() {
     // the stranding m16 fixed, so the newer count is measured against the
     // quota rather than against zero.
     //
-    // 206 messages, an anchor at 200: five rows newer, against a quota of 15
-    // for the limit-30 targeted switch. The pointer is an orphan far ahead, so
+    // 206 messages, an anchor at 200: five rows newer, against a quota of 25
+    // (limit 50 ~/ 2) for the targeted switch. The pointer is an orphan far
+    // ahead, so
     // the verdict cannot come from pointer equality -- the detached rung is
     // the only thing standing between this window and the tail.
     final _GatedDatabase database = await seedChannel(
@@ -3317,7 +3307,7 @@ void main() {
       _snowflakeForIndex(205),
       reason:
           'the page really does end on the newest message the server has, '
-          'five rows past the anchor and ten short of the quota',
+          'five rows past the anchor and twenty short of the quota',
     );
     expect(
       landed.hasMoreNewerMessages,
@@ -3353,8 +3343,10 @@ void main() {
   test('m16f: a reply jump that lands within the quota of the tail reattaches '
       'the window', () async {
     // The OTHER call site that reads a page's shape, and it has its own limit:
-    // goToRepliedMessage asks for _kPageSize, so its quota is 15 and not the 25
-    // of a 50-row unread open. Same failure as m16d if the shape is misread --
+    // goToRepliedMessage asks for _kPageSize. Since _kPageSize moved to 50 its
+    // quota is the SAME 25 as the 50-row unread open, so the per-call-site
+    // derivation is no longer observable from here; the reattach contract
+    // below still is. Same failure as m16d if the shape is misread --
     // a reply jump that lands next to the tail would keep the window detached
     // and drop every message that follows -- and nothing else in the model can
     // catch it here, because the pointer is an orphan the cache cannot resolve.
@@ -3393,7 +3385,7 @@ void main() {
       landed.hasMoreNewerMessages,
       isFalse,
       reason:
-          'nine newer rows where a limit-30 around fetch would have sent 15 is '
+          'nine newer rows where a limit-50 around fetch would have sent 25 is '
           'the newer side exhausted: the jump landed back on the live tail',
     );
 
@@ -3449,7 +3441,9 @@ void main() {
     final ChatViewState landed = container.read(chatViewModelProvider);
     expect(
       landed.messages.last.id,
-      _snowflakeForIndex(215),
+      // 200 + quota 25 = 225: the raw newer side 201..225 loses only the
+      // filtered 210, so 225 is still the last delivered row.
+      _snowflakeForIndex(225),
       reason: 'the jump window ends where the filtered read left it',
     );
     expect(
@@ -3494,11 +3488,12 @@ void main() {
 
   test('m16g: an unread open measures its newer side against the quota for ITS '
       'own limit', () async {
-    // The limit is per CALL SITE, and this is the one that differs: an unread
-    // open fetches _kInitialPageSize rows, so the server fills 25 newer ones,
-    // not 15. Measuring a 50-row page against the 30-row quota declares every
-    // unread open with 15..24 rows past the ack detached, which is a phantom
-    // jump button and dropped live messages on the most ordinary open there is.
+    // The limit is per CALL SITE: an unread open fetches _kInitialPageSize
+    // rows, so the server fills 25 newer ones. NOTE: with _kPageSize now 50,
+    // every call site shares the quota of 25, so this test no longer
+    // distinguishes a per-limit quota from one hardcoded to the pagination
+    // page size; it still pins that a 20-row newer side is read as the live
+    // tail rather than a detach.
     //
     // 221 messages, the ack at 200, and a channel pointer left BEHIND reality
     // (the row the client never saw arrive), so the pointer cannot answer and
@@ -3610,9 +3605,9 @@ void main() {
     // are never shown at all.
     //
     // 400 messages, a jump to 200, and index 210 filtered. The raw newer scan
-    // takes 201..215 (quota 15), the filter drops one, and 14 rows come back:
-    // short of quota, with 216..399 sitting right there unseen. The confirmation
-    // asks for the LATEST page, whose newest row is 399 where ours is 215, so
+    // takes 201..225 (quota 25), the filter drops one, and 24 rows come back:
+    // short of quota, with 226..399 sitting right there unseen. The confirmation
+    // asks for the LATEST page, whose newest row is 399 where ours is 225, so
     // the tail claim is DISPROVED by identity - no counting, no inference.
     final _GatedDatabase database = await seedChannel(
       lastMessageId: _snowflakeForIndex(500),
@@ -3646,7 +3641,8 @@ void main() {
     );
     expect(
       landedIds,
-      isNot(contains(_snowflakeForIndex(216))),
+      // First row past the around window (200 + quota 25 = 225 is its tail).
+      isNot(contains(_snowflakeForIndex(226))),
       reason:
           'the confirmation installs NOTHING: a latest page is anchored to the '
           'channel tail, not to this window, and stitching it on would invent '
@@ -3738,7 +3734,7 @@ void main() {
     // The trigger is a PAGINATION confirmation, because that is a shape that can
     // still be provisional while sitting on the real tail: a direct latest load
     // proves its own newer edge and owes nothing (m16b, m16r). So the fixture
-    // opens AROUND 380, whose newer side fills the server's quota and is
+    // opens AROUND 370, whose newer side fills the server's 25-row quota and is
     // therefore detached by construction with no confirmation owed (m16), and
     // then pages forward onto the SHORT final page - pointer ahead, its row
     // nowhere, ack past us - which is the ambiguous signature, on a window whose
@@ -3771,7 +3767,7 @@ void main() {
     final notifier = container.read(chatViewModelProvider.notifier);
     await notifier.switchChannel(
       _channelId,
-      targetMessageId: _snowflakeForIndex(380),
+      targetMessageId: _snowflakeForIndex(370),
     );
     await _flushAsync();
     expect(
@@ -3894,7 +3890,7 @@ void main() {
     final notifier = container.read(chatViewModelProvider.notifier);
     await notifier.switchChannel(
       _channelId,
-      targetMessageId: _snowflakeForIndex(380),
+      targetMessageId: _snowflakeForIndex(370),
     );
     await _flushAsync();
     await notifier.loadNewer();
@@ -3963,7 +3959,7 @@ void main() {
     // flag is provisionally TRUE, which is precisely what lets loadNewer run.
     //
     // Confirmation armed for tail A=399 and parked, its proof of A fixed at
-    // request time. The channel then GROWS and the user pages A -> B=429, whose
+    // request time. The channel then GROWS and the user pages A -> B=449, whose
     // own consult says "more newer remains". The proof of A lands afterwards,
     // still saying "399 is the tail" - true when it was made, meaningless now.
     final _GatedDatabase database = await seedChannel(
@@ -3994,7 +3990,7 @@ void main() {
     // final page whose ambiguous signature arms one for A.
     await notifier.switchChannel(
       _channelId,
-      targetMessageId: _snowflakeForIndex(380),
+      targetMessageId: _snowflakeForIndex(370),
     );
     await _flushAsync();
     await notifier.loadNewer();
@@ -4019,7 +4015,7 @@ void main() {
 
     // The channel grows past A while the proof of A is still in flight, and a
     // full newer page means B's own consult keeps the flag TRUE.
-    for (var i = 400; i < 436; i++) {
+    for (var i = 400; i < 456; i++) {
       adapter.messages.add(
         _messageJson(
           id: _snowflakeForIndex(i),
@@ -4034,7 +4030,8 @@ void main() {
     final ChatViewState atB = container.read(chatViewModelProvider);
     expect(
       atB.messages.last.id,
-      _snowflakeForIndex(429),
+      // 399 + one full 50-row page: 400..449 installed, 450..455 remain.
+      _snowflakeForIndex(449),
       reason: 'tail B: pagination moved the window, arming nothing',
     );
     expect(
@@ -4060,7 +4057,7 @@ void main() {
     );
     expect(
       settled.messages.last.id,
-      _snowflakeForIndex(429),
+      _snowflakeForIndex(449),
       reason: 'and it must not touch the window it never described',
     );
     expect(
@@ -4074,8 +4071,8 @@ void main() {
     // Why the confirmation asks for the LATEST page and not for `after` rows. An
     // after page is truncated to the limit and filtered afterwards, exactly like
     // the around page whose shortfall raised the question, so counting its rows
-    // re-runs the same broken inference one request later: 30 raw rows, one
-    // filtered, 29 delivered, "short page, must be the tail" - and the real rows
+    // re-runs the same broken inference one request later: 50 raw rows, one
+    // filtered, 49 delivered, "short page, must be the tail" - and the real rows
     // beyond it are gone from the window until a reselect. Identity against a
     // descending-from-newest scan has no such failure mode.
     //
@@ -4108,14 +4105,15 @@ void main() {
     final ChatViewState landed = container.read(chatViewModelProvider);
     expect(
       landed.messages.last.id,
-      _snowflakeForIndex(215),
+      // 200 + quota 25 = 225: the filter only cost the newer side row 210.
+      _snowflakeForIndex(225),
       reason: 'the around window still ends where the filtered read left it',
     );
     expect(
       landed.hasMoreNewerMessages,
       isTrue,
       reason:
-          'the latest page names 399 as the channel tail and ours is 215, so no '
+          'the latest page names 399 as the channel tail and ours is 225, so no '
           'row count anywhere can talk this window into believing it is live',
     );
 
@@ -4159,7 +4157,9 @@ void main() {
         .toList();
     expect(
       seen,
-      containsAll(<String>[_snowflakeForIndex(216), _snowflakeForIndex(245)]),
+      // 226 = first row the around window could not reach; 275 = last row of
+      // the first 50-row after page.
+      containsAll(<String>[_snowflakeForIndex(226), _snowflakeForIndex(275)]),
       reason: 'pagination fetched the rows the filtered around read hid',
     );
     expect(
@@ -4173,8 +4173,8 @@ void main() {
       reason: 'neither of them, at any point in the walk',
     );
     // FULL recovery, and the reason it works is that pagination stopped sealing
-    // the tail on a row count too: the after page 216..245 lost 230 to the
-    // filter and came back 29 long, which used to end the walk right there with
+    // the tail on a row count too: the after page 226..275 lost 230 to the
+    // filter and came back 49 long, which used to end the walk right there with
     // everything past it unreachable until a reselect. Now a short page keeps the
     // flag true and asks the same confirmation the around install asks, so the
     // walk continues to the real tail.
@@ -4219,11 +4219,11 @@ void main() {
       );
       final adapter = _MessageApiAdapter(messages: _channelMessages(400))
         // 210 shortens the around window into the ambiguous signature; the whole
-        // top 30 is filtered, which is what the confirmation's latest page asks
+        // top 50 is filtered, which is what the confirmation's latest page asks
         // for, so it comes back with nothing.
         ..filteredMessageIds.add(_snowflakeForIndex(210))
         ..filteredMessageIds.addAll(<String>[
-          for (var i = 370; i < 400; i++) _snowflakeForIndex(i),
+          for (var i = 350; i < 400; i++) _snowflakeForIndex(i),
         ]);
       final container = _container(database, adapter);
       addTearDown(container.dispose);
@@ -4261,8 +4261,10 @@ void main() {
     // after our tail returned rows and every single one was filtered away, so an
     // empty body can sit in front of perfectly visible messages.
     //
-    // Window ends at 215 (the around read lost 210), and the whole of 216..245 is
-    // filtered: the newer page comes back EMPTY while 246..399 are right there.
+    // Window ends at 215 (the around read's raw span 176..225 lost 210 and its
+    // whole 216..225 tail to the filter), and the entire raw after window
+    // 216..265 is filtered: the newer page comes back EMPTY while 266..399 are
+    // right there.
     final _GatedDatabase database = await seedChannel(
       lastMessageId: _snowflakeForIndex(500),
     );
@@ -4275,7 +4277,7 @@ void main() {
     final adapter = _MessageApiAdapter(messages: _channelMessages(400))
       ..filteredMessageIds.add(_snowflakeForIndex(210))
       ..filteredMessageIds.addAll(<String>[
-        for (var i = 216; i < 246; i++) _snowflakeForIndex(i),
+        for (var i = 216; i < 266; i++) _snowflakeForIndex(i),
       ]);
     final container = _container(database, adapter);
     addTearDown(container.dispose);
@@ -4390,7 +4392,8 @@ void main() {
     final ChatViewState landed = container.read(chatViewModelProvider);
     expect(
       landed.messages.last.id,
-      _snowflakeForIndex(215),
+      // 200 + quota 25 = 225: the filter only cost the newer side row 210.
+      _snowflakeForIndex(225),
       reason: 'the around window ends where the filtered read left it',
     );
     expect(
@@ -4398,7 +4401,7 @@ void main() {
       isTrue,
       reason:
           'a channel with no pointer has proven NOTHING about its tail, and the '
-          '14-row newer side is a count and not a proof: 216..399 are right '
+          '24-row newer side is a count and not a proof: 226..399 are right '
           'there, so sealing here strands them and welds the next create on',
     );
     expect(
@@ -4439,15 +4442,16 @@ void main() {
     seen.addAll(paged.messages.map((Message m) => m.id));
     expect(
       paged.messages.last.id,
-      _snowflakeForIndex(245),
+      // 225 + one 50-row after page (226..275) minus the filtered 230.
+      _snowflakeForIndex(275),
       reason: 'the filtered after page still moved the window forward',
     );
     expect(
       paged.hasMoreNewerMessages,
       isTrue,
       reason:
-          'and its 29 rows sealed nothing: pagination hit the SAME rung with the '
-          'same missing pointer, and 246..400 remain',
+          'and its 49 rows sealed nothing: pagination hit the SAME rung with the '
+          'same missing pointer, and 276..400 remain',
     );
     expect(
       adapter.latestFetchCalls,
@@ -4473,7 +4477,7 @@ void main() {
         .toList();
     expect(
       seen,
-      containsAll(<String>[_snowflakeForIndex(216), _snowflakeForIndex(245)]),
+      containsAll(<String>[_snowflakeForIndex(226), _snowflakeForIndex(275)]),
       reason: 'pagination fetched the rows the filtered around read hid',
     );
     expect(
@@ -4537,12 +4541,12 @@ void main() {
     // certainly does not prove that nothing newer remains, yet a count claiming
     // the tail was returned from this rung verbatim too.
     //
-    // 400 messages, pointer parked at 300, window built around 350: 360 shortens
+    // 400 messages, pointer parked at 250, window built around 300: 310 shortens
     // the around window below the server quota - so the count claims the tail
-    // while the pointer sits 65 rows behind that window - and 380 shortens the
-    // page that follows.
+    // while the pointer sits 75 rows behind that window's tail - and 330
+    // shortens the page that follows.
     final _GatedDatabase database = await seedChannel(
-      lastMessageId: _snowflakeForIndex(300),
+      lastMessageId: _snowflakeForIndex(250),
     );
     await database.readStateDao.upsertReadState(
       db.ReadStatesCompanion(
@@ -4552,8 +4556,8 @@ void main() {
     );
     final adapter = _MessageApiAdapter(messages: _channelMessages(400))
       ..filteredMessageIds.addAll(<String>[
-        _snowflakeForIndex(360),
-        _snowflakeForIndex(380),
+        _snowflakeForIndex(310),
+        _snowflakeForIndex(330),
       ]);
     final container = _container(database, adapter);
     addTearDown(container.dispose);
@@ -4561,14 +4565,15 @@ void main() {
     final notifier = container.read(chatViewModelProvider.notifier);
     await notifier.switchChannel(
       _channelId,
-      targetMessageId: _snowflakeForIndex(350),
+      targetMessageId: _snowflakeForIndex(300),
     );
     await _flushAsync();
 
     final ChatViewState landed = container.read(chatViewModelProvider);
     expect(
       landed.messages.last.id,
-      _snowflakeForIndex(365),
+      // 300 + quota 25 = 325: the filter only cost the newer side row 310.
+      _snowflakeForIndex(325),
       reason: 'the around window ends where the filtered read left it',
     );
     expect(
@@ -4576,14 +4581,14 @@ void main() {
       isTrue,
       reason:
           'a pointer behind our newest row proves the POINTER stale and nothing '
-          'else; 366..399 exist and a row count must not bury them',
+          'else; 326..399 exist and a row count must not bury them',
     );
     expect(
       adapter.latestFetchCalls,
       1,
       reason:
           'one confirmation, the only proof this rung can get, and it named 399 '
-          'against our 365',
+          'against our 325',
     );
 
     final String liveId = _snowflakeForIndex(400);
@@ -4611,14 +4616,15 @@ void main() {
     seen.addAll(paged.messages.map((Message m) => m.id));
     expect(
       paged.messages.last.id,
-      _snowflakeForIndex(395),
+      // 325 + one 50-row after page (326..375) minus the filtered 330.
+      _snowflakeForIndex(375),
       reason: 'the filtered after page still moved the window forward',
     );
     expect(
       paged.hasMoreNewerMessages,
       isTrue,
       reason:
-          'and its 29 rows sealed nothing: the pointer is further behind than '
+          'and its 49 rows sealed nothing: the pointer is further behind than '
           'ever, which is still not a statement about the tail',
     );
     expect(
@@ -4645,17 +4651,17 @@ void main() {
         .toList();
     expect(
       seen,
-      containsAll(<String>[_snowflakeForIndex(366), _snowflakeForIndex(399)]),
+      containsAll(<String>[_snowflakeForIndex(326), _snowflakeForIndex(399)]),
       reason: 'pagination fetched the rows the two filtered reads hid',
     );
     expect(
       seen,
-      isNot(contains(_snowflakeForIndex(360))),
+      isNot(contains(_snowflakeForIndex(310))),
       reason: 'and the filtered rows never materialise, at any point',
     );
     expect(
       seen,
-      isNot(contains(_snowflakeForIndex(380))),
+      isNot(contains(_snowflakeForIndex(330))),
       reason: 'neither of them, at any point in the walk',
     );
     expect(
@@ -4664,7 +4670,7 @@ void main() {
       reason:
           'and the walk still ends cheaply on a proof: the final short page owed '
           'one latest fetch, that page named our own tail, and the pointer is '
-          'still stale at 300 and no longer deciding anything',
+          'still stale at 250 and no longer deciding anything',
     );
     expect(
       recovered.last,
@@ -4886,7 +4892,8 @@ void main() {
     final ChatViewState paged = container.read(chatViewModelProvider);
     expect(
       paged.messages.first.id,
-      _snowflakeForIndex(319),
+      // 349 - _kPageSize (50): one older page below the rescued row.
+      _snowflakeForIndex(299),
       reason: 'pagination reaches the older visible rows the rescue unlocked',
     );
     expect(paged.messages.last.id, _snowflakeForIndex(349));
@@ -5217,171 +5224,6 @@ void main() {
     );
   });
 
-  test('m17: an empty newer page parks its cursor; only a new gesture buys a '
-      'retry, and neither retry re-pays a confirmation', () async {
-    // The device log's no-progress loop, pinned end to end: 21:10:11 and
-    // 21:10:14, the SAME after= cursor on the wire twice, both answers
-    // count=0 hasMore=true, then a ~1.9s latest fetch — the user left the
-    // channel 13 seconds later. An empty page installs nothing, so the next
-    // edge evaluation derives the identical cursor; without a park every
-    // scroll notification at the edge re-buys the same dead round trip.
-    //
-    // Same world as m16o: window ends at 215, the whole of 216..245 filtered
-    // out of the raw scan, 246..399 real and unreachable by this cursor.
-    final _GatedDatabase database = await seedChannel(
-      lastMessageId: _snowflakeForIndex(500),
-    );
-    await database.readStateDao.upsertReadState(
-      db.ReadStatesCompanion(
-        channelId: const Value(_channelId),
-        lastMessageId: Value(_snowflakeForIndex(500)),
-      ),
-    );
-    final adapter = _MessageApiAdapter(messages: _channelMessages(400))
-      ..filteredMessageIds.add(_snowflakeForIndex(210))
-      ..filteredMessageIds.addAll(<String>[
-        for (var i = 216; i < 246; i++) _snowflakeForIndex(i),
-      ]);
-    final container = _container(database, adapter);
-    addTearDown(container.dispose);
-
-    final notifier = container.read(chatViewModelProvider.notifier);
-    await notifier.switchChannel(
-      _channelId,
-      targetMessageId: _snowflakeForIndex(200),
-    );
-    await _flushAsync();
-    final int latestAfterOpen = adapter.latestFetchCalls;
-
-    await notifier.loadNewer();
-    await _flushAsync();
-    expect(
-      adapter.afterFetchCalls,
-      1,
-      reason: 'the first evaluation really did ask for newer rows',
-    );
-    expect(
-      container.read(chatViewModelProvider).hasMoreNewerMessages,
-      isTrue,
-      reason: 'honesty is untouched: the flag stays provisionally true',
-    );
-    expect(
-      adapter.latestFetchCalls,
-      latestAfterOpen,
-      reason:
-          'and the empty install re-paid NO confirmation: the open already '
-          'bought the verdict for this exact tail and generation, and a '
-          'mismatch cannot age into equality while the tail sits still '
-          '(ledger M-AJ)',
-    );
-
-    // The loop killer (ledger M-AG): a second evaluation with no new gesture
-    // must not reach the network — the tuple is parked.
-    await notifier.loadNewer();
-    await _flushAsync();
-    expect(
-      adapter.afterFetchCalls,
-      1,
-      reason:
-          'the parked cursor is refused: same channel, same cursor, same '
-          'window — nothing changed, so nothing is owed the wire (M-AG)',
-    );
-
-    // A NEW deliberate gesture buys exactly one retry (ledger M-AI)...
-    notifier.rearmEdgeLoadsForUserGesture();
-    await notifier.loadNewer();
-    await _flushAsync();
-    expect(
-      adapter.afterFetchCalls,
-      2,
-      reason: 'a fresh gesture is a deliberate retry and gets one fetch',
-    );
-
-    // ...which re-parks on the same empty answer, and still re-pays no probe.
-    await notifier.loadNewer();
-    await _flushAsync();
-    expect(adapter.afterFetchCalls, 2, reason: 'the retry re-parked');
-    expect(
-      adapter.latestFetchCalls,
-      latestAfterOpen,
-      reason: 'no confirmation loop across the whole walk (M-AJ)',
-    );
-
-    // End-state truths, unchanged from m16o: window unmoved, flag honest,
-    // escape hatch alive.
-    final ChatViewState parked = container.read(chatViewModelProvider);
-    expect(parked.messages.last.id, _snowflakeForIndex(215));
-    expect(parked.hasMoreNewerMessages, isTrue);
-    expect(parked.isLoadingNewer, isFalse);
-    expect(await notifier.jumpToLatestMessages(), isTrue);
-    await _flushAsync();
-    expect(
-      container.read(chatViewModelProvider).messages.last.id,
-      _snowflakeForIndex(399),
-      reason: 'jump-to-latest still reaches the present',
-    );
-  });
-
-  test('m17b: window progress re-arms a parked edge — the park names the '
-      'cursor, not the direction', () async {
-    final _GatedDatabase database = await seedChannel(
-      lastMessageId: _snowflakeForIndex(500),
-    );
-    await database.readStateDao.upsertReadState(
-      db.ReadStatesCompanion(
-        channelId: const Value(_channelId),
-        lastMessageId: Value(_snowflakeForIndex(500)),
-      ),
-    );
-    final adapter = _MessageApiAdapter(messages: _channelMessages(400))
-      ..filteredMessageIds.add(_snowflakeForIndex(210))
-      ..filteredMessageIds.addAll(<String>[
-        for (var i = 216; i < 246; i++) _snowflakeForIndex(i),
-      ]);
-    final container = _container(database, adapter);
-    addTearDown(container.dispose);
-
-    final notifier = container.read(chatViewModelProvider.notifier);
-    await notifier.switchChannel(
-      _channelId,
-      targetMessageId: _snowflakeForIndex(200),
-    );
-    await _flushAsync();
-
-    await notifier.loadNewer();
-    await _flushAsync();
-    expect(adapter.afterFetchCalls, 1, reason: 'empty page, cursor parked');
-
-    // Server-side cleanup: the filtered rows become visible again.
-    adapter.filteredMessageIds.clear();
-    notifier.rearmEdgeLoadsForUserGesture();
-    await notifier.loadNewer();
-    await _flushAsync();
-    expect(adapter.afterFetchCalls, 2);
-    final ChatViewState advanced = container.read(chatViewModelProvider);
-    expect(
-      advanced.messages.last.id,
-      _snowflakeForIndex(245),
-      reason: 'the retry actually advanced the window',
-    );
-
-    // The park named the OLD cursor, so the advanced edge needs no gesture:
-    // window progress alone re-arms (ledger M-AH).
-    await notifier.loadNewer();
-    await _flushAsync();
-    expect(
-      adapter.afterFetchCalls,
-      3,
-      reason:
-          'a new cursor is a new tuple: paging keeps flowing with no gesture '
-          'ceremony once the edge moves (M-AH)',
-    );
-    expect(
-      container.read(chatViewModelProvider).messages.last.id,
-      _snowflakeForIndex(275),
-    );
-  });
-
   test('m17c: a park dies with its window — a same-channel rejump onto the '
       'same tail fetches again', () async {
     final _GatedDatabase database = await seedChannel(
@@ -5396,7 +5238,7 @@ void main() {
     final adapter = _MessageApiAdapter(messages: _channelMessages(400))
       ..filteredMessageIds.add(_snowflakeForIndex(210))
       ..filteredMessageIds.addAll(<String>[
-        for (var i = 216; i < 246; i++) _snowflakeForIndex(i),
+        for (var i = 216; i < 266; i++) _snowflakeForIndex(i),
       ]);
     final container = _container(database, adapter);
     addTearDown(container.dispose);
@@ -5550,6 +5392,9 @@ void _activateViewport(ProviderContainer container) {
       nearLoadedTail: true,
       distanceFromBottom: 0,
       viewportHeight: 600,
+      sampledTailId: newestServerBackedMessageId(
+        container.read(chatViewModelProvider).messages,
+      ),
     );
 }
 

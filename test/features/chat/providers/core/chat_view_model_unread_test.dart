@@ -21,6 +21,7 @@ import 'package:fluxer_app/features/chat/providers/core/chat_read_viewport_provi
 import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_realtime_events.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_realtime_provider.dart';
+import 'package:fluxer_app/features/chat/utils/message_page_sync.dart';
 import 'package:fluxer_app/shared/services/guild_member_hydration_service.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
@@ -100,6 +101,7 @@ void _updateViewport(
   double distanceFromBottom = 0,
   double viewportHeight = 0,
 }) {
+  final ChatViewState chat = container.read(chatViewModelProvider);
   container
       .read(chatReadViewportProvider.notifier)
       .updateViewport(
@@ -107,6 +109,11 @@ void _updateViewport(
         nearLoadedTail: nearLoadedTail,
         distanceFromBottom: distanceFromBottom,
         viewportHeight: viewportHeight,
+        // Production-faithful: a publication samples the tail its geometry
+        // was measured against.
+        sampledTailId: chat.channelId == channelId
+            ? newestServerBackedMessageId(chat.messages)
+            : null,
       );
 }
 
@@ -2073,6 +2080,9 @@ void main() {
         hasMoreNewerMessages: container
             .read(chatViewModelProvider)
             .hasMoreNewerMessages,
+        currentTailId: newestServerBackedMessageId(
+          container.read(chatViewModelProvider).messages,
+        ),
       ),
       isFalse,
     );
@@ -2089,6 +2099,15 @@ void main() {
 
     expect(await notifier.jumpToLatestMessages(), isTrue);
     await _flushAsync();
+    // The standing near-tail claim was measured against the detached window;
+    // the swap advanced the tail past its token, so the flip alone must not
+    // ack rows the user has not seen laid out.
+    expect(adapter.ackedMessageIds, isEmpty);
+
+    // Post-layout the widget republishes geometry carrying the fresh tail
+    // token; eligibility returns and the ack fires.
+    _updateViewport(container, nearLoadedTail: true);
+    await _flushAsync();
 
     final readState = await db.readStateDao.getReadState('channel-1');
     expect(readState?.lastMessageId, tailId);
@@ -2097,7 +2116,231 @@ void main() {
   });
 
   test(
-    'viewport edge during a load is retried when the load becomes idle',
+    'terminal newer page does not ack on a stale near-tail claim',
+    () async {
+      final db = openTestDatabase();
+      final String olderId = _snowflakeForUtc(DateTime.utc(2026, 5, 1, 9));
+      final String ackId = _snowflakeForUtc(DateTime.utc(2026, 5, 1, 10));
+      final String firstUnreadId = _snowflakeForUtc(
+        DateTime.utc(2026, 5, 1, 11),
+      );
+      final String secondUnreadId = _snowflakeForUtc(
+        DateTime.utc(2026, 5, 1, 12),
+      );
+      final String tailId = _snowflakeForUtc(DateTime.utc(2026, 5, 3, 12));
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(tailId),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(ackId),
+          mentionCount: const Value(0),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        initialMessages: <Map<String, Object?>>[
+          _messageJson(id: tailId, channelId: 'channel-1', authorId: 'other'),
+        ],
+        aroundMessages: <Map<String, Object?>>[
+          _messageJson(
+            id: secondUnreadId,
+            channelId: 'channel-1',
+            authorId: 'other',
+          ),
+          _messageJson(
+            id: firstUnreadId,
+            channelId: 'channel-1',
+            authorId: 'other',
+          ),
+          _messageJson(id: ackId, channelId: 'channel-1', authorId: 'other'),
+          _messageJson(id: olderId, channelId: 'channel-1', authorId: 'other'),
+        ],
+        messagesAfterAck: <Map<String, Object?>>[
+          _messageJson(id: tailId, channelId: 'channel-1', authorId: 'other'),
+        ],
+      );
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      _setViewportActive(container, channelId: 'channel-1');
+      await _flushAsync();
+      expect(
+        container.read(chatViewModelProvider).hasMoreNewerMessages,
+        isTrue,
+      );
+
+      // The user parks at the loaded NEWER edge of the detached window; the
+      // publication's tail token is the window tail, not the live tail.
+      _updateViewport(container, nearLoadedTail: true);
+      await _flushAsync();
+      expect(adapter.ackedMessageIds, isEmpty);
+
+      // The terminal newer page installs and hasMoreNewerMessages flips
+      // false - the exact moment the pre-token recheck acked rows the user
+      // never saw.
+      await notifier.loadNewer();
+      await _flushAsync();
+      final state = container.read(chatViewModelProvider);
+      expect(state.hasMoreNewerMessages, isFalse);
+      expect(state.messages.last.id, tailId);
+      expect(
+        adapter.ackedMessageIds,
+        isEmpty,
+        reason:
+            'a near-tail claim measured against the pre-append window must '
+            'not authorize acking the appended tail',
+      );
+      final readState = await db.readStateDao.getReadState('channel-1');
+      expect(readState?.lastMessageId, ackId);
+
+      // Only a fresh post-layout publication carrying the new tail token
+      // authorizes the ack.
+      _updateViewport(container, nearLoadedTail: true);
+      await _flushAsync();
+      expect(adapter.ackedMessageIds, [tailId]);
+    },
+  );
+
+  test(
+    'a direct ack call rejects a token-less near-tail claim',
+    () async {
+      final db = openTestDatabase();
+      final String priorId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      final String tailId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(tailId),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(priorId),
+          mentionCount: const Value(0),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        initialMessages: <Map<String, Object?>>[
+          _messageJson(id: tailId, channelId: 'channel-1', authorId: 'other'),
+          _messageJson(id: priorId, channelId: 'channel-1', authorId: 'other'),
+        ],
+      );
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      _setViewportActive(container, channelId: 'channel-1');
+      await _flushAsync();
+
+      // A token-less near-tail claim over a non-empty window: neither the
+      // eligibility listener nor a DIRECT ack call (realtime/retry paths
+      // enter ackCurrentChannel without isAutoAckEligible) may honor it.
+      container
+          .read(chatReadViewportProvider.notifier)
+          .updateViewport(
+            channelId: 'channel-1',
+            nearLoadedTail: true,
+            distanceFromBottom: 0,
+            viewportHeight: 600,
+            sampledTailId: null,
+          );
+      await _flushAsync();
+      await notifier.ackCurrentChannel();
+      await _flushAsync();
+      expect(adapter.ackAttempts, 0);
+      expect(adapter.ackedMessageIds, isEmpty);
+      var readState = await db.readStateDao.getReadState('channel-1');
+      expect(readState?.lastMessageId, priorId);
+
+      // The same geometry carrying the real tail token acks - proving the
+      // rejection above was the token, not an inert fixture.
+      _updateViewport(container, nearLoadedTail: true);
+      await _flushAsync();
+      readState = await db.readStateDao.getReadState('channel-1');
+      expect(readState?.lastMessageId, tailId);
+      expect(adapter.ackedMessageIds, [tailId]);
+    },
+  );
+
+  test(
+    'a pointer ahead of the visible tail is not acked without orphan proof',
+    () async {
+      final db = openTestDatabase();
+      final String priorId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
+      final String tailId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 12));
+      final String racedId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 13));
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(tailId),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(priorId),
+          mentionCount: const Value(0),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        initialMessages: <Map<String, Object?>>[
+          _messageJson(id: tailId, channelId: 'channel-1', authorId: 'other'),
+          _messageJson(id: priorId, channelId: 'channel-1', authorId: 'other'),
+        ],
+      );
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      _setViewportActive(container, channelId: 'channel-1');
+      await _flushAsync();
+
+      // The raced create: MessageWriteBatcher's pointer write lands before
+      // the message event is delivered, and the server's latest page already
+      // contains the raced row. The eligibility token still validates the
+      // OLD tail, so the ack may run - but it must not cover the raced row.
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(racedId),
+        ),
+      );
+      adapter.initialMessages.insert(
+        0,
+        _messageJson(id: racedId, channelId: 'channel-1', authorId: 'other'),
+      );
+
+      _updateViewport(container, nearLoadedTail: true);
+      await _flushAsync();
+
+      final readState = await db.readStateDao.getReadState('channel-1');
+      expect(
+        readState?.lastMessageId,
+        tailId,
+        reason:
+            'the terminal probe finds the raced row, so the ack must fall '
+            'back to the tail this attempt actually validated',
+      );
+      expect(adapter.ackedMessageIds, [tailId]);
+    },
+  );
+
+  test(
+    'viewport edge during a load acks only after post-install republication',
     () async {
       final db = openTestDatabase();
       final String priorId = _snowflakeForUtc(DateTime.utc(2026, 5, 6, 11));
@@ -2139,6 +2382,11 @@ void main() {
 
       adapter.releaseMessageFetch();
       await switching;
+      await _flushAsync();
+      // The mid-load publication carried no tail token (skeleton), so it
+      // cannot authorize the loaded window; post-layout the widget
+      // republishes with the fresh token and the deferred edge acks.
+      _updateViewport(container, nearLoadedTail: true);
       await _flushAsync();
 
       final readState = await db.readStateDao.getReadState('channel-1');
@@ -2358,6 +2606,10 @@ void main() {
           ),
         );
     await inFlight;
+    await _flushAsync();
+    // The live append advanced the tail past the standing claim's token;
+    // its layout republishes geometry with the fresh token.
+    _updateViewport(container, nearLoadedTail: true);
     await _flushAsync();
     await Future<void>.delayed(const Duration(milliseconds: 1200));
     await _flushAsync();
@@ -3615,6 +3867,8 @@ void main() {
           container.read(chatViewModelProvider).messages.map((m) => m.id),
           contains(incomingId),
         );
+        // The append's layout republishes geometry with the fresh tail token.
+        _updateViewport(container, nearLoadedTail: true);
 
         for (var i = 0; i < 50; i++) {
           await Future<void>.delayed(const Duration(milliseconds: 100));

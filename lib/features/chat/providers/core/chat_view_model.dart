@@ -27,6 +27,7 @@ import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/domain/message_attachment_update.dart';
 import 'package:fluxer_app/features/chat/domain/message_upload_send_cancelled_exception.dart';
 import 'package:fluxer_app/features/chat/domain/message_window.dart';
+import 'package:fluxer_app/features/chat/domain/pagination_pump_policy.dart';
 import 'package:fluxer_app/features/chat/domain/pending_attachment.dart';
 import 'package:fluxer_app/features/chat/providers/channel/channel_message_permissions_provider.dart';
 import 'package:fluxer_app/features/chat/providers/core/chat_providers.dart';
@@ -72,7 +73,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'chat_view_model.g.dart';
 
-const _kPageSize = 30;
+const _kPageSize = 50;
 const _kInitialPageSize = 50;
 const _kJumpToPresentPageSize = 50;
 const Duration _kChannelNetworkRefreshTtl = Duration(seconds: 30);
@@ -175,6 +176,13 @@ class ChatViewState {
   final bool isLoadingNewer;
   final bool hasMoreMessages;
   final bool hasMoreNewerMessages;
+
+  /// Counts wholesale window replacements. Bumped on EVERY write that
+  /// replaces the message window wholesale (swap-lane installs and channel
+  /// switches that blank or reinstall the window) and nowhere else - page
+  /// merges, live creates, trims and flag-only commits do not move it. The
+  /// pagination coordinator keys its live context on (channelId, windowEpoch).
+  final int windowEpoch;
   final String? errorMessage;
   final bool messageLoadFailed;
   final _MessagesWriteAuthorization? _writeAuthorization;
@@ -193,6 +201,7 @@ class ChatViewState {
     required this.isLoadingNewer,
     required this.hasMoreMessages,
     required this.hasMoreNewerMessages,
+    this.windowEpoch = 0,
     required this.errorMessage,
     this.messageLoadFailed = false,
     this.scrollToMessageSignal,
@@ -218,6 +227,7 @@ class ChatViewState {
     required this.isLoadingNewer,
     required this.hasMoreMessages,
     required this.hasMoreNewerMessages,
+    required this.windowEpoch,
     required this.errorMessage,
     required this.messageLoadFailed,
     required this.scrollToMessageSignal,
@@ -275,6 +285,7 @@ class ChatViewState {
     bool? isLoadingNewer,
     bool? hasMoreMessages,
     bool? hasMoreNewerMessages,
+    int? windowEpoch,
     Object? errorMessage = _unset,
     bool? messageLoadFailed,
   }) {
@@ -320,6 +331,7 @@ class ChatViewState {
       isLoadingNewer: isLoadingNewer ?? this.isLoadingNewer,
       hasMoreMessages: hasMoreMessages ?? this.hasMoreMessages,
       hasMoreNewerMessages: hasMoreNewerMessages ?? this.hasMoreNewerMessages,
+      windowEpoch: windowEpoch ?? this.windowEpoch,
       errorMessage: errorMessage == _unset
           ? this.errorMessage
           : errorMessage as String?,
@@ -468,25 +480,6 @@ class _AttachmentOp {
   /// Page-install overlay entry, acknowledged or withdrawn as usual. That layer
   /// is orthogonal: it protects fetched pages, this queue protects the wire.
   int overlayOrdinal = 0;
-}
-
-/// A pagination edge that proved unproductive: the exact request tuple that
-/// came back empty (or threw), parked so the level trigger in the scroll layer
-/// cannot refetch it on every notification. Keyed by cursor AND generations so
-/// any window progress, replacement or channel switch re-arms structurally —
-/// a stale park can never outlive the window it described.
-class _EdgeLoadPark {
-  const _EdgeLoadPark({
-    required this.channelId,
-    required this.cursor,
-    required this.windowGeneration,
-    required this.switchGeneration,
-  });
-
-  final String channelId;
-  final String cursor;
-  final int windowGeneration;
-  final int switchGeneration;
 }
 
 /// The commit half of a window replacement, run as a single queue item so no
@@ -669,6 +662,7 @@ class ChatViewModel extends _$ChatViewModel {
           viewport: viewport,
           channelId: state.channelId,
           hasMoreNewerMessages: state.hasMoreNewerMessages,
+          currentTailId: newestServerBackedMessageId(state.messages),
         );
     final bool becameEligible = nextEligible && !_autoAckEligible;
     _autoAckEligible = nextEligible;
@@ -907,34 +901,6 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // PAGINATION PROGRESS LEDGER. The edge trigger in the scroll layer is a
-  // LEVEL (fire whenever the viewport is inside the enter margin), so the
-  // knowledge that a cursor already proved unproductive has to live here, with
-  // the writer that learned it. An empty page installs nothing, which means
-  // the next edge evaluation derives the SAME after/before cursor and would
-  // refetch it on every scroll notification — the dead-cursor no-progress loop
-  // a device log caught verbatim (two identical `after=` fetches 2.4s apart,
-  // both `count=0 hasMore=true`, user quit the channel 13s later).
-  //
-  // A park names the exact (channel, cursor, generations) tuple that came back
-  // empty (or threw). Edge loads refuse a matching tuple and nothing else, so
-  // every re-arm condition is structural:
-  //   * window progress — any install moves the edge cursor, so the tuple no
-  //     longer matches (this is also why a SUPERSEDED page must never park:
-  //     supersession means the window moved mid-flight, i.e. the next
-  //     evaluation already carries a different cursor);
-  //   * a new user gesture — [rearmEdgeLoadsForUserGesture], one refetch per
-  //     deliberate retry instead of one per scroll notification;
-  //   * window replacement or channel switch — the generations in the tuple;
-  //   * a tail seal — hasMoreNewerMessages false stops edge loads upstream.
-  // A mismatch verdict from the tail confirmation deliberately does NOT
-  // re-arm: it proves rows exist past the WINDOW tail, not that the dead
-  // cursor can suddenly advance, so an automatic refetch would buy one more
-  // guaranteed-empty round trip. m17 pins the loop, m17b/m17c/m17e the
-  // re-arms, m17f the supersession rule.
-  _EdgeLoadPark? _olderEdgePark;
-  _EdgeLoadPark? _newerEdgePark;
 
   /// One latest-page confirmation per (channel, tail, window generation):
   /// repeated empty results on one cursor re-use the standing verdict instead
@@ -942,34 +908,6 @@ class ChatViewModel extends _$ChatViewModel {
   /// A confirmation that ends WITHOUT a verdict (network failure) clears its
   /// entry so the next install may re-owe. m17d pins the dedupe.
   ({String channelId, String tailId, int windowGeneration})? _tailProbeLedger;
-
-  bool _isEdgeParked(_EdgeLoadPark? park, String channelId, String cursor) =>
-      park != null &&
-      park.channelId == channelId &&
-      park.cursor == cursor &&
-      park.windowGeneration == _windowGeneration &&
-      park.switchGeneration == _channelSwitchGeneration;
-
-  _EdgeLoadPark _mintEdgePark(String channelId, String cursor) => _EdgeLoadPark(
-    channelId: channelId,
-    cursor: cursor,
-    windowGeneration: _windowGeneration,
-    switchGeneration: _channelSwitchGeneration,
-  );
-
-  /// Re-arm rule for parked edges: a NEW user gesture (drag start) is a
-  /// deliberate retry and buys exactly one refetch of a parked cursor — the
-  /// fetch re-parks if it comes back empty again. The scroll layer calls this
-  /// from its ScrollStart handling; everything else re-arms structurally (see
-  /// the ledger comment above).
-  void rearmEdgeLoadsForUserGesture() {
-    if (_olderEdgePark == null && _newerEdgePark == null) {
-      return;
-    }
-    talker.debug('[ChatPagination] edge parks re-armed by gesture');
-    _olderEdgePark = null;
-    _newerEdgePark = null;
-  }
 
   /// Visible for testing: the unread-boundary key must record SUCCESSFUL loads
   /// only, so a discarded attempt leaves it empty and a later attempt proceeds.
@@ -1706,6 +1644,7 @@ class ChatViewModel extends _$ChatViewModel {
     required bool isLoadingNewer,
     required bool hasMoreMessages,
     required bool hasMoreNewerMessages,
+    required bool replaceWindow,
     String? errorMessage,
   }) {
     _jumpHighlightTimer?.cancel();
@@ -1724,6 +1663,7 @@ class ChatViewModel extends _$ChatViewModel {
       isLoadingNewer: isLoadingNewer,
       hasMoreMessages: hasMoreMessages,
       hasMoreNewerMessages: hasMoreNewerMessages,
+      windowEpoch: replaceWindow ? state.windowEpoch + 1 : state.windowEpoch,
       errorMessage: errorMessage,
       jumpHighlightSequence: state.jumpHighlightSequence,
     );
@@ -1880,6 +1820,7 @@ class ChatViewModel extends _$ChatViewModel {
           isLoadingNewer: false,
           hasMoreMessages: isChannelChange || state.hasMoreMessages,
           hasMoreNewerMessages: !isChannelChange && state.hasMoreNewerMessages,
+          replaceWindow: isChannelChange,
         );
         return;
       }
@@ -1917,6 +1858,7 @@ class ChatViewModel extends _$ChatViewModel {
           isLoadingNewer: false,
           hasMoreMessages: true,
           hasMoreNewerMessages: false,
+          replaceWindow: true,
         );
         highlightJumpMessage(targetMessageId);
         await _loadMessages(
@@ -1992,6 +1934,7 @@ class ChatViewModel extends _$ChatViewModel {
           isLoadingNewer: false,
           hasMoreMessages: cached.length >= _kPageSize,
           hasMoreNewerMessages: false,
+          replaceWindow: true,
         );
         _invalidateMessageCacheTrust();
         if (!willRefresh) {
@@ -2021,6 +1964,7 @@ class ChatViewModel extends _$ChatViewModel {
         isLoadingNewer: false,
         hasMoreMessages: true,
         hasMoreNewerMessages: false,
+        replaceWindow: true,
       );
       String? aroundUnreadId;
       if (hasUnread) {
@@ -2452,6 +2396,7 @@ class ChatViewModel extends _$ChatViewModel {
             hasMoreNewerMessages: hasMoreNewer,
             errorMessage: null,
             messageLoadFailed: false,
+            windowEpoch: state.windowEpoch + 1,
           );
           if (!preserveLoadedWindow) {
             _contiguity.setVerified(channelId, page.messages);
@@ -2653,20 +2598,38 @@ class ChatViewModel extends _$ChatViewModel {
     await repository.applyLocalAckLatest(channelId);
   }
 
-  Future<void> loadMore() async {
+  Future<PageLoadResult> loadMore() async {
+    final String channelId = state.channelId;
+    final int entryEpoch = state.windowEpoch;
+    PageLoadResult older({
+      required PageLoadStatus status,
+      String? requestCursor,
+      String? installedBoundary,
+      required bool hasMoreAtEdge,
+    }) => PageLoadResult(
+      edge: PaginationEdge.older,
+      channelId: channelId,
+      windowEpoch: entryEpoch,
+      requestCursor: requestCursor,
+      installedBoundary: installedBoundary,
+      status: status,
+      hasMoreAtEdge: hasMoreAtEdge,
+    );
     if (state.isLoadingMore ||
         !state.hasMoreMessages ||
         state.messages.isEmpty) {
-      return;
+      return older(
+        status: PageLoadStatus.skipped,
+        hasMoreAtEdge: state.hasMoreMessages,
+      );
     }
-
-    final String channelId = state.channelId;
     final String requestedBeforeId = state.messages.first.id;
-    if (_isEdgeParked(_olderEdgePark, channelId, requestedBeforeId)) {
-      // This exact tuple already came back unproductive; see the progress
-      // ledger. A gesture, window progress or a swap re-arms it.
-      return;
-    }
+    // Load-bearing supersession key, not just result metadata: a same-channel
+    // wholesale refresh can preserve the same boundary id, so the boundary
+    // check inside applyOlderPage would accept a stale page and write it into
+    // the replaced window. The epoch names the window itself.
+    bool isStale() =>
+        state.channelId != channelId || state.windowEpoch != entryEpoch;
     state = state.copyWith(isLoadingMore: true);
     // Pagination is a page-producing fetch like any other, so it joins the
     // protocol. Registering at ENTRY covers the cache read as well as the
@@ -2690,9 +2653,14 @@ class ChatViewModel extends _$ChatViewModel {
         final cachedPage = await repo.getCachedMessagesBefore(
           channelId,
           requestedBeforeId,
+          limit: _kPageSize,
         );
-        if (state.channelId != channelId) {
-          return;
+        if (isStale()) {
+          return older(
+            status: PageLoadStatus.superseded,
+            requestCursor: requestedBeforeId,
+            hasMoreAtEdge: state.hasMoreMessages,
+          );
         }
         final olderInRange = cachedPage
             .where((m) => compareSnowflakeIds(m.id, _contiguity.oldestId) >= 0)
@@ -2712,8 +2680,19 @@ class ChatViewModel extends _$ChatViewModel {
             case WindowPageSuperseded():
               talker.debug('[ChatPagination] older page superseded');
               _releaseLoadingMore(fetchOrdinal);
-              return;
+              return older(
+                status: PageLoadStatus.superseded,
+                requestCursor: requestedBeforeId,
+                hasMoreAtEdge: state.hasMoreMessages,
+              );
             case WindowPageApplied(:final window):
+              if (isStale()) {
+                return older(
+                  status: PageLoadStatus.superseded,
+                  requestCursor: requestedBeforeId,
+                  hasMoreAtEdge: state.hasMoreMessages,
+                );
+              }
               state = state.copyWith(
                 write: (
                   messages: _applyPendingLocalMutations(
@@ -2732,16 +2711,26 @@ class ChatViewModel extends _$ChatViewModel {
                   messages: olderInRange,
                 ),
               );
-              return;
+              return older(
+                status: PageLoadStatus.applied,
+                requestCursor: requestedBeforeId,
+                installedBoundary: window.messages.first.id,
+                hasMoreAtEdge: window.hasMoreOlder,
+              );
           }
         }
       }
       final page = await repo.loadMessagePage(
         channelId: channelId,
         before: requestedBeforeId,
+        limit: _kPageSize,
       );
-      if (state.channelId != channelId) {
-        return;
+      if (isStale()) {
+        return older(
+          status: PageLoadStatus.superseded,
+          requestCursor: requestedBeforeId,
+          hasMoreAtEdge: state.hasMoreMessages,
+        );
       }
       final WindowPageResult result = applyOlderPage(
         window: MessageWindowSnapshot(
@@ -2757,19 +2746,21 @@ class ChatViewModel extends _$ChatViewModel {
         case WindowPageSuperseded():
           talker.debug('[ChatPagination] older page superseded');
           _releaseLoadingMore(fetchOrdinal);
-          return;
+          return older(
+            status: PageLoadStatus.superseded,
+            requestCursor: requestedBeforeId,
+            hasMoreAtEdge: state.hasMoreMessages,
+          );
         case WindowPageApplied(:final window):
+          if (isStale()) {
+            return older(
+              status: PageLoadStatus.superseded,
+              requestCursor: requestedBeforeId,
+              hasMoreAtEdge: state.hasMoreMessages,
+            );
+          }
           if (page.messages.isNotEmpty) {
             _contiguity.extendOlder(channelId, page.messages.first.id);
-            _olderEdgePark = null;
-          } else if (window.hasMoreOlder) {
-            // Nothing installed, so the next evaluation derives this same
-            // cursor: park the tuple or the level trigger refetches it on
-            // every scroll notification.
-            _olderEdgePark = _mintEdgePark(channelId, requestedBeforeId);
-            talker.debug(
-              '[ChatPagination] older edge parked cursor=$requestedBeforeId',
-            );
           }
           _contiguityTrusted = true;
           state = state.copyWith(
@@ -2795,39 +2786,68 @@ class ChatViewModel extends _$ChatViewModel {
               embeddedReplyParents: page.embeddedReplyParents,
             ),
           );
+          return older(
+            status: page.messages.isEmpty
+                ? PageLoadStatus.empty
+                : PageLoadStatus.applied,
+            requestCursor: requestedBeforeId,
+            installedBoundary: page.messages.isEmpty
+                ? null
+                : window.messages.first.id,
+            hasMoreAtEdge: window.hasMoreOlder,
+          );
       }
     } on Exception catch (e) {
       talker.warning('[ChatPagination] older load failed', e);
-      // A failed tuple parks too: transient errors recover through the same
-      // re-arms (the retry gesture is one), steady-state errors stop hammering.
-      _olderEdgePark = _mintEdgePark(channelId, requestedBeforeId);
       _releaseLoadingMore(fetchOrdinal);
+      return older(
+        status: PageLoadStatus.failed,
+        requestCursor: requestedBeforeId,
+        hasMoreAtEdge: state.hasMoreMessages,
+      );
     } finally {
       _endPageFetch(fetchOrdinal);
       _releaseLoadingMore(fetchOrdinal);
     }
   }
 
-  Future<void> loadNewer() async {
+  Future<PageLoadResult> loadNewer() async {
+    final String channelId = state.channelId;
+    final int entryEpoch = state.windowEpoch;
+    PageLoadResult newer({
+      required PageLoadStatus status,
+      String? requestCursor,
+      String? installedBoundary,
+      required bool hasMoreAtEdge,
+    }) => PageLoadResult(
+      edge: PaginationEdge.newer,
+      channelId: channelId,
+      windowEpoch: entryEpoch,
+      requestCursor: requestCursor,
+      installedBoundary: installedBoundary,
+      status: status,
+      hasMoreAtEdge: hasMoreAtEdge,
+    );
     if (state.isLoadingNewer ||
         !state.hasMoreNewerMessages ||
         state.messages.isEmpty) {
-      return;
+      return newer(
+        status: PageLoadStatus.skipped,
+        hasMoreAtEdge: state.hasMoreNewerMessages,
+      );
     }
-    final String channelId = state.channelId;
     final String? requestedAfterId = newestServerBackedMessageId(
       state.messages,
     );
     if (requestedAfterId == null) {
-      return;
+      return newer(
+        status: PageLoadStatus.skipped,
+        hasMoreAtEdge: state.hasMoreNewerMessages,
+      );
     }
-    if (_isEdgeParked(_newerEdgePark, channelId, requestedAfterId)) {
-      // This exact tuple already came back unproductive; see the progress
-      // ledger. A gesture, window progress or a swap re-arms it. The device
-      // log's no-progress loop (same after= cursor refetched per scroll
-      // notification, empty every time) dies here.
-      return;
-    }
+    // Load-bearing supersession key - see loadMore.
+    bool isStale() =>
+        state.channelId != channelId || state.windowEpoch != entryEpoch;
     state = state.copyWith(isLoadingNewer: true);
     // Same protocol membership as loadMore, for the same two reasons.
     final int fetchOrdinal = _beginPageFetch();
@@ -2846,9 +2866,14 @@ class ChatViewModel extends _$ChatViewModel {
         final cachedPage = await repo.getCachedMessagesAfter(
           channelId,
           requestedAfterId,
+          limit: _kPageSize,
         );
-        if (state.channelId != channelId) {
-          return;
+        if (isStale()) {
+          return newer(
+            status: PageLoadStatus.superseded,
+            requestCursor: requestedAfterId,
+            hasMoreAtEdge: state.hasMoreNewerMessages,
+          );
         }
         final newerInRange = cachedPage
             .where((m) => compareSnowflakeIds(m.id, _contiguity.newestId) <= 0)
@@ -2868,8 +2893,12 @@ class ChatViewModel extends _$ChatViewModel {
                 newerInRange.last.id,
                 detachedWindow: true,
               )).hasMoreNewer;
-          if (state.channelId != channelId) {
-            return;
+          if (isStale()) {
+            return newer(
+              status: PageLoadStatus.superseded,
+              requestCursor: requestedAfterId,
+              hasMoreAtEdge: state.hasMoreNewerMessages,
+            );
           }
           final WindowPageResult result = applyNewerPage(
             window: MessageWindowSnapshot(
@@ -2885,9 +2914,19 @@ class ChatViewModel extends _$ChatViewModel {
             case WindowPageSuperseded():
               talker.debug('[ChatPagination] newer page superseded');
               _releaseLoadingNewer(fetchOrdinal);
-              return;
+              return newer(
+                status: PageLoadStatus.superseded,
+                requestCursor: requestedAfterId,
+                hasMoreAtEdge: state.hasMoreNewerMessages,
+              );
             case WindowPageApplied(:final window):
-              _newerEdgePark = null;
+              if (isStale()) {
+                return newer(
+                  status: PageLoadStatus.superseded,
+                  requestCursor: requestedAfterId,
+                  hasMoreAtEdge: state.hasMoreNewerMessages,
+                );
+              }
               state = state.copyWith(
                 write: (
                   messages: _applyPendingLocalMutations(
@@ -2906,16 +2945,28 @@ class ChatViewModel extends _$ChatViewModel {
                   messages: window.messages,
                 ),
               );
-              return;
+              return newer(
+                status: PageLoadStatus.applied,
+                requestCursor: requestedAfterId,
+                installedBoundary: newestServerBackedMessageId(
+                  window.messages,
+                ),
+                hasMoreAtEdge: window.hasMoreNewer,
+              );
           }
         }
       }
       final page = await repo.loadMessagePage(
         channelId: channelId,
         after: requestedAfterId,
+        limit: _kPageSize,
       );
-      if (state.channelId != channelId) {
-        return;
+      if (isStale()) {
+        return newer(
+          status: PageLoadStatus.superseded,
+          requestCursor: requestedAfterId,
+          hasMoreAtEdge: state.hasMoreNewerMessages,
+        );
       }
       // COUNTS ARE HINTS, ONLY PROOFS SEAL - the same epistemics the around
       // install runs on, for the same reason. A full page was truncated at the
@@ -2936,8 +2987,12 @@ class ChatViewModel extends _$ChatViewModel {
             detachedWindow: page.messages.length >= _kPageSize,
           );
       final bool pageIndicatesMoreNewer = newerConsult.hasMoreNewer;
-      if (state.channelId != channelId) {
-        return;
+      if (isStale()) {
+        return newer(
+          status: PageLoadStatus.superseded,
+          requestCursor: requestedAfterId,
+          hasMoreAtEdge: state.hasMoreNewerMessages,
+        );
       }
       final WindowPageResult result = applyNewerPage(
         window: MessageWindowSnapshot(
@@ -2953,22 +3008,21 @@ class ChatViewModel extends _$ChatViewModel {
         case WindowPageSuperseded():
           talker.debug('[ChatPagination] newer page superseded');
           _releaseLoadingNewer(fetchOrdinal);
-          return;
+          return newer(
+            status: PageLoadStatus.superseded,
+            requestCursor: requestedAfterId,
+            hasMoreAtEdge: state.hasMoreNewerMessages,
+          );
         case WindowPageApplied(:final window):
+          if (isStale()) {
+            return newer(
+              status: PageLoadStatus.superseded,
+              requestCursor: requestedAfterId,
+              hasMoreAtEdge: state.hasMoreNewerMessages,
+            );
+          }
           if (page.messages.isNotEmpty) {
             _contiguity.extendNewer(channelId, page.messages.last.id);
-            _newerEdgePark = null;
-          } else if (window.hasMoreNewer) {
-            // Nothing installed, so the next evaluation derives this same
-            // cursor: park the tuple or the level trigger refetches it on
-            // every scroll notification. Honesty is untouched — the flag
-            // stays provisionally true and the confirmation below still
-            // settles it; the park only stops the dead cursor from being
-            // edge-triggered again before something changes.
-            _newerEdgePark = _mintEdgePark(channelId, requestedAfterId);
-            talker.debug(
-              '[ChatPagination] newer edge parked cursor=$requestedAfterId',
-            );
           }
           _contiguityTrusted = true;
           state = state.copyWith(
@@ -2999,13 +3053,25 @@ class ChatViewModel extends _$ChatViewModel {
               embeddedReplyParents: page.embeddedReplyParents,
             ),
           );
+          return newer(
+            status: page.messages.isEmpty
+                ? PageLoadStatus.empty
+                : PageLoadStatus.applied,
+            requestCursor: requestedAfterId,
+            installedBoundary: page.messages.isEmpty
+                ? null
+                : newestServerBackedMessageId(window.messages),
+            hasMoreAtEdge: window.hasMoreNewer,
+          );
       }
     } on Exception catch (e) {
       talker.warning('[ChatPagination] newer load failed', e);
-      // A failed tuple parks too: transient errors recover through the same
-      // re-arms (the retry gesture is one), steady-state errors stop hammering.
-      _newerEdgePark = _mintEdgePark(channelId, requestedAfterId);
       _releaseLoadingNewer(fetchOrdinal);
+      return newer(
+        status: PageLoadStatus.failed,
+        requestCursor: requestedAfterId,
+        hasMoreAtEdge: state.hasMoreNewerMessages,
+      );
     } finally {
       _endPageFetch(fetchOrdinal);
       _releaseLoadingNewer(fetchOrdinal);
@@ -3096,6 +3162,7 @@ class ChatViewModel extends _$ChatViewModel {
             ),
             hasMoreMessages: page.messages.length >= _kJumpToPresentPageSize,
             hasMoreNewerMessages: false,
+            windowEpoch: state.windowEpoch + 1,
           );
         },
       );
@@ -3445,7 +3512,7 @@ class ChatViewModel extends _$ChatViewModel {
           .read(messageRepositoryProvider)
           .loadMessagePage(
             channelId: channelId,
-            // ignore: avoid_redundant_argument_values -- the latest page, sized
+            // The latest page, sized to the standard pagination quota.
             limit: _kPageSize,
           );
       if (!stillValid()) {
@@ -3498,7 +3565,19 @@ class ChatViewModel extends _$ChatViewModel {
     }
   }
 
-  /// Live-tail ack target: max(visibleTail, channel.lastMessageId) for web parity.
+  /// One pointer value per channel proven orphaned by a terminal latest-page
+  /// fetch; only this exact value may be acked above the visible tail. A
+  /// pointer that advances past it is a fresh, unproven claim.
+  ({String channelId, String pointerId})? _provenOrphanPointer;
+
+  /// Live-tail ack target: max(visibleTail, channel.lastMessageId) for web
+  /// parity. A pointer ahead of the visible tail is either an orphan left by
+  /// a deleted tail (ack it, like web ackWithStickyUnread) or a real create
+  /// whose pointer write raced ahead of its message event (never ack unseen
+  /// rows). Locally identical, so a fresh latest-page fetch decides: the
+  /// pointer was read before the fetch left, so a page whose newest row is
+  /// still [visibleTailId] proves the pointer row is not visibly there.
+  /// Every other answer falls back to the validated visible tail.
   Future<String> _liveTailAckTargetId({
     required String channelId,
     required String visibleTailId,
@@ -3517,9 +3596,37 @@ class ChatViewModel extends _$ChatViewModel {
     if (compareSnowflakeIds(pointer, visibleTailId) <= 0) {
       return visibleTailId;
     }
-    // Ack to the channel pointer even when it is orphaned (deleted tail), matching
-    // web ackWithStickyUnread.
-    return pointer;
+    final ({String channelId, String pointerId})? proven = _provenOrphanPointer;
+    if (proven != null &&
+        proven.channelId == channelId &&
+        proven.pointerId == pointer) {
+      // A standing verdict for this exact value: an orphaned pointer cannot
+      // age back into a live row, so re-probing buys nothing.
+      return pointer;
+    }
+    try {
+      // `fresh` is load-bearing: an in-flight latest page with the same key
+      // could carry a server snapshot that predates the pointer read, and
+      // equality against it would launder a real raced pointer into an
+      // "orphan" verdict.
+      final MessageListLoadResult page = await ref
+          .read(messageRepositoryProvider)
+          .loadMessagePage(channelId: channelId, limit: _kPageSize, fresh: true);
+      final String? channelNewestId = newestServerBackedMessageId(
+        page.messages,
+      );
+      if (channelNewestId == visibleTailId) {
+        _provenOrphanPointer = (channelId: channelId, pointerId: pointer);
+        return pointer;
+      }
+      talker.debug(
+        '[ChatViewModel] pointer $pointer unproven above tail '
+        '$visibleTailId (server newest=${channelNewestId ?? '<none>'})',
+      );
+    } on Exception catch (e) {
+      talker.warning('[ChatViewModel] orphan pointer probe failed', e);
+    }
+    return visibleTailId;
   }
 
   Future<void> ackCurrentChannel({bool force = false}) async {
@@ -3548,8 +3655,15 @@ class ChatViewModel extends _$ChatViewModel {
     final now = DateTime.now();
     final ChatReadViewportState viewport = ref.read(chatReadViewportProvider);
     final bool isReadViewportEligible = viewport.canAutoAck;
-    final bool isAtLiveTail =
-        viewport.nearLoadedTail && !state.hasMoreNewerMessages;
+    // Same strict predicate as the eligibility listener, so direct
+    // realtime/retry callers cannot bypass the tail token. The gate ANDs
+    // both flags; the canAutoAck overlap is harmless.
+    final bool isAtLiveTail = isAutoAckEligible(
+      viewport: viewport,
+      channelId: channelId,
+      hasMoreNewerMessages: state.hasMoreNewerMessages,
+      currentTailId: visibleTailId,
+    );
     if (force) {
       _readAckGate.clearManualUnread(channelId);
     }
@@ -3575,6 +3689,15 @@ class ChatViewModel extends _$ChatViewModel {
     _readAckRetryTimer?.cancel();
     _readAckGate.markAttemptStarted(channelId, now: now);
     try {
+      // Bound at entry: the pointer can advance mid-await (a create's
+      // pointer update may precede its message event), and a target derived
+      // after the awaits would ack rows this attempt never validated.
+      final String? ackTargetId = force
+          ? null
+          : await _liveTailAckTargetId(
+              channelId: channelId,
+              visibleTailId: visibleTailId!,
+            );
       final database = ref.read(fluxerDatabaseProvider);
       final readState = await database.readStateDao.getReadState(channelId);
       if (!force && (readState?.manual ?? false)) {
@@ -3601,16 +3724,17 @@ class ChatViewModel extends _$ChatViewModel {
           }
         }
       }
+      if (!force &&
+          (state.channelId != channelId ||
+              state.hasMoreNewerMessages ||
+              newestServerBackedMessageId(state.messages) != visibleTailId)) {
+        // The window moved while this attempt awaited: acking the
+        // entry-bound target would cover rows this attempt never validated.
+        // Bail; the finally-block re-run (or the next publication)
+        // re-evaluates against the new tail.
+        return;
+      }
       final repository = ref.read(readStateRepositoryProvider);
-      // Web acks the channel last_message_id pointer at live tail. Equal to the
-      // visible id normally; when the pointer is an orphaned high id, acking it
-      // clears stuck unread the way desktop does.
-      final String? ackTargetId = force
-          ? null
-          : await _liveTailAckTargetId(
-              channelId: channelId,
-              visibleTailId: visibleTailId!,
-            );
       final String? ackedMessageId = force
           ? await repository.applyLocalAckLatest(channelId)
           : await repository.applyLocalAckUpTo(channelId, ackTargetId!);
@@ -5038,7 +5162,7 @@ class ChatViewModel extends _$ChatViewModel {
           .loadMessagePage(
             channelId: channelId,
             around: messageId,
-            // ignore: avoid_redundant_argument_values -- pinned, see above
+            // Pinned, see above.
             limit: aroundLimit,
           );
       if (!isCurrentJump()) {
@@ -5098,6 +5222,7 @@ class ChatViewModel extends _$ChatViewModel {
             ),
             hasMoreMessages: page.messages.length >= _kPageSize,
             hasMoreNewerMessages: hasMoreNewer,
+            windowEpoch: state.windowEpoch + 1,
             // The preempted switch set isLoading and can no longer reach any of
             // its own clearing paths, so the winner owns BOTH flags or the
             // channel is wedged busy forever: no jump button, dedupe stuck, and

@@ -380,7 +380,7 @@ void main() {
     final notifier = container.read(chatViewModelProvider.notifier);
     // Anchor deep in history so there is a REAL gap between the window and
     // the live tail. Splicing a create onto this window would produce a list
-    // that looks contiguous while ~85 messages are missing from the middle.
+    // that looks contiguous while ~75 messages are missing from the middle.
     final Future<void> open = notifier.switchChannel(
       _channelId,
       targetMessageId: _snowflakeForIndex(100),
@@ -403,7 +403,8 @@ void main() {
     );
     expect(
       state.messages.last.id,
-      _snowflakeForIndex(115),
+      // Around page limit 50 => newer quota 25 beyond the target at 100.
+      _snowflakeForIndex(125),
       reason: 'the window must still end where the around page ended',
     );
     expect(
