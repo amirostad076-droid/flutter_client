@@ -140,13 +140,15 @@ void main() {
         if (capturedRef == null || update.connectionId == null) {
           return;
         }
-        capturedRef!.read(voiceStatesMapProvider.notifier).update(
-          VoiceState(
-            userId: _userId,
-            guildId: _guildId,
-            connectionId: update.connectionId,
-          ),
-        );
+        capturedRef!
+            .read(voiceStatesMapProvider.notifier)
+            .update(
+              VoiceState(
+                userId: _userId,
+                guildId: _guildId,
+                connectionId: update.connectionId,
+              ),
+            );
       };
 
       await _pumpJoinHarness(
