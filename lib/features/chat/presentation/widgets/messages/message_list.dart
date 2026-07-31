@@ -1348,22 +1348,14 @@ class _MessageListState extends ConsumerState<MessageList> {
                   messageId: message.id,
                   attachmentId: attachment.id,
                 ),
-            onEditAttachmentAltText: (Attachment attachment) async {
-              final String? description = await showAttachmentAltTextSheet(
+            onEditAttachmentAltText: (Attachment attachment) => unawaited(
+              editMessageAttachmentAltText(
                 context,
+                ref,
+                messageId: message.id,
                 attachment: attachment,
-              );
-              if (description == null || !context.mounted) {
-                return;
-              }
-              await ref
-                  .read(chatViewModelProvider.notifier)
-                  .editAttachmentAltText(
-                    messageId: message.id,
-                    attachmentId: attachment.id,
-                    description: description.isEmpty ? null : description,
-                  );
-            },
+              ),
+            ),
             onReaction:
                 (String emoji, {String? emojiId, bool animated = false}) => ref
                     .read(chatViewModelProvider.notifier)

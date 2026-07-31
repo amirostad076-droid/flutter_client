@@ -413,6 +413,12 @@ void main() {
       expect(updatedMessage.content, 'hello');
       expect(updatedMessage.attachments.length, 2);
       expect(updatedMessage.attachments[1].description, 'alt text');
+      expect(adapter.requestedFieldNames, <String>['attachments']);
+      expect(adapter.requestedAttachmentsJson, isNotNull);
+      final List<dynamic> sentAttachments =
+          jsonDecode(adapter.requestedAttachmentsJson!) as List<dynamic>;
+      expect(sentAttachments, hasLength(2));
+      expect(sentAttachments[1]['description'], 'alt text');
     },
   );
 }
@@ -528,6 +534,8 @@ class _EditMessageAttachmentsAdapter implements HttpClientAdapter {
   final String channelId;
   String? requestedPath;
   String? requestedMethod;
+  List<String> requestedFieldNames = <String>[];
+  String? requestedAttachmentsJson;
 
   @override
   Future<ResponseBody> fetch(
@@ -538,6 +546,17 @@ class _EditMessageAttachmentsAdapter implements HttpClientAdapter {
     requestedPath = options.uri.path;
     requestedMethod = options.method;
     if (options.method == 'PATCH' && options.uri.path.contains('/messages/')) {
+      if (options.data is FormData) {
+        final FormData formData = options.data! as FormData;
+        requestedFieldNames = formData.fields
+            .map((MapEntry<String, String> e) => e.key)
+            .toList();
+        for (final MapEntry<String, String> field in formData.fields) {
+          if (field.key == 'attachments') {
+            requestedAttachmentsJson = field.value;
+          }
+        }
+      }
       final response = MessageResponseSchema(
         id: messageId,
         channelId: channelId,

@@ -793,22 +793,33 @@ class MessageRepository {
   /// `content` is deliberately NOT sent. The endpoint accepts it, but this
   /// operation does not own the text: another client can edit it while our
   /// request is in flight, and transmitting a value we merely read would
-  /// overwrite that edit. The SDK omits the part entirely when the argument is
-  /// null, so the server leaves the field untouched.
+  /// overwrite that edit.
+  ///
+  /// Uses Dio directly instead of the generated SDK edit call, which always
+  /// includes `embeds` and `message_snapshots` as null and can make attachment-
+  /// only messages fail with CANNOT_SEND_EMPTY_MESSAGE.
   Future<Message> editMessageAttachments({
     required String channelId,
     required String messageId,
     required List<MessageAttachmentUpdate> attachmentUpdates,
   }) async {
     try {
-      final List<Object2> attachments = attachmentUpdates
-          .map((MessageAttachmentUpdate update) => Object2(update.toJson()))
+      final List<Map<String, dynamic>> attachments = attachmentUpdates
+          .map((MessageAttachmentUpdate update) => update.toJson())
           .toList();
-      final MessageResponseSchema schema = await _client.channels.editMessage(
-        channelId: channelId,
-        messageId: messageId,
-        attachments: attachments,
-      );
+      final FormData formData = FormData();
+      formData.fields.add(MapEntry('attachments', jsonEncode(attachments)));
+      final Response<Map<String, dynamic>> response = await _dio
+          .patch<Map<String, dynamic>>(
+            '/channels/$channelId/messages/$messageId',
+            data: formData,
+            options: Options(contentType: 'multipart/form-data'),
+          );
+      final Map<String, dynamic>? data = response.data;
+      if (data == null) {
+        throw Exception('Empty response from editMessageAttachments');
+      }
+      final MessageResponseSchema schema = MessageResponseSchema.fromJson(data);
       return _persistSdkMessage(channelId: channelId, schema: schema);
     } on DioException catch (e) {
       throw Exception(dioExceptionMessage(e, 'Failed to edit attachments'));
