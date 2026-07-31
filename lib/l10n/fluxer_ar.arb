@@ -6618,9 +6618,8 @@
     "userSettingsNavLogOut": "تسجيل الخروج",
     "@userSettingsNavLogOut": {
         "description": "User settings navigation item to sign out of the account."
-    }        "description": "Main warning message on the beta warning bottom sheet."
-    }        "description": "Link label on the beta warning sheet to the open-source repository."
-    },    "quickSwitcherTabSearch": "بحث",
+    },
+    "quickSwitcherTabSearch": "بحث",
     "@quickSwitcherTabSearch": {
         "description": "Quick switcher bottom sheet tab for search results."
     },

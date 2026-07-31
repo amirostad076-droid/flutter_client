@@ -6618,9 +6618,8 @@
     "userSettingsNavLogOut": "登出",
     "@userSettingsNavLogOut": {
         "description": "User settings navigation item to sign out of the account."
-    }        "description": "Main warning message on the beta warning bottom sheet."
-    }        "description": "Link label on the beta warning sheet to the open-source repository."
-    },    "quickSwitcherTabSearch": "搜尋",
+    },
+    "quickSwitcherTabSearch": "搜尋",
     "@quickSwitcherTabSearch": {
         "description": "Quick switcher bottom sheet tab for search results."
     },
