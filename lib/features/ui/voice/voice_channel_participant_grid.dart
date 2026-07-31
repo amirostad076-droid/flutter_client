@@ -11,6 +11,7 @@ import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.da
 import 'package:fluxer_app/features/settings/providers/voice_settings_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
+import 'package:fluxer_app/shared/providers/input_modality_provider.dart';
 import 'package:fluxer_app/features/ui/voice/fluxer_live_badge.dart';
 import 'package:fluxer_app/features/ui/voice/voice_participant_media_tile.dart';
 import 'package:fluxer_app/features/voice/presentation/sheets/voice_participant_context_menu.dart';
@@ -849,7 +850,7 @@ class _VoiceParticipantCard extends ConsumerWidget {
         onTap: onTap,
         onSecondaryTapUp: (TapUpDetails details) =>
             onContextMenu(details.globalPosition),
-        onLongPress: isMobileLayout(context)
+        onLongPress: isTouchPrimaryInput(ref)
             ? () => onContextMenu(Offset.zero)
             : null,
         borderRadius: BorderRadius.circular(12),

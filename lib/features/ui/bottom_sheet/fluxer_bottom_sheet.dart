@@ -230,7 +230,7 @@ class FluxerBottomSheet {
     bool useRootNavigator = false,
     double initialChildSize = 0.9,
     double minChildSize = 0.4,
-    double maxChildSize = 0.95,
+    double maxChildSize = 0.85,
     ValueNotifier<bool>? canDismissNotifier,
     double? maxHeight,
     bool disableTopPadding = false,
@@ -273,9 +273,12 @@ class FluxerBottomSheet {
               onBack != null;
 
           final sheet = _FluxerDraggableScrollableSheet(
-            minChildSize: minChildSize,
+            minChildSize: math.min(minChildSize, maxChildSize),
             maxChildSize: maxChildSize,
-            initialChildSize: initialChildSize,
+            // Upstream dropped the default cap to 0.85 while the default
+            // initial stayed 0.9; DraggableScrollableSheet asserts on
+            // initial > max, so clamp both to the cap.
+            initialChildSize: math.min(initialChildSize, maxChildSize),
             maxHeight: maxHeight != null
                 ? (mediaQuery.size.height -
                           mediaQuery.viewPadding.top -

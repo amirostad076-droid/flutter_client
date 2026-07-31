@@ -15,6 +15,7 @@ import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_session_recovery_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/talker.dart';
+import 'package:fluxer_app/core/utils/message_mention_resolver.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_permission_utils.dart';
@@ -1461,6 +1462,11 @@ class ChatViewModel extends _$ChatViewModel {
           final Message existing = messages[matchedIndex];
           if (existing.id == msg.id &&
               existing.deliveryState == MessageDeliveryState.sent) {
+            if (!existing.isMentioned && msg.isMentioned) {
+              final List<Message> updated = List<Message>.from(messages);
+              updated[matchedIndex] = existing.copyWith(isMentioned: true);
+              return updated;
+            }
             return null;
           }
           final List<Message> updated = List<Message>.from(messages);
@@ -1470,7 +1476,12 @@ class ChatViewModel extends _$ChatViewModel {
           );
           return updated;
         }
-        if (messages.any((Message m) => m.id == msg.id)) {
+        final int existingIndex = messages.indexWhere((m) => m.id == msg.id);
+        if (existingIndex != -1) {
+          final Message existing = messages[existingIndex];
+          if (!existing.isMentioned && msg.isMentioned) {
+            return _replaceById(messages, existing.copyWith(isMentioned: true));
+          }
           return null;
         }
         if (state.hasMoreNewerMessages) {
@@ -1916,9 +1927,9 @@ class ChatViewModel extends _$ChatViewModel {
       final repo = ref.read(messageRepositoryProvider);
       final int cacheOrdinal = _beginPageFetch();
       cacheFetchOrdinal = cacheOrdinal;
-      final cached = await repo.getCachedMessages(
-        channelId,
-        limit: _kInitialPageSize,
+      final cached = mergeMentionHighlightFlags(
+        await repo.getCachedMessages(channelId, limit: _kInitialPageSize),
+        currentUserId: currentUserId,
       );
       if (!isCurrentSwitch()) {
         return;
@@ -2118,6 +2129,25 @@ class ChatViewModel extends _$ChatViewModel {
       return;
     }
     unawaited(_reconcileCurrentChannelFromNetwork());
+  }
+
+  /// Identity-preserving [mergeMentionHighlightFlags]: several preserve-window
+  /// paths prove "this write kept the window" by list identity, so a no-op
+  /// mention pass must return the input instance untouched.
+  List<Message> _withMentionHighlightFlags(List<Message> messages) {
+    final String? currentUserId = ref.read(currentUserIdProvider);
+    List<Message>? out;
+    for (int i = 0; i < messages.length; i += 1) {
+      final Message merged = mergeMentionHighlightFlag(
+        incoming: messages[i],
+        currentUserId: currentUserId,
+      );
+      if (!identical(merged, messages[i])) {
+        out ??= List<Message>.from(messages);
+        out[i] = merged;
+      }
+    }
+    return out ?? messages;
   }
 
   Future<void> _loadMessages(
@@ -2423,7 +2453,9 @@ class ChatViewModel extends _$ChatViewModel {
         () {
           state = state.copyWith(
             write: (
-              messages: reduceAgainst(state.messages),
+              messages: _withMentionHighlightFlags(
+                reduceAgainst(state.messages),
+              ),
               origin: MessagesOrigin.windowSwap,
             ),
             isLoading: false,
@@ -5881,15 +5913,29 @@ class ChatViewModel extends _$ChatViewModel {
       }
       deliveredIndex = -1;
     }
+    final String? currentUserId = ref.read(currentUserIdProvider);
     if (optimisticIndex != -1) {
-      updated[optimisticIndex] = delivered;
+      updated[optimisticIndex] = mergeMentionHighlightFlag(
+        incoming: delivered,
+        previous: updated[optimisticIndex],
+        currentUserId: currentUserId,
+      );
       return updated;
     }
     if (deliveredIndex != -1) {
-      updated[deliveredIndex] = delivered;
+      updated[deliveredIndex] = mergeMentionHighlightFlag(
+        incoming: delivered,
+        previous: updated[deliveredIndex],
+        currentUserId: currentUserId,
+      );
       return updated;
     }
-    updated.add(delivered);
+    updated.add(
+      mergeMentionHighlightFlag(
+        incoming: delivered,
+        currentUserId: currentUserId,
+      ),
+    );
     return updated;
   }
 

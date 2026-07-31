@@ -185,6 +185,28 @@ Widget contextMenuPanelPreview() {
   );
 }
 
+Offset contextMenuPositionAtCenter(BuildContext context) {
+  final RenderBox? box = context.findRenderObject() as RenderBox?;
+  if (box == null) {
+    return Offset.zero;
+  }
+  final Offset origin = box.localToGlobal(Offset.zero);
+  return origin + Offset(box.size.width / 2, box.size.height / 2);
+}
+
+Offset contextMenuPositionAtPointer(
+  BuildContext context, {
+  double horizontalFactor = 0.75,
+}) {
+  final RenderBox? box = context.findRenderObject() as RenderBox?;
+  if (box == null) {
+    return Offset.zero;
+  }
+  final Offset origin = box.localToGlobal(Offset.zero);
+  return origin +
+      Offset(box.size.width * horizontalFactor, box.size.height / 2);
+}
+
 double estimateContextMenuHeight(List<Widget> items) {
   var height = 16.0;
   for (final item in items) {
