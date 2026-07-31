@@ -114,7 +114,6 @@ class UserBlockedUsers extends ConsumerWidget {
 
     return SingleChildScrollView(
       controller: scrollController,
-      physics: const AlwaysScrollableScrollPhysics(),
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 1),
         child: body,
