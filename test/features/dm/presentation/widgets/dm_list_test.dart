@@ -759,6 +759,7 @@ class _VerifiedUserSettingsViewModel extends UserSettingsViewModel {
       trustedDomains: <String>[],
       email: 'user@example.com',
       verified: true,
+      isProfileLoaded: true,
     );
   }
 }
