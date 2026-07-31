@@ -262,6 +262,11 @@ class UserSettingsViewState {
 
   bool get hasVerifiedEmail => email != null;
 
+  bool get isKnownUnclaimed => isProfileLoaded && !hasVerifiedEmail;
+
+  bool get needsKnownEmailVerification =>
+      isProfileLoaded && hasVerifiedEmail && !verified;
+
   bool get hasTotpMfa => authenticatorTypes.contains(0);
   bool get hasWebauthnMfa => authenticatorTypes.contains(2);
 
@@ -881,74 +886,82 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
     try {
       final client = ref.read(fluxerClientProvider);
       final profile = await client.users.getCurrentUser();
-
-      final db = ref.read(fluxerDatabaseProvider);
-      unawaited(
-        db.userDao.upsertUser(
-          UsersCompanion(
-            id: Value(profile.id),
-            username: Value(profile.username),
-            bio: Value(profile.bio),
-            pronouns: Value(profile.pronouns),
-            accentColor: Value(profile.accentColor),
-            banner: Value(profile.banner),
-            premiumBadgeHidden: Value(profile.premiumBadgeHidden),
-            premiumBadgeMasked: Value(profile.premiumBadgeMasked),
-            premiumBadgeTimestampHidden: Value(
-              profile.premiumBadgeTimestampHidden,
-            ),
-            premiumBadgeSequenceHidden: Value(
-              profile.premiumBadgeSequenceHidden,
-            ),
-          ),
-        ),
-      );
-
-      state = state.copyWith(
-        publicFlags: profile.flags,
-        bio: profile.bio,
-        pronouns: profile.pronouns,
-        accentColor: profile.accentColor,
-        banner: profile.banner,
-        email: profile.email,
-        verified: profile.verified,
-        passwordLastChangedAt: profile.passwordLastChangedAt,
-        mfaEnabled: profile.mfaEnabled,
-        phone: profile.phone,
-        hasVerifiedPhone: profile.hasVerifiedPhone,
-        requiredActions: List<String>.from(profile.requiredActions),
-        authenticatorTypes:
-            profile.authenticatorTypes
-                ?.map((t) => t.json)
-                .whereType<int>()
-                .toList(growable: false) ??
-            const [],
-        premiumWillCancel: profile.premiumWillCancel,
-        premiumType: profile.premiumType?.json,
-        traits: List<String>.from(profile.traits),
-        premiumPerksDisabled: profile.premiumPerksDisabled,
-        premiumSince: profile.premiumSince,
-        premiumLifetimeSequence: profile.premiumLifetimeSequence,
-        premiumBadgeHidden: profile.premiumBadgeHidden,
-        premiumBadgeMasked: profile.premiumBadgeMasked,
-        premiumBadgeTimestampHidden: profile.premiumBadgeTimestampHidden,
-        premiumBadgeSequenceHidden: profile.premiumBadgeSequenceHidden,
-        premiumDiscriminator: profile.premiumDiscriminator,
-        premiumUntil: profile.premiumUntil,
-        premiumBillingCycle: profile.premiumBillingCycle,
-        isProfileLoaded: true,
-      );
-      ref
-          .read(currentUserEntitlementsProvider.notifier)
-          .applyUserProfile(profile);
-      ref
-          .read(currentUserPremiumTypeProvider.notifier)
-          .set(profile.premiumType?.json ?? 0);
-      unawaited(refreshPremiumState(ref));
+      applyPrivateProfile(profile);
     } on Exception catch (e) {
       talker.error('Failed to load profile', e);
       state = state.copyWith(error: 'Failed to load profile');
     }
+  }
+
+  void applyStartupProfile(UserPrivateResponse profile) {
+    if (profile.id != state.userId) {
+      return;
+    }
+    applyPrivateProfile(profile);
+  }
+
+  void applyPrivateProfile(UserPrivateResponse profile) {
+    final db = ref.read(fluxerDatabaseProvider);
+    unawaited(
+      db.userDao.upsertUser(
+        UsersCompanion(
+          id: Value(profile.id),
+          username: Value(profile.username),
+          bio: Value(profile.bio),
+          pronouns: Value(profile.pronouns),
+          accentColor: Value(profile.accentColor),
+          banner: Value(profile.banner),
+          premiumBadgeHidden: Value(profile.premiumBadgeHidden),
+          premiumBadgeMasked: Value(profile.premiumBadgeMasked),
+          premiumBadgeTimestampHidden: Value(
+            profile.premiumBadgeTimestampHidden,
+          ),
+          premiumBadgeSequenceHidden: Value(profile.premiumBadgeSequenceHidden),
+        ),
+      ),
+    );
+
+    state = state.copyWith(
+      publicFlags: profile.flags,
+      bio: profile.bio,
+      pronouns: profile.pronouns,
+      accentColor: profile.accentColor,
+      banner: profile.banner,
+      email: profile.email,
+      verified: profile.verified,
+      passwordLastChangedAt: profile.passwordLastChangedAt,
+      mfaEnabled: profile.mfaEnabled,
+      phone: profile.phone,
+      hasVerifiedPhone: profile.hasVerifiedPhone,
+      requiredActions: List<String>.from(profile.requiredActions),
+      authenticatorTypes:
+          profile.authenticatorTypes
+              ?.map((t) => t.json)
+              .whereType<int>()
+              .toList(growable: false) ??
+          const [],
+      premiumWillCancel: profile.premiumWillCancel,
+      premiumType: profile.premiumType?.json,
+      traits: List<String>.from(profile.traits),
+      premiumPerksDisabled: profile.premiumPerksDisabled,
+      premiumSince: profile.premiumSince,
+      premiumLifetimeSequence: profile.premiumLifetimeSequence,
+      premiumBadgeHidden: profile.premiumBadgeHidden,
+      premiumBadgeMasked: profile.premiumBadgeMasked,
+      premiumBadgeTimestampHidden: profile.premiumBadgeTimestampHidden,
+      premiumBadgeSequenceHidden: profile.premiumBadgeSequenceHidden,
+      premiumDiscriminator: profile.premiumDiscriminator,
+      premiumUntil: profile.premiumUntil,
+      premiumBillingCycle: profile.premiumBillingCycle,
+      isProfileLoaded: true,
+    );
+    ref
+        .read(currentUserEntitlementsProvider.notifier)
+        .applyUserProfile(profile);
+    ref
+        .read(currentUserPremiumTypeProvider.notifier)
+        .set(profile.premiumType?.json ?? 0);
+    unawaited(refreshPremiumState(ref));
   }
 
   void updateDisplayName(String value) {
