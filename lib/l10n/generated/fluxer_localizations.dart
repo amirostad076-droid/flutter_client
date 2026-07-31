@@ -5,7 +5,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
-import 'fluxer_localizations_af.dart';
 import 'fluxer_localizations_ar.dart';
 import 'fluxer_localizations_cs.dart';
 import 'fluxer_localizations_cy.dart';
@@ -127,7 +126,6 @@ abstract class FluxerLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('af'),
     Locale('ar'),
     Locale('cs'),
     Locale('cy'),
@@ -17825,7 +17823,6 @@ class _FluxerLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) => <String>[
-    'af',
     'ar',
     'cs',
     'cy',
@@ -17926,8 +17923,6 @@ FluxerLocalizations lookupFluxerLocalizations(Locale locale) {
 
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'af':
-      return FluxerLocalizationsAf();
     case 'ar':
       return FluxerLocalizationsAr();
     case 'cs':
