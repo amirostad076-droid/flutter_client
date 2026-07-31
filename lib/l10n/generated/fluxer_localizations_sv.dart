@@ -7989,6 +7989,85 @@ class FluxerLocalizationsSv extends FluxerLocalizations {
   }
 
   @override
+  String get guildFolderSettingsTitle => 'Folder settings';
+
+  @override
+  String get guildFolderNameLabel => 'Folder name';
+
+  @override
+  String get guildFolderColorLabel => 'Folder color';
+
+  @override
+  String get guildFolderShowIconWhenCollapsed => 'Show icon when collapsed';
+
+  @override
+  String get guildFolderIconLabel => 'Folder icon';
+
+  @override
+  String get guildFolderDelete => 'Delete folder';
+
+  @override
+  String get guildFolderIconFolder => 'Folder';
+
+  @override
+  String get guildFolderIconStar => 'Star';
+
+  @override
+  String get guildFolderIconHeart => 'Heart';
+
+  @override
+  String get guildFolderIconBookmark => 'Bookmark';
+
+  @override
+  String get guildFolderIconGameController => 'Game controller';
+
+  @override
+  String get guildFolderIconShield => 'Shield';
+
+  @override
+  String get guildFolderIconMusicNote => 'Music note';
+
+  @override
+  String get guildFolderMarkAsRead => 'Mark folder as read';
+
+  @override
+  String get guildBulkMuteCommunities => 'Mute communities';
+
+  @override
+  String get guildBulkUnmuteCommunities => 'Unmute communities';
+
+  @override
+  String get guildBulkCommunityNotificationSettings =>
+      'Community notification settings';
+
+  @override
+  String get guildBulkCommunityPrivacySettings => 'Community privacy settings';
+
+  @override
+  String get guildBulkAllowEveryoneAndHere => 'Allow @everyone and @here';
+
+  @override
+  String get guildBulkAllowRoleMentions => 'Allow role mentions';
+
+  @override
+  String get guildBulkEnableMobilePush => 'Enable mobile push notifications';
+
+  @override
+  String get guildBulkDisableMobilePush => 'Disable mobile push notifications';
+
+  @override
+  String get guildBulkAllowDirectMessages => 'Allow direct messages';
+
+  @override
+  String get guildBulkBlockDirectMessages => 'Block direct messages';
+
+  @override
+  String get guildBulkAllowBotDirectMessages => 'Allow bot direct messages';
+
+  @override
+  String get guildBulkBlockBotDirectMessages => 'Block bot direct messages';
+
+  @override
   String get guildNavbarGroupDm => 'Gruppchatt';
 
   @override

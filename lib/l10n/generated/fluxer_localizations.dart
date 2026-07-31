@@ -13548,6 +13548,162 @@ abstract class FluxerLocalizations {
   /// **'Collapse {folderName}'**
   String guildNavbarCollapseFolder(String folderName);
 
+  /// Title of the community folder settings modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder settings'**
+  String get guildFolderSettingsTitle;
+
+  /// Label for the folder name input in folder settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder name'**
+  String get guildFolderNameLabel;
+
+  /// Label for the folder color picker in folder settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder color'**
+  String get guildFolderColorLabel;
+
+  /// Toggle label for showing the folder icon when collapsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Show icon when collapsed'**
+  String get guildFolderShowIconWhenCollapsed;
+
+  /// Label for the folder icon picker in folder settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder icon'**
+  String get guildFolderIconLabel;
+
+  /// Destructive button that dissolves a community folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete folder'**
+  String get guildFolderDelete;
+
+  /// Folder icon option label in folder settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder'**
+  String get guildFolderIconFolder;
+
+  /// Star folder icon option label in folder settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Star'**
+  String get guildFolderIconStar;
+
+  /// Heart folder icon option label in folder settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart'**
+  String get guildFolderIconHeart;
+
+  /// Bookmark folder icon option label in folder settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmark'**
+  String get guildFolderIconBookmark;
+
+  /// Game controller folder icon option label in folder settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Game controller'**
+  String get guildFolderIconGameController;
+
+  /// Shield folder icon option label in folder settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Shield'**
+  String get guildFolderIconShield;
+
+  /// Music note folder icon option label in folder settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Music note'**
+  String get guildFolderIconMusicNote;
+
+  /// Context menu action that marks every channel in the folder as read.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark folder as read'**
+  String get guildFolderMarkAsRead;
+
+  /// Submenu label for muting all communities in a folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute communities'**
+  String get guildBulkMuteCommunities;
+
+  /// Action that unmutes all communities in a folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute communities'**
+  String get guildBulkUnmuteCommunities;
+
+  /// Submenu label for bulk notification settings in a folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Community notification settings'**
+  String get guildBulkCommunityNotificationSettings;
+
+  /// Submenu label for bulk privacy settings in a folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Community privacy settings'**
+  String get guildBulkCommunityPrivacySettings;
+
+  /// Bulk action that allows @everyone and @here mentions.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow @everyone and @here'**
+  String get guildBulkAllowEveryoneAndHere;
+
+  /// Bulk action that allows role mentions.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow role mentions'**
+  String get guildBulkAllowRoleMentions;
+
+  /// Bulk action that enables mobile push for folder communities.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable mobile push notifications'**
+  String get guildBulkEnableMobilePush;
+
+  /// Bulk action that disables mobile push for folder communities.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable mobile push notifications'**
+  String get guildBulkDisableMobilePush;
+
+  /// Bulk action that allows DMs from folder community members.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow direct messages'**
+  String get guildBulkAllowDirectMessages;
+
+  /// Bulk action that blocks DMs from folder community members.
+  ///
+  /// In en, this message translates to:
+  /// **'Block direct messages'**
+  String get guildBulkBlockDirectMessages;
+
+  /// Bulk action that allows bot DMs from folder communities.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow bot direct messages'**
+  String get guildBulkAllowBotDirectMessages;
+
+  /// Bulk action that blocks bot DMs from folder communities.
+  ///
+  /// In en, this message translates to:
+  /// **'Block bot direct messages'**
+  String get guildBulkBlockBotDirectMessages;
+
   /// Secondary label for a group DM in the invite recipients list.
   ///
   /// In en, this message translates to:
