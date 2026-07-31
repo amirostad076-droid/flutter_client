@@ -12,6 +12,7 @@ import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
+import 'package:fluxer_app/core/platform/fluxer_platform.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
@@ -125,6 +126,56 @@ void main() {
       expect(voiceSession.connectCallCount, 1);
       expect(voiceSession.lastForceJoin, isFalse);
       expect(gateway.voiceStateUpdates, isEmpty);
+    });
+
+    testWidgets('joins directly when stale same-platform connection exists', (
+      WidgetTester tester,
+    ) async {
+      final _RecordingGateway gateway = _RecordingGateway();
+      final _RecordingVoiceSession voiceSession = _RecordingVoiceSession();
+      addTearDown(gateway.dispose);
+      WidgetRef? capturedRef;
+
+      gateway.onVoiceStateUpdate = (GatewayVoiceStateUpdate update) {
+        if (capturedRef == null || update.connectionId == null) {
+          return;
+        }
+        capturedRef!.read(voiceStatesMapProvider.notifier).update(
+          VoiceState(
+            userId: _userId,
+            guildId: _guildId,
+            connectionId: update.connectionId,
+          ),
+        );
+      };
+
+      await _pumpJoinHarness(
+        tester,
+        gateway: gateway,
+        voiceSession: voiceSession,
+        onRefCaptured: (WidgetRef ref) => capturedRef = ref,
+      );
+
+      capturedRef!
+          .read(voiceStatesMapProvider.notifier)
+          .update(
+            VoiceState(
+              userId: _userId,
+              channelId: _channelId,
+              guildId: _guildId,
+              connectionId: _otherConnectionId,
+              isMobile: isFluxerMobileOs,
+            ),
+          );
+
+      await tester.tap(find.text('Join'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Voice Connection Confirmation'), findsNothing);
+      expect(gateway.voiceStateUpdates, hasLength(1));
+      expect(gateway.voiceStateUpdates.single.connectionId, _otherConnectionId);
+      expect(voiceSession.connectCallCount, 1);
+      expect(voiceSession.lastForceJoin, isFalse);
     });
 
     testWidgets('cancel leaves voice and sends no disconnect', (
@@ -245,11 +296,12 @@ void main() {
 
 Map<String, VoiceState> _otherDeviceVoiceStates() {
   return <String, VoiceState>{
-    _otherConnectionId: const VoiceState(
+    _otherConnectionId: VoiceState(
       userId: _userId,
       channelId: _channelId,
       guildId: _guildId,
       connectionId: _otherConnectionId,
+      isMobile: !isFluxerMobileOs,
     ),
   };
 }
