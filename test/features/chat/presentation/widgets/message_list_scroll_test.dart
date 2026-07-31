@@ -655,7 +655,7 @@ void main() {
         await tester.pump();
         await tester.pump();
 
-        // The append lands as a SECOND collapsed tile trailing-of-center - 
+        // The append lands as a SECOND collapsed tile trailing-of-center -
         // a group never absorbs content across the anchor boundary, so the
         // leading stack (and the reader) stays pixel-stable.
         expect(collapsedGroup, findsNWidgets(2));
@@ -1194,9 +1194,7 @@ void main() {
       await tester.pump();
       await tester.pump();
       final ScrollPosition position = _messageListScrollPosition(tester);
-      position.jumpTo(
-        position.pixels - kMessageListReadBottomThreshold - 100,
-      );
+      position.jumpTo(position.pixels - kMessageListReadBottomThreshold - 100);
       await tester.pump();
       position.jumpTo(position.maxScrollExtent);
       await tester.pump();
@@ -2201,7 +2199,6 @@ void main() {
 
       await _disposeMessageList(tester);
     });
-
 
     testWidgets(
       'centers a fresh targetMessageId after its around-window loads',
@@ -4753,7 +4750,7 @@ class _InstrumentedChatViewModel extends ChatViewModel {
 
   final ChatViewState _initialState;
   int _loadNewerCallCount = 0;
-  int _loadMoreCallCount = 0;
+  final int _loadMoreCallCount = 0;
   String? _latestReplacementNewestId;
 
   @override
@@ -4910,4 +4907,3 @@ class _PagingInstrumentedChatViewModel extends _InstrumentedChatViewModel {
     );
   }
 }
-

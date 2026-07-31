@@ -202,8 +202,8 @@ class ChatViewState {
     required this.isLoadingNewer,
     required this.hasMoreMessages,
     required this.hasMoreNewerMessages,
-    this.windowEpoch = 0,
     required this.errorMessage,
+    this.windowEpoch = 0,
     this.messageLoadFailed = false,
     this.scrollToMessageSignal,
     this.stickyUnreadMessageId,
@@ -903,7 +903,6 @@ class ChatViewModel extends _$ChatViewModel {
       state = state.copyWith(isLoadingNewer: false);
     }
   }
-
 
   /// One latest-page confirmation per (channel, tail, window generation):
   /// repeated empty results on one cursor re-use the standing verdict instead
@@ -1916,7 +1915,6 @@ class ChatViewModel extends _$ChatViewModel {
         unawaited(
           _refreshMessagesFromNetwork(
             channelId,
-            limit: _kInitialPageSize,
             shouldApplyResult: isCurrentSwitch,
             isDirectLatestLoad: false,
             preserveLoadedWindow: true,
@@ -1960,7 +1958,6 @@ class ChatViewModel extends _$ChatViewModel {
           unawaited(
             _refreshMessagesFromNetwork(
               channelId,
-              limit: _kInitialPageSize,
               isDirectLatestLoad: false,
               preserveLoadedWindow: true,
               shouldApplyResult: isCurrentSwitch,
@@ -2000,7 +1997,6 @@ class ChatViewModel extends _$ChatViewModel {
       await _refreshMessagesFromNetwork(
         channelId,
         showLoadingSpinner: true,
-        limit: _kInitialPageSize,
         aroundMessageId: aroundUnreadId,
         isDirectLatestLoad: aroundUnreadId == null,
         shouldApplyResult: isCurrentSwitch,
@@ -2083,7 +2079,6 @@ class ChatViewModel extends _$ChatViewModel {
       if (loadLatestTail) {
         await _refreshMessagesFromNetwork(
           channelId,
-          limit: _kJumpToPresentPageSize,
           isDirectLatestLoad: true,
           // Runs synchronously at the post-commit guarded point. Deciding
           // after the outer await instead would race the refresh's own later
@@ -2094,7 +2089,6 @@ class ChatViewModel extends _$ChatViewModel {
       } else {
         await _refreshMessagesFromNetwork(
           channelId,
-          limit: _kInitialPageSize,
           isDirectLatestLoad: false,
           preserveLoadedWindow: state.messages.isNotEmpty,
         );
@@ -2674,9 +2668,9 @@ class ChatViewModel extends _$ChatViewModel {
     final int entryEpoch = state.windowEpoch;
     PageLoadResult older({
       required PageLoadStatus status,
+      required bool hasMoreAtEdge,
       String? requestCursor,
       String? installedBoundary,
-      required bool hasMoreAtEdge,
     }) => PageLoadResult(
       edge: PaginationEdge.older,
       channelId: channelId,
@@ -2897,9 +2891,9 @@ class ChatViewModel extends _$ChatViewModel {
     final int entryEpoch = state.windowEpoch;
     PageLoadResult newer({
       required PageLoadStatus status,
+      required bool hasMoreAtEdge,
       String? requestCursor,
       String? installedBoundary,
-      required bool hasMoreAtEdge,
     }) => PageLoadResult(
       edge: PaginationEdge.newer,
       channelId: channelId,
@@ -3039,9 +3033,7 @@ class ChatViewModel extends _$ChatViewModel {
               return newer(
                 status: PageLoadStatus.applied,
                 requestCursor: requestedAfterId,
-                installedBoundary: newestServerBackedMessageId(
-                  window.messages,
-                ),
+                installedBoundary: newestServerBackedMessageId(window.messages),
                 hasMoreAtEdge: window.hasMoreNewer,
               );
           }
@@ -3740,7 +3732,11 @@ class ChatViewModel extends _$ChatViewModel {
       // "orphan" verdict.
       final MessageListLoadResult page = await ref
           .read(messageRepositoryProvider)
-          .loadMessagePage(channelId: channelId, limit: _kPageSize, fresh: true);
+          .loadMessagePage(
+            channelId: channelId,
+            limit: _kPageSize,
+            fresh: true,
+          );
       final String? channelNewestId = newestServerBackedMessageId(
         page.messages,
       );
@@ -5475,7 +5471,6 @@ class ChatViewModel extends _$ChatViewModel {
     await _refreshMessagesFromNetwork(
       channelId,
       showLoadingSpinner: true,
-      limit: _kInitialPageSize,
       isDirectLatestLoad: true,
     );
   }

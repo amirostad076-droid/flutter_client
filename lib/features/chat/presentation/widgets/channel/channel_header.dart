@@ -587,6 +587,7 @@ class ChannelHeader extends ConsumerWidget {
       ),
     );
   }
+
   Future<void> _toggleFavorite(
     BuildContext context,
     WidgetRef ref, {

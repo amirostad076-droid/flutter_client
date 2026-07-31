@@ -54,10 +54,9 @@ class FluxerAvatar extends StatelessWidget {
     this.isTyping = false,
     this.isMobileStatus = false,
     this.avatarColor,
-    String? userId,
+    this._userId,
     super.key,
   }) : _shape = _AvatarShape.circle,
-       _userId = userId,
        icon = null,
        iconColor = null,
        iconBackgroundColor = null;

@@ -208,8 +208,6 @@ class _MessageListState extends ConsumerState<MessageList> {
 
   bool _userDragActive = false;
 
-
-
   // Invalidates deferred scroll effects scheduled against a previous UI
   // world: bumped on channel reload and on every wholesale window
   // replacement (windowSwap origin), so a stale post-frame callback can
@@ -352,15 +350,11 @@ class _MessageListState extends ConsumerState<MessageList> {
         // A `before` anchor has its LEADING edge at the fraction: centering
         // the rect moves the content UP by half (pixels grow toward newer).
         // An `after` anchor has its TRAILING edge there: content DOWN.
-        final double corrected =
-            _anchorEdge == MessageListAnchorEdge.before
+        final double corrected = _anchorEdge == MessageListAnchorEdge.before
             ? position.pixels + half
             : position.pixels - half;
         position.jumpTo(
-          corrected.clamp(
-            position.minScrollExtent,
-            position.maxScrollExtent,
-          ),
+          corrected.clamp(position.minScrollExtent, position.maxScrollExtent),
         );
       });
     });
@@ -368,7 +362,7 @@ class _MessageListState extends ConsumerState<MessageList> {
 
   /// A short block can't fill the viewport below a centered anchor: the
   /// trailing side clamps to zero extent, leaving an unscrollable gap under
-  /// the newest message. Once the open frame lays out, re-anchor bottom - 
+  /// the newest message. Once the open frame lays out, re-anchor bottom -
   /// unless newer pagination is about to fill the trailing half.
   void _scheduleUnreadUnderfillReanchor() {
     final int epoch = _uiEpoch;
@@ -691,9 +685,10 @@ class _MessageListState extends ConsumerState<MessageList> {
       return;
     }
     final int len = state.messages.length;
-    final int start = (visibleIdx - kTrimmedMessageWindowSize ~/ 2)
-        .clamp(0, len - kTrimmedMessageWindowSize)
-        .toInt();
+    final int start = (visibleIdx - kTrimmedMessageWindowSize ~/ 2).clamp(
+      0,
+      len - kTrimmedMessageWindowSize,
+    );
     final int anchorIdx = _anchorId == null
         ? -1
         : state.messages.indexWhere((Message m) => m.id == _anchorId);
@@ -862,6 +857,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     _pendingScrollTarget = null;
     _pendingScrollTargetChannelId = null;
   }
+
   List<ChannelStreamItem> _channelStreamFor({
     required List<Message> messages,
     required String? oldestUnreadMessageId,
@@ -1383,7 +1379,6 @@ class _MessageListState extends ConsumerState<MessageList> {
     });
   }
 
-
   Widget _buildStreamItem({
     required BuildContext context,
     required List<ChannelStreamItem> stream,
@@ -1508,7 +1503,6 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
   }
 
-
   Widget _centerStreamTile({
     required BuildContext context,
     required List<ChannelStreamItem> stream,
@@ -1590,8 +1584,6 @@ class _MessageListState extends ConsumerState<MessageList> {
     }
     return dataIndex - startInclusive;
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -1693,7 +1685,7 @@ class _MessageListState extends ConsumerState<MessageList> {
               });
             });
           }
-          // Every other origin: structurally scroll-stable by construction - 
+          // Every other origin: structurally scroll-stable by construction -
           // prepends/appends land at the far ends of the leading/trailing
           // slivers, away from the center.
         },

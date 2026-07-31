@@ -11,7 +11,6 @@ import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.da
 import 'package:fluxer_app/features/settings/providers/voice_settings_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
-import 'package:fluxer_app/shared/providers/input_modality_provider.dart';
 import 'package:fluxer_app/features/ui/voice/fluxer_live_badge.dart';
 import 'package:fluxer_app/features/ui/voice/voice_participant_media_tile.dart';
 import 'package:fluxer_app/features/voice/presentation/sheets/voice_participant_context_menu.dart';
@@ -27,6 +26,7 @@ import 'package:fluxer_app/features/voice/utils/voice_grid_layout/voice_grid_lay
 import 'package:fluxer_app/features/voice/utils/voice_participant_track_resolver.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/guild_user_display_provider.dart';
+import 'package:fluxer_app/shared/providers/input_modality_provider.dart';
 import 'package:fluxer_app/shared/utils/guild_user_display.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:livekit_client/livekit_client.dart';

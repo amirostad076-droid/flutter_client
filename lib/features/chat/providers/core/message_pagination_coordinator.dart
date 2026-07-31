@@ -456,7 +456,7 @@ final messagePaginationCoordinatorProvider =
     Provider<MessagePaginationCoordinator>((ref) {
       final MessagePaginationCoordinator coordinator =
           MessagePaginationCoordinator(ref);
-      // Reset per-edge interest the moment the live window identity moves - 
+      // Reset per-edge interest the moment the live window identity moves -
       // in-flight results carrying the old token are discarded on arrival.
       ref
         ..listen<ChatViewState>(chatViewModelProvider, (previous, next) {

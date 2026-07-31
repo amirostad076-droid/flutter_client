@@ -231,7 +231,7 @@ void main() {
         authorId: 'me',
         authorName: 'Me',
         content: 'hello',
-        timestamp: DateTime.utc(2026, 5, 1),
+        timestamp: DateTime.utc(2026, 5),
         isMentioned: isMentioned,
         mentionedUserIds: mentionedUserIds,
       );

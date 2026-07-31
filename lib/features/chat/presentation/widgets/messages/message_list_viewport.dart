@@ -141,12 +141,8 @@ class MessageListViewport extends StatelessWidget {
                         (BuildContext context, int index) =>
                             itemBuilder(context, splitIndex - 1 - index),
                         childCount: splitIndex,
-                        findChildIndexCallback: (Key key) => childIndexForKey(
-                          key,
-                          0,
-                          splitIndex,
-                          reverse: true,
-                        ),
+                        findChildIndexCallback: (Key key) =>
+                            childIndexForKey(key, 0, splitIndex, reverse: true),
                       ),
                     ),
                   ),
@@ -167,9 +163,7 @@ class MessageListViewport extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SliverToBoxAdapter(
-                    child: SizedBox(height: trailingInset),
-                  ),
+                  SliverToBoxAdapter(child: SizedBox(height: trailingInset)),
                 ],
               ),
             ),

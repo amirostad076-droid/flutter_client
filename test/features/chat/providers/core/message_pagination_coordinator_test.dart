@@ -21,230 +21,209 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('MessagePaginationCoordinator', () {
-    test(
-      '(a) demand activation arms exactly one pump; repeated active events '
-      'with new revisions while pumping issue nothing extra',
-      () async {
-        final _Harness h = _Harness();
-        addTearDown(h.dispose);
+    test('(a) demand activation arms exactly one pump; repeated active events '
+        'with new revisions while pumping issue nothing extra', () async {
+      final _Harness h = _Harness();
+      addTearDown(h.dispose);
 
-        final Completer<PageLoadResult> held = Completer<PageLoadResult>();
-        h.vm.scriptOlderHeld(held);
+      final Completer<PageLoadResult> held = Completer<PageLoadResult>();
+      h.vm.scriptOlderHeld(held);
 
-        h.demand(active: true, revision: 1);
-        await _flushAsync();
-        expect(h.vm.loadMoreCalls, 1, reason: 'false→true arms one pump');
-        expect(h.olderPhase, 'pumping');
+      h.demand(active: true, revision: 1);
+      await _flushAsync();
+      expect(h.vm.loadMoreCalls, 1, reason: 'false→true arms one pump');
+      expect(h.olderPhase, 'pumping');
 
-        h.demand(active: true, revision: 2);
-        h.demand(active: true, revision: 3);
-        await _flushAsync();
-        expect(
-          h.vm.loadMoreCalls,
-          1,
-          reason: 'demand while pumping is cached, never a concurrent request',
-        );
+      h.demand(active: true, revision: 2);
+      h.demand(active: true, revision: 3);
+      await _flushAsync();
+      expect(
+        h.vm.loadMoreCalls,
+        1,
+        reason: 'demand while pumping is cached, never a concurrent request',
+      );
 
-        held.complete(
-          _applied(requestCursor: '100', installedBoundary: '50'),
-        );
-        await _flushAsync();
-        expect(
-          h.vm.loadMoreCalls,
-          1,
-          reason: 'an applied page must wait for post-layout geometry, not '
-              'chain off the pre-page cached level',
-        );
-        expect(h.olderPhase, 'awaitingGeometry');
-      },
-    );
+      held.complete(_applied(requestCursor: '100', installedBoundary: '50'));
+      await _flushAsync();
+      expect(
+        h.vm.loadMoreCalls,
+        1,
+        reason:
+            'an applied page must wait for post-layout geometry, not '
+            'chain off the pre-page cached level',
+      );
+      expect(h.olderPhase, 'awaitingGeometry');
+    });
 
-    test(
-      '(j) one page fills the horizon: post-layout inactive revision goes '
-      'idle with exactly one request total',
-      () async {
-        final _Harness h = _Harness();
-        addTearDown(h.dispose);
+    test('(j) one page fills the horizon: post-layout inactive revision goes '
+        'idle with exactly one request total', () async {
+      final _Harness h = _Harness();
+      addTearDown(h.dispose);
 
-        h.vm.scriptOlder(_applied(requestCursor: '100', installedBoundary: '50'));
-        h.demand(active: true, revision: 1);
-        await _flushAsync();
-        expect(h.vm.loadMoreCalls, 1);
-        expect(h.olderPhase, 'awaitingGeometry');
+      h.vm.scriptOlder(_applied(requestCursor: '100', installedBoundary: '50'));
+      h.demand(active: true, revision: 1);
+      await _flushAsync();
+      expect(h.vm.loadMoreCalls, 1);
+      expect(h.olderPhase, 'awaitingGeometry');
 
-        // The installed page laid out and the horizon is satisfied.
-        h.demand(active: false, revision: 2);
-        await _flushAsync();
-        expect(h.olderPhase, 'idle');
-        expect(
-          h.vm.loadMoreCalls,
-          1,
-          reason: 'the pump must not issue request 2 on the pre-page level',
-        );
-      },
-    );
+      // The installed page laid out and the horizon is satisfied.
+      h.demand(active: false, revision: 2);
+      await _flushAsync();
+      expect(h.olderPhase, 'idle');
+      expect(
+        h.vm.loadMoreCalls,
+        1,
+        reason: 'the pump must not issue request 2 on the pre-page level',
+      );
+    });
 
-    test(
-      '(b) four advancing pages exhaust the budget into yielded; revisions '
-      'before the cooldown do not resume; a revision after the cooldown '
-      'resumes with a fresh budget and no EdgeRetry',
-      () async {
-        final _Harness h = _Harness();
-        addTearDown(h.dispose);
+    test('(b) four advancing pages exhaust the budget into yielded; revisions '
+        'before the cooldown do not resume; a revision after the cooldown '
+        'resumes with a fresh budget and no EdgeRetry', () async {
+      final _Harness h = _Harness();
+      addTearDown(h.dispose);
 
-        for (int i = 0; i < 4; i += 1) {
-          h.vm.scriptOlder(
-            _applied(requestCursor: '${100 - i}', installedBoundary: '${50 - i}'),
-          );
-        }
-
-        h.demand(active: true, revision: 1);
-        await _flushAsync();
-        expect(h.vm.loadMoreCalls, 1);
-        expect(h.olderPhase, 'awaitingGeometry');
-
-        // Each applied page is released by a post-layout revision push.
-        h.demand(active: true, revision: 2);
-        await _flushAsync();
-        expect(h.vm.loadMoreCalls, 2);
-        expect(h.olderPhase, 'awaitingGeometry');
-
-        h.demand(active: true, revision: 3);
-        await _flushAsync();
-        expect(h.vm.loadMoreCalls, 3);
-        expect(h.olderPhase, 'awaitingGeometry');
-
-        h.demand(active: true, revision: 4);
-        await _flushAsync();
-        expect(h.vm.loadMoreCalls, PumpBudget.maxRequestsPerPump);
-        expect(h.olderPhase, 'yielded', reason: 'budget exhausted');
-
-        // Geometry progress BEFORE the cooldown must not resume.
-        h.demand(active: true, revision: 5);
-        await _flushAsync();
-        expect(h.vm.loadMoreCalls, PumpBudget.maxRequestsPerPump);
-        expect(h.olderPhase, 'yielded');
-
-        // Cooldown elapses (injected clock) and a further revision resumes.
-        h.now = h.now.add(PumpBudget.yieldCooldown);
-        h.vm.scriptOlder(_applied(requestCursor: '96', installedBoundary: '46'));
-        h.demand(active: true, revision: 6);
-        await _flushAsync();
-        expect(
-          h.vm.loadMoreCalls,
-          5,
-          reason: 'cooldown + revision progress resumes with a fresh budget',
-        );
-        expect(h.olderPhase, 'awaitingGeometry');
-      },
-    );
-
-    test(
-      '(c) non-advancing applied page parks; active demand with new '
-      'revisions never re-arms; a NEW gestureId buys exactly one attempt; '
-      'an empty retry re-parks; the SAME gestureId collapses',
-      () async {
-        final _Harness h = _Harness();
-        addTearDown(h.dispose);
-
-        // installedBoundary == requestCursor: applied without advance.
+      for (int i = 0; i < 4; i += 1) {
         h.vm.scriptOlder(
-          _applied(requestCursor: '100', installedBoundary: '100'),
+          _applied(requestCursor: '${100 - i}', installedBoundary: '${50 - i}'),
         );
-        h.demand(active: true, revision: 1);
-        await _flushAsync();
-        expect(h.vm.loadMoreCalls, 1);
-        expect(h.olderPhase, 'parked');
+      }
 
-        // The level stays active - no false→true cycle, so no re-arm.
-        h.demand(active: true, revision: 2);
-        h.demand(active: true, revision: 3);
-        await _flushAsync();
-        expect(h.vm.loadMoreCalls, 1);
-        expect(h.olderPhase, 'parked');
+      h.demand(active: true, revision: 1);
+      await _flushAsync();
+      expect(h.vm.loadMoreCalls, 1);
+      expect(h.olderPhase, 'awaitingGeometry');
 
-        // A deliberate NEW gesture buys exactly one attempt.
-        h.vm.scriptOlder(_empty(requestCursor: '100'));
-        h.retry(gestureId: 7);
-        await _flushAsync();
-        expect(h.vm.loadMoreCalls, 2);
-        expect(h.olderPhase, 'parked', reason: 'the empty retry re-parks');
+      // Each applied page is released by a post-layout revision push.
+      h.demand(active: true, revision: 2);
+      await _flushAsync();
+      expect(h.vm.loadMoreCalls, 2);
+      expect(h.olderPhase, 'awaitingGeometry');
 
-        // The same gesture cannot buy a second attempt.
-        h.retry(gestureId: 7);
-        await _flushAsync();
-        expect(h.vm.loadMoreCalls, 2);
-        expect(h.olderPhase, 'parked');
-      },
-    );
+      h.demand(active: true, revision: 3);
+      await _flushAsync();
+      expect(h.vm.loadMoreCalls, 3);
+      expect(h.olderPhase, 'awaitingGeometry');
 
-    test(
-      '(d) mid-pump context-token change: the held result carrying the old '
-      'windowEpoch is discarded, nothing chains, phase is idle',
-      () async {
-        final _Harness h = _Harness();
-        addTearDown(h.dispose);
+      h.demand(active: true, revision: 4);
+      await _flushAsync();
+      expect(h.vm.loadMoreCalls, PumpBudget.maxRequestsPerPump);
+      expect(h.olderPhase, 'yielded', reason: 'budget exhausted');
 
-        final Completer<PageLoadResult> held = Completer<PageLoadResult>();
-        h.vm.scriptOlderHeld(held);
+      // Geometry progress BEFORE the cooldown must not resume.
+      h.demand(active: true, revision: 5);
+      await _flushAsync();
+      expect(h.vm.loadMoreCalls, PumpBudget.maxRequestsPerPump);
+      expect(h.olderPhase, 'yielded');
 
-        h.demand(active: true, revision: 1);
-        await _flushAsync();
-        expect(h.vm.loadMoreCalls, 1);
-        expect(h.olderPhase, 'pumping');
+      // Cooldown elapses (injected clock) and a further revision resumes.
+      h.now = h.now.add(PumpBudget.yieldCooldown);
+      h.vm.scriptOlder(_applied(requestCursor: '96', installedBoundary: '46'));
+      h.demand(active: true, revision: 6);
+      await _flushAsync();
+      expect(
+        h.vm.loadMoreCalls,
+        5,
+        reason: 'cooldown + revision progress resumes with a fresh budget',
+      );
+      expect(h.olderPhase, 'awaitingGeometry');
+    });
 
-        // A wholesale window replacement bumps the epoch while the request
-        // is still in flight.
-        h.vm.setWindowEpoch(1);
+    test('(c) non-advancing applied page parks; active demand with new '
+        'revisions never re-arms; a NEW gestureId buys exactly one attempt; '
+        'an empty retry re-parks; the SAME gestureId collapses', () async {
+      final _Harness h = _Harness();
+      addTearDown(h.dispose);
 
-        // The request drains with the OLD token.
-        held.complete(
-          _applied(requestCursor: '100', installedBoundary: '50'),
-        );
-        await _flushAsync();
+      // installedBoundary == requestCursor: applied without advance.
+      h.vm.scriptOlder(
+        _applied(requestCursor: '100', installedBoundary: '100'),
+      );
+      h.demand(active: true, revision: 1);
+      await _flushAsync();
+      expect(h.vm.loadMoreCalls, 1);
+      expect(h.olderPhase, 'parked');
 
-        expect(
-          h.vm.loadMoreCalls,
-          1,
-          reason: 'the stale result is discarded, no chained request',
-        );
-        expect(h.olderPhase, 'idle');
-      },
-    );
+      // The level stays active - no false→true cycle, so no re-arm.
+      h.demand(active: true, revision: 2);
+      h.demand(active: true, revision: 3);
+      await _flushAsync();
+      expect(h.vm.loadMoreCalls, 1);
+      expect(h.olderPhase, 'parked');
 
-    test(
-      '(e) duplicate overscroll retries with the same gestureId collapse to '
-      'one attempt on a parked edge',
-      () async {
-        final _Harness h = _Harness();
-        addTearDown(h.dispose);
+      // A deliberate NEW gesture buys exactly one attempt.
+      h.vm.scriptOlder(_empty(requestCursor: '100'));
+      h.retry(gestureId: 7);
+      await _flushAsync();
+      expect(h.vm.loadMoreCalls, 2);
+      expect(h.olderPhase, 'parked', reason: 'the empty retry re-parks');
 
-        h.vm.scriptOlder(_empty(requestCursor: '100'));
-        h.demand(active: true, revision: 1);
-        await _flushAsync();
-        expect(h.vm.loadMoreCalls, 1);
-        expect(h.olderPhase, 'parked');
+      // The same gesture cannot buy a second attempt.
+      h.retry(gestureId: 7);
+      await _flushAsync();
+      expect(h.vm.loadMoreCalls, 2);
+      expect(h.olderPhase, 'parked');
+    });
 
-        final Completer<PageLoadResult> held = Completer<PageLoadResult>();
-        h.vm.scriptOlderHeld(held);
+    test('(d) mid-pump context-token change: the held result carrying the old '
+        'windowEpoch is discarded, nothing chains, phase is idle', () async {
+      final _Harness h = _Harness();
+      addTearDown(h.dispose);
 
-        // Two overscrolls from the same drag: one attempt.
-        h.retry(gestureId: 5);
-        h.retry(gestureId: 5);
-        await _flushAsync();
-        expect(h.vm.loadMoreCalls, 2);
+      final Completer<PageLoadResult> held = Completer<PageLoadResult>();
+      h.vm.scriptOlderHeld(held);
 
-        held.complete(_empty(requestCursor: '100'));
-        await _flushAsync();
-        expect(h.olderPhase, 'parked');
+      h.demand(active: true, revision: 1);
+      await _flushAsync();
+      expect(h.vm.loadMoreCalls, 1);
+      expect(h.olderPhase, 'pumping');
 
-        // Still the same gesture after the re-park: collapsed.
-        h.retry(gestureId: 5);
-        await _flushAsync();
-        expect(h.vm.loadMoreCalls, 2);
-        expect(h.olderPhase, 'parked');
-      },
-    );
+      // A wholesale window replacement bumps the epoch while the request
+      // is still in flight.
+      h.vm.setWindowEpoch(1);
+
+      // The request drains with the OLD token.
+      held.complete(_applied(requestCursor: '100', installedBoundary: '50'));
+      await _flushAsync();
+
+      expect(
+        h.vm.loadMoreCalls,
+        1,
+        reason: 'the stale result is discarded, no chained request',
+      );
+      expect(h.olderPhase, 'idle');
+    });
+
+    test('(e) duplicate overscroll retries with the same gestureId collapse to '
+        'one attempt on a parked edge', () async {
+      final _Harness h = _Harness();
+      addTearDown(h.dispose);
+
+      h.vm.scriptOlder(_empty(requestCursor: '100'));
+      h.demand(active: true, revision: 1);
+      await _flushAsync();
+      expect(h.vm.loadMoreCalls, 1);
+      expect(h.olderPhase, 'parked');
+
+      final Completer<PageLoadResult> held = Completer<PageLoadResult>();
+      h.vm.scriptOlderHeld(held);
+
+      // Two overscrolls from the same drag: one attempt.
+      h.retry(gestureId: 5);
+      h.retry(gestureId: 5);
+      await _flushAsync();
+      expect(h.vm.loadMoreCalls, 2);
+
+      held.complete(_empty(requestCursor: '100'));
+      await _flushAsync();
+      expect(h.olderPhase, 'parked');
+
+      // Still the same gesture after the re-park: collapsed.
+      h.retry(gestureId: 5);
+      await _flushAsync();
+      expect(h.vm.loadMoreCalls, 2);
+      expect(h.olderPhase, 'parked');
+    });
 
     test(
       'an empty newer page parks its cursor; only a new gesture buys a retry',
@@ -252,7 +231,9 @@ void main() {
         final _Harness h = _Harness();
         addTearDown(h.dispose);
 
-        h.vm.scriptNewer(_empty(edge: PaginationEdge.newer, requestCursor: '200'));
+        h.vm.scriptNewer(
+          _empty(edge: PaginationEdge.newer, requestCursor: '200'),
+        );
         h.demand(edge: PaginationEdge.newer, active: true, revision: 1);
         await _flushAsync();
         expect(h.vm.loadNewerCalls, 1);
@@ -267,7 +248,9 @@ void main() {
         expect(h.newerPhase, 'parked');
 
         // One retry per new gesture, exactly one attempt each.
-        h.vm.scriptNewer(_empty(edge: PaginationEdge.newer, requestCursor: '200'));
+        h.vm.scriptNewer(
+          _empty(edge: PaginationEdge.newer, requestCursor: '200'),
+        );
         h.retry(edge: PaginationEdge.newer, gestureId: 1);
         await _flushAsync();
         expect(h.vm.loadNewerCalls, 2);
@@ -277,7 +260,9 @@ void main() {
         await _flushAsync();
         expect(h.vm.loadNewerCalls, 2, reason: 'same gesture is collapsed');
 
-        h.vm.scriptNewer(_empty(edge: PaginationEdge.newer, requestCursor: '200'));
+        h.vm.scriptNewer(
+          _empty(edge: PaginationEdge.newer, requestCursor: '200'),
+        );
         h.retry(edge: PaginationEdge.newer, gestureId: 2);
         await _flushAsync();
         expect(h.vm.loadNewerCalls, 3, reason: 'a new gesture buys one retry');
@@ -309,80 +294,78 @@ void main() {
       expect(h.olderPhase, 'awaitingGeometry');
     });
 
-    test(
-      'awaitingGeometry backstop, cached active: fires once after 1000ms '
-      'for one more request; no second backstop-fired request without '
-      'geometry',
-      () {
-        fakeAsync((FakeAsync async) {
-          final _Harness h = _Harness();
-          addTearDown(h.dispose);
+    test('awaitingGeometry backstop, cached active: fires once after 1000ms '
+        'for one more request; no second backstop-fired request without '
+        'geometry', () {
+      fakeAsync((FakeAsync async) {
+        final _Harness h = _Harness();
+        addTearDown(h.dispose);
 
-          h.vm.scriptOlder(_applied(requestCursor: '100', installedBoundary: '50'));
-          h.demand(active: true, revision: 1);
-          async.flushMicrotasks();
-          expect(h.vm.loadMoreCalls, 1);
-          expect(h.olderPhase, 'awaitingGeometry');
+        h.vm.scriptOlder(
+          _applied(requestCursor: '100', installedBoundary: '50'),
+        );
+        h.demand(active: true, revision: 1);
+        async.flushMicrotasks();
+        expect(h.vm.loadMoreCalls, 1);
+        expect(h.olderPhase, 'awaitingGeometry');
 
-          // No qualifying revision arrives. Just under the window: nothing.
-          async.elapse(const Duration(milliseconds: 999));
-          expect(h.vm.loadMoreCalls, 1);
-          expect(h.olderPhase, 'awaitingGeometry');
+        // No qualifying revision arrives. Just under the window: nothing.
+        async.elapse(const Duration(milliseconds: 999));
+        expect(h.vm.loadMoreCalls, 1);
+        expect(h.olderPhase, 'awaitingGeometry');
 
-          // The single-shot re-evaluation of the cached (active) level.
-          h.vm.scriptOlder(
-            _applied(
-              requestCursor: '50',
-              installedBoundary: '10',
-              hasMoreAtEdge: false,
-            ),
-          );
-          async.elapse(const Duration(milliseconds: 1));
-          expect(
-            h.vm.loadMoreCalls,
-            2,
-            reason: 'backstop re-evaluates the cached level exactly once',
-          );
-          async.flushMicrotasks();
-          expect(h.olderPhase, 'parked', reason: 'edge exhausted');
+        // The single-shot re-evaluation of the cached (active) level.
+        h.vm.scriptOlder(
+          _applied(
+            requestCursor: '50',
+            installedBoundary: '10',
+            hasMoreAtEdge: false,
+          ),
+        );
+        async.elapse(const Duration(milliseconds: 1));
+        expect(
+          h.vm.loadMoreCalls,
+          2,
+          reason: 'backstop re-evaluates the cached level exactly once',
+        );
+        async.flushMicrotasks();
+        expect(h.olderPhase, 'parked', reason: 'edge exhausted');
 
-          // A wedged source degrades to ONE bounded request, not a loop.
-          async.elapse(const Duration(seconds: 10));
-          expect(h.vm.loadMoreCalls, 2);
-          expect(h.olderPhase, 'parked');
-        });
-      },
-    );
+        // A wedged source degrades to ONE bounded request, not a loop.
+        async.elapse(const Duration(seconds: 10));
+        expect(h.vm.loadMoreCalls, 2);
+        expect(h.olderPhase, 'parked');
+      });
+    });
 
-    test(
-      'awaitingGeometry backstop, cached inactive: goes idle after 1000ms '
-      'with no further request',
-      () {
-        fakeAsync((FakeAsync async) {
-          final _Harness h = _Harness();
-          addTearDown(h.dispose);
+    test('awaitingGeometry backstop, cached inactive: goes idle after 1000ms '
+        'with no further request', () {
+      fakeAsync((FakeAsync async) {
+        final _Harness h = _Harness();
+        addTearDown(h.dispose);
 
-          h.vm.scriptOlder(_applied(requestCursor: '100', installedBoundary: '50'));
-          h.demand(active: true, revision: 1);
-          async.flushMicrotasks();
-          expect(h.vm.loadMoreCalls, 1);
-          expect(h.olderPhase, 'awaitingGeometry');
+        h.vm.scriptOlder(
+          _applied(requestCursor: '100', installedBoundary: '50'),
+        );
+        h.demand(active: true, revision: 1);
+        async.flushMicrotasks();
+        expect(h.vm.loadMoreCalls, 1);
+        expect(h.olderPhase, 'awaitingGeometry');
 
-          // The level falls but the wedged source cannot mint a new
-          // revision, so awaitingGeometry cannot consume the event.
-          h.demand(active: false, revision: 1);
-          expect(h.olderPhase, 'awaitingGeometry');
+        // The level falls but the wedged source cannot mint a new
+        // revision, so awaitingGeometry cannot consume the event.
+        h.demand(active: false, revision: 1);
+        expect(h.olderPhase, 'awaitingGeometry');
 
-          async.elapse(const Duration(milliseconds: 1000));
-          expect(h.olderPhase, 'idle');
-          expect(h.vm.loadMoreCalls, 1);
+        async.elapse(const Duration(milliseconds: 1000));
+        expect(h.olderPhase, 'idle');
+        expect(h.vm.loadMoreCalls, 1);
 
-          async.elapse(const Duration(seconds: 10));
-          expect(h.vm.loadMoreCalls, 1);
-          expect(h.olderPhase, 'idle');
-        });
-      },
-    );
+        async.elapse(const Duration(seconds: 10));
+        expect(h.vm.loadMoreCalls, 1);
+        expect(h.olderPhase, 'idle');
+      });
+    });
 
     test(
       'production provider: a windowEpoch change resets the pump through the '
@@ -528,7 +511,11 @@ class _Harness {
     ContextToken? context,
   }) {
     coordinator.onEdgeRetry(
-      EdgeRetry(edge: edge, context: context ?? liveToken, gestureId: gestureId),
+      EdgeRetry(
+        edge: edge,
+        context: context ?? liveToken,
+        gestureId: gestureId,
+      ),
     );
   }
 
@@ -626,9 +613,9 @@ class _ScriptedChatViewModel extends ChatViewModel {
 // ---------------------------------------------------------------------------
 
 PageLoadResult _applied({
-  PaginationEdge edge = PaginationEdge.older,
   required String requestCursor,
   required String installedBoundary,
+  PaginationEdge edge = PaginationEdge.older,
   bool hasMoreAtEdge = true,
   String channelId = _channelId,
   int windowEpoch = 0,
@@ -643,8 +630,8 @@ PageLoadResult _applied({
 );
 
 PageLoadResult _empty({
-  PaginationEdge edge = PaginationEdge.older,
   required String requestCursor,
+  PaginationEdge edge = PaginationEdge.older,
   String channelId = _channelId,
   int windowEpoch = 0,
 }) => PageLoadResult(

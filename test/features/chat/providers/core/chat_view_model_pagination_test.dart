@@ -1280,163 +1280,155 @@ void main() {
   // the wire. The released page must come back superseded, carrying the epoch
   // captured at request entry, and must merge nothing into the refreshed
   // window.
-  test(
-    'held loadMore returns superseded with its entry epoch after a '
-    'same-channel network refresh',
-    () async {
-      final db = openTestDatabase();
-      final List<Map<String, Object?>> all = _channelMessages('channel-1', 300);
-      await db.channelDao.upsertChannel(
-        ChannelsCompanion.insert(
-          id: 'channel-1',
-          guildId: 'guild-1',
-          name: 'general',
-          lastMessageId: Value(all.last['id']! as String),
-        ),
-      );
-      final adapter = _PaginatingAdapter(
-        messagesByChannel: {'channel-1': all},
-        pageLimit: 150,
-      );
-      final container = _container(db, adapter);
-      addTearDown(() {
-        adapter.releaseBeforeFetch();
-        container.dispose();
-      });
-
-      final notifier = container.read(chatViewModelProvider.notifier);
-      await notifier.switchChannel('channel-1');
-      await _flushAsync();
-
-      final ChatViewState opened = container.read(chatViewModelProvider);
-      expect(opened.hasMoreMessages, isTrue);
-      final int entryEpoch = opened.windowEpoch;
-      // The window holds the newest 150 rows; the held older page will carry
-      // the 150 rows below it.
-      final Set<String> stalePageIds = {
-        for (final Map<String, Object?> m in all.sublist(0, 150))
-          m['id']! as String,
-      };
-
-      adapter.holdBeforeFetch = true;
-      final Future<PageLoadResult> staleLoad = notifier.loadMore();
-      await _flushAsync();
-      expect(adapter.beforeFetchHeld, isTrue);
-
-      await notifier.refreshAfterSessionRecovery();
-      await _flushAsync();
-
-      final ChatViewState refreshed = container.read(chatViewModelProvider);
-      expect(refreshed.channelId, 'channel-1');
-      expect(
-        refreshed.windowEpoch,
-        greaterThan(entryEpoch),
-        reason: 'the refresh install is a wholesale replacement: epoch bumps',
-      );
-
+  test('held loadMore returns superseded with its entry epoch after a '
+      'same-channel network refresh', () async {
+    final db = openTestDatabase();
+    final List<Map<String, Object?>> all = _channelMessages('channel-1', 300);
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(all.last['id']! as String),
+      ),
+    );
+    final adapter = _PaginatingAdapter(
+      messagesByChannel: {'channel-1': all},
+      pageLimit: 150,
+    );
+    final container = _container(db, adapter);
+    addTearDown(() {
       adapter.releaseBeforeFetch();
-      final PageLoadResult result = await staleLoad;
-      await _flushAsync();
+      container.dispose();
+    });
 
-      expect(result.status, PageLoadStatus.superseded);
-      expect(result.edge, PaginationEdge.older);
-      expect(result.channelId, 'channel-1');
-      expect(
-        result.windowEpoch,
-        entryEpoch,
-        reason: 'the result carries the stale epoch captured at request entry',
-      );
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel('channel-1');
+    await _flushAsync();
 
-      final ChatViewState after = container.read(chatViewModelProvider);
-      expect(after.windowEpoch, refreshed.windowEpoch);
-      expect(
-        after.messages,
-        same(refreshed.messages),
-        reason: 'the stale older page merged nothing into the refreshed window',
-      );
-      expect(
-        after.messages.map((m) => m.id).toSet().intersection(stalePageIds),
-        isEmpty,
-      );
-      expect(after.isLoadingMore, isFalse);
-    },
-  );
+    final ChatViewState opened = container.read(chatViewModelProvider);
+    expect(opened.hasMoreMessages, isTrue);
+    final int entryEpoch = opened.windowEpoch;
+    // The window holds the newest 150 rows; the held older page will carry
+    // the 150 rows below it.
+    final Set<String> stalePageIds = {
+      for (final Map<String, Object?> m in all.sublist(0, 150))
+        m['id']! as String,
+    };
+
+    adapter.holdBeforeFetch = true;
+    final Future<PageLoadResult> staleLoad = notifier.loadMore();
+    await _flushAsync();
+    expect(adapter.beforeFetchHeld, isTrue);
+
+    await notifier.refreshAfterSessionRecovery();
+    await _flushAsync();
+
+    final ChatViewState refreshed = container.read(chatViewModelProvider);
+    expect(refreshed.channelId, 'channel-1');
+    expect(
+      refreshed.windowEpoch,
+      greaterThan(entryEpoch),
+      reason: 'the refresh install is a wholesale replacement: epoch bumps',
+    );
+
+    adapter.releaseBeforeFetch();
+    final PageLoadResult result = await staleLoad;
+    await _flushAsync();
+
+    expect(result.status, PageLoadStatus.superseded);
+    expect(result.edge, PaginationEdge.older);
+    expect(result.channelId, 'channel-1');
+    expect(
+      result.windowEpoch,
+      entryEpoch,
+      reason: 'the result carries the stale epoch captured at request entry',
+    );
+
+    final ChatViewState after = container.read(chatViewModelProvider);
+    expect(after.windowEpoch, refreshed.windowEpoch);
+    expect(
+      after.messages,
+      same(refreshed.messages),
+      reason: 'the stale older page merged nothing into the refreshed window',
+    );
+    expect(
+      after.messages.map((m) => m.id).toSet().intersection(stalePageIds),
+      isEmpty,
+    );
+    expect(after.isLoadingMore, isFalse);
+  });
 
   // (h) Epoch on a same-channel blank: switchChannel with a target on the SAME
   // channel blanks the window with channelId unchanged, so a supersession
   // check keyed on channelId alone would let the held page land. The epoch is
   // the key.
-  test(
-    'held loadMore returns superseded after a same-channel target open - '
-    'channelId alone is not the supersession key',
-    () async {
-      final db = openTestDatabase();
-      final List<Map<String, Object?>> all = _channelMessages('channel-1', 300);
-      await db.channelDao.upsertChannel(
-        ChannelsCompanion.insert(
-          id: 'channel-1',
-          guildId: 'guild-1',
-          name: 'general',
-          lastMessageId: Value(all.last['id']! as String),
-        ),
-      );
-      final adapter = _PaginatingAdapter(
-        messagesByChannel: {'channel-1': all},
-        pageLimit: 150,
-      );
-      final container = _container(db, adapter);
-      addTearDown(() {
-        adapter.releaseBeforeFetch();
-        container.dispose();
-      });
-
-      final notifier = container.read(chatViewModelProvider.notifier);
-      await notifier.switchChannel('channel-1');
-      await _flushAsync();
-
-      final int entryEpoch = container
-          .read(chatViewModelProvider)
-          .windowEpoch;
-      // Deep in history, outside the loaded newest-150 window, so the target
-      // open takes the blank-and-load-around path instead of an in-memory
-      // scroll.
-      final String targetId = all[20]['id']! as String;
-
-      adapter.holdBeforeFetch = true;
-      final Future<PageLoadResult> staleLoad = notifier.loadMore();
-      await _flushAsync();
-      expect(adapter.beforeFetchHeld, isTrue);
-
-      await notifier.switchChannel('channel-1', targetMessageId: targetId);
-      await _flushAsync();
-
-      final ChatViewState jumped = container.read(chatViewModelProvider);
-      expect(
-        jumped.channelId,
-        'channel-1',
-        reason: 'the channel never changed across the race',
-      );
-      expect(jumped.windowEpoch, greaterThan(entryEpoch));
-      expect(jumped.messages.map((m) => m.id), contains(targetId));
-
+  test('held loadMore returns superseded after a same-channel target open - '
+      'channelId alone is not the supersession key', () async {
+    final db = openTestDatabase();
+    final List<Map<String, Object?>> all = _channelMessages('channel-1', 300);
+    await db.channelDao.upsertChannel(
+      ChannelsCompanion.insert(
+        id: 'channel-1',
+        guildId: 'guild-1',
+        name: 'general',
+        lastMessageId: Value(all.last['id']! as String),
+      ),
+    );
+    final adapter = _PaginatingAdapter(
+      messagesByChannel: {'channel-1': all},
+      pageLimit: 150,
+    );
+    final container = _container(db, adapter);
+    addTearDown(() {
       adapter.releaseBeforeFetch();
-      final PageLoadResult result = await staleLoad;
-      await _flushAsync();
+      container.dispose();
+    });
 
-      expect(result.status, PageLoadStatus.superseded);
-      expect(result.channelId, 'channel-1');
-      expect(result.windowEpoch, entryEpoch);
+    final notifier = container.read(chatViewModelProvider.notifier);
+    await notifier.switchChannel('channel-1');
+    await _flushAsync();
 
-      final ChatViewState after = container.read(chatViewModelProvider);
-      expect(after.channelId, 'channel-1');
-      expect(
-        after.messages,
-        same(jumped.messages),
-        reason: 'the stale older page merged nothing into the target window',
-      );
-      expect(after.isLoadingMore, isFalse);
-    },
-  );
+    final int entryEpoch = container.read(chatViewModelProvider).windowEpoch;
+    // Deep in history, outside the loaded newest-150 window, so the target
+    // open takes the blank-and-load-around path instead of an in-memory
+    // scroll.
+    final String targetId = all[20]['id']! as String;
+
+    adapter.holdBeforeFetch = true;
+    final Future<PageLoadResult> staleLoad = notifier.loadMore();
+    await _flushAsync();
+    expect(adapter.beforeFetchHeld, isTrue);
+
+    await notifier.switchChannel('channel-1', targetMessageId: targetId);
+    await _flushAsync();
+
+    final ChatViewState jumped = container.read(chatViewModelProvider);
+    expect(
+      jumped.channelId,
+      'channel-1',
+      reason: 'the channel never changed across the race',
+    );
+    expect(jumped.windowEpoch, greaterThan(entryEpoch));
+    expect(jumped.messages.map((m) => m.id), contains(targetId));
+
+    adapter.releaseBeforeFetch();
+    final PageLoadResult result = await staleLoad;
+    await _flushAsync();
+
+    expect(result.status, PageLoadStatus.superseded);
+    expect(result.channelId, 'channel-1');
+    expect(result.windowEpoch, entryEpoch);
+
+    final ChatViewState after = container.read(chatViewModelProvider);
+    expect(after.channelId, 'channel-1');
+    expect(
+      after.messages,
+      same(jumped.messages),
+      reason: 'the stale older page merged nothing into the target window',
+    );
+    expect(after.isLoadingMore, isFalse);
+  });
 
   // (i) The epoch catches what applyNewerPage's boundary supersession alone
   // cannot: a refresh that preserves the loaded window keeps the IDENTICAL

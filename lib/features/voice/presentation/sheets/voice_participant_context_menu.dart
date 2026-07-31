@@ -57,7 +57,6 @@ class VoiceParticipantContextMenu {
       useRootNavigator: true,
       initialChildSize: 0.45,
       minChildSize: 0.25,
-      maxChildSize: 0.85,
       builder: (sheetContext, scrollController, close) {
         return _VoiceParticipantContextMenuPanel(
           target: target,

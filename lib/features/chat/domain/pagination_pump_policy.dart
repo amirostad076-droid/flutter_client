@@ -73,5 +73,7 @@ final class PageLoadResult {
 
 /// True when the page advanced the cursor: the new boundary id differs
 /// from the boundary id the request was issued with.
-bool cursorAdvanced({required String? requestCursor, required String? newBoundary}) =>
-    newBoundary != null && newBoundary != requestCursor;
+bool cursorAdvanced({
+  required String? requestCursor,
+  required String? newBoundary,
+}) => newBoundary != null && newBoundary != requestCursor;

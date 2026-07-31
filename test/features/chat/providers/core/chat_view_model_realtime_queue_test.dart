@@ -2550,10 +2550,7 @@ void main() {
     final notifier = container.read(chatViewModelProvider.notifier);
     await notifier.switchChannel(_channelId);
     await _flushAsync();
-    expect(
-      container.read(chatViewModelProvider).hasMoreNewerMessages,
-      isFalse,
-    );
+    expect(container.read(chatViewModelProvider).hasMoreNewerMessages, isFalse);
 
     // The reader sits at the loaded tail, so the reconcile takes the direct
     // latest-tail branch - the only branch that scrolls on install.
@@ -2596,7 +2593,7 @@ void main() {
     expect(
       container.read(chatViewModelProvider).isLoading,
       isTrue,
-      reason: "B owns the spinner now - it armed over A, or this is vacuous",
+      reason: 'B owns the spinner now - it armed over A, or this is vacuous',
     );
 
     // Both parked fetches complete together; only B's commit owns the arm.

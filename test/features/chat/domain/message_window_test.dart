@@ -121,10 +121,7 @@ void main() {
       final trim = trimMessageWindowAround(messages, aroundId: messages[5].id);
       expect(trim.messages.length, kTrimmedMessageWindowSize);
       expect(trim.messages.first.id, messages[0].id);
-      expect(
-        trim.messages.last.id,
-        messages[kTrimmedMessageWindowSize - 1].id,
-      );
+      expect(trim.messages.last.id, messages[kTrimmedMessageWindowSize - 1].id);
       expect(trim.droppedOlder, isFalse);
       expect(trim.droppedNewer, isTrue);
     });
@@ -146,10 +143,7 @@ void main() {
       final Message failed = _localMessage(301, MessageDeliveryState.failed);
       final List<Message> messages = <Message>[..._build(300), sending, failed];
       final trim = trimMessageWindowAround(messages, aroundId: messages[10].id);
-      expect(
-        trim.messages.length,
-        kTrimmedMessageWindowSize + 2,
-      );
+      expect(trim.messages.length, kTrimmedMessageWindowSize + 2);
       expect(trim.messages[kTrimmedMessageWindowSize].id, sending.id);
       expect(trim.messages.last.id, failed.id);
       expect(trim.droppedNewer, isTrue);

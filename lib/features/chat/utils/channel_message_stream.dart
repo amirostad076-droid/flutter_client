@@ -175,10 +175,10 @@ List<ChannelStreamItem> createChannelStream({
       final bool splitAtBoundary =
           sameGroup &&
           groupSplitBoundaryId != null &&
-          activeCollapsedItem!.messages.last.id == groupSplitBoundaryId;
+          activeCollapsedItem.messages.last.id == groupSplitBoundaryId;
       if (sameGroup && !splitAtBoundary) {
         activeCollapsedItem = ChannelStreamItem(
-          type: activeCollapsedItem!.type,
+          type: activeCollapsedItem.type,
           messages: <Message>[...activeCollapsedItem.messages, message],
           groupKey: activeCollapsedItem.groupKey,
           showUnreadDividerBefore: activeCollapsedItem.showUnreadDividerBefore,

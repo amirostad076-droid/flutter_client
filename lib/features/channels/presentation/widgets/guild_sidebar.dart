@@ -794,7 +794,6 @@ class _ChannelTile extends ConsumerWidget {
         title: channel.name,
         initialChildSize: 0.5,
         minChildSize: 0.25,
-        maxChildSize: 0.85,
         builder: (sheetContext, scrollController, close) {
           return channelMenuGroupsToBottomSheetContent(
             context: sheetContext,
@@ -1261,7 +1260,6 @@ class _CategoryHeader extends ConsumerWidget {
         title: category.name,
         initialChildSize: 0.5,
         minChildSize: 0.25,
-        maxChildSize: 0.85,
         builder: (sheetContext, scrollController, close) {
           return categoryMenuGroupsToBottomSheetContent(
             context: sheetContext,

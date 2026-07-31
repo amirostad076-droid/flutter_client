@@ -165,10 +165,7 @@ void main() {
       sample(older: 2000, newer: 3000);
       final int olderRevision = port.lastFor(PaginationEdge.older)!.revision;
       sample(older: 2010, newer: 3000 - 10);
-      expect(
-        port.lastFor(PaginationEdge.older)!.revision,
-        olderRevision + 1,
-      );
+      expect(port.lastFor(PaginationEdge.older)!.revision, olderRevision + 1);
       expect(
         port.edgeDemands(PaginationEdge.older).length,
         2,
