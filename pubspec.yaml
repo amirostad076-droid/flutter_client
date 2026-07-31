@@ -141,6 +141,7 @@ flutter:
     - assets/images/badges/
     - assets/images/connections/
     - assets/emojis.json
+    - assets/emoji-sprites/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
