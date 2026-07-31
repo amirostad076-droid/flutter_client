@@ -7,32 +7,22 @@ import 'package:intl/intl.dart' as intl;
 
 import 'fluxer_localizations_ar.dart';
 import 'fluxer_localizations_cs.dart';
-import 'fluxer_localizations_cy.dart';
 import 'fluxer_localizations_da.dart';
 import 'fluxer_localizations_de.dart';
 import 'fluxer_localizations_el.dart';
 import 'fluxer_localizations_en.dart';
 import 'fluxer_localizations_es.dart';
-import 'fluxer_localizations_et.dart';
-import 'fluxer_localizations_fa.dart';
 import 'fluxer_localizations_fi.dart';
 import 'fluxer_localizations_fr.dart';
-import 'fluxer_localizations_ga.dart';
-import 'fluxer_localizations_gl.dart';
 import 'fluxer_localizations_hu.dart';
-import 'fluxer_localizations_is.dart';
 import 'fluxer_localizations_it.dart';
 import 'fluxer_localizations_ja.dart';
 import 'fluxer_localizations_ko.dart';
 import 'fluxer_localizations_lt.dart';
-import 'fluxer_localizations_lv.dart';
 import 'fluxer_localizations_nb.dart';
 import 'fluxer_localizations_pl.dart';
 import 'fluxer_localizations_pt.dart';
 import 'fluxer_localizations_ru.dart';
-import 'fluxer_localizations_sk.dart';
-import 'fluxer_localizations_sl.dart';
-import 'fluxer_localizations_sr.dart';
 import 'fluxer_localizations_sv.dart';
 import 'fluxer_localizations_th.dart';
 import 'fluxer_localizations_tr.dart';
@@ -128,37 +118,25 @@ abstract class FluxerLocalizations {
     Locale('en'),
     Locale('ar'),
     Locale('cs'),
-    Locale('cy'),
     Locale('da'),
     Locale('de'),
-    Locale('de', 'CH'),
     Locale('el'),
     Locale('en', 'GB'),
     Locale('en', 'US'),
     Locale('es'),
     Locale('es', '419'),
-    Locale('et'),
-    Locale('fa'),
     Locale('fi'),
     Locale('fr'),
-    Locale('fr', 'CA'),
-    Locale('ga'),
-    Locale('gl'),
     Locale('hu'),
-    Locale('is'),
     Locale('it'),
     Locale('ja'),
     Locale('ko'),
     Locale('lt'),
-    Locale('lv'),
     Locale('nb'),
     Locale('pl'),
     Locale('pt'),
     Locale('pt', 'BR'),
     Locale('ru'),
-    Locale('sk'),
-    Locale('sl'),
-    Locale('sr'),
     Locale('sv'),
     Locale('th'),
     Locale('tr'),
@@ -17825,32 +17803,22 @@ class _FluxerLocalizationsDelegate
   bool isSupported(Locale locale) => <String>[
     'ar',
     'cs',
-    'cy',
     'da',
     'de',
     'el',
     'en',
     'es',
-    'et',
-    'fa',
     'fi',
     'fr',
-    'ga',
-    'gl',
     'hu',
-    'is',
     'it',
     'ja',
     'ko',
     'lt',
-    'lv',
     'nb',
     'pl',
     'pt',
     'ru',
-    'sk',
-    'sl',
-    'sr',
     'sv',
     'th',
     'tr',
@@ -17877,14 +17845,6 @@ FluxerLocalizations lookupFluxerLocalizations(Locale locale) {
 
   // Lookup logic when language+country codes are specified.
   switch (locale.languageCode) {
-    case 'de':
-      {
-        switch (locale.countryCode) {
-          case 'CH':
-            return FluxerLocalizationsDeCh();
-        }
-        break;
-      }
     case 'en':
       {
         switch (locale.countryCode) {
@@ -17900,14 +17860,6 @@ FluxerLocalizations lookupFluxerLocalizations(Locale locale) {
         switch (locale.countryCode) {
           case '419':
             return FluxerLocalizationsEs419();
-        }
-        break;
-      }
-    case 'fr':
-      {
-        switch (locale.countryCode) {
-          case 'CA':
-            return FluxerLocalizationsFrCa();
         }
         break;
       }
@@ -17927,8 +17879,6 @@ FluxerLocalizations lookupFluxerLocalizations(Locale locale) {
       return FluxerLocalizationsAr();
     case 'cs':
       return FluxerLocalizationsCs();
-    case 'cy':
-      return FluxerLocalizationsCy();
     case 'da':
       return FluxerLocalizationsDa();
     case 'de':
@@ -17939,22 +17889,12 @@ FluxerLocalizations lookupFluxerLocalizations(Locale locale) {
       return FluxerLocalizationsEn();
     case 'es':
       return FluxerLocalizationsEs();
-    case 'et':
-      return FluxerLocalizationsEt();
-    case 'fa':
-      return FluxerLocalizationsFa();
     case 'fi':
       return FluxerLocalizationsFi();
     case 'fr':
       return FluxerLocalizationsFr();
-    case 'ga':
-      return FluxerLocalizationsGa();
-    case 'gl':
-      return FluxerLocalizationsGl();
     case 'hu':
       return FluxerLocalizationsHu();
-    case 'is':
-      return FluxerLocalizationsIs();
     case 'it':
       return FluxerLocalizationsIt();
     case 'ja':
@@ -17963,8 +17903,6 @@ FluxerLocalizations lookupFluxerLocalizations(Locale locale) {
       return FluxerLocalizationsKo();
     case 'lt':
       return FluxerLocalizationsLt();
-    case 'lv':
-      return FluxerLocalizationsLv();
     case 'nb':
       return FluxerLocalizationsNb();
     case 'pl':
@@ -17973,12 +17911,6 @@ FluxerLocalizations lookupFluxerLocalizations(Locale locale) {
       return FluxerLocalizationsPt();
     case 'ru':
       return FluxerLocalizationsRu();
-    case 'sk':
-      return FluxerLocalizationsSk();
-    case 'sl':
-      return FluxerLocalizationsSl();
-    case 'sr':
-      return FluxerLocalizationsSr();
     case 'sv':
       return FluxerLocalizationsSv();
     case 'th':
