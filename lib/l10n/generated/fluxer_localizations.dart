@@ -13284,18 +13284,6 @@ abstract class FluxerLocalizations {
   /// **'Show per-device participant volume sliders in voice menus'**
   String get advancedSettingConnectionVolumeControlsDescription;
 
-  /// No description provided for @advancedSettingScreenShareCodecLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Screen share codec'**
-  String get advancedSettingScreenShareCodecLabel;
-
-  /// No description provided for @advancedSettingScreenShareCodecDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Video codec for screen sharing'**
-  String get advancedSettingScreenShareCodecDescription;
-
   /// No description provided for @advancedSettingScreenSharePreviewBehaviorLabel.
   ///
   /// In en, this message translates to:
@@ -13308,17 +13296,17 @@ abstract class FluxerLocalizations {
   /// **'Preview, popout, and stream thumbnail behavior'**
   String get advancedSettingScreenSharePreviewBehaviorDescription;
 
-  /// No description provided for @advancedSettingPauseScreenSharePreviewLabel.
+  /// No description provided for @advancedSettingScreenShareCodecLabel.
   ///
   /// In en, this message translates to:
-  /// **'Pause my screen share preview in the background'**
-  String get advancedSettingPauseScreenSharePreviewLabel;
+  /// **'Screen share codec'**
+  String get advancedSettingScreenShareCodecLabel;
 
-  /// No description provided for @advancedSettingHideStreamPreviewLabel.
+  /// No description provided for @advancedSettingScreenShareCodecDescription.
   ///
   /// In en, this message translates to:
-  /// **'Hide my stream preview thumbnail'**
-  String get advancedSettingHideStreamPreviewLabel;
+  /// **'Video codec for screen sharing'**
+  String get advancedSettingScreenShareCodecDescription;
 
   /// No description provided for @advancedSettingScreenShareCodecAuto.
   ///
@@ -13355,6 +13343,18 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'VP8'**
   String get advancedSettingScreenShareCodecVp8;
+
+  /// No description provided for @advancedSettingPauseScreenSharePreviewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause my screen share preview in the background'**
+  String get advancedSettingPauseScreenSharePreviewLabel;
+
+  /// No description provided for @advancedSettingHideStreamPreviewLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide my stream preview thumbnail'**
+  String get advancedSettingHideStreamPreviewLabel;
 
   /// No description provided for @advancedSettingDeveloperModeLabel.
   ///

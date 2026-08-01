@@ -7832,13 +7832,6 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'Show per-device participant volume sliders in voice menus';
 
   @override
-  String get advancedSettingScreenShareCodecLabel => 'Screen share codec';
-
-  @override
-  String get advancedSettingScreenShareCodecDescription =>
-      'Video codec for screen sharing';
-
-  @override
   String get advancedSettingScreenSharePreviewBehaviorLabel =>
       'Screen share preview behavior';
 
@@ -7847,12 +7840,11 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'Preview, popout, and stream thumbnail behavior';
 
   @override
-  String get advancedSettingPauseScreenSharePreviewLabel =>
-      'Pause my screen share preview in the background';
+  String get advancedSettingScreenShareCodecLabel => 'Screen share codec';
 
   @override
-  String get advancedSettingHideStreamPreviewLabel =>
-      'Hide my stream preview thumbnail';
+  String get advancedSettingScreenShareCodecDescription =>
+      'Video codec for screen sharing';
 
   @override
   String get advancedSettingScreenShareCodecAuto => 'Automatic (recommended)';
@@ -7871,6 +7863,14 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get advancedSettingScreenShareCodecVp8 => 'VP8';
+
+  @override
+  String get advancedSettingPauseScreenSharePreviewLabel =>
+      'Pause my screen share preview in the background';
+
+  @override
+  String get advancedSettingHideStreamPreviewLabel =>
+      'Hide my stream preview thumbnail';
 
   @override
   String get advancedSettingDeveloperModeLabel => 'Enable developer mode';

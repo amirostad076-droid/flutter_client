@@ -255,12 +255,13 @@ Future<void> showAdvancedVoiceJoinSheet(BuildContext context) {
             padding: settingsScrollPadding(sheetContext),
             child: FluxerSettingsSwitchGroup(
               children: [
-                FluxerSettingsSwitchItem.grouped(
-                  label: l10n.advancedSettingRequireDoubleClickJoinLabel,
-                  value: doubleClick,
-                  onChanged: (value) => notifier
-                      .setVoiceChannelJoinRequiresDoubleClick(value: value),
-                ),
+                if (showKeyboardShortcutAdvancedSettings(sheetContext))
+                  FluxerSettingsSwitchItem.grouped(
+                    label: l10n.advancedSettingRequireDoubleClickJoinLabel,
+                    value: doubleClick,
+                    onChanged: (value) => notifier
+                        .setVoiceChannelJoinRequiresDoubleClick(value: value),
+                  ),
                 FluxerSettingsSwitchItem.grouped(
                   label: l10n.advancedSettingConfirmBeforeJoiningVoiceLabel,
                   value:
