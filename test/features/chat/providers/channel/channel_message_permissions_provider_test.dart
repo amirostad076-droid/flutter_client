@@ -367,7 +367,7 @@ void main() {
           fluxerDatabaseProvider.overrideWithValue(db),
           guildListViewModelProvider.overrideWith(
             () => _FixedGuildListViewModel(<Guild>[
-              Guild(id: guildId, name: 'Guild', ownerId: ownerId),
+              const Guild(id: guildId, name: 'Guild', ownerId: ownerId),
             ]),
           ),
           userSettingsViewModelProvider.overrideWith(
@@ -456,7 +456,7 @@ void main() {
           fluxerDatabaseProvider.overrideWithValue(db),
           guildListViewModelProvider.overrideWith(
             () => _FixedGuildListViewModel(<Guild>[
-              Guild(id: guildId, name: 'Guild', ownerId: ownerId),
+              const Guild(id: guildId, name: 'Guild', ownerId: ownerId),
             ]),
           ),
           userSettingsViewModelProvider.overrideWith(
@@ -506,7 +506,7 @@ void main() {
             fluxerDatabaseProvider.overrideWithValue(db),
             guildListViewModelProvider.overrideWith(
               () => _FixedGuildListViewModel(<Guild>[
-                Guild(id: guildId, name: 'Guild', ownerId: ownerId),
+                const Guild(id: guildId, name: 'Guild', ownerId: ownerId),
               ]),
             ),
             userSettingsViewModelProvider.overrideWith(
