@@ -12559,9 +12559,9 @@
   "@guildSettingsMembersDescription": {
     "description": "Description for members tab."
   },
-  "guildSettingsMembersSearchHint": "Search members",
+  "guildSettingsMembersSearchHint": "Search by username or ID",
   "@guildSettingsMembersSearchHint": {
-    "description": "Hint for member search field."
+    "description": "Hint for member search field on the community members page."
   },
   "guildSettingsMembersResultsTitle": "{count} members",
   "@guildSettingsMembersResultsTitle": {
@@ -12569,6 +12569,239 @@
     "placeholders": {
       "count": {"type": "int"}
     }
+  },
+  "guildMembersRecentTitle": "Recent members",
+  "@guildMembersRecentTitle": {
+    "description": "Title on the community members page."
+  },
+  "guildMembersShowingCount": "Showing {displayedCount} of {totalCount} total members",
+  "@guildMembersShowingCount": {
+    "description": "Subtitle showing pagination count on the community members page.",
+    "placeholders": {
+      "displayedCount": {"type": "int"},
+      "totalCount": {"type": "int"}
+    }
+  },
+  "guildMembersSort": "Sort",
+  "@guildMembersSort": {
+    "description": "Sort button label on the community members page."
+  },
+  "guildSettingsMembersSortNewest": "Newest first",
+  "@guildSettingsMembersSortNewest": {
+    "description": "Sort option on the community members page."
+  },
+  "guildMembersSortOldest": "Oldest first",
+  "@guildMembersSortOldest": {
+    "description": "Sort option on the community members page."
+  },
+  "guildMembersColumnName": "Name",
+  "@guildMembersColumnName": {
+    "description": "Table column header on the community members page."
+  },
+  "guildMembersColumnMemberSince": "Member since",
+  "@guildMembersColumnMemberSince": {
+    "description": "Table column header on the community members page."
+  },
+  "guildMembersColumnJoinedProduct": "Joined {productName}",
+  "@guildMembersColumnJoinedProduct": {
+    "description": "Table column header for account creation date on the community members page.",
+    "placeholders": {
+      "productName": {"type": "String"}
+    }
+  },
+  "guildMembersColumnJoinMethod": "Join method",
+  "@guildMembersColumnJoinMethod": {
+    "description": "Table column header on the community members page."
+  },
+  "guildMembersColumnRoles": "Roles",
+  "@guildMembersColumnRoles": {
+    "description": "Table column header on the community members page."
+  },
+  "guildMembersColumnActions": "Actions",
+  "@guildMembersColumnActions": {
+    "description": "Table column header on the community members page."
+  },
+  "guildMembersFilterMemberSince": "Filter by member since",
+  "@guildMembersFilterMemberSince": {
+    "description": "Filter menu label on the community members page."
+  },
+  "guildMembersFilterJoinedProduct": "Filter by account creation date",
+  "@guildMembersFilterJoinedProduct": {
+    "description": "Filter menu label on the community members page."
+  },
+  "guildMembersFilterJoinMethod": "Filter by join method",
+  "@guildMembersFilterJoinMethod": {
+    "description": "Filter menu label on the community members page."
+  },
+  "guildMembersFilterRoles": "Filter by roles",
+  "@guildMembersFilterRoles": {
+    "description": "Filter menu label on the community members page."
+  },
+  "guildMembersFilterAll": "All",
+  "@guildMembersFilterAll": {
+    "description": "Filter option to clear filters on the community members page."
+  },
+  "guildMembersFilterPast1Hour": "Past 1 hour",
+  "@guildMembersFilterPast1Hour": {
+    "description": "Date-range filter option on the community members page."
+  },
+  "guildMembersFilterPast24Hours": "Past 24 hours",
+  "@guildMembersFilterPast24Hours": {
+    "description": "Date-range filter option on the community members page."
+  },
+  "guildMembersFilterPast7Days": "Past 7 days",
+  "@guildMembersFilterPast7Days": {
+    "description": "Date-range filter option on the community members page."
+  },
+  "guildMembersFilterPast2Weeks": "Past 2 weeks",
+  "@guildMembersFilterPast2Weeks": {
+    "description": "Date-range filter option on the community members page."
+  },
+  "guildMembersFilterPast3Weeks": "Past 3 weeks",
+  "@guildMembersFilterPast3Weeks": {
+    "description": "Date-range filter option on the community members page."
+  },
+  "guildMembersFilterPast4Weeks": "Past 4 weeks",
+  "@guildMembersFilterPast4Weeks": {
+    "description": "Date-range filter option on the community members page."
+  },
+  "guildMembersFilterPast3Months": "Past 3 months",
+  "@guildMembersFilterPast3Months": {
+    "description": "Date-range filter option on the community members page."
+  },
+  "guildMembersFilterCustomRange": "Custom range...",
+  "@guildMembersFilterCustomRange": {
+    "description": "Date-range filter option that opens a date picker on the community members page."
+  },
+  "guildMembersDateRangeTitle": "Custom date range",
+  "@guildMembersDateRangeTitle": {
+    "description": "Title for the custom date range sheet on the community members page."
+  },
+  "guildMembersDateAfter": "After date",
+  "@guildMembersDateAfter": {
+    "description": "Label for the after-date field in the custom date range sheet."
+  },
+  "guildMembersDateBefore": "Before date",
+  "@guildMembersDateBefore": {
+    "description": "Label for the before-date field in the custom date range sheet."
+  },
+  "guildMembersClearAll": "Clear all",
+  "@guildMembersClearAll": {
+    "description": "Button to clear all role filters on the community members page."
+  },
+  "guildMembersRowsPerPage": "Rows per page",
+  "@guildMembersRowsPerPage": {
+    "description": "Pagination page size label on the community members page."
+  },
+  "guildMembersEmptySearch": "Nobody matches that search.",
+  "@guildMembersEmptySearch": {
+    "description": "Empty state when no members match filters on the community members page."
+  },
+  "guildMembersLoadError": "Something went wrong loading members. Try again later.",
+  "@guildMembersLoadError": {
+    "description": "Error state on the community members page."
+  },
+  "guildMembersIndexing": "Indexing members…",
+  "@guildMembersIndexing": {
+    "description": "Banner shown while guild members are being indexed."
+  },
+  "guildMembersGoToPage": "Go to page",
+  "@guildMembersGoToPage": {
+    "description": "Pagination jump label on the community members page."
+  },
+  "guildMembersGoToPageItem": "Go to page {page}",
+  "@guildMembersGoToPageItem": {
+    "description": "Accessibility label for a pagination page button.",
+    "placeholders": {
+      "page": {"type": "int"}
+    }
+  },
+  "guildMembersJumpToPage": "Jump to page",
+  "@guildMembersJumpToPage": {
+    "description": "Label for pagination jump input on the community members page."
+  },
+  "guildMembersJoinSourceCreator": "Community creator",
+  "@guildMembersJoinSourceCreator": {
+    "description": "Join method label on the community members page."
+  },
+  "guildMembersJoinSourceInvite": "Invite",
+  "@guildMembersJoinSourceInvite": {
+    "description": "Join method label on the community members page."
+  },
+  "guildMembersJoinSourceInviteCode": "Invite ({code})",
+  "@guildMembersJoinSourceInviteCode": {
+    "description": "Join method label with invite code on the community members page.",
+    "placeholders": {
+      "code": {"type": "String"}
+    }
+  },
+  "guildMembersJoinSourceInvitedBy": "Invited by {name}",
+  "@guildMembersJoinSourceInvitedBy": {
+    "description": "Join method label with inviter on the community members page.",
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "guildMembersJoinSourceVanityUrl": "Vanity URL",
+  "@guildMembersJoinSourceVanityUrl": {
+    "description": "Join method label on the community members page."
+  },
+  "guildMembersJoinSourceBotInvite": "Bot invite",
+  "@guildMembersJoinSourceBotInvite": {
+    "description": "Join method label on the community members page."
+  },
+  "guildMembersJoinSourcePlatformAdmin": "Platform admin",
+  "@guildMembersJoinSourcePlatformAdmin": {
+    "description": "Join method label on the community members page."
+  },
+  "guildMembersJoinSourceDiscovery": "Discovery",
+  "@guildMembersJoinSourceDiscovery": {
+    "description": "Join method label on the community members page."
+  },
+  "guildMembersJoinMethodUnknown": "Unknown",
+  "@guildMembersJoinMethodUnknown": {
+    "description": "Fallback join method label on the community members page."
+  },
+  "guildMembersCommunityOwner": "Community owner",
+  "@guildMembersCommunityOwner": {
+    "description": "Label for the guild owner on the community members page."
+  },
+  "guildMembersViewAllRoles": "View all roles",
+  "@guildMembersViewAllRoles": {
+    "description": "Tooltip for role overflow on the community members page."
+  },
+  "guildMembersJoinedJustNow": "Just now",
+  "@guildMembersJoinedJustNow": {
+    "description": "Relative join time on the community members page."
+  },
+  "guildMembersJoinedMinutesAgo": "{count, plural, one {1 minute ago} other {{count} minutes ago}}",
+  "@guildMembersJoinedMinutesAgo": {
+    "description": "Relative join time on the community members page.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "guildMembersJoinedHoursAgo": "{count, plural, one {1 hour ago} other {{count} hours ago}}",
+  "@guildMembersJoinedHoursAgo": {
+    "description": "Relative join time on the community members page.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "guildMembersJoinedDaysAgo": "{count, plural, one {1 day ago} other {{count} days ago}}",
+  "@guildMembersJoinedDaysAgo": {
+    "description": "Relative join time on the community members page.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "guildMembersChannelListLabel": "Members",
+  "@guildMembersChannelListLabel": {
+    "description": "Label for the Members item at the top of the guild channel list."
+  },
+  "guildMembersChannelListSelected": "Members, selected",
+  "@guildMembersChannelListSelected": {
+    "description": "Accessibility label when the Members channel list item is selected."
   },
   "guildSettingsInvitesTitle": "Invites",
   "@guildSettingsInvitesTitle": {
@@ -13191,7 +13424,6 @@
   "guildSettingsInvitesTableUses": "Uses",
   "guildSettingsInvitesTableCreated": "Created",
   "guildSettingsInvitesTableExpires": "Expires",
-  "guildSettingsMembersSortNewest": "Newest first",
   "guildSettingsAuditLogFilterUser": "Filter by user",
   "@guildSettingsAuditLogFilterUser": {
     "description": "Label of the user filter dropdown in the activity log tab."

@@ -16281,10 +16281,10 @@ abstract class FluxerLocalizations {
   /// **'Search and manage server members.'**
   String get guildSettingsMembersDescription;
 
-  /// Hint for member search field.
+  /// Hint for member search field on the community members page.
   ///
   /// In en, this message translates to:
-  /// **'Search members'**
+  /// **'Search by username or ID'**
   String get guildSettingsMembersSearchHint;
 
   /// Title for member search results.
@@ -16292,6 +16292,318 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'{count} members'**
   String guildSettingsMembersResultsTitle(int count);
+
+  /// Title on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent members'**
+  String get guildMembersRecentTitle;
+
+  /// Subtitle showing pagination count on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing {displayedCount} of {totalCount} total members'**
+  String guildMembersShowingCount(int displayedCount, int totalCount);
+
+  /// Sort button label on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get guildMembersSort;
+
+  /// Sort option on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest first'**
+  String get guildSettingsMembersSortNewest;
+
+  /// Sort option on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest first'**
+  String get guildMembersSortOldest;
+
+  /// Table column header on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get guildMembersColumnName;
+
+  /// Table column header on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Member since'**
+  String get guildMembersColumnMemberSince;
+
+  /// Table column header for account creation date on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined {productName}'**
+  String guildMembersColumnJoinedProduct(String productName);
+
+  /// Table column header on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Join method'**
+  String get guildMembersColumnJoinMethod;
+
+  /// Table column header on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Roles'**
+  String get guildMembersColumnRoles;
+
+  /// Table column header on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Actions'**
+  String get guildMembersColumnActions;
+
+  /// Filter menu label on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by member since'**
+  String get guildMembersFilterMemberSince;
+
+  /// Filter menu label on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by account creation date'**
+  String get guildMembersFilterJoinedProduct;
+
+  /// Filter menu label on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by join method'**
+  String get guildMembersFilterJoinMethod;
+
+  /// Filter menu label on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter by roles'**
+  String get guildMembersFilterRoles;
+
+  /// Filter option to clear filters on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get guildMembersFilterAll;
+
+  /// Date-range filter option on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Past 1 hour'**
+  String get guildMembersFilterPast1Hour;
+
+  /// Date-range filter option on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Past 24 hours'**
+  String get guildMembersFilterPast24Hours;
+
+  /// Date-range filter option on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Past 7 days'**
+  String get guildMembersFilterPast7Days;
+
+  /// Date-range filter option on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Past 2 weeks'**
+  String get guildMembersFilterPast2Weeks;
+
+  /// Date-range filter option on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Past 3 weeks'**
+  String get guildMembersFilterPast3Weeks;
+
+  /// Date-range filter option on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Past 4 weeks'**
+  String get guildMembersFilterPast4Weeks;
+
+  /// Date-range filter option on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Past 3 months'**
+  String get guildMembersFilterPast3Months;
+
+  /// Date-range filter option that opens a date picker on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom range...'**
+  String get guildMembersFilterCustomRange;
+
+  /// Title for the custom date range sheet on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom date range'**
+  String get guildMembersDateRangeTitle;
+
+  /// Label for the after-date field in the custom date range sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'After date'**
+  String get guildMembersDateAfter;
+
+  /// Label for the before-date field in the custom date range sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Before date'**
+  String get guildMembersDateBefore;
+
+  /// Button to clear all role filters on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get guildMembersClearAll;
+
+  /// Pagination page size label on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Rows per page'**
+  String get guildMembersRowsPerPage;
+
+  /// Empty state when no members match filters on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody matches that search.'**
+  String get guildMembersEmptySearch;
+
+  /// Error state on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong loading members. Try again later.'**
+  String get guildMembersLoadError;
+
+  /// Banner shown while guild members are being indexed.
+  ///
+  /// In en, this message translates to:
+  /// **'Indexing members…'**
+  String get guildMembersIndexing;
+
+  /// Pagination jump label on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to page'**
+  String get guildMembersGoToPage;
+
+  /// Accessibility label for a pagination page button.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to page {page}'**
+  String guildMembersGoToPageItem(int page);
+
+  /// Label for pagination jump input on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump to page'**
+  String get guildMembersJumpToPage;
+
+  /// Join method label on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Community creator'**
+  String get guildMembersJoinSourceCreator;
+
+  /// Join method label on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite'**
+  String get guildMembersJoinSourceInvite;
+
+  /// Join method label with invite code on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite ({code})'**
+  String guildMembersJoinSourceInviteCode(String code);
+
+  /// Join method label with inviter on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Invited by {name}'**
+  String guildMembersJoinSourceInvitedBy(String name);
+
+  /// Join method label on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Vanity URL'**
+  String get guildMembersJoinSourceVanityUrl;
+
+  /// Join method label on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Bot invite'**
+  String get guildMembersJoinSourceBotInvite;
+
+  /// Join method label on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform admin'**
+  String get guildMembersJoinSourcePlatformAdmin;
+
+  /// Join method label on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Discovery'**
+  String get guildMembersJoinSourceDiscovery;
+
+  /// Fallback join method label on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get guildMembersJoinMethodUnknown;
+
+  /// Label for the guild owner on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Community owner'**
+  String get guildMembersCommunityOwner;
+
+  /// Tooltip for role overflow on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'View all roles'**
+  String get guildMembersViewAllRoles;
+
+  /// Relative join time on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get guildMembersJoinedJustNow;
+
+  /// Relative join time on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one {1 minute ago} other {{count} minutes ago}}'**
+  String guildMembersJoinedMinutesAgo(int count);
+
+  /// Relative join time on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one {1 hour ago} other {{count} hours ago}}'**
+  String guildMembersJoinedHoursAgo(int count);
+
+  /// Relative join time on the community members page.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one {1 day ago} other {{count} days ago}}'**
+  String guildMembersJoinedDaysAgo(int count);
+
+  /// Label for the Members item at the top of the guild channel list.
+  ///
+  /// In en, this message translates to:
+  /// **'Members'**
+  String get guildMembersChannelListLabel;
+
+  /// Accessibility label when the Members channel list item is selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Members, selected'**
+  String get guildMembersChannelListSelected;
 
   /// Title for the invites settings tab.
   ///
@@ -17714,12 +18026,6 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Expires'**
   String get guildSettingsInvitesTableExpires;
-
-  /// No description provided for @guildSettingsMembersSortNewest.
-  ///
-  /// In en, this message translates to:
-  /// **'Newest first'**
-  String get guildSettingsMembersSortNewest;
 
   /// Label of the user filter dropdown in the activity log tab.
   ///

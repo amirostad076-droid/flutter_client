@@ -9684,6 +9684,198 @@ class FluxerLocalizationsFi extends FluxerLocalizations {
   }
 
   @override
+  String get guildMembersRecentTitle => 'Recent members';
+
+  @override
+  String guildMembersShowingCount(int displayedCount, int totalCount) {
+    return 'Showing $displayedCount of $totalCount total members';
+  }
+
+  @override
+  String get guildMembersSort => 'Sort';
+
+  @override
+  String get guildSettingsMembersSortNewest => 'Uusimmat ensin';
+
+  @override
+  String get guildMembersSortOldest => 'Oldest first';
+
+  @override
+  String get guildMembersColumnName => 'Name';
+
+  @override
+  String get guildMembersColumnMemberSince => 'Member since';
+
+  @override
+  String guildMembersColumnJoinedProduct(String productName) {
+    return 'Joined $productName';
+  }
+
+  @override
+  String get guildMembersColumnJoinMethod => 'Join method';
+
+  @override
+  String get guildMembersColumnRoles => 'Roles';
+
+  @override
+  String get guildMembersColumnActions => 'Actions';
+
+  @override
+  String get guildMembersFilterMemberSince => 'Filter by member since';
+
+  @override
+  String get guildMembersFilterJoinedProduct =>
+      'Filter by account creation date';
+
+  @override
+  String get guildMembersFilterJoinMethod => 'Filter by join method';
+
+  @override
+  String get guildMembersFilterRoles => 'Filter by roles';
+
+  @override
+  String get guildMembersFilterAll => 'All';
+
+  @override
+  String get guildMembersFilterPast1Hour => 'Past 1 hour';
+
+  @override
+  String get guildMembersFilterPast24Hours => 'Past 24 hours';
+
+  @override
+  String get guildMembersFilterPast7Days => 'Past 7 days';
+
+  @override
+  String get guildMembersFilterPast2Weeks => 'Past 2 weeks';
+
+  @override
+  String get guildMembersFilterPast3Weeks => 'Past 3 weeks';
+
+  @override
+  String get guildMembersFilterPast4Weeks => 'Past 4 weeks';
+
+  @override
+  String get guildMembersFilterPast3Months => 'Past 3 months';
+
+  @override
+  String get guildMembersFilterCustomRange => 'Custom range...';
+
+  @override
+  String get guildMembersDateRangeTitle => 'Custom date range';
+
+  @override
+  String get guildMembersDateAfter => 'After date';
+
+  @override
+  String get guildMembersDateBefore => 'Before date';
+
+  @override
+  String get guildMembersClearAll => 'Clear all';
+
+  @override
+  String get guildMembersRowsPerPage => 'Rows per page';
+
+  @override
+  String get guildMembersEmptySearch => 'Nobody matches that search.';
+
+  @override
+  String get guildMembersLoadError =>
+      'Something went wrong loading members. Try again later.';
+
+  @override
+  String get guildMembersIndexing => 'Indexing members…';
+
+  @override
+  String get guildMembersGoToPage => 'Go to page';
+
+  @override
+  String guildMembersGoToPageItem(int page) {
+    return 'Go to page $page';
+  }
+
+  @override
+  String get guildMembersJumpToPage => 'Jump to page';
+
+  @override
+  String get guildMembersJoinSourceCreator => 'Community creator';
+
+  @override
+  String get guildMembersJoinSourceInvite => 'Invite';
+
+  @override
+  String guildMembersJoinSourceInviteCode(String code) {
+    return 'Invite ($code)';
+  }
+
+  @override
+  String guildMembersJoinSourceInvitedBy(String name) {
+    return 'Invited by $name';
+  }
+
+  @override
+  String get guildMembersJoinSourceVanityUrl => 'Vanity URL';
+
+  @override
+  String get guildMembersJoinSourceBotInvite => 'Bot invite';
+
+  @override
+  String get guildMembersJoinSourcePlatformAdmin => 'Platform admin';
+
+  @override
+  String get guildMembersJoinSourceDiscovery => 'Discovery';
+
+  @override
+  String get guildMembersJoinMethodUnknown => 'Unknown';
+
+  @override
+  String get guildMembersCommunityOwner => 'Community owner';
+
+  @override
+  String get guildMembersViewAllRoles => 'View all roles';
+
+  @override
+  String get guildMembersJoinedJustNow => 'Just now';
+
+  @override
+  String guildMembersJoinedMinutesAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes ago',
+      one: '1 minute ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String guildMembersJoinedHoursAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hours ago',
+      one: '1 hour ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String guildMembersJoinedDaysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days ago',
+      one: '1 day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get guildMembersChannelListLabel => 'Members';
+
+  @override
+  String get guildMembersChannelListSelected => 'Members, selected';
+
+  @override
   String get guildSettingsInvitesTitle => 'Invites';
 
   @override
@@ -10533,9 +10725,6 @@ class FluxerLocalizationsFi extends FluxerLocalizations {
 
   @override
   String get guildSettingsInvitesTableExpires => 'Expires';
-
-  @override
-  String get guildSettingsMembersSortNewest => 'Uusimmat ensin';
 
   @override
   String get guildSettingsAuditLogFilterUser => 'Suodata käyttäjän mukaan';

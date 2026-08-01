@@ -32,7 +32,6 @@ class UserBlockedUsers extends ConsumerWidget {
           padding: EdgeInsets.all(layout.s4),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               PhosphorIcon(
                 PhosphorIconsFill.networkSlash,
@@ -63,7 +62,6 @@ class UserBlockedUsers extends ConsumerWidget {
               padding: EdgeInsets.all(layout.s4),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   PhosphorIcon(
                     PhosphorIconsFill.prohibit,
