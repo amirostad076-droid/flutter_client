@@ -137,9 +137,7 @@ class _ExpressionPanelContentState extends ConsumerState<ExpressionPanelContent>
     );
     final ChannelMessagePermissions perms = channelId == null
         ? ChannelMessagePermissions.all
-        : channelMessagePermissionsForComposer(
-            ref.watch(channelMessagePermissionsProvider(channelId)),
-          );
+        : watchChannelMessagePermissionsForComposer(ref, channelId);
     final List<ExpressionPickerTab> visibleTabs = expressionPanelVisibleTabs(
       perms,
     );

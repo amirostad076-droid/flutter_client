@@ -345,9 +345,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       chatViewModelProvider.select((s) => s.channelId),
     );
     final ChannelMessagePermissions perms =
-        channelMessagePermissionsForComposer(
-          ref.read(channelMessagePermissionsProvider(channelId)),
-        );
+        readChannelMessagePermissionsForComposer(ref, channelId);
     if (!perms.isComposerEnabled) {
       return KeyEventResult.ignored;
     }
@@ -618,9 +616,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       chatViewModelProvider.select((ChatViewState s) => s.replyMentioning),
     );
     final ChannelMessagePermissions perms =
-        channelMessagePermissionsForComposer(
-          ref.watch(channelMessagePermissionsProvider(channelId)),
-        );
+        watchChannelMessagePermissionsForComposer(ref, channelId);
     final String guildId =
         findChannelById(
           ref.watch(channelListViewModelProvider),
@@ -652,7 +648,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         if (editingMessage != null)
           EditingInputBar(onCancel: chatNotifier.cancelEdit),
         ChannelAttachmentArea(channelId: channelId),
-        Container(
+        DecoratedBox(
           decoration: BoxDecoration(
             color: context.colors.chatInputBackground,
             border: Border(
@@ -1218,9 +1214,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final channelId = ref.read(
       chatViewModelProvider.select((state) => state.channelId),
     );
-    return channelMessagePermissionsForComposer(
-      ref.read(channelMessagePermissionsProvider(channelId)),
-    );
+    return readChannelMessagePermissionsForComposer(ref, channelId);
   }
 
   void _insertGifUrl(String url) {
@@ -1397,8 +1391,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         ref.read(
           instanceFeatureEnabledProvider(LimitKeys.featureGlobalExpressions),
         ) &&
-        channelMessagePermissionsForComposer(
-          ref.read(channelMessagePermissionsProvider(channelId)),
+        readChannelMessagePermissionsForComposer(
+          ref,
+          channelId,
         ).canUseExternalEmojis;
     final String? activeGuildId = ref.read(contextualGuildIdProvider);
     final Map<String, String> markdownByName = <String, String>{};

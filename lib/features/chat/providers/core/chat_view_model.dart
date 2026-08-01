@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/api/dio_error_message.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
+import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
@@ -4373,6 +4374,12 @@ class ChatViewModel extends _$ChatViewModel {
             channelId: channelId,
           );
       if (permissionOutcome.shouldCache) {
+        ref
+            .read(channelPermissionCacheProvider.notifier)
+            .cacheEffectiveBits(
+              channelId: channelId,
+              outcome: permissionOutcome,
+            );
         final bool canSendMessages = hasPermission(
           permissionOutcome.value,
           Permission.sendMessages,
