@@ -48,6 +48,7 @@ import 'package:fluxer_app/features/chat/service/composer_mention_controller.dar
 import 'package:fluxer_app/features/chat/utils/bottom_input_slot_layout.dart';
 import 'package:fluxer_app/features/chat/utils/composer_command.dart';
 import 'package:fluxer_app/features/chat/utils/composer_emoji_resolution.dart';
+import 'package:fluxer_app/features/chat/utils/composer_expression_tabs.dart';
 import 'package:fluxer_app/features/chat/utils/composer_scroll.dart';
 import 'package:fluxer_app/features/chat/utils/composer_sendable_content.dart';
 import 'package:fluxer_app/features/chat/utils/composer_upload_file.dart';
@@ -63,6 +64,7 @@ import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/guilds/services/guild_verification.dart';
+import 'package:fluxer_app/features/settings/providers/advanced_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_confirm_sheet.dart';
 import 'package:fluxer_app/features/ui/input/inline_token_clipboard.dart';
@@ -739,6 +741,14 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           sendableWire,
         );
         final bool isOverCharacterLimit = contentLength > maxMessageLength;
+        final AdvancedPreferencesState advanced = ref.watch(
+          advancedPreferencesProvider,
+        );
+        final List<ExpressionPickerTab> composerButtonTabs =
+            composerInputButtonVisibleTabs(perms: perms, advanced: advanced);
+        final List<ExpressionPickerTab> popoutTabs = expressionPanelVisibleTabs(
+          perms,
+        );
         return Row(
           children: [
             if (perms.canShowAttachControls) ...[
@@ -823,17 +833,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             ),
             const SizedBox(width: 4),
             if (!hasSendable) ...[
-              // IconButton(
-              //   icon: const PhosphorIcon(PhosphorIconsFill.gift, size: 24),
-              //   color: context.colors.interactiveNormal,
-              //   onPressed: perms.isComposerEnabled ? () {} : null,
-              //   padding: EdgeInsets.zero,
-              //   constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              // ),
-              if (perms.canShowEmbedControls)
+              if (composerButtonTabs.contains(ExpressionPickerTab.gifs))
                 FluxerEmojiPickerPopout(
                   key: _gifPickerKey,
                   initialTab: ExpressionPickerTab.gifs,
+                  visibleTabs: popoutTabs,
                   channelId: channelId,
                   onEmojiSelected: (emoji) =>
                       _insertEmoji(emoji.name, emoji.surrogates),
@@ -861,10 +865,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                     ),
                   ),
                 ),
-              if (perms.canShowAttachControls)
+              if (composerButtonTabs.contains(ExpressionPickerTab.memes))
                 FluxerEmojiPickerPopout(
                   key: _mediaPickerKey,
                   initialTab: ExpressionPickerTab.memes,
+                  visibleTabs: popoutTabs,
                   channelId: channelId,
                   onEmojiSelected: (emoji) =>
                       _insertEmoji(emoji.name, emoji.surrogates),
@@ -892,65 +897,75 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                     ),
                   ),
                 ),
-              FluxerEmojiPickerPopout(
-                key: _stickerPickerKey,
-                initialTab: ExpressionPickerTab.stickers,
-                channelId: channelId,
-                onEmojiSelected: (emoji) =>
-                    _insertEmoji(emoji.name, emoji.surrogates),
-                onGifSelected: _handleGifSelection,
-                onStickerSelected: (sticker) {
-                  _handleStickerSelection(sticker);
-                  _stickerPickerKey.currentState?.close();
-                },
-                onFavoriteMemeSelected: (selection) {
-                  _handleFavoriteMemeSelection(selection);
-                  if (selection.autoSend) {
+              if (composerButtonTabs.contains(ExpressionPickerTab.stickers))
+                FluxerEmojiPickerPopout(
+                  key: _stickerPickerKey,
+                  initialTab: ExpressionPickerTab.stickers,
+                  visibleTabs: popoutTabs,
+                  channelId: channelId,
+                  onEmojiSelected: (emoji) =>
+                      _insertEmoji(emoji.name, emoji.surrogates),
+                  onGifSelected: _handleGifSelection,
+                  onStickerSelected: (sticker) {
+                    _handleStickerSelection(sticker);
                     _stickerPickerKey.currentState?.close();
-                  }
-                },
-                child: IconButton(
-                  icon: const PhosphorIcon(PhosphorIconsFill.sticker, size: 24),
-                  color: context.colors.interactiveNormal,
-                  onPressed: perms.isComposerEnabled
-                      ? () => _stickerPickerKey.currentState?.toggle()
-                      : null,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 36,
-                    minHeight: 36,
+                  },
+                  onFavoriteMemeSelected: (selection) {
+                    _handleFavoriteMemeSelection(selection);
+                    if (selection.autoSend) {
+                      _stickerPickerKey.currentState?.close();
+                    }
+                  },
+                  child: IconButton(
+                    icon: const PhosphorIcon(
+                      PhosphorIconsFill.sticker,
+                      size: 24,
+                    ),
+                    color: context.colors.interactiveNormal,
+                    onPressed: perms.isComposerEnabled
+                        ? () => _stickerPickerKey.currentState?.toggle()
+                        : null,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
                   ),
                 ),
-              ),
-              FluxerEmojiPickerPopout(
-                key: _expressionPickerKey,
-                channelId: channelId,
-                onEmojiSelected: (emoji) =>
-                    _insertEmoji(emoji.name, emoji.surrogates),
-                onGifSelected: _handleGifSelection,
-                onStickerSelected: (sticker) {
-                  _handleStickerSelection(sticker);
-                  _expressionPickerKey.currentState?.close();
-                },
-                onFavoriteMemeSelected: (selection) {
-                  _handleFavoriteMemeSelection(selection);
-                  if (selection.autoSend) {
+              if (composerButtonTabs.contains(ExpressionPickerTab.emojis))
+                FluxerEmojiPickerPopout(
+                  key: _expressionPickerKey,
+                  visibleTabs: popoutTabs,
+                  channelId: channelId,
+                  onEmojiSelected: (emoji) =>
+                      _insertEmoji(emoji.name, emoji.surrogates),
+                  onGifSelected: _handleGifSelection,
+                  onStickerSelected: (sticker) {
+                    _handleStickerSelection(sticker);
                     _expressionPickerKey.currentState?.close();
-                  }
-                },
-                child: IconButton(
-                  icon: const PhosphorIcon(PhosphorIconsFill.smiley, size: 24),
-                  color: context.colors.interactiveNormal,
-                  onPressed: perms.isComposerEnabled
-                      ? () => _expressionPickerKey.currentState?.toggle()
-                      : null,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 36,
-                    minHeight: 36,
+                  },
+                  onFavoriteMemeSelected: (selection) {
+                    _handleFavoriteMemeSelection(selection);
+                    if (selection.autoSend) {
+                      _expressionPickerKey.currentState?.close();
+                    }
+                  },
+                  child: IconButton(
+                    icon: const PhosphorIcon(
+                      PhosphorIconsFill.smiley,
+                      size: 24,
+                    ),
+                    color: context.colors.interactiveNormal,
+                    onPressed: perms.isComposerEnabled
+                        ? () => _expressionPickerKey.currentState?.toggle()
+                        : null,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 36,
+                    ),
                   ),
                 ),
-              ),
             ],
             SizedBox(
               height: 24,
@@ -1569,11 +1584,19 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         !isEditing &&
         (ref.watch(isSlowmodeBlockedProvider(channelId)).value ?? false);
     final bool canUseVoice = perms.isVoiceEnabled && !isSlowmodeBlocked;
-    final bool showVoiceButton = shouldShowComposerVoiceButton(
-      permissions: perms,
-      hasSendable: hasSendable,
-      isEditing: isEditing,
+    final bool showSendButtonPreference = ref.watch(
+      advancedPreferencesProvider.select(
+        (state) => state.showMessageSendButton,
+      ),
     );
+    final bool showVoiceButton =
+        !showSendButtonPreference &&
+        shouldShowComposerVoiceButton(
+          permissions: perms,
+          hasSendable: hasSendable,
+          isEditing: isEditing,
+        );
+    final bool showSendButton = hasSendable || showSendButtonPreference;
     final bool voiceDisabled =
         !canUseVoice || !perms.isComposerEnabled || isOverCharacterLimit;
     final VoidCallback? sendOnPressed = !hasSendable || isOverCharacterLimit
@@ -1585,7 +1608,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       duration: const Duration(milliseconds: 200),
       transitionBuilder: (child, animation) =>
           FadeTransition(opacity: animation, child: child),
-      child: hasSendable
+      child: showSendButton
           ? Opacity(
               key: const ValueKey('send'),
               opacity: isSlowmodeBlocked ? _kMessageInputDisabledOpacity : 1.0,
@@ -1625,13 +1648,36 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     );
   }
 
-  Future<void> _pickAttachments(BuildContext context) async {
+  Future<void> _addPickedFiles(List<ComposerUploadFile> files) async {
     final String channelId = ref.read(
       chatViewModelProvider.select((s) => s.channelId),
     );
     final CloudUploadController notifier = ref.read(
       cloudUploadControllerProvider(channelId).notifier,
     );
+    final bool sequential = ref.read(
+      advancedPreferencesProvider.select((state) => state.sequentialFileSend),
+    );
+    if (!sequential || files.length <= 1) {
+      final FileUploadValidationResult result = await notifier.addFiles(files);
+      if (mounted) {
+        _toastUploadValidation(result);
+      }
+      return;
+    }
+    for (final ComposerUploadFile file in files) {
+      final FileUploadValidationResult result = await notifier.addFiles([file]);
+      if (!result.isValid) {
+        if (mounted) {
+          _toastUploadValidation(result);
+        }
+        break;
+      }
+      await ref.read(chatViewModelProvider.notifier).sendMessage(text: '');
+    }
+  }
+
+  Future<void> _pickAttachments(BuildContext context) async {
     if (isMobileLayout(context)) {
       await FluxerBottomSheet.show<void>(
         context,
@@ -1663,13 +1709,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                         if (!mounted) {
                           return;
                         }
-                        final FileUploadValidationResult r = await notifier
-                            .addFiles(
-                              composerUploadFilesFromImagePicker(media),
-                            );
-                        if (mounted) {
-                          _toastUploadValidation(r);
-                        }
+                        await _addPickedFiles(
+                          composerUploadFilesFromImagePicker(media),
+                        );
                       },
                     ),
                     FluxerBottomSheetMenuItem(
@@ -1687,13 +1729,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                         if (!mounted) {
                           return;
                         }
-                        final FileUploadValidationResult r = await notifier
-                            .addFiles(<ComposerUploadFile>[
-                              composerUploadFileFromImagePicker(image),
-                            ]);
-                        if (mounted) {
-                          _toastUploadValidation(r);
-                        }
+                        await _addPickedFiles(<ComposerUploadFile>[
+                          composerUploadFileFromImagePicker(image),
+                        ]);
                       },
                     ),
                     FluxerBottomSheetMenuItem(
@@ -1714,11 +1752,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                         if (files.isEmpty) {
                           return;
                         }
-                        final FileUploadValidationResult r = await notifier
-                            .addFiles(files);
-                        if (mounted) {
-                          _toastUploadValidation(r);
-                        }
+                        await _addPickedFiles(files);
                       },
                     ),
                   ],
@@ -1742,10 +1776,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     if (files.isEmpty) {
       return;
     }
-    final FileUploadValidationResult r = await notifier.addFiles(files);
-    if (mounted) {
-      _toastUploadValidation(r);
-    }
+    await _addPickedFiles(files);
   }
 
   void _toastUploadValidation(FileUploadValidationResult result) {

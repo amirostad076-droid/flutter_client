@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_mode.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/theme_swatch_button.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/typing_indicator_preview.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/wide_settings_content_layout.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -71,7 +72,7 @@ class UserLookAndFeel extends ConsumerWidget {
 
     return SingleChildScrollView(
       controller: scrollController,
-      padding: EdgeInsets.all(layout.s4),
+      padding: settingsScrollPadding(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

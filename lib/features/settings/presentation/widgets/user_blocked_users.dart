@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/friends/domain/friend.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/wide_settings_content_layout.dart';
 import 'package:fluxer_app/features/settings/providers/blocked_users_view_model.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -123,6 +124,7 @@ class UserBlockedUsers extends ConsumerWidget {
             : 0.0;
         return SingleChildScrollView(
           controller: scrollController,
+          padding: settingsScrollPadding(context),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: minHeight),
             child: body,

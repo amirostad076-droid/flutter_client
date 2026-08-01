@@ -993,6 +993,7 @@ class VoiceSession extends _$VoiceSession {
       defaultCameraCaptureOptions: baseRoomOptions.defaultCameraCaptureOptions,
       defaultScreenShareCaptureOptions:
           baseRoomOptions.defaultScreenShareCaptureOptions,
+      defaultVideoPublishOptions: baseRoomOptions.defaultVideoPublishOptions,
     );
     final Room room = Room(roomOptions: roomOptions);
     _managedLiveKitRoom = room;

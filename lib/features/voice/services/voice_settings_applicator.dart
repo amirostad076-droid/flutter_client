@@ -44,6 +44,11 @@ class VoiceSettingsApplicator {
         resolution: settings.screenshareResolution,
         frameRate: settings.videoFrameRate,
       ),
+      defaultVideoPublishOptions: VideoPublishOptions(
+        videoCodec: preferredScreenShareVideoCodec(
+          settings.preferredScreenShareCodec,
+        ),
+      ),
     );
   }
 

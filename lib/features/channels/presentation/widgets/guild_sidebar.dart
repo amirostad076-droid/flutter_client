@@ -54,6 +54,7 @@ import 'package:fluxer_app/features/mature_content/providers/mature_content_agre
 import 'package:fluxer_app/features/mature_content/providers/sensitive_content_provider.dart';
 import 'package:fluxer_app/features/members/utils/guild_members_page_permissions.dart';
 import 'package:fluxer_app/features/settings/domain/guild/guild_settings_tab.dart';
+import 'package:fluxer_app/features/settings/providers/advanced_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
@@ -828,7 +829,11 @@ class _ChannelTile extends ConsumerWidget {
       developerMode: developerMode,
       nsfwAllowed: nsfwAllowed,
       hasAgreedToMatureContent: hasAgreedToMatureContent,
-      voiceChannelJoinRequiresDoubleClick: false,
+      voiceChannelJoinRequiresDoubleClick: ref.read(
+        advancedPreferencesProvider.select(
+          (state) => state.voiceChannelJoinRequiresDoubleClick,
+        ),
+      ),
       mutedHint: mutedHint,
     );
     final List<ChannelMenuGroup> groups = buildChannelMenuGroups(
