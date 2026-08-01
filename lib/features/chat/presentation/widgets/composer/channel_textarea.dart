@@ -26,6 +26,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/composer/blocked_u
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/channel_composer_barrier.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_field.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_paste_scope.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_status_row.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/message_character_counter.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/system_dm_composer_barrier.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/voice_message_composer_sheet.dart';
@@ -658,13 +659,21 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               top: BorderSide(color: context.colors.userAreaDividerColor),
             ),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: _buildComposerInput(
-            context: context,
-            chatNotifier: chatNotifier,
-            perms: perms,
-            channelId: channelId,
-            isPanelOpen: isPanelOpen,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                if (isMobileLayout(context)) const ComposerStatusRow(),
+                _buildComposerInput(
+                  context: context,
+                  chatNotifier: chatNotifier,
+                  perms: perms,
+                  channelId: channelId,
+                  isPanelOpen: isPanelOpen,
+                ),
+              ],
+            ),
           ),
         ),
         Container(
