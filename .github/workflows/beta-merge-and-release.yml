@@ -1,4 +1,4 @@
-name: Beta Merge and Release
+name: Beta release from Canary merge
 
 on:
   workflow_dispatch:
