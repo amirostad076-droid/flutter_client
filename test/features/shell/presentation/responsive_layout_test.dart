@@ -55,7 +55,7 @@ void main() {
       Directionality(
         textDirection: TextDirection.ltr,
         child: MediaQuery(
-          data: MediaQueryData(size: kWideTestViewportSize),
+          data: const MediaQueryData(size: kWideTestViewportSize),
           child: Builder(
             builder: (BuildContext context) {
               return Text(isMobileLayout(context) ? 'yes' : 'no');
@@ -94,7 +94,7 @@ void main() {
       Directionality(
         textDirection: TextDirection.ltr,
         child: MediaQuery(
-          data: MediaQueryData(size: kWideTestViewportSize),
+          data: const MediaQueryData(size: kWideTestViewportSize),
           child: Builder(
             builder: (BuildContext context) {
               return Text(isWideLayout(context) ? 'yes' : 'no');

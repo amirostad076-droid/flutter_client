@@ -19,7 +19,7 @@ import 'package:fluxer_app/features/settings/presentation/widgets/guild/channels
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../../../../helpers/wide_layout_test_sizes.dart';
+import '../../../../../../helpers/wide_layout_test_sizes.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

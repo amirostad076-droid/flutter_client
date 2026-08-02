@@ -28,8 +28,8 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:riverpod/src/framework.dart' show Override;
 
-import '../../../../helpers/wide_layout_test_sizes.dart';
 import '../../../../helpers/open_test_database.dart';
+import '../../../../helpers/wide_layout_test_sizes.dart';
 
 const Friend _alice = Friend(
   id: '200',
