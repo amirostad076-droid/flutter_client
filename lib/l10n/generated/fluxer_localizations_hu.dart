@@ -7258,10 +7258,6 @@ class FluxerLocalizationsHu extends FluxerLocalizations {
   String get audioAndVideoMicTestSectionTitle => 'Mikrofonpróba';
 
   @override
-  String get audioAndVideoMicTestSectionDescription =>
-      'Meghallgathatod, hogy a jelenlegi beállításokkal hogy hangzol.';
-
-  @override
   String get audioAndVideoMicTestStartLabel => 'Mikrofonpróba indítása';
 
   @override

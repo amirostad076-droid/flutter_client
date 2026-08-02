@@ -9190,10 +9190,6 @@
   "@audioAndVideoMicTestSectionTitle": {
     "description": "Subsection title for microphone test controls."
   },
-  "audioAndVideoMicTestSectionDescription": "Listen to how you sound with your current settings.",
-  "@audioAndVideoMicTestSectionDescription": {
-    "description": "Subsection description for microphone test controls."
-  },
   "audioAndVideoMicTestStartLabel": "Start mic test",
   "@audioAndVideoMicTestStartLabel": {
     "description": "Button label to start the microphone test."

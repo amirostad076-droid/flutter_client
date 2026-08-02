@@ -12222,12 +12222,6 @@ abstract class FluxerLocalizations {
   /// **'Mic test'**
   String get audioAndVideoMicTestSectionTitle;
 
-  /// Subsection description for microphone test controls.
-  ///
-  /// In en, this message translates to:
-  /// **'Listen to how you sound with your current settings.'**
-  String get audioAndVideoMicTestSectionDescription;
-
   /// Button label to start the microphone test.
   ///
   /// In en, this message translates to:

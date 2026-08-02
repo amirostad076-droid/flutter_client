@@ -7222,10 +7222,6 @@ class FluxerLocalizationsSv extends FluxerLocalizations {
   String get audioAndVideoMicTestSectionTitle => 'Mic test';
 
   @override
-  String get audioAndVideoMicTestSectionDescription =>
-      'Listen to how you sound with your current settings.';
-
-  @override
   String get audioAndVideoMicTestStartLabel => 'Start mic test';
 
   @override
