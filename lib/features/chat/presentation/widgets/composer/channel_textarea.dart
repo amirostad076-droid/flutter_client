@@ -518,7 +518,25 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         }
         ref.read(pendingFavoriteMemeSelectionProvider.notifier).consume();
         _handleFavoriteMemeSelection(pending);
-      });
+      })
+      ..listen<Message?>(
+        chatViewModelProvider.select((ChatViewState state) => state.replyingTo),
+        (Message? previous, Message? next) {
+          if (next != null && previous == null) {
+            _focusComposerAfterReplyOrEdit(forEdit: false);
+          }
+        },
+      )
+      ..listen<Message?>(
+        chatViewModelProvider.select(
+          (ChatViewState state) => state.editingMessage,
+        ),
+        (Message? previous, Message? next) {
+          if (next != null && previous == null) {
+            _focusComposerAfterReplyOrEdit(forEdit: true);
+          }
+        },
+      );
 
     final channelId = ref.watch(
       chatViewModelProvider.select((s) => s.channelId),
@@ -1510,26 +1528,59 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     if (!ref.read(expressionPanelProvider)) {
       return;
     }
-    if (isMobileLayout(context)) {
-      final MobileKeyboardMetricsState metrics = ref.read(
-        mobileKeyboardMetricsProvider,
-      );
-      final double netPanel =
-          ref.read(expressionPanelHeightProvider) ??
-          bottomInputSlotAnchorHeight(
-            anchoredKeyboardHeight: metrics.anchoredKeyboardHeight,
-            fallbackHeight: metrics.fallbackKeyboardHeight,
-            safeAreaBottom: metrics.safeAreaBottom,
-          );
-      ref
-          .read(bottomInputSlotProvider.notifier)
-          .beginKeyboardTransition(netPanel);
-    }
+    _beginExpressionPanelToKeyboardTransition();
     ref.read(expressionPanelProvider.notifier).close();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
       }
+      _focusNode.requestFocus();
+    });
+  }
+
+  void _beginExpressionPanelToKeyboardTransition() {
+    if (!isMobileLayout(context)) {
+      return;
+    }
+    final MobileKeyboardMetricsState metrics = ref.read(
+      mobileKeyboardMetricsProvider,
+    );
+    final double netPanel =
+        ref.read(expressionPanelHeightProvider) ??
+        bottomInputSlotAnchorHeight(
+          anchoredKeyboardHeight: metrics.anchoredKeyboardHeight,
+          fallbackHeight: metrics.fallbackKeyboardHeight,
+          safeAreaBottom: metrics.safeAreaBottom,
+        );
+    ref
+        .read(bottomInputSlotProvider.notifier)
+        .beginKeyboardTransition(netPanel);
+  }
+
+  void _focusComposerAfterReplyOrEdit({required bool forEdit}) {
+    if (ref.read(expressionPanelProvider)) {
+      _beginExpressionPanelToKeyboardTransition();
+      ref.read(expressionPanelProvider.notifier).close();
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) {
+        return;
+      }
+      if (forEdit) {
+        await _applyWireTextFromState(
+          stripPrivateUseCharacters(
+            ref.read(chatViewModelProvider).messageText,
+          ),
+        );
+      } else {
+        _controller.selection = TextSelection.collapsed(
+          offset: _controller.text.length,
+        );
+      }
+      scheduleComposerScrollToEnd(
+        _composerScrollController,
+        isMounted: () => mounted,
+      );
       _focusNode.requestFocus();
     });
   }
