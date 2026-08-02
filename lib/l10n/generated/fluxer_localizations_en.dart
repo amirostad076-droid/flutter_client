@@ -1423,10 +1423,10 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get crop => 'Crop';
 
   @override
-  String get changeYourFluxerTag => 'Change Your FluxerTag';
+  String get changeYourFluxerTag => 'Change Your Username';
 
   @override
-  String get fluxerTagInputLabel => 'FluxerTag';
+  String get fluxerTagInputLabel => 'Username';
 
   @override
   String get fluxerTagDescriptionBase =>
@@ -1454,11 +1454,11 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'Get Plutonium to customize your tag or keep it when changing your username';
 
   @override
-  String get fluxerTagAlreadyTaken => 'FluxerTag Already Taken';
+  String get fluxerTagAlreadyTaken => 'Username Already Taken';
 
   @override
   String fluxerTagAlreadyTakenBody(String username, String discriminator) {
-    return 'The FluxerTag $username#$discriminator is already taken. Continuing will reroll your discriminator automatically.';
+    return 'The username $username#$discriminator is already taken. Continuing will reroll your discriminator automatically.';
   }
 
   @override
@@ -1478,7 +1478,7 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get premiumWarningPendingDiscriminator =>
-      'If you save this FluxerTag, your custom 4-digit tag will revert to a random number when your Plutonium subscription ends. If your subscription fails to renew, you\'ll have a 3-day grace period before the tag changes.';
+      'If you save this username, your custom 4-digit tag will revert to a random number when your Plutonium subscription ends. If your subscription fails to renew, you\'ll have a 3-day grace period before the tag changes.';
 
   @override
   String premiumWarningActiveDiscriminator(String discriminator) {
@@ -1499,11 +1499,11 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'You\'re on a Plutonium trial. Upgrade to keep your custom tag and earn a badge on your profile.';
 
   @override
-  String get fluxerTagUpdated => 'FluxerTag updated';
+  String get fluxerTagUpdated => 'Username updated';
 
   @override
   String get fluxerTagUpdateFailed =>
-      'Failed to update FluxerTag. Please try again.';
+      'Failed to update username. Please try again.';
 
   @override
   String get continueAction => 'Continue';
@@ -1520,10 +1520,10 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
 
   @override
   String get claimAccountToChangeFluxerTag =>
-      'Claim your account to change your FluxerTag';
+      'Claim your account to change your username';
 
   @override
-  String get changeFluxerTag => 'Change FluxerTag';
+  String get changeFluxerTag => 'Change Username';
 
   @override
   String customizeTagWithPlutoniumTooltip(String discriminator) {
@@ -2506,7 +2506,7 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   }
 
   @override
-  String get blockedUsersCopyTag => 'Copy FluxerTag';
+  String get blockedUsersCopyTag => 'Copy username';
 
   @override
   String get blockedUsersCopyId => 'Copy User ID';
@@ -12606,10 +12606,10 @@ class FluxerLocalizationsEnGb extends FluxerLocalizationsEn {
   String get crop => 'Crop';
 
   @override
-  String get changeYourFluxerTag => 'Change Your FluxerTag';
+  String get changeYourFluxerTag => 'Change Your Username';
 
   @override
-  String get fluxerTagInputLabel => 'FluxerTag';
+  String get fluxerTagInputLabel => 'Username';
 
   @override
   String get fluxerTagDescriptionBase =>
@@ -12637,11 +12637,11 @@ class FluxerLocalizationsEnGb extends FluxerLocalizationsEn {
       'Get Plutonium to customise your tag or keep it when changing your username';
 
   @override
-  String get fluxerTagAlreadyTaken => 'FluxerTag Already Taken';
+  String get fluxerTagAlreadyTaken => 'Username Already Taken';
 
   @override
   String fluxerTagAlreadyTakenBody(String username, String discriminator) {
-    return 'The FluxerTag $username#$discriminator is already taken. Continuing will reroll your discriminator automatically.';
+    return 'The username $username#$discriminator is already taken. Continuing will reroll your discriminator automatically.';
   }
 
   @override
@@ -12661,7 +12661,7 @@ class FluxerLocalizationsEnGb extends FluxerLocalizationsEn {
 
   @override
   String get premiumWarningPendingDiscriminator =>
-      'If you save this FluxerTag, your custom 4-digit tag will revert to a random number when your Plutonium subscription ends. If your subscription fails to renew, you\'ll have a 3-day grace period before the tag changes.';
+      'If you save this username, your custom 4-digit tag will revert to a random number when your Plutonium subscription ends. If your subscription fails to renew, you\'ll have a 3-day grace period before the tag changes.';
 
   @override
   String premiumWarningActiveDiscriminator(String discriminator) {
@@ -12682,11 +12682,11 @@ class FluxerLocalizationsEnGb extends FluxerLocalizationsEn {
       'You\'re on a Plutonium trial. Upgrade to keep your custom tag and earn a badge on your profile.';
 
   @override
-  String get fluxerTagUpdated => 'FluxerTag updated';
+  String get fluxerTagUpdated => 'Username updated';
 
   @override
   String get fluxerTagUpdateFailed =>
-      'Failed to update FluxerTag. Please try again.';
+      'Failed to update username. Please try again.';
 
   @override
   String get continueAction => 'Continue';
@@ -12703,10 +12703,10 @@ class FluxerLocalizationsEnGb extends FluxerLocalizationsEn {
 
   @override
   String get claimAccountToChangeFluxerTag =>
-      'Claim your account to change your FluxerTag';
+      'Claim your account to change your username';
 
   @override
-  String get changeFluxerTag => 'Change FluxerTag';
+  String get changeFluxerTag => 'Change Username';
 
   @override
   String customizeTagWithPlutoniumTooltip(String discriminator) {
@@ -13566,7 +13566,7 @@ class FluxerLocalizationsEnGb extends FluxerLocalizationsEn {
   }
 
   @override
-  String get blockedUsersCopyTag => 'Copy FluxerTag';
+  String get blockedUsersCopyTag => 'Copy username';
 
   @override
   String get blockedUsersCopyId => 'Copy User ID';
@@ -19727,10 +19727,10 @@ class FluxerLocalizationsEnUs extends FluxerLocalizationsEn {
   String get crop => 'Crop';
 
   @override
-  String get changeYourFluxerTag => 'Change Your FluxerTag';
+  String get changeYourFluxerTag => 'Change Your Username';
 
   @override
-  String get fluxerTagInputLabel => 'FluxerTag';
+  String get fluxerTagInputLabel => 'Username';
 
   @override
   String get fluxerTagDescriptionBase =>
@@ -19758,11 +19758,11 @@ class FluxerLocalizationsEnUs extends FluxerLocalizationsEn {
       'Get Plutonium to customize your tag or keep it when changing your username';
 
   @override
-  String get fluxerTagAlreadyTaken => 'FluxerTag Already Taken';
+  String get fluxerTagAlreadyTaken => 'Username Already Taken';
 
   @override
   String fluxerTagAlreadyTakenBody(String username, String discriminator) {
-    return 'The FluxerTag $username#$discriminator is already taken. Continuing will reroll your discriminator automatically.';
+    return 'The username $username#$discriminator is already taken. Continuing will reroll your discriminator automatically.';
   }
 
   @override
@@ -19782,7 +19782,7 @@ class FluxerLocalizationsEnUs extends FluxerLocalizationsEn {
 
   @override
   String get premiumWarningPendingDiscriminator =>
-      'If you save this FluxerTag, your custom 4-digit tag will revert to a random number when your Plutonium subscription ends. If your subscription fails to renew, you\'ll have a 3-day grace period before the tag changes.';
+      'If you save this username, your custom 4-digit tag will revert to a random number when your Plutonium subscription ends. If your subscription fails to renew, you\'ll have a 3-day grace period before the tag changes.';
 
   @override
   String premiumWarningActiveDiscriminator(String discriminator) {
@@ -19803,11 +19803,11 @@ class FluxerLocalizationsEnUs extends FluxerLocalizationsEn {
       'You\'re on a Plutonium trial. Upgrade to keep your custom tag and earn a badge on your profile.';
 
   @override
-  String get fluxerTagUpdated => 'FluxerTag updated';
+  String get fluxerTagUpdated => 'Username updated';
 
   @override
   String get fluxerTagUpdateFailed =>
-      'Failed to update FluxerTag. Please try again.';
+      'Failed to update username. Please try again.';
 
   @override
   String get continueAction => 'Continue';
@@ -19824,10 +19824,10 @@ class FluxerLocalizationsEnUs extends FluxerLocalizationsEn {
 
   @override
   String get claimAccountToChangeFluxerTag =>
-      'Claim your account to change your FluxerTag';
+      'Claim your account to change your username';
 
   @override
-  String get changeFluxerTag => 'Change FluxerTag';
+  String get changeFluxerTag => 'Change Username';
 
   @override
   String customizeTagWithPlutoniumTooltip(String discriminator) {
@@ -20687,7 +20687,7 @@ class FluxerLocalizationsEnUs extends FluxerLocalizationsEn {
   }
 
   @override
-  String get blockedUsersCopyTag => 'Copy FluxerTag';
+  String get blockedUsersCopyTag => 'Copy username';
 
   @override
   String get blockedUsersCopyId => 'Copy User ID';
