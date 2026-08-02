@@ -22,14 +22,34 @@ void main() {
     expect(find.text('mobile'), findsOneWidget);
   });
 
-  testWidgets('guild action sheet gate matches isMobileLayout at 800px', (
+  testWidgets(
+    'guild action sheet gate matches isMobileLayout below shell width',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: MediaQuery(
+            data: const MediaQueryData(size: Size(1280, 800)),
+            child: Builder(
+              builder: (BuildContext context) {
+                return Text(isMobileLayout(context) ? 'mobile' : 'wide');
+              },
+            ),
+          ),
+        ),
+      );
+      expect(find.text('mobile'), findsOneWidget);
+    },
+  );
+
+  testWidgets('guild action sheet gate matches isMobileLayout at shell width', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
       Directionality(
         textDirection: TextDirection.ltr,
         child: MediaQuery(
-          data: const MediaQueryData(size: Size(1280, 800)),
+          data: const MediaQueryData(size: Size(1400, 800)),
           child: Builder(
             builder: (BuildContext context) {
               return Text(isMobileLayout(context) ? 'mobile' : 'wide');
