@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 
+import '../../../helpers/wide_layout_test_sizes.dart';
+
 void main() {
   group('layoutModeOfSize', () {
     test('stays mobile when shortest side is under mobile breakpoint', () {
@@ -18,11 +20,11 @@ void main() {
     });
 
     test('is tablet when shortest side and width both qualify', () {
-      expect(layoutModeOfSize(const Size(1400, 800)), LayoutMode.tablet);
+      expect(layoutModeOfSize(kWideTestViewportSize), LayoutMode.tablet);
     });
 
     test('is desktop when shortest side reaches desktop breakpoint', () {
-      expect(layoutModeOfSize(const Size(1400, 1080)), LayoutMode.desktop);
+      expect(layoutModeOfSize(kDesktopTestViewportSize), LayoutMode.desktop);
     });
   });
 
@@ -53,7 +55,7 @@ void main() {
       Directionality(
         textDirection: TextDirection.ltr,
         child: MediaQuery(
-          data: const MediaQueryData(size: Size(1400, 800)),
+          data: MediaQueryData(size: kWideTestViewportSize),
           child: Builder(
             builder: (BuildContext context) {
               return Text(isMobileLayout(context) ? 'yes' : 'no');
@@ -92,7 +94,7 @@ void main() {
       Directionality(
         textDirection: TextDirection.ltr,
         child: MediaQuery(
-          data: const MediaQueryData(size: Size(1400, 800)),
+          data: MediaQueryData(size: kWideTestViewportSize),
           child: Builder(
             builder: (BuildContext context) {
               return Text(isWideLayout(context) ? 'yes' : 'no');

@@ -35,6 +35,7 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:riverpod/src/framework.dart' show Override;
 
+import '../../../../helpers/wide_layout_test_sizes.dart';
 import '../../../../helpers/open_test_database.dart';
 
 void main() {
@@ -42,7 +43,7 @@ void main() {
     testWidgets('Friends button navigates to the DM home route', (
       tester,
     ) async {
-      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.physicalSize = kWideTestViewportSize;
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
