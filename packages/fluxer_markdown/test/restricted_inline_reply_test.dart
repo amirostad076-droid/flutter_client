@@ -60,7 +60,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: SizedBox(
               width: 240,
@@ -88,7 +88,7 @@ void main() {
     testWidgets('renders subtext without smaller styling', (tester) async {
       const double baseFontSize = 14;
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: SizedBox(
               width: 240,
@@ -96,7 +96,7 @@ void main() {
                 data: '-# preview note',
                 config: _testMarkdownConfig,
                 context: FluxerMarkdownContext.restrictedInlineReply,
-                baseStyle: const TextStyle(fontSize: baseFontSize),
+                baseStyle: TextStyle(fontSize: baseFontSize),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

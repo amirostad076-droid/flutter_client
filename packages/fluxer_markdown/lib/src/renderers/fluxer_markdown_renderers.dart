@@ -333,7 +333,6 @@ class _MarkdownBlockRenderer {
       textScaler: MediaQuery.textScalerOf(context),
       maxLines: maxLines,
       overflow: overflow ?? TextOverflow.clip,
-      textWidthBasis: TextWidthBasis.parent,
     );
   }
 

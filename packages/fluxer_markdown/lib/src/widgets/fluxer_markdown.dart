@@ -205,7 +205,6 @@ class FluxerMarkdown extends StatelessWidget {
       textScaler: MediaQuery.textScalerOf(context),
       maxLines: maxLines,
       overflow: overflow ?? TextOverflow.clip,
-      textWidthBasis: TextWidthBasis.parent,
     );
   }
 
