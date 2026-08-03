@@ -31,6 +31,11 @@ double _blockSpacingForStyle(TextStyle style) {
   return fontSize * 0.5;
 }
 
+double _orderedListMarkerColumnWidth(int largestNumber, double fontSize) {
+  final digitCount = largestNumber.toString().length;
+  return fontSize * (0.65 + digitCount * 0.6);
+}
+
 final RegExp _spoilerSyncUrlPattern = RegExp(
   r'''https?:\/\/[^\s<>"']+''',
   caseSensitive: false,
@@ -591,6 +596,15 @@ class _MarkdownBlockRenderer {
 
   Widget _buildList(md.Element node, {required bool ordered}) {
     final items = node.children?.whereType<md.Element>().toList() ?? const [];
+    final start = int.tryParse(node.attributes['start'] ?? '1') ?? 1;
+    final fontSize = baseStyle.fontSize ?? 16;
+    final markerColumnWidth = ordered
+        ? _orderedListMarkerColumnWidth(
+            items.isEmpty ? start : start + items.length - 1,
+            fontSize,
+          )
+        : fontSize * 1.5;
+    final markerTextAlign = ordered ? TextAlign.right : TextAlign.start;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -599,16 +613,21 @@ class _MarkdownBlockRenderer {
             padding: EdgeInsets.only(bottom: i == items.length - 1 ? 0 : 4),
             child: _buildListItem(
               items[i],
-              marker: ordered
-                  ? '${i + (int.tryParse(node.attributes['start'] ?? '1') ?? 1)}.'
-                  : '\u2022',
+              marker: ordered ? '${start + i}.' : '\u2022',
+              markerColumnWidth: markerColumnWidth,
+              markerTextAlign: markerTextAlign,
             ),
           ),
       ],
     );
   }
 
-  Widget _buildListItem(md.Element item, {required String marker}) {
+  Widget _buildListItem(
+    md.Element item, {
+    required String marker,
+    required double markerColumnWidth,
+    required TextAlign markerTextAlign,
+  }) {
     final children = item.children ?? const <md.Node>[];
     final content = <Widget>[];
     final nestedBlocks = <Widget>[];
@@ -673,7 +692,16 @@ class _MarkdownBlockRenderer {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(width: 24, child: Text(marker, style: baseStyle)),
+        SizedBox(
+          width: markerColumnWidth,
+          child: Text(
+            marker,
+            style: baseStyle,
+            textAlign: markerTextAlign,
+            maxLines: 1,
+            softWrap: false,
+          ),
+        ),
         Expanded(child: body),
       ],
     );
