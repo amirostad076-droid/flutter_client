@@ -114,6 +114,31 @@ final MarkdownParseCache<(String, FluxerMarkdownFeatures), List<md.Node>>
 _inlineNodeCache =
     MarkdownParseCache<(String, FluxerMarkdownFeatures), List<md.Node>>();
 
+String collapseRestrictedInlineText(String text) {
+  return text.replaceAll('\n', ' ').replaceAll(RegExp(r'\s+'), ' ');
+}
+
+List<InlineSpan> collectRestrictedInlinePreviewSpans({
+  required BuildContext context,
+  required List<md.Node> nodes,
+  required TextStyle baseStyle,
+  required FluxerMarkdownConfig config,
+  required FluxerMarkdownFeatures features,
+  required bool isDark,
+  int? maxLines,
+  TextOverflow? overflow,
+}) {
+  return _MarkdownBlockRenderer(
+    context: context,
+    baseStyle: baseStyle,
+    config: config,
+    features: features,
+    isDark: isDark,
+    maxLines: maxLines,
+    overflow: overflow,
+  ).collectRestrictedInlinePreviewSpans(nodes);
+}
+
 void appendTrailingInlineWidget(
   List<InlineSpan> spans,
   TextStyle baseStyle,
@@ -165,7 +190,12 @@ Widget buildFluxerMarkdownTextFlow({
   final spans = <InlineSpan>[];
   for (var i = 0; i < chunks.length; i++) {
     if (i > 0) {
-      spans.add(TextSpan(text: '\n', style: baseStyle));
+      spans.add(
+        TextSpan(
+          text: features.isRestrictedInlinePreview ? ' ' : '\n',
+          style: baseStyle,
+        ),
+      );
     }
     final chunkNodes = chunkNodesList[i];
     if (chunkNodes.isEmpty) {
@@ -266,6 +296,10 @@ class _MarkdownBlockRenderer {
   final TextOverflow? overflow;
 
   Widget build(List<md.Node> nodes) {
+    if (features.isRestrictedInlinePreview) {
+      return _buildRestrictedInlinePreview(nodes);
+    }
+
     final children = <Widget>[];
     for (final node in nodes) {
       final widget = buildBlock(node);
@@ -286,6 +320,108 @@ class _MarkdownBlockRenderer {
       spacing: _blockSpacingForStyle(baseStyle),
       children: children,
     );
+  }
+
+  Widget _buildRestrictedInlinePreview(List<md.Node> nodes) {
+    final spans = collectRestrictedInlinePreviewSpans(nodes);
+    if (spans.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return RichText(
+      text: TextSpan(style: baseStyle, children: spans),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: maxLines,
+      overflow: overflow ?? TextOverflow.clip,
+      textWidthBasis: TextWidthBasis.parent,
+    );
+  }
+
+  List<InlineSpan> collectRestrictedInlinePreviewSpans(List<md.Node> nodes) {
+    final spans = <InlineSpan>[];
+    var needsSeparator = false;
+    for (final node in nodes) {
+      final nodeSpans = _collectRestrictedInlinePreviewSpans(node);
+      if (nodeSpans.isEmpty) {
+        continue;
+      }
+      if (needsSeparator && spans.isNotEmpty) {
+        spans.add(TextSpan(text: ' ', style: baseStyle));
+      }
+      spans.addAll(nodeSpans);
+      needsSeparator = true;
+    }
+    return spans;
+  }
+
+  List<InlineSpan> _collectRestrictedInlinePreviewSpans(md.Node node) {
+    if (node is md.Text) {
+      final text = collapseRestrictedInlineText(node.text);
+      if (text.isEmpty) {
+        return const <InlineSpan>[];
+      }
+      return [TextSpan(text: text, style: baseStyle)];
+    }
+
+    if (node is! md.Element) {
+      return const <InlineSpan>[];
+    }
+
+    switch (node.tag) {
+      case 'p':
+      case 'h1':
+      case 'h2':
+      case 'h3':
+      case 'h4':
+        return _MarkdownInlineRenderer(
+          context: context,
+          baseStyle: baseStyle,
+          config: config,
+          features: features,
+          isDark: isDark,
+          jumbo: false,
+          maxLines: maxLines,
+        ).build(node.children ?? const []);
+      case 'pre':
+        final codeElement = node.children
+            ?.whereType<md.Element>()
+            .cast<md.Element?>()
+            .firstWhere((child) => child?.tag == 'code', orElse: () => null);
+        if (codeElement == null) {
+          return const <InlineSpan>[];
+        }
+        final text = collapseRestrictedInlineText(codeElement.textContent);
+        if (text.isEmpty) {
+          return const <InlineSpan>[];
+        }
+        return [
+          TextSpan(
+            text: text,
+            style: codeTextStyleFrom(
+              baseStyle,
+              codeTextStyle: config.codeTextStyle,
+              color: config.inlineCodeTextColor,
+              backgroundColor: config.inlineCodeBackgroundColor,
+            ),
+          ),
+        ];
+      default:
+        if (_isInlineOnlyTag(node.tag)) {
+          return _MarkdownInlineRenderer(
+            context: context,
+            baseStyle: baseStyle,
+            config: config,
+            features: features,
+            isDark: isDark,
+            jumbo: false,
+            maxLines: maxLines,
+          ).build([node]);
+        }
+        final spans = <InlineSpan>[];
+        for (final child in node.children ?? const <md.Node>[]) {
+          spans.addAll(_collectRestrictedInlinePreviewSpans(child));
+        }
+        return spans;
+    }
   }
 
   Widget? buildBlock(md.Node node) {
@@ -733,7 +869,13 @@ class _MarkdownInlineRenderer {
       if (node.text.isEmpty) {
         return null;
       }
-      return TextSpan(text: node.text, style: effectiveStyle);
+      final text = features.isRestrictedInlinePreview
+          ? collapseRestrictedInlineText(node.text)
+          : node.text;
+      if (text.isEmpty) {
+        return null;
+      }
+      return TextSpan(text: text, style: effectiveStyle);
     }
 
     if (node is! md.Element) {
