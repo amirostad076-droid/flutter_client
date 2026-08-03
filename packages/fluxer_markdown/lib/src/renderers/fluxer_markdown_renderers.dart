@@ -209,6 +209,7 @@ Widget buildFluxerMarkdownTextFlow({
       isDark: isDark,
       jumbo: useJumbo,
       maxLines: maxLines,
+      overflow: overflow,
     ).build(chunkNodes);
     spans.addAll(chunkSpans);
   }
@@ -380,6 +381,7 @@ class _MarkdownBlockRenderer {
           isDark: isDark,
           jumbo: false,
           maxLines: maxLines,
+          overflow: overflow,
         ).build(node.children ?? const []);
       case 'pre':
         final codeElement = node.children
@@ -414,6 +416,7 @@ class _MarkdownBlockRenderer {
             isDark: isDark,
             jumbo: false,
             maxLines: maxLines,
+            overflow: overflow,
           ).build([node]);
         }
         final spans = <InlineSpan>[];
@@ -497,6 +500,7 @@ class _MarkdownBlockRenderer {
       jumbo:
           style == null && features.allowJumboEmoji && _allNodesAreEmoji(nodes),
       maxLines: maxLines,
+      overflow: overflow,
     ).build(nodes);
 
     if (spans.isEmpty) {
@@ -838,6 +842,7 @@ class _MarkdownInlineRenderer {
     required this.isDark,
     required this.jumbo,
     this.maxLines,
+    this.overflow,
   });
 
   final BuildContext context;
@@ -847,6 +852,7 @@ class _MarkdownInlineRenderer {
   final bool isDark;
   final bool jumbo;
   final int? maxLines;
+  final TextOverflow? overflow;
 
   List<InlineSpan> build(List<md.Node> nodes, {TextStyle? style}) {
     final effectiveStyle = style ?? baseStyle;
@@ -997,8 +1003,12 @@ class _MarkdownInlineRenderer {
         if (config.spoilersInitiallyRevealed && maxLines != null) {
           return TextSpan(style: effectiveStyle, children: spoilerChildren);
         }
+        final bool constrainToSingleLine = maxLines != null;
         return WidgetSpan(
-          alignment: PlaceholderAlignment.middle,
+          alignment: constrainToSingleLine
+              ? PlaceholderAlignment.baseline
+              : PlaceholderAlignment.middle,
+          baseline: constrainToSingleLine ? TextBaseline.alphabetic : null,
           child: _FluxerSpoilerSpan(
             initiallyRevealed: config.spoilersInitiallyRevealed,
             spoilerBackgroundColor: config.spoilerBackgroundColor,
@@ -1010,6 +1020,11 @@ class _MarkdownInlineRenderer {
             child: RichText(
               text: TextSpan(style: effectiveStyle, children: spoilerChildren),
               textScaler: MediaQuery.textScalerOf(context),
+              maxLines: maxLines,
+              overflow: overflow ?? TextOverflow.clip,
+              textWidthBasis: constrainToSingleLine
+                  ? TextWidthBasis.parent
+                  : TextWidthBasis.longestLine,
             ),
           ),
         );
