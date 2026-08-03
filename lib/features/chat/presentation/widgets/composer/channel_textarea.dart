@@ -918,7 +918,6 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                 isDense: true,
               );
         return Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (perms.canShowAttachControls) ...[
               _buildComposerActionButton(
@@ -1182,8 +1181,6 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             if (perms.canShowAttachControls) ...[
               FluxerButton.circleAlt(
                 icon: PhosphorIconsBold.plus,
-                size: FluxerButtonSize.small,
-                iconSize: 20,
                 onPressed: perms.isAttachEnabled
                     ? () => unawaited(_pickAttachments(context))
                     : null,
@@ -1786,8 +1783,6 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                   opacity: canUseVoice ? 1.0 : _kVoiceMicDeniedOpacity,
                   child: FluxerButton.circleAlt(
                     icon: PhosphorIconsFill.microphone,
-                    iconSize: 20,
-                    size: FluxerButtonSize.small,
                     onPressed: voiceDisabled
                         ? null
                         : () => unawaited(
@@ -1871,7 +1866,6 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                     )
                   : FluxerButton.circleAlt(
                       icon: PhosphorIconsFill.microphone,
-                      iconSize: 20,
                       size: size,
                       onPressed: voiceDisabled
                           ? null
@@ -1979,7 +1973,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                       onTap: () async {
                         close();
                         final FilePickerResult? res =
-                            await FilePicker.pickFiles(allowMultiple: true);
+                            await FilePicker.pickFiles();
                         if (res == null) {
                           return;
                         }
@@ -2003,9 +1997,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       );
       return;
     }
-    final FilePickerResult? res = await FilePicker.pickFiles(
-      allowMultiple: true,
-    );
+    final FilePickerResult? res = await FilePicker.pickFiles();
     if (res == null || !mounted) {
       return;
     }
