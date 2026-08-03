@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 
+import '../../../../helpers/wide_layout_test_sizes.dart';
+
 void main() {
   testWidgets('guild action sheet gate matches isMobileLayout at 599px', (
     WidgetTester tester,
@@ -29,7 +31,7 @@ void main() {
         Directionality(
           textDirection: TextDirection.ltr,
           child: MediaQuery(
-            data: const MediaQueryData(size: Size(1280, 800)),
+            data: const MediaQueryData(size: kBelowShellTestViewportSize),
             child: Builder(
               builder: (BuildContext context) {
                 return Text(isMobileLayout(context) ? 'mobile' : 'wide');
@@ -49,7 +51,7 @@ void main() {
       Directionality(
         textDirection: TextDirection.ltr,
         child: MediaQuery(
-          data: const MediaQueryData(size: Size(1400, 800)),
+          data: const MediaQueryData(size: kTabletLandscapeTestViewportSize),
           child: Builder(
             builder: (BuildContext context) {
               return Text(isMobileLayout(context) ? 'mobile' : 'wide');

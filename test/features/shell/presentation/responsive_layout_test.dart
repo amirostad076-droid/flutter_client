@@ -15,8 +15,15 @@ void main() {
       expect(layoutModeOfSize(const Size(1092, 984)), LayoutMode.mobile);
     });
 
-    test('stays mobile when width cannot fit the full shell', () {
-      expect(layoutModeOfSize(const Size(1200, 800)), LayoutMode.mobile);
+    test('stays mobile when width cannot fit the shell', () {
+      expect(layoutModeOfSize(kBelowShellTestViewportSize), LayoutMode.mobile);
+    });
+
+    test('is wide on iPad 11 inch landscape', () {
+      expect(
+        layoutModeOfSize(kTabletLandscapeTestViewportSize),
+        LayoutMode.tablet,
+      );
     });
 
     test('is tablet when shortest side and width both qualify', () {

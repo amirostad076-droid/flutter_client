@@ -18,17 +18,15 @@ abstract final class Breakpoints {
   /// Minimum chat column width before showing the member list.
   static const double minChatWidth = 600;
 
+  /// Minimum chat column width for the wide shell (member list gates itself).
+  static const double minShellChatWidth = 800;
+
   /// Search results panel width, wider than the member list panel.
   static const double searchPanelWidth = 420;
 
-  /// Minimum viewport width for the multi column shell: guild list, channel
-  /// list, chat, and member list or search.
+  /// Minimum viewport width for guild list, channel list, and chat.
   static const double shellMinWidth =
-      guildListWidth +
-      channelSidebarWidth +
-      1 +
-      minChatWidth +
-      searchPanelWidth;
+      guildListWidth + channelSidebarWidth + 1 + minShellChatWidth;
 }
 
 enum LayoutMode { mobile, tablet, desktop }
