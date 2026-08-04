@@ -189,10 +189,11 @@ GoRouter fluxerRouter(Ref ref) {
           ref.read(addAccountInstanceGuardProvider) != null;
 
       if (isAccountSwitching) {
+        ref.read(preReconnectingLocationProvider.notifier).clear();
         return isOnLoading ? null : '/loading';
       }
 
-      // Still starting up — stay on splash.
+      // Still starting up, stay on splash.
       if (!isStartupComplete) {
         return isOnLoading ? null : '/loading';
       }
@@ -207,11 +208,16 @@ GoRouter fluxerRouter(Ref ref) {
         return '/reconnecting';
       }
 
-      // Authenticated but gateway hasn't delivered READY yet — stay on splash.
+      // Authenticated but gateway hasn't delivered READY yet, stay on splash.
       if (isAuthenticated &&
           !isGatewayReady &&
           !isOnReconnecting &&
           !isAddingAccount) {
+        if (!isOnLoading) {
+          ref
+              .read(preReconnectingLocationProvider.notifier)
+              .remember(path: state.uri.path, query: state.uri.query);
+        }
         return isOnLoading ? null : '/loading';
       }
 
@@ -219,7 +225,9 @@ GoRouter fluxerRouter(Ref ref) {
         if (!isAuthenticated) {
           return '/login';
         }
-        return RoutePaths.me;
+        return ref
+            .read(preReconnectingLocationProvider.notifier)
+            .takeOrRestore(ref.read(fluxerDatabaseProvider));
       }
 
       if (!isAuthenticated) {
@@ -237,7 +245,7 @@ GoRouter fluxerRouter(Ref ref) {
           isGatewayReady) {
         return ref
             .read(preReconnectingLocationProvider.notifier)
-            .takeOrDefault();
+            .takeOrRestore(ref.read(fluxerDatabaseProvider));
       }
 
       return null;

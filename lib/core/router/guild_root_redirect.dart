@@ -24,7 +24,7 @@ Future<String?> resolveGuildRootRedirect({
     guildId,
   );
   if (lastChannelId != null &&
-      await _isRestorableGuildChannel(db, guildId, lastChannelId)) {
+      await isRestorableGuildChannel(db, guildId, lastChannelId)) {
     return RoutePaths.guildChannel(guildId, lastChannelId);
   }
   final channels = await db.channelDao.getChannels(guildId);
@@ -37,7 +37,7 @@ Future<String?> resolveGuildRootRedirect({
   return null;
 }
 
-Future<bool> _isRestorableGuildChannel(
+Future<bool> isRestorableGuildChannel(
   FluxerDatabase db,
   String guildId,
   String channelId,
@@ -56,7 +56,7 @@ Future<String?> resolveFavoritesRootRedirect({
   if (fullPath != RoutePaths.favoritesBase) {
     return null;
   }
-  final channels = await db.favoriteChannelsDao.watchChannels().first;
+  final channels = await db.favoriteChannelsDao.getChannels();
   if (channels.isEmpty) {
     return null;
   }

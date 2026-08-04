@@ -11,6 +11,7 @@ import 'package:fluxer_app/core/push/push_notifications_coordinator.dart';
 import 'package:fluxer_app/core/push/unified_push/unified_push_distributor_setup.dart';
 import 'package:fluxer_app/core/push/unified_push/unified_push_distributor_ui.dart';
 import 'package:fluxer_app/core/push/unified_push/unified_push_no_distributor_dismissal_provider.dart';
+import 'package:fluxer_app/core/router/app_location_persistence.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/guild_root_redirect.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
@@ -57,10 +58,9 @@ class _ShellRouteListenersState extends ConsumerState<ShellRouteListeners> {
             return;
           }
           DrawerNavigationCoordinator.syncForShellLocation(ref.container, next);
-          persistGuildChannelFromLocation(
-            ref.read(fluxerDatabaseProvider),
-            next,
-          );
+          final db = ref.read(fluxerDatabaseProvider);
+          persistGuildChannelFromLocation(db, next);
+          persistAppLocation(db, next);
         });
       })
       ..listenManual<String?>(activeGuildIdProvider, (

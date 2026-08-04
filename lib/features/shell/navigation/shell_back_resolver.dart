@@ -7,7 +7,6 @@ enum ShellBackAction {
   blockManualGesture,
   closeDrawer,
   revealDrawer,
-  returnToFavorites,
   noop,
 }
 
