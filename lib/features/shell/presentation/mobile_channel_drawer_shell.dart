@@ -45,8 +45,15 @@ class MobileChannelDrawerShell extends ConsumerWidget {
       mobileDrawerPeekWidth(context),
       screenWidth,
     );
-    final Widget sidebar = mobileSidebarForLocation(context, shellLocation);
     final bool peekNav = compactWide && !drawerLocked;
+    final double peekContentInset = peekNav
+        ? math.max(0, screenWidth - peekWidth)
+        : 0;
+    final Widget sidebar = mobileSidebarForLocation(
+      context,
+      shellLocation,
+      peekContentInset: peekContentInset,
+    );
     final Widget? nav = hideBottomNav
         ? null
         : (peekNav

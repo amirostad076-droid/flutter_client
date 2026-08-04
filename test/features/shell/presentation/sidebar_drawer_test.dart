@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/presentation/sidebar_drawer.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
@@ -29,6 +30,72 @@ void main() {
         isSidebarDrawerLockedForLocation('/channels/@favorites/abc'),
         isFalse,
       );
+    });
+  });
+
+  group('isCompactWideDrawerPeekMode', () {
+    testWidgets('is true only for compact-wide peek reveal', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            shellLocationProvider.overrideWithValue(
+              '/channels/guild-1/channel-1',
+            ),
+            currentRevealSideProvider.overrideWithValue(RevealSide.left),
+          ],
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: MediaQuery(
+              data: const MediaQueryData(size: Size(744, 1133)),
+              child: Builder(
+                builder: (BuildContext context) {
+                  return Text(
+                    isCompactWideDrawerPeekMode(
+                          context,
+                          shellLocation: '/channels/guild-1/channel-1',
+                          revealSide: RevealSide.left,
+                        )
+                        ? 'yes'
+                        : 'no',
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('yes'), findsOneWidget);
+    });
+
+    testWidgets('is false when chat is full screen', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: MediaQuery(
+            data: const MediaQueryData(size: Size(744, 1133)),
+            child: Builder(
+              builder: (BuildContext context) {
+                return Text(
+                  isCompactWideDrawerPeekMode(
+                        context,
+                        shellLocation: '/channels/guild-1/channel-1',
+                        revealSide: RevealSide.main,
+                      )
+                      ? 'yes'
+                      : 'no',
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('no'), findsOneWidget);
     });
   });
 

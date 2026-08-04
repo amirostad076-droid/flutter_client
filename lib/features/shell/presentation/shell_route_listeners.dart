@@ -47,6 +47,10 @@ class _ShellRouteListenersState extends ConsumerState<ShellRouteListeners> {
         ref.container,
         ref.read(shellLocationProvider),
       );
+      final String? activeGuildId = ref.read(activeGuildIdProvider);
+      if (activeGuildId != null) {
+        _applyActiveGuildEffects(activeGuildId);
+      }
     });
     ref
       ..listenManual<String>(shellLocationProvider, (
@@ -155,13 +159,17 @@ class _ShellRouteListenersState extends ConsumerState<ShellRouteListeners> {
       if (next == null || activeGuildId != next) {
         return;
       }
-      final guilds = ref.read(guildListViewModelProvider).guilds;
-      final guild = guilds.where((g) => g.id == next).firstOrNull;
-      ref
-          .read(channelListViewModelProvider.notifier)
-          .loadChannels(next, guild: guild);
-      ref.read(guildSyncProvider.notifier).syncIfNeeded(next);
+      _applyActiveGuildEffects(next);
     });
+  }
+
+  void _applyActiveGuildEffects(String guildId) {
+    final guilds = ref.read(guildListViewModelProvider).guilds;
+    final guild = guilds.where((g) => g.id == guildId).firstOrNull;
+    ref
+        .read(channelListViewModelProvider.notifier)
+        .loadChannels(guildId, guild: guild);
+    ref.read(guildSyncProvider.notifier).syncIfNeeded(guildId);
   }
 
   void _scheduleInactiveChannelCleanup(String previousChannelId) {

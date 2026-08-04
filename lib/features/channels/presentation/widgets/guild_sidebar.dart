@@ -118,7 +118,7 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
     final String? guildId = ref.watch(activeGuildIdProvider);
 
     return Container(
-      width: 240,
+      width: isMobileLayout(context) ? null : 240,
       padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top),
       decoration: BoxDecoration(
         color: context.colors.channelSidebarBackground,

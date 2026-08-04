@@ -320,7 +320,14 @@ class _SidebarDrawerState extends ConsumerState<SidebarDrawer>
           RepaintBoundary(child: widget.base),
           AnimatedBuilder(
             animation: _animationController,
-            child: RepaintBoundary(child: widget.slider),
+            child: IgnorePointer(
+              ignoring: isCompactWideDrawerPeekMode(
+                context,
+                shellLocation: ref.watch(shellLocationProvider),
+                revealSide: ref.watch(currentRevealSideProvider),
+              ),
+              child: RepaintBoundary(child: widget.slider),
+            ),
             builder: (context, slider) {
               return Transform.translate(
                 offset: Offset(_animationController.value, 0),
@@ -356,6 +363,16 @@ bool isSidebarDrawerLockedForLocation(String location) {
   return classifyRoute(location) == RouteKind.channelsRoot &&
       extractGuildId(location) != null &&
       extractChannelId(location) == null;
+}
+
+bool isCompactWideDrawerPeekMode(
+  BuildContext context, {
+  required String shellLocation,
+  required RevealSide revealSide,
+}) {
+  return isCompactWideMobileLayout(context) &&
+      !isSidebarDrawerLockedForLocation(shellLocation) &&
+      revealSide == RevealSide.left;
 }
 
 @visibleForTesting
