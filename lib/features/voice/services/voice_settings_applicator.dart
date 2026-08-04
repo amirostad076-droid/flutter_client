@@ -81,10 +81,11 @@ class VoiceSettingsApplicator {
     if (!processing.useNoiseFilter || noiseFilter == null) {
       return;
     }
+    final LiveKitNoiseFilter filter = noiseFilter!;
     try {
-      await noiseFilter.setBypass(processing.bypassNoiseFilter);
+      await filter.setBypass(processing.bypassNoiseFilter);
       await track.mediaStream.getMediaTracks();
-      await track.setProcessor(noiseFilter);
+      await track.setProcessor(filter);
     } on Object {
       // Mic capture still works without the noise filter.
     }
