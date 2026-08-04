@@ -40,8 +40,10 @@ class CurrentRevealSide extends _$CurrentRevealSide {
     final String? shellLocation = resolveShellLocation(config);
     final String location = shellLocation ?? resolveTopLocation(config);
     final RevealSide? initial = syncedRevealSideFor(location);
-    if (initial != null) {
+    if (classifyRoute(location) == RouteKind.chat || initial != null) {
       _lastAppliedFor = location;
+    }
+    if (initial != null) {
       return initial;
     }
     return RevealSide.main;
@@ -58,6 +60,9 @@ class CurrentRevealSide extends _$CurrentRevealSide {
     }
     final desired = syncedRevealSideFor(location);
     if (desired == null) {
+      if (classifyRoute(location) == RouteKind.chat) {
+        _lastAppliedFor = location;
+      }
       return;
     }
     _lastAppliedFor = location;
@@ -67,6 +72,9 @@ class CurrentRevealSide extends _$CurrentRevealSide {
   void forceSyncForRoute(String location) {
     final RevealSide? desired = syncedRevealSideFor(location);
     if (desired == null) {
+      if (classifyRoute(location) == RouteKind.chat) {
+        _lastAppliedFor = location;
+      }
       return;
     }
     _lastAppliedFor = location;
@@ -91,7 +99,7 @@ RevealSide? eagerRevealSideFor(String location) {
 RevealSide? syncedRevealSideFor(String location) {
   return switch (classifyRoute(location)) {
     RouteKind.channelsRoot => RevealSide.left,
-    RouteKind.chat => RevealSide.main,
+    RouteKind.chat => null,
     RouteKind.guildMembers => null,
     RouteKind.dmCall => null,
     RouteKind.discover => null,

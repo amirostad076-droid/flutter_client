@@ -662,28 +662,11 @@ GoRouter fluxerRouter(Ref ref) {
               GoRoute(
                 path: '/channels/@favorites',
                 name: RouteNames.favorites,
-                redirect: (context, state) async {
-                  if (state.uri.path != RoutePaths.favoritesBase) {
-                    return null;
-                  }
-                  if (isMobileLayout(context)) {
-                    return null;
-                  }
-                  final db = ref.read(fluxerDatabaseProvider);
-                  final channels = await db.favoriteChannelsDao
-                      .watchChannels()
-                      .first;
-                  if (channels.isEmpty) {
-                    return null;
-                  }
-                  final settings = await db.favoriteChannelsDao.getSettings();
-                  final hideMuted = settings.hideMuted;
-                  for (final favorite in channels) {
-                    if (!hideMuted || favorite.guildId == null) {
-                      return RoutePaths.favoritesChannel(favorite.channelId);
-                    }
-                  }
-                  return RoutePaths.favoritesChannel(channels.first.channelId);
+                redirect: (context, state) {
+                  return resolveFavoritesRootRedirect(
+                    fullPath: state.uri.path,
+                    db: ref.read(fluxerDatabaseProvider),
+                  );
                 },
                 pageBuilder: (context, state) => shellFadeTransitionPage(
                   key: state.pageKey,
@@ -726,7 +709,6 @@ GoRouter fluxerRouter(Ref ref) {
                   return resolveGuildRootRedirect(
                     guildId: state.pathParameters['guildId'],
                     fullPath: state.uri.path,
-                    isMobile: isMobileLayout(context),
                     db: ref.read(fluxerDatabaseProvider),
                   );
                 },
@@ -761,6 +743,7 @@ GoRouter fluxerRouter(Ref ref) {
                       final channelId = state.pathParameters['channelId']!;
                       return shellSlideTransitionPage(
                         key: state.pageKey,
+                        name: state.uri.path,
                         parallaxOutgoing: true,
                         child: ChannelLayout(
                           guildId: guildId,

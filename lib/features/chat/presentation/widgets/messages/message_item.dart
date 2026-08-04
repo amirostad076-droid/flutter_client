@@ -682,7 +682,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     return _wrapMessageSendingDim(
       dim: dimEntireMessage,
       child: SwipeToReply(
-        enabled: widget.canSendMessages,
+        enabled: widget.canSendMessages && !isCompactWideMobileLayout(context),
         onReply: onReply,
         onEdit: canEditOwnMessage ? widget.onEdit : null,
         child: body,

@@ -6,11 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/badge/app_icon_badge_coordinator.dart';
 import 'package:fluxer_app/core/build/push_provider_guard.dart';
 import 'package:fluxer_app/core/permissions/guild_channel_permission_cleanup.dart';
+import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/push/push_notifications_coordinator.dart';
 import 'package:fluxer_app/core/push/unified_push/unified_push_distributor_setup.dart';
 import 'package:fluxer_app/core/push/unified_push/unified_push_distributor_ui.dart';
 import 'package:fluxer_app/core/push/unified_push/unified_push_no_distributor_dismissal_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/router/guild_root_redirect.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/share/pending_share_provider.dart';
 import 'package:fluxer_app/core/share/shared_media_payload.dart';
@@ -55,6 +57,10 @@ class _ShellRouteListenersState extends ConsumerState<ShellRouteListeners> {
             return;
           }
           DrawerNavigationCoordinator.syncForShellLocation(ref.container, next);
+          persistGuildChannelFromLocation(
+            ref.read(fluxerDatabaseProvider),
+            next,
+          );
         });
       })
       ..listenManual<String?>(activeGuildIdProvider, (

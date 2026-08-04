@@ -171,6 +171,7 @@ class _ChannelLayoutState extends ConsumerState<ChannelLayout> {
               LayoutBuilder(
                 builder: (context, constraints) {
                   final bool showMemberList =
+                      isWide &&
                       isMemberListVisible &&
                       !isSearchActive &&
                       constraints.maxWidth >=

@@ -28,3 +28,14 @@ void navigateToContentViaRef(Ref ref, String path) {
 void navigateToContentViaContainer(ProviderContainer container, String path) {
   DrawerNavigationCoordinator.navigateToContent(container, path);
 }
+
+void selectGuild(BuildContext context, String guildId) {
+  DrawerNavigationCoordinator.selectGuild(
+    ProviderScope.containerOf(context),
+    guildId,
+  );
+}
+
+void selectGuildVia(WidgetRef ref, String guildId) {
+  DrawerNavigationCoordinator.selectGuild(ref.container, guildId);
+}
