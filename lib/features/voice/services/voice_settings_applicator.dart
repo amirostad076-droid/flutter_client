@@ -33,7 +33,9 @@ class VoiceSettingsApplicator {
         echoCancellation: processing.echoCancellation,
         noiseSuppression: processing.noiseSuppression,
         autoGainControl: processing.autoGainControl,
-        processor: noiseFilterSupported ? noiseFilter : null,
+        processor: processing.useNoiseFilter && noiseFilterSupported
+            ? noiseFilter
+            : null,
       ),
       defaultCameraCaptureOptions: cameraCaptureOptionsFor(
         resolution: settings.cameraResolution,
@@ -57,7 +59,24 @@ class VoiceSettingsApplicator {
       echoCancellation: processing.echoCancellation,
       noiseSuppression: processing.noiseSuppression,
       autoGainControl: processing.autoGainControl,
-      processor: noiseFilterSupported ? noiseFilter : null,
+      processor: processing.useNoiseFilter && noiseFilterSupported
+          ? noiseFilter
+          : null,
+    );
+  }
+
+  AudioCaptureOptions buildMicTestAudioCaptureOptions(
+    VoiceSettingsState settings,
+  ) {
+    final ResolvedVoiceProcessing processing = resolveVoiceProcessing(
+      settings: settings,
+      noiseFilterSupported: noiseFilterSupported,
+    );
+    return AudioCaptureOptions(
+      deviceId: _resolveDeviceId(settings.inputDeviceId),
+      echoCancellation: processing.echoCancellation,
+      noiseSuppression: processing.noiseSuppression,
+      autoGainControl: processing.autoGainControl,
     );
   }
 
