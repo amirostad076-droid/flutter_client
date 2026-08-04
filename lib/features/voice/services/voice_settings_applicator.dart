@@ -33,9 +33,6 @@ class VoiceSettingsApplicator {
         echoCancellation: processing.echoCancellation,
         noiseSuppression: processing.noiseSuppression,
         autoGainControl: processing.autoGainControl,
-        processor: processing.useNoiseFilter && noiseFilterSupported
-            ? noiseFilter
-            : null,
       ),
       defaultCameraCaptureOptions: cameraCaptureOptionsFor(
         resolution: settings.cameraResolution,
@@ -59,25 +56,45 @@ class VoiceSettingsApplicator {
       echoCancellation: processing.echoCancellation,
       noiseSuppression: processing.noiseSuppression,
       autoGainControl: processing.autoGainControl,
-      processor: processing.useNoiseFilter && noiseFilterSupported
-          ? noiseFilter
-          : null,
     );
   }
 
-  AudioCaptureOptions buildMicTestAudioCaptureOptions(
-    VoiceSettingsState settings,
-  ) {
+  Future<void> attachNoiseFilterToMicrophone({
+    required LocalParticipant participant,
+    required VoiceSettingsState settings,
+  }) async {
+    final LocalAudioTrack? track = _microphoneTrack(participant);
+    if (track == null) {
+      return;
+    }
+    await attachNoiseFilterToTrack(track: track, settings: settings);
+  }
+
+  Future<void> attachNoiseFilterToTrack({
+    required LocalAudioTrack track,
+    required VoiceSettingsState settings,
+  }) async {
     final ResolvedVoiceProcessing processing = resolveVoiceProcessing(
       settings: settings,
       noiseFilterSupported: noiseFilterSupported,
     );
-    return AudioCaptureOptions(
-      deviceId: _resolveDeviceId(settings.inputDeviceId),
-      echoCancellation: processing.echoCancellation,
-      noiseSuppression: processing.noiseSuppression,
-      autoGainControl: processing.autoGainControl,
-    );
+    if (!processing.useNoiseFilter || noiseFilter == null) {
+      return;
+    }
+    try {
+      await noiseFilter.setBypass(processing.bypassNoiseFilter);
+      await track.mediaStream.getMediaTracks();
+      await track.setProcessor(noiseFilter);
+    } on Object {
+      // Mic capture still works without the noise filter.
+    }
+  }
+
+  LocalAudioTrack? _microphoneTrack(LocalParticipant participant) {
+    final LocalTrackPublication? publication = participant
+        .getTrackPublicationBySource(TrackSource.microphone);
+    final LocalTrack? track = publication?.track;
+    return track is LocalAudioTrack ? track : null;
   }
 
   CameraCaptureOptions buildCameraCaptureOptions(VoiceSettingsState settings) {
@@ -207,6 +224,10 @@ class VoiceSettingsApplicator {
     await participant.setMicrophoneEnabled(
       true,
       audioCaptureOptions: buildAudioCaptureOptions(settings),
+    );
+    await attachNoiseFilterToMicrophone(
+      participant: participant,
+      settings: settings,
     );
   }
 

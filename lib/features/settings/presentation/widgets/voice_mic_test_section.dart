@@ -117,25 +117,8 @@ class _VoiceMicTestSectionState extends ConsumerState<VoiceMicTestSection> {
   Future<LocalAudioTrack> _createMicTestTrack({
     required VoiceSettingsApplicator applicator,
     required VoiceSettingsState settings,
-  }) async {
-    try {
-      return await createMicTestAudioTrack(
-        applicator: applicator,
-        settings: settings,
-      );
-    } on Object catch (error, stackTrace) {
-      if (!applicator.noiseFilterSupported || applicator.noiseFilter == null) {
-        rethrow;
-      }
-      talker.warning(
-        '[MicTest]: Failed to attach mic test noise filter',
-        error,
-        stackTrace,
-      );
-      return LocalAudioTrack.create(
-        applicator.buildMicTestAudioCaptureOptions(settings),
-      );
-    }
+  }) {
+    return createMicTestAudioTrack(applicator: applicator, settings: settings);
   }
 
   Future<void> _configureOutputDevice(String outputDeviceId) async {
