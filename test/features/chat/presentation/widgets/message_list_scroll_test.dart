@@ -4291,6 +4291,222 @@ void main() {
         await _disposeMessageList(tester);
       },
     );
+
+    testWidgets(
+      'gate 4: a bulk delete that underfills a centered anchor re-anchors to '
+      'the tail instead of stranding a dead band',
+      (WidgetTester tester) async {
+        final _InstrumentedChatViewModel chatViewModel = await pumpBottomList(
+          tester,
+          hasMoreNewer: false,
+        );
+        final List<Message> messages = chatViewModel._testState.messages;
+        // A jump anchors (target, 0.5, before), which only holds while the
+        // trailing side can fill the lower half of the viewport.
+        chatViewModel.scrollToMessage(messages[40].id);
+        await tester.pump();
+        await pumpFluxerFrames(tester);
+        expect(
+          _messageListScrollPosition(tester).maxScrollExtent,
+          greaterThan(0),
+          reason: 'the centered open must start filled',
+        );
+
+        // MESSAGE_DELETE_BULK shape: one preserve-class write drops the anchor
+        // and every row but two.
+        chatViewModel._testState = chatViewModel._testState.copyWith(
+          write: (
+            messages: <Message>[messages.first, messages.last],
+            origin: MessagesOrigin.realtimeEvent,
+          ),
+        );
+        await pumpFluxerFrames(tester);
+        // The underfill reanchor runs in a post-frame callback whose jumpTo
+        // needs a further frame to lay out. Bounded pumps keep that
+        // deterministic without reintroducing an unbounded settle.
+        for (int i = 0; i < 4; i += 1) {
+          await tester.pump();
+        }
+
+        expect(find.byType(MessageItem), findsNWidgets(2));
+        final Rect viewport = tester.getRect(_messageListScrollable());
+        final Rect newestRect = tester.getRect(
+          _messageItemFor(messages.last.id),
+        );
+        expect(
+          newestRect.bottom,
+          greaterThan(viewport.bottom - 64),
+          reason: 'the surviving rows must hug the composer, not the fraction',
+        );
+        expect(newestRect.bottom, lessThanOrEqualTo(viewport.bottom + 1));
+        final ScrollPosition position = _messageListScrollPosition(tester);
+        expect(
+          position.maxScrollExtent - position.pixels,
+          lessThanOrEqualTo(kMessageListReadBottomThreshold),
+          reason: 'the demoted anchor lands at the live tail',
+        );
+
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets(
+      'gate 5: a realtime edit that grows the newest row keeps a pinned '
+      'reader glued to the live tail',
+      (WidgetTester tester) async {
+        final _InstrumentedChatViewModel chatViewModel = await pumpBottomList(
+          tester,
+          hasMoreNewer: false,
+        );
+        // Live arrivals land in the trailing sliver under the open-time
+        // anchor, so the followed reader sits at the trailing edge.
+        final List<Message> seeded = chatViewModel._testState.messages;
+        final List<Message> withLive = <Message>[
+          ...seeded,
+          ...newerRows(seeded, count: 20, label: 'purge target'),
+        ];
+        chatViewModel._testState = chatViewModel._testState.copyWith(
+          write: (messages: withLive, origin: MessagesOrigin.liveCreate),
+        );
+        await pumpFluxerFrames(tester);
+
+        final List<Message> survivors = <Message>[
+          withLive.first,
+          withLive.last,
+        ];
+        chatViewModel._testState = chatViewModel._testState.copyWith(
+          write: (messages: survivors, origin: MessagesOrigin.realtimeEvent),
+        );
+        await pumpFluxerFrames(tester);
+        final ScrollPosition afterDelete = _messageListScrollPosition(tester);
+        expect(
+          afterDelete.maxScrollExtent - afterDelete.pixels,
+          lessThanOrEqualTo(1),
+          reason: 'the framework clamp already holds the tail on a shrink',
+        );
+
+        // MESSAGE_UPDATE shape: the status row grows. maxScrollExtent grows
+        // with it and nothing pulls pixels forward, so the newest row would
+        // otherwise be pushed below the fold.
+        final Message newest = survivors.last;
+        chatViewModel._testState = chatViewModel._testState.copyWith(
+          write: (
+            messages: <Message>[
+              survivors.first,
+              newest.copyWith(
+                content:
+                    '${newest.content}\nedited line 0\nedited line 1\n'
+                    'edited line 2',
+                editedTimestamp: newest.timestamp.add(
+                  const Duration(minutes: 1),
+                ),
+              ),
+            ],
+            origin: MessagesOrigin.realtimeEvent,
+          ),
+        );
+        await pumpFluxerFrames(tester);
+
+        final ScrollPosition position = _messageListScrollPosition(tester);
+        expect(
+          position.maxScrollExtent - position.pixels,
+          lessThanOrEqualTo(1),
+          reason: 'a growing edit must not detach a pinned reader',
+        );
+        final Rect viewport = tester.getRect(_messageListScrollable());
+        final Rect newestRect = tester.getRect(_messageItemFor(newest.id));
+        expect(
+          newestRect.bottom,
+          lessThanOrEqualTo(viewport.bottom + 1),
+          reason: 'the edited row must not be clipped below the fold',
+        );
+        expect(newestRect.bottom, greaterThan(viewport.bottom - 64));
+
+        await _disposeMessageList(tester);
+      },
+    );
+
+    testWidgets(
+      'gate 6: a bulk delete that underfills the trailing side leaves a reader '
+      'deep in history in place, and their scroll back to the edge repairs it',
+      (WidgetTester tester) async {
+        final _InstrumentedChatViewModel chatViewModel = await pumpBottomList(
+          tester,
+          hasMoreNewer: false,
+        );
+        final List<Message> messages = chatViewModel._testState.messages;
+        chatViewModel.scrollToMessage(messages[40].id);
+        await tester.pump();
+        await pumpFluxerFrames(tester);
+
+        // Deep into history, more than a viewport above the anchor line.
+        ScrollPosition position = _messageListScrollPosition(tester);
+        expect(position.maxScrollExtent, greaterThan(0));
+        position.jumpTo(position.minScrollExtent);
+        await pumpFluxerFrames(tester);
+        final double pixelsBefore = position.pixels;
+        expect(pixelsBefore, lessThan(-tester.view.physicalSize.height / 2));
+        final ({String id, Rect rect}) reading = anchorSample(
+          tester,
+          messages[2].id,
+        );
+
+        // The purge drops only trailing-partition rows, so the leading extent
+        // and therefore minScrollExtent are untouched: this reader's offset
+        // survives the clamp and must survive the repair too.
+        chatViewModel._testState = chatViewModel._testState.copyWith(
+          write: (
+            messages: <Message>[...messages.take(45), messages.last],
+            origin: MessagesOrigin.realtimeEvent,
+          ),
+        );
+        await pumpFluxerFrames(tester);
+
+        position = _messageListScrollPosition(tester);
+        expect(
+          position.pixels,
+          moreOrLessEquals(pixelsBefore, epsilon: 1),
+          reason: 'the repair must not yank a reader out of history',
+        );
+        expect(
+          position.maxScrollExtent,
+          moreOrLessEquals(0, epsilon: 1),
+          reason: 'the fraction is intact, so the trailing side stays clamped',
+        );
+        expectPreserved(
+          tester,
+          reading,
+          reason: 'no demotion remount while reading history',
+        );
+
+        // Scrolling back to the trailing edge arms the withheld repair.
+        await tester.drag(_messageListScrollable(), const Offset(0, -1200));
+        await pumpFluxerFrames(tester);
+
+        final Rect viewport = tester.getRect(_messageListScrollable());
+        final Rect newestRect = tester.getRect(
+          _messageItemFor(messages.last.id),
+        );
+        expect(
+          newestRect.bottom,
+          greaterThan(viewport.bottom - 64),
+          reason: 'the deferred repair lands the newest row at the composer',
+        );
+        expect(newestRect.bottom, lessThanOrEqualTo(viewport.bottom + 1));
+        final ScrollPosition repaired = _messageListScrollPosition(tester);
+        expect(
+          repaired.maxScrollExtent,
+          greaterThan(0),
+          reason: 'a demoted anchor reopens the trailing extent',
+        );
+        expect(
+          repaired.maxScrollExtent - repaired.pixels,
+          lessThanOrEqualTo(kMessageListReadBottomThreshold),
+        );
+
+        await _disposeMessageList(tester);
+      },
+    );
   });
 }
 
