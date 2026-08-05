@@ -347,9 +347,19 @@ void main() {
       await _pumpSidebar(tester);
 
       await tester.longPress(find.text('general'));
+      // The long-press menu animates in. Tapping an entry before it settles
+      // misses the hit test, leaving the menu and its centred channel-name
+      // header on screen alongside the sidebar row.
       await _pumpSidebar(tester);
+      for (int i = 0; i < 4; i += 1) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
       await tester.tap(find.text('Edit channel'));
+      // Opening channel settings pushes a route; bounded frames finish it.
       await _pumpSidebar(tester);
+      for (int i = 0; i < 4; i += 1) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
 
       expect(find.text('general'), findsOneWidget);
       expect(find.text('Overview'), findsOneWidget);
@@ -569,6 +579,11 @@ void main() {
         ),
       );
       await _pumpSidebar(tester);
+      // The unread pill and its scroll target only resolve once the list has
+      // laid out; one 100ms frame is not enough.
+      for (int i = 0; i < 4; i += 1) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
 
       final Finder indicator = find.text('NEW MESSAGE');
       expect(indicator, findsNWidgets(2));
@@ -702,6 +717,11 @@ void main() {
           ),
         );
         await _pumpSidebar(tester);
+        // Scroll restore runs after the controller attaches and the extent is
+        // known, which is past the single 100ms frame pumpFluxerFrames gives.
+        for (int i = 0; i < 4; i += 1) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
       }
 
       await pumpSidebar();
@@ -817,6 +837,11 @@ void main() {
           ),
         );
         await _pumpSidebar(tester);
+        // Scroll restore runs after the controller attaches and the extent is
+        // known, which is past the single 100ms frame pumpFluxerFrames gives.
+        for (int i = 0; i < 4; i += 1) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
       }
 
       await pumpSidebar();
