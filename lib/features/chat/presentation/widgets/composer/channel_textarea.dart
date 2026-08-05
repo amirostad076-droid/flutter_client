@@ -1644,16 +1644,12 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final MobileKeyboardMetricsState metrics = ref.read(
       mobileKeyboardMetricsProvider,
     );
-    final double netPanel =
+    final double lockHeight =
         ref.read(expressionPanelHeightProvider) ??
-        bottomInputSlotAnchorHeight(
-          anchoredKeyboardHeight: metrics.anchoredKeyboardHeight,
-          fallbackHeight: metrics.fallbackKeyboardHeight,
-          safeAreaBottom: metrics.safeAreaBottom,
-        );
+        metrics.resolveAnchorHeight();
     ref
         .read(bottomInputSlotProvider.notifier)
-        .beginKeyboardTransition(netPanel);
+        .beginKeyboardTransition(lockHeight);
   }
 
   void _focusComposerAfterReplyOrEdit({required bool forEdit}) {
