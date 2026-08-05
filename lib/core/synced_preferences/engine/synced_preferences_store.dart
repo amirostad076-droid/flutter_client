@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/synced_preferences/engine/synced_field_adapter.dart';
 import 'package:fluxer_app/core/synced_preferences/engine/synced_preference_field.dart';
@@ -716,6 +716,26 @@ class SyncedPreferencesStore {
     _pushTimer = null;
     _rateLimitTimer?.cancel();
     _rateLimitTimer = null;
+  }
+
+  @visibleForTesting
+  void triggerDebouncedPushForTest() {
+    _pushTimer?.cancel();
+    _pushTimer = null;
+    if (!_ref.mounted) {
+      return;
+    }
+    unawaited(_flushPush());
+  }
+
+  @visibleForTesting
+  void triggerRateLimitRetryForTest() {
+    _rateLimitTimer?.cancel();
+    _rateLimitTimer = null;
+    if (!_ref.mounted) {
+      return;
+    }
+    unawaited(_flushPush());
   }
 
   bool _isRateLimitError(Object error) {

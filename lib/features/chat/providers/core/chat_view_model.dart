@@ -3900,6 +3900,14 @@ class ChatViewModel extends _$ChatViewModel {
     });
   }
 
+  @visibleForTesting
+  Future<void> flushScheduledReadAckRetryForTest() async {
+    _readAckRetryTimer?.cancel();
+    _readAckRetryTimer = null;
+    _readAckGate.advanceThrottleClockForTest(_kReadAckMinInterval);
+    await ackCurrentChannel();
+  }
+
   Future<void> _ensureUnreadBoundaryLoaded(
     String channelId, {
     required db.ReadState? readState,
