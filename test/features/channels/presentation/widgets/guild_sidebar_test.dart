@@ -347,15 +347,13 @@ void main() {
       await _pumpSidebar(tester);
 
       await tester.longPress(find.text('general'));
-      // The long-press menu animates in. Tapping an entry before it settles
-      // misses the hit test, leaving the menu and its centred channel-name
-      // header on screen alongside the sidebar row.
+      // Tapping a menu entry before it settles misses the hit test and leaves
+      // the menu's centred channel-name header duplicating the sidebar row.
       await _pumpSidebar(tester);
       for (int i = 0; i < 4; i += 1) {
         await tester.pump(const Duration(milliseconds: 100));
       }
       await tester.tap(find.text('Edit channel'));
-      // Opening channel settings pushes a route; bounded frames finish it.
       await _pumpSidebar(tester);
       for (int i = 0; i < 4; i += 1) {
         await tester.pump(const Duration(milliseconds: 100));
@@ -579,8 +577,7 @@ void main() {
         ),
       );
       await _pumpSidebar(tester);
-      // The unread pill and its scroll target only resolve once the list has
-      // laid out; one 100ms frame is not enough.
+      // The unread pill's scroll target only resolves once the list lays out.
       for (int i = 0; i < 4; i += 1) {
         await tester.pump(const Duration(milliseconds: 100));
       }
@@ -717,8 +714,8 @@ void main() {
           ),
         );
         await _pumpSidebar(tester);
-        // Scroll restore runs after the controller attaches and the extent is
-        // known, which is past the single 100ms frame pumpFluxerFrames gives.
+        // Scroll restore only runs once the controller has attached and the
+        // extent is known.
         for (int i = 0; i < 4; i += 1) {
           await tester.pump(const Duration(milliseconds: 100));
         }
@@ -837,8 +834,6 @@ void main() {
           ),
         );
         await _pumpSidebar(tester);
-        // Scroll restore runs after the controller attaches and the extent is
-        // known, which is past the single 100ms frame pumpFluxerFrames gives.
         for (int i = 0; i < 4; i += 1) {
           await tester.pump(const Duration(milliseconds: 100));
         }

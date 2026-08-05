@@ -4322,8 +4322,7 @@ void main() {
         );
         await pumpFluxerFrames(tester);
         // The underfill reanchor runs in a post-frame callback whose jumpTo
-        // needs a further frame to lay out. Bounded pumps keep that
-        // deterministic without reintroducing an unbounded settle.
+        // needs a further frame to lay out.
         for (int i = 0; i < 4; i += 1) {
           await tester.pump();
         }
