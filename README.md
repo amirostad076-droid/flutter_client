@@ -40,7 +40,7 @@ For updates, support, and discussion, [join the Fluxer Mobile community on Fluxe
 
 **F-Droid**: Coming when V1 is finished.
 
-**iOS Testflight**: Coming soon :eyes:
+**iOS TestFlight**: Coming soon :eyes:
 
 ### Android (APK)
 
