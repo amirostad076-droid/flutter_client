@@ -69,18 +69,6 @@ jobs:
   test:
     needs: analyze
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - shard: 0
-            shard_number: 1
-          - shard: 1
-            shard_number: 2
-          - shard: 2
-            shard_number: 3
-          - shard: 3
-            shard_number: 4
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
@@ -116,8 +104,8 @@ jobs:
       - name: Run code generation
         run: dart run build_runner build
 
-      - name: Run tests (shard ${{ matrix.shard_number }}/4)
-        run: flutter test --shard-index=${{ matrix.shard }} --total-shards=4
+      - name: Run tests
+        run: flutter test
 
   package-tests:
     needs: analyze
