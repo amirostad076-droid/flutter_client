@@ -1,11 +1,16 @@
 name: Dart analyze
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - canary
     paths:
       - "**/*.dart"
+      - ".github/workflows/dart-analyze.yml"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - "analysis_options.yaml"
   pull_request:
     branches:
       - canary
