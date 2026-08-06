@@ -9545,13 +9545,13 @@ abstract class FluxerLocalizations {
   /// On state suffix appended to the reply bar mention toggle label.
   ///
   /// In en, this message translates to:
-  /// **'On'**
+  /// **'ON'**
   String get chatReplyMentionOn;
 
   /// Off state suffix appended to the reply bar mention toggle label.
   ///
   /// In en, this message translates to:
-  /// **'Off'**
+  /// **'OFF'**
   String get chatReplyMentionOff;
 
   /// Accessible label for the cancel-reply button in the reply bar.

@@ -5643,10 +5643,10 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get chatReplyMentionAccessibilityLabel => 'Mention replied user';
 
   @override
-  String get chatReplyMentionOn => 'On';
+  String get chatReplyMentionOn => 'ON';
 
   @override
-  String get chatReplyMentionOff => 'Off';
+  String get chatReplyMentionOff => 'OFF';
 
   @override
   String get chatReplyCancel => 'Cancel reply';
@@ -16267,10 +16267,10 @@ class FluxerLocalizationsEnGb extends FluxerLocalizationsEn {
   String get chatReplyMentionAccessibilityLabel => 'Mention replied user';
 
   @override
-  String get chatReplyMentionOn => 'On';
+  String get chatReplyMentionOn => 'ON';
 
   @override
-  String get chatReplyMentionOff => 'Off';
+  String get chatReplyMentionOff => 'OFF';
 
   @override
   String get chatReplyCancel => 'Cancel reply';
@@ -23326,10 +23326,10 @@ class FluxerLocalizationsEnUs extends FluxerLocalizationsEn {
   String get chatReplyMentionAccessibilityLabel => 'Mention replied user';
 
   @override
-  String get chatReplyMentionOn => 'On';
+  String get chatReplyMentionOn => 'ON';
 
   @override
-  String get chatReplyMentionOff => 'Off';
+  String get chatReplyMentionOff => 'OFF';
 
   @override
   String get chatReplyCancel => 'Cancel reply';
