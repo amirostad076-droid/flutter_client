@@ -67,7 +67,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [0, 1, 2, 3]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
@@ -103,7 +103,7 @@ jobs:
       - name: Run code generation
         run: dart run build_runner build
 
-      - name: Run tests (shard ${{ matrix.shard }}/4)
+      - name: Run tests (shard ${{ matrix.shard + 1 }}/4)
         run: flutter test --shard-index=${{ matrix.shard }} --total-shards=4
 
   package-tests:
