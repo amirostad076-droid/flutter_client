@@ -44,6 +44,7 @@ import 'package:fluxer_app/features/chat/providers/messages/message_realtime_pro
 import 'package:fluxer_app/features/chat/providers/messages/message_references_provider.dart';
 import 'package:fluxer_app/features/chat/providers/messages/typing_sender.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/sticker_picker_provider.dart';
+import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_immunity_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_indicator_shake_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_tracker.dart';
 import 'package:fluxer_app/features/chat/providers/upload/cloud_upload_controller.dart';
@@ -4310,7 +4311,9 @@ class ChatViewModel extends _$ChatViewModel {
     );
     clearStickyUnread();
     unawaited(ref.read(readStateRepositoryProvider).clearSticky(channelId));
-    ref.read(slowmodeTrackerProvider.notifier).recordSend(channelId);
+    if (!await ref.read(isSlowmodeImmuneProvider(channelId).future)) {
+      ref.read(slowmodeTrackerProvider.notifier).recordSend(channelId);
+    }
     unawaited(
       _completeSendWithAttachments(
         channelId: channelId,
@@ -4402,21 +4405,16 @@ class ChatViewModel extends _$ChatViewModel {
       }
     }
     final rateLimit = channelRow?.rateLimitPerUser ?? 0;
-    if (rateLimit > 0) {
-      final bool isImmune =
-          permissionOutcome != null &&
-          hasPermission(permissionOutcome.value, Permission.bypassSlowmode);
-      if (!isImmune) {
-        final remaining = ref
-            .read(slowmodeTrackerProvider.notifier)
-            .remainingFor(channelId, rateLimit);
-        if (remaining > Duration.zero) {
-          talker.debug(
-            '[ChatViewModel] send blocked: slowmode channelId=$channelId',
-          );
-          _notifySendBlocked(_SendBlockReason.slowmode);
-          return;
-        }
+    if (rateLimit > 0 && !bypassesChannelSlowmode(permissionOutcome)) {
+      final remaining = ref
+          .read(slowmodeTrackerProvider.notifier)
+          .remainingFor(channelId, rateLimit);
+      if (remaining > Duration.zero) {
+        talker.debug(
+          '[ChatViewModel] send blocked: slowmode channelId=$channelId',
+        );
+        _notifySendBlocked(_SendBlockReason.slowmode);
+        return;
       }
     }
 
@@ -4489,7 +4487,9 @@ class ChatViewModel extends _$ChatViewModel {
     }
     clearStickyUnread();
     unawaited(ref.read(readStateRepositoryProvider).clearSticky(channelId));
-    ref.read(slowmodeTrackerProvider.notifier).recordSend(channelId);
+    if (!bypassesChannelSlowmode(permissionOutcome)) {
+      ref.read(slowmodeTrackerProvider.notifier).recordSend(channelId);
+    }
 
     if (!hasPendingAttachments) {
       unawaited(
