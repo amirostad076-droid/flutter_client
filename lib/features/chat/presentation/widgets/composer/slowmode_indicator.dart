@@ -109,7 +109,7 @@ class _SlowmodeIndicatorState extends ConsumerState<SlowmodeIndicator>
       _ensureTicker(false);
       return const SizedBox.shrink();
     }
-    ref.watch(slowmodeTrackerProvider);
+    ref.watch(slowmodeTrackerProvider.select((s) => s[channelId] ?? 0));
     final channel = ref.watch(channelByIdProvider(channelId)).value;
     final rateLimit = channel?.rateLimitPerUser ?? 0;
     if (rateLimit <= 0) {

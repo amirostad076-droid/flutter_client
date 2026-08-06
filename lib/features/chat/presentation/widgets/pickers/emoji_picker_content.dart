@@ -421,9 +421,9 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
     );
     final activeGuildId = ref.watch(contextualGuildIdProvider);
     final String? channelId = widget.channelId;
-    final List<DmConversation> dmConversations = ref
-        .watch(dmViewModelProvider)
-        .conversations;
+    final List<DmConversation> dmConversations = ref.watch(
+      dmViewModelProvider.select((s) => s.conversations),
+    );
     final String? currentUserId = ref.watch(currentUserIdProvider);
     final bool hasGlobalExpressions = ref.watch(
       instanceFeatureEnabledProvider(LimitKeys.featureGlobalExpressions),

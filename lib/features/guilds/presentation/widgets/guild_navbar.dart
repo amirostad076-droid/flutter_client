@@ -688,9 +688,6 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
         final guildUnreadReady = ref.watch(guildReadStateReadyProvider);
         final muteState = ref.watch(guildMuteProvider(guild.id)).value;
         final voiceActivity = ref.watch(guildVoiceActivityProvider(guild.id));
-        final voiceRows = ref
-            .watch(guildVoiceParticipantsProvider(guild.id))
-            .value;
         final permissions = ref.watch(
           guildPermissionsProvider.select((s) => s[guild.id] ?? 0),
         );
@@ -715,7 +712,6 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
           muteEndTime: muteState?.muteEndTime,
           hideMutedChannels: muteState?.hideMutedChannels ?? false,
           voiceActivity: voiceActivity,
-          voiceRows: voiceRows ?? const [],
           hasUnread: !guild.isUnavailable && (unread?.hasUnread ?? false),
           mentionCount: guild.isUnavailable ? 0 : unread?.mentionCount ?? 0,
           guildUnreadReady: guildUnreadReady,
@@ -1252,6 +1248,14 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget> {
                         ? CachedNetworkImage(
                             imageUrl: guild.iconUrl!,
                             fit: BoxFit.cover,
+                            memCacheWidth: _guildNavbarIconMemCache(
+                              context,
+                              cellSize,
+                            ),
+                            memCacheHeight: _guildNavbarIconMemCache(
+                              context,
+                              cellSize,
+                            ),
                           )
                         : ColoredBox(
                             color: context.colors.serverIconBackground,
@@ -1284,9 +1288,6 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget> {
         final guildUnreadReady = ref.watch(guildReadStateReadyProvider);
         final muteState = ref.watch(guildMuteProvider(guild.id)).value;
         final voiceActivity = ref.watch(guildVoiceActivityProvider(guild.id));
-        final voiceRows = ref
-            .watch(guildVoiceParticipantsProvider(guild.id))
-            .value;
         final permissions = ref.watch(
           guildPermissionsProvider.select((s) => s[guild.id] ?? 0),
         );
@@ -1336,7 +1337,6 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget> {
             muteEndTime: muteState?.muteEndTime,
             hideMutedChannels: muteState?.hideMutedChannels ?? false,
             voiceActivity: voiceActivity,
-            voiceRows: voiceRows ?? const [],
             hasUnread: !guild.isUnavailable && (unread?.hasUnread ?? false),
             mentionCount: guild.isUnavailable ? 0 : unread?.mentionCount ?? 0,
             guildUnreadReady: guildUnreadReady,
@@ -2062,6 +2062,9 @@ double _guildNavbarInitialsFontSize(int initialsLength) {
   return 12;
 }
 
+int _guildNavbarIconMemCache(BuildContext context, double logicalSize) =>
+    (logicalSize * MediaQuery.devicePixelRatioOf(context)).round();
+
 class _GuildListItem extends StatefulWidget {
   final String label;
   final Guild? guild;
@@ -2074,7 +2077,6 @@ class _GuildListItem extends StatefulWidget {
   final DateTime? muteEndTime;
   final bool hideMutedChannels;
   final VoiceActivityType voiceActivity;
-  final List<VoiceParticipantRow> voiceRows;
   final IconData? icon;
   final String? svgAsset;
   final VoidCallback onTap;
@@ -2160,7 +2162,6 @@ class _GuildListItem extends StatefulWidget {
     this.muteEndTime,
     this.hideMutedChannels = false,
     this.voiceActivity = VoiceActivityType.none,
-    this.voiceRows = const [],
     this.icon,
     this.svgAsset,
     this.iconUrl,
@@ -2336,7 +2337,6 @@ class _GuildListItemState extends State<_GuildListItem>
                         permissions: widget.permissions,
                         isMuted: widget.isMuted,
                         muteEndTime: widget.muteEndTime,
-                        voiceRows: widget.voiceRows,
                       )
                     : _TooltipLabel(label: widget.label),
                 child: MouseRegion(
@@ -2381,6 +2381,14 @@ class _GuildListItemState extends State<_GuildListItem>
                                 : iconUrl != null
                                 ? CachedNetworkImage(
                                     imageUrl: iconUrl,
+                                    memCacheWidth: _guildNavbarIconMemCache(
+                                      context,
+                                      44,
+                                    ),
+                                    memCacheHeight: _guildNavbarIconMemCache(
+                                      context,
+                                      44,
+                                    ),
                                     fadeInDuration:
                                         activeAnimatedIconUrl != null
                                         ? const Duration(milliseconds: 200)
@@ -4160,13 +4168,12 @@ class _TooltipLabel extends StatelessWidget {
   }
 }
 
-class _GuildTooltipContent extends StatelessWidget {
+class _GuildTooltipContent extends ConsumerWidget {
   final Guild guild;
   final int unavailableCount;
   final int permissions;
   final bool isMuted;
   final DateTime? muteEndTime;
-  final List<VoiceParticipantRow> voiceRows;
 
   const _GuildTooltipContent({
     required this.guild,
@@ -4174,7 +4181,6 @@ class _GuildTooltipContent extends StatelessWidget {
     this.permissions = 0,
     this.isMuted = false,
     this.muteEndTime,
-    this.voiceRows = const [],
   });
 
   String _mutedText(FluxerLocalizations l10n) {
@@ -4189,8 +4195,11 @@ class _GuildTooltipContent extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    final voiceRows =
+        ref.watch(guildVoiceParticipantsProvider(guild.id)).value ??
+        const <VoiceParticipantRow>[];
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: guild.unavailable
@@ -4328,6 +4337,8 @@ class _AvatarStack extends StatelessWidget {
                     imageUrl: avatarUrls[i],
                     width: 24,
                     height: 24,
+                    memCacheWidth: _guildNavbarIconMemCache(context, 24),
+                    memCacheHeight: _guildNavbarIconMemCache(context, 24),
                     fit: BoxFit.cover,
                   ),
                 ),

@@ -693,12 +693,15 @@ class _ChannelTile extends ConsumerWidget {
           ),
         );
 
-    final Color textColor = isSelected
+    final double rowOpacity = isChannelDirectlyMuted && !isSelected ? 0.5 : 1.0;
+    final Color baseTextColor = isSelected
         ? context.colors.textPrimary
         : channelUnreadState.isHighlight
         ? context.colors.textSecondary
         : context.colors.textTertiaryMuted;
-    final double rowOpacity = isChannelDirectlyMuted && !isSelected ? 0.5 : 1.0;
+    final Color textColor = rowOpacity < 1
+        ? baseTextColor.withValues(alpha: baseTextColor.a * rowOpacity)
+        : baseTextColor;
     final bool showUnreadIndicator =
         !isSelected && channelUnreadState.shouldShowUnreadIndicator;
 
@@ -721,82 +724,79 @@ class _ChannelTile extends ConsumerWidget {
           ChannelUnreadIndicator.positioned(
             faded: channelUnreadState.isUnreadIndicatorMuted,
           ),
-        Opacity(
-          opacity: rowOpacity,
-          child: FluxerSelectableRow(
-            isSelected: isSelected,
-            selectedColor: context.colors.backgroundModifierSelected,
-            borderRadius: BorderRadius.circular(4),
-            margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            onSecondaryTapUp: (details) => unawaited(
-              _showChannelActions(
-                context,
-                ref,
-                hasUnread: hasUnread,
-                position: details.globalPosition,
-              ),
+        FluxerSelectableRow(
+          isSelected: isSelected,
+          selectedColor: context.colors.backgroundModifierSelected,
+          borderRadius: BorderRadius.circular(4),
+          margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          onSecondaryTapUp: (details) => unawaited(
+            _showChannelActions(
+              context,
+              ref,
+              hasUnread: hasUnread,
+              position: details.globalPosition,
             ),
-            onLongPress: isTouchPrimaryInput(ref)
-                ? () => unawaited(
-                    _showChannelActions(
-                      context,
-                      ref,
-                      hasUnread: hasUnread,
-                      position: Offset.zero,
-                    ),
-                  )
-                : null,
-            onTap: () async {
-              await navigateToGuildChannelContent(
-                context: context,
-                ref: ref,
-                guildId: guildId,
+          ),
+          onLongPress: isTouchPrimaryInput(ref)
+              ? () => unawaited(
+                  _showChannelActions(
+                    context,
+                    ref,
+                    hasUnread: hasUnread,
+                    position: Offset.zero,
+                  ),
+                )
+              : null,
+          onTap: () async {
+            await navigateToGuildChannelContent(
+              context: context,
+              ref: ref,
+              guildId: guildId,
+              channel: channel,
+              effectivePermissionBits: effectivePermissionBits,
+            );
+          },
+          child: Row(
+            children: [
+              ChannelIcon(
+                type: channel.type,
                 channel: channel,
-                effectivePermissionBits: effectivePermissionBits,
-              );
-            },
-            child: Row(
-              children: [
-                ChannelIcon(
-                  type: channel.type,
-                  channel: channel,
-                  effectivePermissionBits: connectPermissionBits,
-                  canConnectPermissionBits: connectPermissionBits,
-                  color: textColor,
-                  e2eeEncrypted: showE2eeVoiceIcon,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    channel.name,
-                    style: context.textStyles.channelName.copyWith(
-                      color: textColor,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                effectivePermissionBits: connectPermissionBits,
+                canConnectPermissionBits: connectPermissionBits,
+                color: textColor,
+                e2eeEncrypted: showE2eeVoiceIcon,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  channel.name,
+                  style: context.textStyles.channelName.copyWith(
+                    color: textColor,
+                    fontWeight: FontWeight.w500,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-                ChannelListTypingIndicator(
-                  channelId: channel.id,
-                  guildId: guildId,
-                  isSelected: isSelected,
-                ),
-                if (!isSelected &&
-                    mentionCount > 0 &&
-                    channelUnreadState.hasMentions) ...[
-                  const SizedBox(width: 4),
-                  FluxerBadge.count(count: mentionCount),
-                ],
-                if (showVoiceUserCount) ...[
-                  const SizedBox(width: 4),
-                  VoiceChannelUserCount(
-                    currentUserCount: voiceCurrentCount,
-                    userLimit: voiceUserLimit,
-                  ),
-                ],
+              ),
+              ChannelListTypingIndicator(
+                channelId: channel.id,
+                guildId: guildId,
+                isSelected: isSelected,
+              ),
+              if (!isSelected &&
+                  mentionCount > 0 &&
+                  channelUnreadState.hasMentions) ...[
+                const SizedBox(width: 4),
+                FluxerBadge.count(count: mentionCount),
               ],
-            ),
+              if (showVoiceUserCount) ...[
+                const SizedBox(width: 4),
+                VoiceChannelUserCount(
+                  currentUserCount: voiceCurrentCount,
+                  userLimit: voiceUserLimit,
+                ),
+              ],
+            ],
           ),
         ),
       ],

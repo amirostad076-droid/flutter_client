@@ -853,276 +853,300 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     );
     final int maxMessageLength = ref.watch(maxMessageLengthProvider);
     final int premiumMaxLength = ref.watch(premiumMaxMessageLengthProvider);
-    return ListenableBuilder(
-      listenable: _controller,
-      builder: (BuildContext context, Widget? child) {
-        final String sendableWire = _sendableWireText();
-        final int contentLength = _composerContentLength(sendableWire);
-        final bool hasSendable = composerHasSendableContent(
-          ref,
-          channelId,
-          sendableWire,
-        );
-        final bool isOverCharacterLimit = contentLength > maxMessageLength;
-        final AdvancedPreferencesState advanced = ref.watch(
-          advancedPreferencesProvider,
-        );
-        final List<ExpressionPickerTab> composerButtonTabs =
-            composerInputButtonVisibleTabs(perms: perms, advanced: advanced);
-        final List<ExpressionPickerTab> popoutTabs = expressionPanelVisibleTabs(
-          perms,
-        );
-        final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-        final bool touchInputStyle = isTouchPrimaryInput(ref);
-        final bool touchActions = touchInputStyle;
-        final InputDecoration inputDecoration = touchInputStyle
-            ? InputDecoration(
-                hintText: perms.showsNoSendPermissionHint
-                    ? l10n.channelNoSendPermissionHint
-                    : _resolveHintText(),
-                hintMaxLines: 1,
-                hintStyle: TextStyle(
-                  color: context.colors.textTertiaryMuted,
-                  fontSize: 16,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                filled: true,
-                fillColor: context.colors.backgroundTertiary,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-                border: _composerTouchInputOutlineBorder(
-                  context,
-                  focused: false,
-                ),
-                enabledBorder: _composerTouchInputOutlineBorder(
-                  context,
-                  focused: false,
-                ),
-                focusedBorder: _composerTouchInputOutlineBorder(
-                  context,
-                  focused: true,
-                ),
-                isDense: true,
-              )
-            : InputDecoration(
-                hintText: perms.showsNoSendPermissionHint
-                    ? l10n.channelNoSendPermissionHint
-                    : _resolveHintText(),
-                hintMaxLines: 1,
-                hintStyle: TextStyle(
-                  color: context.colors.textTertiaryMuted,
-                  fontSize: 16,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 2),
-                isDense: true,
-              );
-        return Row(
-          children: [
-            if (perms.canShowAttachControls) ...[
-              _buildComposerActionButton(
-                context: context,
-                icon: touchActions
-                    ? PhosphorIconsBold.plus
-                    : PhosphorIconsFill.plusCircle,
-                iconSize: touchActions ? 20 : _kDesktopComposerAttachIconSize,
-                tooltip: l10n.chatAttachmentSourceBrowse,
-                onPressed: perms.isAttachEnabled
-                    ? () => unawaited(_pickAttachments(context))
-                    : null,
-              ),
-              if (_isDesktop && !touchActions) ...[
-                const SizedBox(width: 4),
-                _buildComposerActionButton(
-                  context: context,
-                  icon: PhosphorIconsFill.clipboard,
-                  iconSize: 22,
-                  tooltip: l10n.chatAttachmentPasteTooltip,
-                  onPressed: perms.isAttachEnabled
-                      ? () => unawaited(_pasteClipboardAttachments())
-                      : null,
-                ),
-              ],
-              SizedBox(width: touchActions ? _kTouchComposerActionSpacing : 8),
-            ],
-            Expanded(
-              child: Opacity(
-                opacity: perms.isComposerEnabled
-                    ? 1.0
-                    : _kMessageInputDisabledOpacity,
-                child: _buildComposerField(
-                  context: context,
-                  channelId: channelId,
-                  perms: perms,
-                  contentLength: contentLength,
-                  maxMessageLength: maxMessageLength,
-                  premiumMaxLength: premiumMaxLength,
-                  minLines: 1,
-                  maxLines: 5,
-                  decoration: inputDecoration,
-                ),
-              ),
+    final AdvancedPreferencesState advanced = ref.watch(
+      advancedPreferencesProvider,
+    );
+    final List<ExpressionPickerTab> composerButtonTabs =
+        composerInputButtonVisibleTabs(perms: perms, advanced: advanced);
+    final List<ExpressionPickerTab> popoutTabs = expressionPanelVisibleTabs(
+      perms,
+    );
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    final bool touchInputStyle = isTouchPrimaryInput(ref);
+    final bool touchActions = touchInputStyle;
+    final InputDecoration inputDecoration = touchInputStyle
+        ? InputDecoration(
+            hintText: perms.showsNoSendPermissionHint
+                ? l10n.channelNoSendPermissionHint
+                : _resolveHintText(),
+            hintMaxLines: 1,
+            hintStyle: TextStyle(
+              color: context.colors.textTertiaryMuted,
+              fontSize: 16,
+              overflow: TextOverflow.ellipsis,
             ),
-            SizedBox(width: touchActions ? _kTouchComposerActionSpacing : 4),
-            if (!hasSendable) ...[
-              if (composerButtonTabs.contains(ExpressionPickerTab.gifs))
-                FluxerEmojiPickerPopout(
-                  key: _gifPickerKey,
-                  initialTab: ExpressionPickerTab.gifs,
-                  visibleTabs: popoutTabs,
-                  channelId: channelId,
-                  onEmojiSelected: (emoji) =>
-                      _insertEmoji(emoji.name, emoji.surrogates),
-                  onGifSelected: _handleGifSelection,
-                  onStickerSelected: (sticker) {
-                    _handleStickerSelection(sticker);
-                    _gifPickerKey.currentState?.close();
-                  },
-                  onFavoriteMemeSelected: (selection) {
-                    _handleFavoriteMemeSelection(selection);
-                    if (selection.autoSend) {
-                      _gifPickerKey.currentState?.close();
-                    }
-                  },
-                  child: _buildComposerActionButton(
-                    context: context,
-                    icon: PhosphorIconsFill.gif,
-                    leadingTouchGap: _touchGapBeforeWideExpressionButton(
-                      composerButtonTabs,
-                      ExpressionPickerTab.gifs,
-                    ),
-                    onPressed: perms.isComposerEnabled
-                        ? () => _gifPickerKey.currentState?.toggle()
-                        : null,
-                  ),
-                ),
-              if (composerButtonTabs.contains(ExpressionPickerTab.memes))
-                FluxerEmojiPickerPopout(
-                  key: _mediaPickerKey,
-                  initialTab: ExpressionPickerTab.memes,
-                  visibleTabs: popoutTabs,
-                  channelId: channelId,
-                  onEmojiSelected: (emoji) =>
-                      _insertEmoji(emoji.name, emoji.surrogates),
-                  onGifSelected: _handleGifSelection,
-                  onStickerSelected: (sticker) {
-                    _handleStickerSelection(sticker);
-                    _mediaPickerKey.currentState?.close();
-                  },
-                  onFavoriteMemeSelected: (selection) {
-                    _handleFavoriteMemeSelection(selection);
-                    if (selection.autoSend) {
-                      _mediaPickerKey.currentState?.close();
-                    }
-                  },
-                  child: _buildComposerActionButton(
-                    context: context,
-                    icon: PhosphorIconsFill.image,
-                    leadingTouchGap: _touchGapBeforeWideExpressionButton(
-                      composerButtonTabs,
-                      ExpressionPickerTab.memes,
-                    ),
-                    onPressed: perms.isComposerEnabled
-                        ? () => _mediaPickerKey.currentState?.toggle()
-                        : null,
-                  ),
-                ),
-              if (composerButtonTabs.contains(ExpressionPickerTab.stickers))
-                FluxerEmojiPickerPopout(
-                  key: _stickerPickerKey,
-                  initialTab: ExpressionPickerTab.stickers,
-                  visibleTabs: popoutTabs,
-                  channelId: channelId,
-                  onEmojiSelected: (emoji) =>
-                      _insertEmoji(emoji.name, emoji.surrogates),
-                  onGifSelected: _handleGifSelection,
-                  onStickerSelected: (sticker) {
-                    _handleStickerSelection(sticker);
-                    _stickerPickerKey.currentState?.close();
-                  },
-                  onFavoriteMemeSelected: (selection) {
-                    _handleFavoriteMemeSelection(selection);
-                    if (selection.autoSend) {
-                      _stickerPickerKey.currentState?.close();
-                    }
-                  },
-                  child: _buildComposerActionButton(
-                    context: context,
-                    icon: PhosphorIconsFill.sticker,
-                    leadingTouchGap: _touchGapBeforeWideExpressionButton(
-                      composerButtonTabs,
-                      ExpressionPickerTab.stickers,
-                    ),
-                    onPressed: perms.isComposerEnabled
-                        ? () => _stickerPickerKey.currentState?.toggle()
-                        : null,
-                  ),
-                ),
-              if (composerButtonTabs.contains(ExpressionPickerTab.emojis))
-                FluxerEmojiPickerPopout(
-                  key: _expressionPickerKey,
-                  visibleTabs: popoutTabs,
-                  channelId: channelId,
-                  onEmojiSelected: (emoji) =>
-                      _insertEmoji(emoji.name, emoji.surrogates),
-                  onGifSelected: _handleGifSelection,
-                  onStickerSelected: (sticker) {
-                    _handleStickerSelection(sticker);
-                    _expressionPickerKey.currentState?.close();
-                  },
-                  onFavoriteMemeSelected: (selection) {
-                    _handleFavoriteMemeSelection(selection);
-                    if (selection.autoSend) {
-                      _expressionPickerKey.currentState?.close();
-                    }
-                  },
-                  child: _buildComposerActionButton(
-                    context: context,
-                    icon: PhosphorIconsFill.smiley,
-                    leadingTouchGap: _touchGapBeforeWideExpressionButton(
-                      composerButtonTabs,
-                      ExpressionPickerTab.emojis,
-                    ),
-                    onPressed: perms.isComposerEnabled
-                        ? () => _expressionPickerKey.currentState?.toggle()
-                        : null,
-                  ),
-                ),
-            ],
-            if (!touchActions)
-              SizedBox(
-                height: _kWideComposerActionExtent,
-                child: VerticalDivider(
-                  color: context.colors.borderColor,
-                  width: 16,
-                  thickness: 1,
-                ),
-              )
-            else
-              const SizedBox(width: _kTouchComposerActionSpacing),
-            Padding(
-              padding: EdgeInsets.only(
-                left: touchActions && hasSendable
-                    ? _kTouchComposerActionSpacing
-                    : 0,
-              ),
-              child: _sendAndVoiceButton(
-                context,
-                chatNotifier,
-                perms: perms,
-                hasSendable: hasSendable,
-                isOverCharacterLimit: isOverCharacterLimit,
-                useHoldToRecord: false,
-              ),
+            filled: true,
+            fillColor: context.colors.backgroundTertiary,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 10,
+            ),
+            border: _composerTouchInputOutlineBorder(context, focused: false),
+            enabledBorder: _composerTouchInputOutlineBorder(
+              context,
+              focused: false,
+            ),
+            focusedBorder: _composerTouchInputOutlineBorder(
+              context,
+              focused: true,
+            ),
+            isDense: true,
+          )
+        : InputDecoration(
+            hintText: perms.showsNoSendPermissionHint
+                ? l10n.channelNoSendPermissionHint
+                : _resolveHintText(),
+            hintMaxLines: 1,
+            hintStyle: TextStyle(
+              color: context.colors.textTertiaryMuted,
+              fontSize: 16,
+              overflow: TextOverflow.ellipsis,
+            ),
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(vertical: 2),
+            isDense: true,
+          );
+    return Row(
+      children: [
+        if (perms.canShowAttachControls) ...[
+          _buildComposerActionButton(
+            context: context,
+            icon: touchActions
+                ? PhosphorIconsBold.plus
+                : PhosphorIconsFill.plusCircle,
+            iconSize: touchActions ? 20 : _kDesktopComposerAttachIconSize,
+            tooltip: l10n.chatAttachmentSourceBrowse,
+            onPressed: perms.isAttachEnabled
+                ? () => unawaited(_pickAttachments(context))
+                : null,
+          ),
+          if (_isDesktop && !touchActions) ...[
+            const SizedBox(width: 4),
+            _buildComposerActionButton(
+              context: context,
+              icon: PhosphorIconsFill.clipboard,
+              iconSize: 22,
+              tooltip: l10n.chatAttachmentPasteTooltip,
+              onPressed: perms.isAttachEnabled
+                  ? () => unawaited(_pasteClipboardAttachments())
+                  : null,
             ),
           ],
-        );
-      },
+          SizedBox(width: touchActions ? _kTouchComposerActionSpacing : 8),
+        ],
+        Expanded(
+          child: ListenableBuilder(
+            listenable: _controller,
+            builder: (BuildContext context, Widget? child) {
+              final String sendableWire = _sendableWireText();
+              final int contentLength = _composerContentLength(sendableWire);
+              return _buildComposerField(
+                context: context,
+                channelId: channelId,
+                perms: perms,
+                contentLength: contentLength,
+                maxMessageLength: maxMessageLength,
+                premiumMaxLength: premiumMaxLength,
+                minLines: 1,
+                maxLines: 5,
+                decoration: inputDecoration,
+              );
+            },
+          ),
+        ),
+        SizedBox(width: touchActions ? _kTouchComposerActionSpacing : 4),
+        ListenableBuilder(
+          listenable: _controller,
+          builder: (BuildContext context, Widget? child) {
+            final String sendableWire = _sendableWireText();
+            final bool hasSendable = composerHasSendableContent(
+              ref,
+              channelId,
+              sendableWire,
+            );
+            final bool isOverCharacterLimit =
+                _composerContentLength(sendableWire) > maxMessageLength;
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (!hasSendable)
+                  _buildLargeExpressionPickerActions(
+                    context: context,
+                    channelId: channelId,
+                    perms: perms,
+                    composerButtonTabs: composerButtonTabs,
+                    popoutTabs: popoutTabs,
+                  ),
+                if (!touchActions)
+                  SizedBox(
+                    height: _kWideComposerActionExtent,
+                    child: VerticalDivider(
+                      color: context.colors.borderColor,
+                      width: 16,
+                      thickness: 1,
+                    ),
+                  )
+                else
+                  const SizedBox(width: _kTouchComposerActionSpacing),
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: touchActions && hasSendable
+                        ? _kTouchComposerActionSpacing
+                        : 0,
+                  ),
+                  child: _sendAndVoiceButton(
+                    context,
+                    chatNotifier,
+                    perms: perms,
+                    hasSendable: hasSendable,
+                    isOverCharacterLimit: isOverCharacterLimit,
+                    useHoldToRecord: false,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLargeExpressionPickerActions({
+    required BuildContext context,
+    required String channelId,
+    required ChannelMessagePermissions perms,
+    required List<ExpressionPickerTab> composerButtonTabs,
+    required List<ExpressionPickerTab> popoutTabs,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (composerButtonTabs.contains(ExpressionPickerTab.gifs))
+          FluxerEmojiPickerPopout(
+            key: _gifPickerKey,
+            initialTab: ExpressionPickerTab.gifs,
+            visibleTabs: popoutTabs,
+            channelId: channelId,
+            onEmojiSelected: (emoji) =>
+                _insertEmoji(emoji.name, emoji.surrogates),
+            onGifSelected: _handleGifSelection,
+            onStickerSelected: (sticker) {
+              _handleStickerSelection(sticker);
+              _gifPickerKey.currentState?.close();
+            },
+            onFavoriteMemeSelected: (selection) {
+              _handleFavoriteMemeSelection(selection);
+              if (selection.autoSend) {
+                _gifPickerKey.currentState?.close();
+              }
+            },
+            child: _buildComposerActionButton(
+              context: context,
+              icon: PhosphorIconsFill.gif,
+              leadingTouchGap: _touchGapBeforeWideExpressionButton(
+                composerButtonTabs,
+                ExpressionPickerTab.gifs,
+              ),
+              onPressed: perms.isComposerEnabled
+                  ? () => _gifPickerKey.currentState?.toggle()
+                  : null,
+            ),
+          ),
+        if (composerButtonTabs.contains(ExpressionPickerTab.memes))
+          FluxerEmojiPickerPopout(
+            key: _mediaPickerKey,
+            initialTab: ExpressionPickerTab.memes,
+            visibleTabs: popoutTabs,
+            channelId: channelId,
+            onEmojiSelected: (emoji) =>
+                _insertEmoji(emoji.name, emoji.surrogates),
+            onGifSelected: _handleGifSelection,
+            onStickerSelected: (sticker) {
+              _handleStickerSelection(sticker);
+              _mediaPickerKey.currentState?.close();
+            },
+            onFavoriteMemeSelected: (selection) {
+              _handleFavoriteMemeSelection(selection);
+              if (selection.autoSend) {
+                _mediaPickerKey.currentState?.close();
+              }
+            },
+            child: _buildComposerActionButton(
+              context: context,
+              icon: PhosphorIconsFill.image,
+              leadingTouchGap: _touchGapBeforeWideExpressionButton(
+                composerButtonTabs,
+                ExpressionPickerTab.memes,
+              ),
+              onPressed: perms.isComposerEnabled
+                  ? () => _mediaPickerKey.currentState?.toggle()
+                  : null,
+            ),
+          ),
+        if (composerButtonTabs.contains(ExpressionPickerTab.stickers))
+          FluxerEmojiPickerPopout(
+            key: _stickerPickerKey,
+            initialTab: ExpressionPickerTab.stickers,
+            visibleTabs: popoutTabs,
+            channelId: channelId,
+            onEmojiSelected: (emoji) =>
+                _insertEmoji(emoji.name, emoji.surrogates),
+            onGifSelected: _handleGifSelection,
+            onStickerSelected: (sticker) {
+              _handleStickerSelection(sticker);
+              _stickerPickerKey.currentState?.close();
+            },
+            onFavoriteMemeSelected: (selection) {
+              _handleFavoriteMemeSelection(selection);
+              if (selection.autoSend) {
+                _stickerPickerKey.currentState?.close();
+              }
+            },
+            child: _buildComposerActionButton(
+              context: context,
+              icon: PhosphorIconsFill.sticker,
+              leadingTouchGap: _touchGapBeforeWideExpressionButton(
+                composerButtonTabs,
+                ExpressionPickerTab.stickers,
+              ),
+              onPressed: perms.isComposerEnabled
+                  ? () => _stickerPickerKey.currentState?.toggle()
+                  : null,
+            ),
+          ),
+        if (composerButtonTabs.contains(ExpressionPickerTab.emojis))
+          FluxerEmojiPickerPopout(
+            key: _expressionPickerKey,
+            visibleTabs: popoutTabs,
+            channelId: channelId,
+            onEmojiSelected: (emoji) =>
+                _insertEmoji(emoji.name, emoji.surrogates),
+            onGifSelected: _handleGifSelection,
+            onStickerSelected: (sticker) {
+              _handleStickerSelection(sticker);
+              _expressionPickerKey.currentState?.close();
+            },
+            onFavoriteMemeSelected: (selection) {
+              _handleFavoriteMemeSelection(selection);
+              if (selection.autoSend) {
+                _expressionPickerKey.currentState?.close();
+              }
+            },
+            child: _buildComposerActionButton(
+              context: context,
+              icon: PhosphorIconsFill.smiley,
+              leadingTouchGap: _touchGapBeforeWideExpressionButton(
+                composerButtonTabs,
+                ExpressionPickerTab.emojis,
+              ),
+              onPressed: perms.isComposerEnabled
+                  ? () => _expressionPickerKey.currentState?.toggle()
+                  : null,
+            ),
+          ),
+      ],
     );
   }
 
@@ -1170,92 +1194,81 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
 
     final int maxMessageLength = ref.watch(maxMessageLengthProvider);
     final int premiumMaxLength = ref.watch(premiumMaxMessageLengthProvider);
-    return ListenableBuilder(
-      listenable: _controller,
-      builder: (BuildContext context, Widget? child) {
-        final String sendableWire = _sendableWireText();
-        final int contentLength = _composerContentLength(sendableWire);
-        final bool hasSendable = composerHasSendableContent(
-          ref,
-          channelId,
-          sendableWire,
-        );
-        final bool isOverCharacterLimit = contentLength > maxMessageLength;
-        return Row(
-          children: [
-            if (perms.canShowAttachControls) ...[
-              FluxerButton.circleAlt(
-                icon: PhosphorIconsBold.plus,
-                onPressed: perms.isAttachEnabled
-                    ? () => unawaited(_pickAttachments(context))
-                    : null,
-              ),
-              const SizedBox(width: 8),
-            ],
-            Expanded(
-              child: Opacity(
-                opacity: perms.isComposerEnabled
-                    ? 1.0
-                    : _kMessageInputDisabledOpacity,
-                child: _buildComposerField(
-                  context: context,
-                  channelId: channelId,
-                  perms: perms,
-                  contentLength: contentLength,
-                  maxMessageLength: maxMessageLength,
-                  premiumMaxLength: premiumMaxLength,
-                  minLines: 1,
-                  maxLines: 6,
-                  decoration: InputDecoration(
-                    hintText: perms.showsNoSendPermissionHint
-                        ? FluxerLocalizations.of(
-                            context,
-                          ).channelNoSendPermissionHint
-                        : _resolveHintText(),
-                    hintMaxLines: 1,
-                    hintStyle: TextStyle(
-                      color: context.colors.textTertiaryMuted,
-                      fontSize: 16,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    filled: true,
-                    fillColor: context.colors.backgroundTertiary,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    border: _composerTouchInputOutlineBorder(
-                      context,
-                      focused: false,
-                    ),
-                    enabledBorder: _composerTouchInputOutlineBorder(
-                      context,
-                      focused: false,
-                    ),
-                    focusedBorder: _composerTouchInputOutlineBorder(
-                      context,
-                      focused: true,
-                    ),
-                    isDense: true,
-                    suffixIcon: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: _kMobileComposerSuffixVerticalPadding,
-                        horizontal: _kMobileComposerSuffixHorizontalPadding,
-                      ),
-                      child: _buildMobilePickerButton(context, perms),
-                    ),
-                    suffixIconConstraints: const BoxConstraints(
-                      minWidth: _kMobileComposerSuffixWidth,
-                      maxWidth: _kMobileComposerSuffixWidth,
-                      minHeight: _kMobileComposerSuffixHeight,
-                      maxHeight: _kMobileComposerSuffixHeight,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Padding(
+    final InputDecoration mobileDecoration = InputDecoration(
+      hintText: perms.showsNoSendPermissionHint
+          ? FluxerLocalizations.of(context).channelNoSendPermissionHint
+          : _resolveHintText(),
+      hintMaxLines: 1,
+      hintStyle: TextStyle(
+        color: context.colors.textTertiaryMuted,
+        fontSize: 16,
+        overflow: TextOverflow.ellipsis,
+      ),
+      filled: true,
+      fillColor: context.colors.backgroundTertiary,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      border: _composerTouchInputOutlineBorder(context, focused: false),
+      enabledBorder: _composerTouchInputOutlineBorder(context, focused: false),
+      focusedBorder: _composerTouchInputOutlineBorder(context, focused: true),
+      isDense: true,
+      suffixIcon: Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: _kMobileComposerSuffixVerticalPadding,
+          horizontal: _kMobileComposerSuffixHorizontalPadding,
+        ),
+        child: _buildMobilePickerButton(context, perms),
+      ),
+      suffixIconConstraints: const BoxConstraints(
+        minWidth: _kMobileComposerSuffixWidth,
+        maxWidth: _kMobileComposerSuffixWidth,
+        minHeight: _kMobileComposerSuffixHeight,
+        maxHeight: _kMobileComposerSuffixHeight,
+      ),
+    );
+    return Row(
+      children: [
+        if (perms.canShowAttachControls) ...[
+          FluxerButton.circleAlt(
+            icon: PhosphorIconsBold.plus,
+            onPressed: perms.isAttachEnabled
+                ? () => unawaited(_pickAttachments(context))
+                : null,
+          ),
+          const SizedBox(width: 8),
+        ],
+        Expanded(
+          child: ListenableBuilder(
+            listenable: _controller,
+            builder: (BuildContext context, Widget? child) {
+              final String sendableWire = _sendableWireText();
+              final int contentLength = _composerContentLength(sendableWire);
+              return _buildComposerField(
+                context: context,
+                channelId: channelId,
+                perms: perms,
+                contentLength: contentLength,
+                maxMessageLength: maxMessageLength,
+                premiumMaxLength: premiumMaxLength,
+                minLines: 1,
+                maxLines: 6,
+                decoration: mobileDecoration,
+              );
+            },
+          ),
+        ),
+        const SizedBox(width: 8),
+        ListenableBuilder(
+          listenable: _controller,
+          builder: (BuildContext context, Widget? child) {
+            final String sendableWire = _sendableWireText();
+            final bool hasSendable = composerHasSendableContent(
+              ref,
+              channelId,
+              sendableWire,
+            );
+            final bool isOverCharacterLimit =
+                _composerContentLength(sendableWire) > maxMessageLength;
+            return Padding(
               padding: const EdgeInsetsGeometry.only(bottom: 1),
               child: _sendAndVoiceButton(
                 context,
@@ -1266,10 +1279,10 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                 size: FluxerButtonSize.small,
                 useHoldToRecord: true,
               ),
-            ),
-          ],
-        );
-      },
+            );
+          },
+        ),
+      ],
     );
   }
 

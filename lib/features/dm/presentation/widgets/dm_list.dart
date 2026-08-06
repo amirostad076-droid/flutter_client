@@ -32,6 +32,7 @@ import 'package:fluxer_app/features/dm/providers/dm_mute_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_providers.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
+import 'package:fluxer_app/features/dm/providers/sorted_dm_conversations_provider.dart';
 import 'package:fluxer_app/features/favorites/domain/favorite_guild_id.dart';
 import 'package:fluxer_app/features/favorites/providers/favorite_channels_provider.dart';
 import 'package:fluxer_app/features/friends/presentation/change_friend_nickname.dart';
@@ -229,19 +230,16 @@ class _DMListState extends ConsumerState<DMList> {
   @override
   Widget build(BuildContext context) {
     final List<DmConversation> convos = ref.watch(
-      dmViewModelProvider.select((DmViewState state) => state.conversations),
+      sortedDmConversationsProvider,
     );
     final String? selectedId = ref.watch(activeChannelIdProvider);
 
     final isMobile = isMobileLayout(context);
     final pinnedIds = ref.watch(pinnedDmChannelIdsProvider).value ?? {};
-    final pinnedOrder = ref.watch(pinnedDmChannelOrderProvider).value ?? [];
     final mutedIds = ref.watch(mutedDmChannelIdsProvider).value ?? {};
 
-    // Sort pinned DMs first (by pin position), then unpinned by recency.
-    final sortedConvos = _sortDmChannels(convos, pinnedIds, pinnedOrder);
     final userId = ref.watch(currentUserIdProvider);
-    final visibleConvos = sortedConvos
+    final visibleConvos = convos
         .where(
           (DmConversation c) => !shouldExcludeFromDmConversationList(
             type: c.type,
@@ -849,17 +847,27 @@ class _DMListState extends ConsumerState<DMList> {
       l10n: l10n,
       currentUserId: currentUserId,
     );
-    final titleColor = isSelected
-        ? context.colors.surfaceInteractiveSelectedColor
-        : hasUnread
-        ? context.colors.textChat
-        : context.colors.textPrimaryMuted;
-    final secondaryColor = isSelected
-        ? context.colors.surfaceInteractiveSelectedColor
-        : context.colors.textPrimaryMuted.withValues(alpha: 0.85);
-    final timestampColor = isSelected
-        ? context.colors.surfaceInteractiveSelectedColor
-        : context.colors.textTertiary;
+    final double mutedFactor = isMuted && !isSelected ? 0.5 : 1.0;
+    Color applyMuted(Color color) => mutedFactor < 1
+        ? color.withValues(alpha: color.a * mutedFactor)
+        : color;
+    final titleColor = applyMuted(
+      isSelected
+          ? context.colors.surfaceInteractiveSelectedColor
+          : hasUnread
+          ? context.colors.textChat
+          : context.colors.textPrimaryMuted,
+    );
+    final secondaryColor = applyMuted(
+      isSelected
+          ? context.colors.surfaceInteractiveSelectedColor
+          : context.colors.textPrimaryMuted.withValues(alpha: 0.85),
+    );
+    final timestampColor = applyMuted(
+      isSelected
+          ? context.colors.surfaceInteractiveSelectedColor
+          : context.colors.textTertiary,
+    );
     final titleStyle = context.textStyles.username.copyWith(
       color: titleColor,
       fontSize: isMobile ? 16 : 13,
@@ -877,113 +885,108 @@ class _DMListState extends ConsumerState<DMList> {
       children: [
         if (hasUnread && !isSelected)
           ChannelUnreadIndicator.positioned(faded: isMuted),
-        Opacity(
-          opacity: isMuted && !isSelected ? 0.5 : 1.0,
-          child: _selectableRow(
-            context,
-            isSelected: isSelected,
-            height: tileHeight,
-            margin: EdgeInsets.symmetric(
-              horizontal: layout.s2,
-              vertical: isMobile ? 2 : 1,
-            ),
-            padding: EdgeInsets.symmetric(horizontal: layout.s2),
-            onTap: () {
-              unawaited(_navigateToDmChannel(c.id));
-            },
-            onLongPress: isMobile ? () => _showDmContextMenu(context, c) : null,
-            child: Row(
-              children: [
-                Consumer(
-                  builder: (context, ref, _) {
-                    final bool isTyping = ref.watch(
-                      dmAvatarIsTypingProvider(c),
-                    );
-                    if (c.isGroup) {
-                      final String? status = ref.watch(
-                        dmListRecipientRowDataProvider.select(
-                          (AsyncValue<Map<String, DmListRecipientRowData>> p) =>
-                              groupDmAggregateStatus(
-                                participantIds: c.remoteRecipientIds,
-                                resolveStatus: (String id) =>
-                                    p.value?[id]?.status ?? 'offline',
-                              ),
-                        ),
-                      );
-                      return groupDmAvatarCluster(
-                        dm: c,
-                        size: avatarSize,
-                        status: status,
-                        isTyping: isTyping,
-                      );
-                    }
-                    final bool showPresence = shouldShowDmRecipientPresence(c);
-                    return FluxerAvatar.userPresence(
-                      fallbackText: displayName,
-                      userId: c.recipientId,
-                      imageUrl: FluxerMediaUrl.userAvatar(
-                        userId: c.recipientId,
-                        hash: c.recipientAvatar,
-                        animated: isSelected,
-                      ),
-                      showStatus: showPresence || isTyping,
-                      isTyping: isTyping,
-                      size: avatarSize,
-                    );
-                  },
-                ),
-                SizedBox(width: layout.s3),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          if (isPinned)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 4),
-                              child: PhosphorIcon(
-                                PhosphorIconsFill.pushPin,
-                                size: 12,
-                                color: timestampColor,
-                              ),
+        _selectableRow(
+          context,
+          isSelected: isSelected,
+          height: tileHeight,
+          margin: EdgeInsets.symmetric(
+            horizontal: layout.s2,
+            vertical: isMobile ? 2 : 1,
+          ),
+          padding: EdgeInsets.symmetric(horizontal: layout.s2),
+          onTap: () {
+            unawaited(_navigateToDmChannel(c.id));
+          },
+          onLongPress: isMobile ? () => _showDmContextMenu(context, c) : null,
+          child: Row(
+            children: [
+              Consumer(
+                builder: (context, ref, _) {
+                  final bool isTyping = ref.watch(dmAvatarIsTypingProvider(c));
+                  if (c.isGroup) {
+                    final String? status = ref.watch(
+                      dmListRecipientRowDataProvider.select(
+                        (AsyncValue<Map<String, DmListRecipientRowData>> p) =>
+                            groupDmAggregateStatus(
+                              participantIds: c.remoteRecipientIds,
+                              resolveStatus: (String id) =>
+                                  p.value?[id]?.status ?? 'offline',
                             ),
-                          Flexible(
-                            child: Text(
-                              displayName,
-                              style: titleStyle,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                    return groupDmAvatarCluster(
+                      dm: c,
+                      size: avatarSize,
+                      status: status,
+                      isTyping: isTyping,
+                    );
+                  }
+                  final bool showPresence = shouldShowDmRecipientPresence(c);
+                  return FluxerAvatar.userPresence(
+                    fallbackText: displayName,
+                    userId: c.recipientId,
+                    imageUrl: FluxerMediaUrl.userAvatar(
+                      userId: c.recipientId,
+                      hash: c.recipientAvatar,
+                      animated: isSelected,
+                    ),
+                    showStatus: showPresence || isTyping,
+                    isTyping: isTyping,
+                    size: avatarSize,
+                  );
+                },
+              ),
+              SizedBox(width: layout.s3),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        if (isPinned)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: PhosphorIcon(
+                              PhosphorIconsFill.pushPin,
+                              size: 12,
+                              color: timestampColor,
                             ),
                           ),
-                          if (!c.isGroup && isBotOrSystemDmRecipient(c))
-                            Padding(
-                              padding: const EdgeInsets.only(left: 4),
-                              child: FluxerUserTag(isSystem: c.isSystem),
-                            ),
-                        ],
-                      ),
-                      DmListTileSubtext(
-                        conversation: c,
-                        style: secondaryStyle,
-                        hasUnread: hasUnread,
-                        currentUserId: currentUserId,
-                      ),
-                    ],
-                  ),
+                        Flexible(
+                          child: Text(
+                            displayName,
+                            style: titleStyle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (!c.isGroup && isBotOrSystemDmRecipient(c))
+                          Padding(
+                            padding: const EdgeInsets.only(left: 4),
+                            child: FluxerUserTag(isSystem: c.isSystem),
+                          ),
+                      ],
+                    ),
+                    DmListTileSubtext(
+                      conversation: c,
+                      style: secondaryStyle,
+                      hasUnread: hasUnread,
+                      currentUserId: currentUserId,
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  _formatRelativeTime(c.lastMessageTime),
-                  style: TextStyle(
-                    color: timestampColor,
-                    fontSize: 12,
-                    height: 16 / 12,
-                  ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                _formatRelativeTime(c.lastMessageTime),
+                style: TextStyle(
+                  color: timestampColor,
+                  fontSize: 12,
+                  height: 16 / 12,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],
@@ -1380,30 +1383,6 @@ class _DMListState extends ConsumerState<DMList> {
           message: FluxerLocalizations.of(context).dmChannelIdCopied,
         );
     }
-  }
-
-  static List<DmConversation> _sortDmChannels(
-    List<DmConversation> convos,
-    Set<String> pinnedIds,
-    List<String> pinnedOrder,
-  ) {
-    final pinIndex = {
-      for (var i = 0; i < pinnedOrder.length; i++) pinnedOrder[i]: i,
-    };
-    return [...convos]..sort((a, b) {
-      final aPin = pinIndex[a.id];
-      final bPin = pinIndex[b.id];
-      final aIsPinned = aPin != null;
-      final bIsPinned = bPin != null;
-
-      if (aIsPinned && bIsPinned) {
-        return aPin.compareTo(bPin);
-      }
-      if (aIsPinned != bIsPinned) {
-        return aIsPinned ? -1 : 1;
-      }
-      return b.lastMessageTime.compareTo(a.lastMessageTime);
-    });
   }
 
   static String _formatRelativeTime(DateTime time) {

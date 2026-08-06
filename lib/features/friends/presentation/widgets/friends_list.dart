@@ -32,8 +32,13 @@ class FriendsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vm = ref.watch(dmViewModelProvider);
-    final activeTab = vm.activeTab;
+    final activeTab = ref.watch(dmViewModelProvider.select((s) => s.activeTab));
+    final filteredFriends = ref.watch(
+      dmViewModelProvider.select((s) => s.filteredFriends),
+    );
+    final searchQuery = ref.watch(
+      dmViewModelProvider.select((s) => s.searchQuery),
+    );
     final showActiveNowPref = ref.watch(
       appearancePreferencesProvider.select((s) => s.showActiveNow),
     );
@@ -58,8 +63,20 @@ class FriendsList extends ConsumerWidget {
                   ),
                   Divider(color: context.colors.borderColor, height: 1),
                   _buildSearchBar(context, ref, activeTab),
-                  _buildSectionHeader(context, vm),
-                  Expanded(child: _buildFriendsList(context, ref, vm)),
+                  _buildSectionHeader(
+                    context,
+                    activeTab: activeTab,
+                    friendCount: filteredFriends.length,
+                  ),
+                  Expanded(
+                    child: _buildFriendsList(
+                      context,
+                      ref,
+                      activeTab: activeTab,
+                      filteredFriends: filteredFriends,
+                      searchQuery: searchQuery,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -292,9 +309,12 @@ class FriendsList extends ConsumerWidget {
     }
   }
 
-  Widget _buildSectionHeader(BuildContext context, DmViewState vm) {
-    final filtered = vm.filteredFriends;
-    final label = _tabLabel(vm.activeTab).toUpperCase();
+  Widget _buildSectionHeader(
+    BuildContext context, {
+    required FriendsTab activeTab,
+    required int friendCount,
+  }) {
+    final label = _tabLabel(activeTab).toUpperCase();
     return Padding(
       padding: EdgeInsets.only(
         left: context.layout.s4,
@@ -305,7 +325,7 @@ class FriendsList extends ConsumerWidget {
       child: Align(
         alignment: Alignment.centerLeft,
         child: Text(
-          '$label \u2014 ${filtered.length}',
+          '$label \u2014 $friendCount',
           style: context.textStyles.smallText,
         ),
       ),
@@ -392,11 +412,12 @@ class FriendsList extends ConsumerWidget {
 
   Widget _buildFriendsList(
     BuildContext context,
-    WidgetRef ref,
-    DmViewState vm,
-  ) {
-    final filtered = vm.filteredFriends;
-    if (filtered.isEmpty) {
+    WidgetRef ref, {
+    required FriendsTab activeTab,
+    required List<Friend> filteredFriends,
+    required String searchQuery,
+  }) {
+    if (filteredFriends.isEmpty) {
       return Center(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: context.layout.s8),
@@ -410,7 +431,7 @@ class FriendsList extends ConsumerWidget {
               ),
               SizedBox(height: context.layout.s4),
               Text(
-                _emptyTitle(vm),
+                _emptyTitle(activeTab: activeTab, searchQuery: searchQuery),
                 style: TextStyle(
                   color: context.colors.textPrimary,
                   fontSize: 20,
@@ -421,7 +442,10 @@ class FriendsList extends ConsumerWidget {
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 448),
                 child: Text(
-                  _emptySubtitle(vm),
+                  _emptySubtitle(
+                    activeTab: activeTab,
+                    searchQuery: searchQuery,
+                  ),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: context.colors.textTertiary,
@@ -436,9 +460,9 @@ class FriendsList extends ConsumerWidget {
     }
     return ListView.builder(
       padding: EdgeInsets.symmetric(horizontal: context.layout.s3),
-      itemCount: filtered.length,
+      itemCount: filteredFriends.length,
       itemBuilder: (context, index) {
-        final friend = filtered[index];
+        final friend = filteredFriends[index];
         return _buildFriendTile(context, ref, friend);
       },
     );
@@ -596,11 +620,14 @@ class FriendsList extends ConsumerWidget {
     ),
   );
 
-  String _emptyTitle(DmViewState vm) {
-    if (vm.searchQuery.isNotEmpty) {
+  String _emptyTitle({
+    required FriendsTab activeTab,
+    required String searchQuery,
+  }) {
+    if (searchQuery.isNotEmpty) {
       return 'No friends match your search';
     }
-    switch (vm.activeTab) {
+    switch (activeTab) {
       case FriendsTab.online:
         return 'No friends online';
       case FriendsTab.all:
@@ -612,12 +639,15 @@ class FriendsList extends ConsumerWidget {
     }
   }
 
-  String _emptySubtitle(DmViewState vm) {
-    if (vm.searchQuery.isNotEmpty) {
+  String _emptySubtitle({
+    required FriendsTab activeTab,
+    required String searchQuery,
+  }) {
+    if (searchQuery.isNotEmpty) {
       return 'Try another name or check your '
           'spelling.';
     }
-    switch (vm.activeTab) {
+    switch (activeTab) {
       case FriendsTab.online:
         return 'When your friends come online, '
             "they'll appear right here.";

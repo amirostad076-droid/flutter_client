@@ -28,6 +28,9 @@ class GuildDragData {
 const Duration _kMobileDropAnimationDuration = Duration(milliseconds: 150);
 const double _kGuildIconSize = 48;
 const double _kGuildIconInnerSize = 44;
+
+int _guildDragIconMemCache(BuildContext context, double logicalSize) =>
+    (logicalSize * MediaQuery.devicePixelRatioOf(context)).round();
 const double _kGuildIconBorderRadius = 15;
 const double _kMobileDragFeedbackScale = 0.92;
 
@@ -77,6 +80,14 @@ class GuildDragFeedback extends StatelessWidget {
                 ? CachedNetworkImage(
                     imageUrl: iconUrl!,
                     fit: BoxFit.cover,
+                    memCacheWidth: _guildDragIconMemCache(
+                      context,
+                      _kGuildIconInnerSize,
+                    ),
+                    memCacheHeight: _guildDragIconMemCache(
+                      context,
+                      _kGuildIconInnerSize,
+                    ),
                     errorBuilder: (context, url, error) =>
                         _DragFeedbackInitials(
                           initials: initials,
@@ -751,6 +762,14 @@ class _FolderMiniGrid extends StatelessWidget {
                         ? CachedNetworkImage(
                             imageUrl: guild.iconUrl!,
                             fit: BoxFit.cover,
+                            memCacheWidth: _guildDragIconMemCache(
+                              context,
+                              cellSize,
+                            ),
+                            memCacheHeight: _guildDragIconMemCache(
+                              context,
+                              cellSize,
+                            ),
                           )
                         : ColoredBox(
                             color: context.colors.serverIconBackground,
