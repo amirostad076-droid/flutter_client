@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/providers/dm_pinned_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
@@ -7,9 +8,9 @@ part 'sorted_dm_conversations_provider.g.dart';
 
 @riverpod
 List<DmConversation> sortedDmConversations(Ref ref) {
-  final List<DmConversation> convos = ref
-      .watch(dmViewModelProvider)
-      .conversations;
+  final List<DmConversation> convos = ref.watch(
+    dmViewModelProvider.select((DmViewState state) => state.conversations),
+  );
   final Set<String> pinnedIds =
       ref.watch(pinnedDmChannelIdsProvider).value ?? <String>{};
   final List<String> pinnedOrder =
