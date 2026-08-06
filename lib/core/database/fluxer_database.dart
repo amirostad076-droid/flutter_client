@@ -141,7 +141,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 78;
+  int get schemaVersion => 79;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -1018,6 +1018,38 @@ class FluxerDatabase extends _$FluxerDatabase {
           await m.addColumn(
             userPreferencesTable,
             userPreferencesTable.searchEnginesJson,
+          );
+        }
+      }
+      if (from < 79) {
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'user_preferences',
+          columnName: 'screen_reader_announce_new_messages',
+        )) {
+          await m.addColumn(
+            userPreferencesTable,
+            userPreferencesTable.screenReaderAnnounceNewMessages,
+          );
+        }
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'user_preferences',
+          columnName: 'sync_reduced_motion_with_system',
+        )) {
+          await m.addColumn(
+            userPreferencesTable,
+            userPreferencesTable.syncReducedMotionWithSystem,
+          );
+        }
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'user_preferences',
+          columnName: 'reduced_motion_override',
+        )) {
+          await m.addColumn(
+            userPreferencesTable,
+            userPreferencesTable.reducedMotionOverride,
           );
         }
       }

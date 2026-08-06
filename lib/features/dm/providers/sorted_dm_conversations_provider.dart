@@ -7,11 +7,13 @@ part 'sorted_dm_conversations_provider.g.dart';
 
 @riverpod
 List<DmConversation> sortedDmConversations(Ref ref) {
-  final convos = ref.watch(
-    dmViewModelProvider.select((DmViewState state) => state.conversations),
-  );
-  final pinnedIds = ref.watch(pinnedDmChannelIdsProvider).value ?? {};
-  final pinnedOrder = ref.watch(pinnedDmChannelOrderProvider).value ?? {};
+  final List<DmConversation> convos = ref
+      .watch(dmViewModelProvider)
+      .conversations;
+  final Set<String> pinnedIds =
+      ref.watch(pinnedDmChannelIdsProvider).value ?? <String>{};
+  final List<String> pinnedOrder =
+      ref.watch(pinnedDmChannelOrderProvider).value ?? <String>[];
   return sortDmConversations(convos, pinnedIds, pinnedOrder);
 }
 

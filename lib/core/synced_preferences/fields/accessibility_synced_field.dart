@@ -25,6 +25,7 @@ class AccessibilityLocalState {
     required this.saturationFactor,
     required this.customThemeCss,
     required this.advanced,
+    this.screenReaderAnnounceNewMessages = false,
     this.showMediaDeleteButton = true,
     this.showMediaDownloadButton = true,
     this.showMediaFavoriteButton = true,
@@ -45,6 +46,7 @@ class AccessibilityLocalState {
   final double saturationFactor;
   final String? customThemeCss;
   final AdvancedAccessibilityLocalState advanced;
+  final bool screenReaderAnnounceNewMessages;
   final bool showMediaDeleteButton;
   final bool showMediaDownloadButton;
   final bool showMediaFavoriteButton;
@@ -80,6 +82,8 @@ class AccessibilitySyncedField
       compactMessageGroupSpacing: appearance.compactMessageGroupSpacing,
       saturationFactor: theme.saturationFactor,
       customThemeCss: theme.customThemeCss,
+      screenReaderAnnounceNewMessages:
+          appearance.screenReaderAnnounceNewMessages,
       showMediaDeleteButton: appearance.showMediaDeleteButton,
       showMediaDownloadButton: appearance.showMediaDownloadButton,
       showMediaFavoriteButton: appearance.showMediaFavoriteButton,
@@ -173,6 +177,8 @@ class AccessibilitySyncedField
         a.showMediaDownloadButton == b.showMediaDownloadButton &&
         a.showMediaFavoriteButton == b.showMediaFavoriteButton &&
         a.showSuppressEmbedsButton == b.showSuppressEmbedsButton &&
+        a.screenReaderAnnounceNewMessages ==
+            b.screenReaderAnnounceNewMessages &&
         normalizeCustomThemeCss(a.customThemeCss) ==
             normalizeCustomThemeCss(b.customThemeCss) &&
         _advancedStatesEqual(a.advanced, b.advanced);
@@ -231,6 +237,7 @@ class AccessibilitySyncedField
       showMediaDownloadButton: remote.showMediaDownloadButton,
       showMediaFavoriteButton: remote.showMediaFavoriteButton,
       showSuppressEmbedsButton: remote.showSuppressEmbedsButton,
+      screenReaderAnnounceNewMessages: remote.screenReaderAnnounceNewMessages,
       advanced: remote.advanced,
       hasSaturationFactorInProto:
           remote.hasSaturationFactorInProto || local.hasSaturationFactorInProto,
@@ -293,6 +300,9 @@ class AccessibilitySyncedField
       showSuppressEmbedsButton:
           !proto.hasShowSuppressEmbedsButton() ||
           proto.showSuppressEmbedsButton,
+      screenReaderAnnounceNewMessages:
+          proto.hasScreenReaderAnnounceNewMessages() &&
+          proto.screenReaderAnnounceNewMessages,
       advanced: AdvancedAccessibilityLocalState(
         enableTextSelection:
             proto.hasEnableTextSelection() && proto.enableTextSelection,
@@ -362,7 +372,9 @@ class AccessibilitySyncedField
           ..showMediaDeleteButton = local.showMediaDeleteButton
           ..showMediaDownloadButton = local.showMediaDownloadButton
           ..showMediaFavoriteButton = local.showMediaFavoriteButton
-          ..showSuppressEmbedsButton = local.showSuppressEmbedsButton;
+          ..showSuppressEmbedsButton = local.showSuppressEmbedsButton
+          ..screenReaderAnnounceNewMessages =
+              local.screenReaderAnnounceNewMessages;
     _applyAdvancedToProto(settings, local.advanced, wireBase: wireBase);
     if (effectiveCss != null) {
       return settings..customThemeCss = effectiveCss;
@@ -390,6 +402,7 @@ class AccessibilitySyncedField
       showMediaDownloadButton: local.showMediaDownloadButton,
       showMediaFavoriteButton: local.showMediaFavoriteButton,
       showSuppressEmbedsButton: local.showSuppressEmbedsButton,
+      screenReaderAnnounceNewMessages: local.screenReaderAnnounceNewMessages,
     );
     _applyAdvancedToProto(settings, local.advanced);
     if (effectiveCss != null) {

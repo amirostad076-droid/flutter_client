@@ -7462,6 +7462,72 @@ abstract class FluxerLocalizations {
   /// **'Don\'t show message previews in the DM list'**
   String get accessibilityDmMessagePreviewNoneDescription;
 
+  /// Section title for screen reader accessibility settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen reader'**
+  String get accessibilityScreenReaderGroupTitle;
+
+  /// Section description for screen reader accessibility settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Control how Fluxer works with screen readers.'**
+  String get accessibilityScreenReaderGroupDescription;
+
+  /// Toggle label for announcing incoming messages to screen readers.
+  ///
+  /// In en, this message translates to:
+  /// **'Announce new messages'**
+  String get accessibilityScreenReaderAnnounceNewMessagesLabel;
+
+  /// Toggle description for announcing incoming messages to screen readers.
+  ///
+  /// In en, this message translates to:
+  /// **'Read new messages aloud when they arrive in the active channel.'**
+  String get accessibilityScreenReaderAnnounceNewMessagesDescription;
+
+  /// Section title for reduced motion accessibility settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduced motion'**
+  String get accessibilityReducedMotionGroupTitle;
+
+  /// Section description for reduced motion accessibility settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Control animation and motion effects.'**
+  String get accessibilityReducedMotionGroupDescription;
+
+  /// Toggle label for syncing reduced motion with the operating system setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync with system reduced motion'**
+  String get accessibilitySyncReducedMotionWithSystemLabel;
+
+  /// Toggle description for syncing reduced motion with the operating system setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Use your device\'s reduced motion setting to limit animations in Fluxer.'**
+  String get accessibilitySyncReducedMotionWithSystemDescription;
+
+  /// Toggle label for forcing reduced motion in Fluxer.
+  ///
+  /// In en, this message translates to:
+  /// **'Always reduce motion'**
+  String get accessibilityReducedMotionOverrideLabel;
+
+  /// Toggle description for forcing reduced motion in Fluxer.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable animations in Fluxer regardless of your system setting.'**
+  String get accessibilityReducedMotionOverrideDescription;
+
+  /// Screen reader announcement spoken when a new message arrives.
+  ///
+  /// In en, this message translates to:
+  /// **'{author} sent {summary}'**
+  String messageScreenReaderAnnouncement(String author, String summary);
+
   /// Section title for media button visibility settings on the accessibility settings page.
   ///
   /// In en, this message translates to:
@@ -11916,6 +11982,96 @@ abstract class FluxerLocalizations {
   /// **'Message'**
   String get composerHint;
 
+  /// Accessibility label for the composer button that opens the emoji and media picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Open expression picker'**
+  String get composerOpenExpressionPicker;
+
+  /// Accessibility label for the composer button that closes the expression picker and shows the keyboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Show keyboard'**
+  String get composerShowKeyboard;
+
+  /// Screen reader label for a chat message row.
+  ///
+  /// In en, this message translates to:
+  /// **'{author}, {summary}'**
+  String messageAccessibilityLabel(String author, String summary);
+
+  /// Screen reader suffix when a message is still sending.
+  ///
+  /// In en, this message translates to:
+  /// **', sending'**
+  String get messageAccessibilitySendingSuffix;
+
+  /// Screen reader suffix when a message failed to send.
+  ///
+  /// In en, this message translates to:
+  /// **', failed to send'**
+  String get messageAccessibilityFailedSuffix;
+
+  /// Screen reader summary for a message with attachments but no text.
+  ///
+  /// In en, this message translates to:
+  /// **'an attachment'**
+  String get messageAccessibilityAttachmentSummary;
+
+  /// Screen reader summary for a message with multiple attachments and no text.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} attachments'**
+  String messageAccessibilityAttachmentsSummary(int count);
+
+  /// Screen reader summary for a message with an image attachment or embed.
+  ///
+  /// In en, this message translates to:
+  /// **'an image'**
+  String get messageAccessibilityImageSummary;
+
+  /// Screen reader summary for a message with a video attachment or embed.
+  ///
+  /// In en, this message translates to:
+  /// **'a video'**
+  String get messageAccessibilityVideoSummary;
+
+  /// Screen reader summary for a message with an audio attachment.
+  ///
+  /// In en, this message translates to:
+  /// **'an audio file'**
+  String get messageAccessibilityAudioSummary;
+
+  /// Screen reader summary for a message with a sticker and no text.
+  ///
+  /// In en, this message translates to:
+  /// **'sticker {name}'**
+  String messageAccessibilityStickerSummary(String name);
+
+  /// Screen reader summary for a message with a single file attachment and no text.
+  ///
+  /// In en, this message translates to:
+  /// **'file {filename}'**
+  String messageAccessibilityFileSummary(String filename);
+
+  /// Screen reader summary for a message with a spoiler attachment and no text.
+  ///
+  /// In en, this message translates to:
+  /// **'a spoiler attachment'**
+  String get messageAccessibilitySpoilerAttachmentSummary;
+
+  /// Screen reader summary for a message with embeds but no text.
+  ///
+  /// In en, this message translates to:
+  /// **'an embed'**
+  String get messageAccessibilityEmbedSummary;
+
+  /// Screen reader summary fallback for a message without visible text.
+  ///
+  /// In en, this message translates to:
+  /// **'a message'**
+  String get messageAccessibilityEmptySummary;
+
   /// Short subtitle in channel details for personal notes.
   ///
   /// In en, this message translates to:
@@ -14413,6 +14569,24 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Collapse {folderName}'**
   String guildNavbarCollapseFolder(String folderName);
+
+  /// Screen reader suffix when a guild navbar item is selected.
+  ///
+  /// In en, this message translates to:
+  /// **'selected'**
+  String get guildNavbarGuildSelected;
+
+  /// Screen reader suffix when a guild navbar item has unread channels.
+  ///
+  /// In en, this message translates to:
+  /// **'unread'**
+  String get guildNavbarGuildUnread;
+
+  /// Screen reader suffix when a guild navbar item has mention notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 mention} other{{count} mentions}}'**
+  String guildNavbarGuildMentions(int count);
 
   /// Title of the community folder settings modal.
   ///

@@ -129,6 +129,59 @@ class UserAccessibility extends ConsumerWidget {
             ],
           ),
           FluxerSettingsSection(
+            title: l10n.accessibilityScreenReaderGroupTitle,
+            description: l10n.accessibilityScreenReaderGroupDescription,
+            children: [
+              FluxerSettingsSwitchGroup(
+                children: [
+                  FluxerSettingsSwitchItem.grouped(
+                    label:
+                        l10n.accessibilityScreenReaderAnnounceNewMessagesLabel,
+                    description: l10n
+                        .accessibilityScreenReaderAnnounceNewMessagesDescription,
+                    value: appearance.screenReaderAnnounceNewMessages,
+                    onChanged: (value) => unawaited(
+                      appearanceNotifier.setScreenReaderAnnounceNewMessages(
+                        value: value,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          FluxerSettingsSection(
+            title: l10n.accessibilityReducedMotionGroupTitle,
+            description: l10n.accessibilityReducedMotionGroupDescription,
+            children: [
+              FluxerSettingsSwitchGroup(
+                children: [
+                  FluxerSettingsSwitchItem.grouped(
+                    label: l10n.accessibilitySyncReducedMotionWithSystemLabel,
+                    description: l10n
+                        .accessibilitySyncReducedMotionWithSystemDescription,
+                    value: appearance.syncReducedMotionWithSystem,
+                    onChanged: (value) => unawaited(
+                      appearanceNotifier.setSyncReducedMotionWithSystem(
+                        value: value,
+                      ),
+                    ),
+                  ),
+                  FluxerSettingsSwitchItem.grouped(
+                    label: l10n.accessibilityReducedMotionOverrideLabel,
+                    description:
+                        l10n.accessibilityReducedMotionOverrideDescription,
+                    value: appearance.reducedMotionOverride,
+                    enabled: !appearance.syncReducedMotionWithSystem,
+                    onChanged: (value) => unawaited(
+                      appearanceNotifier.setReducedMotionOverride(value: value),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          FluxerSettingsSection(
             title: l10n.accessibilityMediaButtonsGroupTitle,
             description: l10n.accessibilityMediaButtonsGroupDescription,
             children: [

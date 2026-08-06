@@ -110,6 +110,12 @@ class UserPreferencesTable extends Table {
   TextColumn get voiceSettingsJson => text().withDefault(const Constant(''))();
   RealColumn get saturationFactor => real().withDefault(const Constant(1))();
   TextColumn get customThemeCss => text().withDefault(const Constant(''))();
+  BoolColumn get screenReaderAnnounceNewMessages =>
+      boolean().withDefault(const Constant(false))();
+  BoolColumn get syncReducedMotionWithSystem =>
+      boolean().withDefault(const Constant(true))();
+  BoolColumn get reducedMotionOverride =>
+      boolean().withDefault(const Constant(false))();
 
   @override
   String get tableName => 'user_preferences';

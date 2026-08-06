@@ -4457,6 +4457,48 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
       'Μην εμφανίζετε προεπισκοπήσεις μηνυμάτων στη λίστα DM';
 
   @override
+  String get accessibilityScreenReaderGroupTitle => 'Screen reader';
+
+  @override
+  String get accessibilityScreenReaderGroupDescription =>
+      'Control how Fluxer works with screen readers.';
+
+  @override
+  String get accessibilityScreenReaderAnnounceNewMessagesLabel =>
+      'Announce new messages';
+
+  @override
+  String get accessibilityScreenReaderAnnounceNewMessagesDescription =>
+      'Read new messages aloud when they arrive in the active channel.';
+
+  @override
+  String get accessibilityReducedMotionGroupTitle => 'Reduced motion';
+
+  @override
+  String get accessibilityReducedMotionGroupDescription =>
+      'Control animation and motion effects.';
+
+  @override
+  String get accessibilitySyncReducedMotionWithSystemLabel =>
+      'Sync with system reduced motion';
+
+  @override
+  String get accessibilitySyncReducedMotionWithSystemDescription =>
+      'Use your device\'s reduced motion setting to limit animations in Fluxer.';
+
+  @override
+  String get accessibilityReducedMotionOverrideLabel => 'Always reduce motion';
+
+  @override
+  String get accessibilityReducedMotionOverrideDescription =>
+      'Disable animations in Fluxer regardless of your system setting.';
+
+  @override
+  String messageScreenReaderAnnouncement(String author, String summary) {
+    return '$author sent $summary';
+  }
+
+  @override
   String get accessibilityMediaButtonsGroupTitle => 'Media Buttons';
 
   @override
@@ -7107,6 +7149,60 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
   String get composerHint => 'Message';
 
   @override
+  String get composerOpenExpressionPicker => 'Open expression picker';
+
+  @override
+  String get composerShowKeyboard => 'Show keyboard';
+
+  @override
+  String messageAccessibilityLabel(String author, String summary) {
+    return '$author, $summary';
+  }
+
+  @override
+  String get messageAccessibilitySendingSuffix => ', sending';
+
+  @override
+  String get messageAccessibilityFailedSuffix => ', failed to send';
+
+  @override
+  String get messageAccessibilityAttachmentSummary => 'an attachment';
+
+  @override
+  String messageAccessibilityAttachmentsSummary(int count) {
+    return '$count attachments';
+  }
+
+  @override
+  String get messageAccessibilityImageSummary => 'an image';
+
+  @override
+  String get messageAccessibilityVideoSummary => 'a video';
+
+  @override
+  String get messageAccessibilityAudioSummary => 'an audio file';
+
+  @override
+  String messageAccessibilityStickerSummary(String name) {
+    return 'sticker $name';
+  }
+
+  @override
+  String messageAccessibilityFileSummary(String filename) {
+    return 'file $filename';
+  }
+
+  @override
+  String get messageAccessibilitySpoilerAttachmentSummary =>
+      'a spoiler attachment';
+
+  @override
+  String get messageAccessibilityEmbedSummary => 'an embed';
+
+  @override
+  String get messageAccessibilityEmptySummary => 'a message';
+
+  @override
   String get personalNotesPrivateSpace => 'Ο ιδιωτικός σας χώρος';
 
   @override
@@ -8563,6 +8659,23 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
   @override
   String guildNavbarCollapseFolder(String folderName) {
     return 'Σύμπτυξη $folderName';
+  }
+
+  @override
+  String get guildNavbarGuildSelected => 'selected';
+
+  @override
+  String get guildNavbarGuildUnread => 'unread';
+
+  @override
+  String guildNavbarGuildMentions(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mentions',
+      one: '1 mention',
+    );
+    return '$_temp0';
   }
 
   @override

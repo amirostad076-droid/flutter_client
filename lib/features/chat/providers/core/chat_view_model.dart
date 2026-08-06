@@ -57,6 +57,7 @@ import 'package:fluxer_app/features/chat/utils/file_upload_validator.dart';
 import 'package:fluxer_app/features/chat/utils/guild_composer_barrier_l10n.dart';
 import 'package:fluxer_app/features/chat/utils/mention_reply_preference_utils.dart';
 import 'package:fluxer_app/features/chat/utils/message_page_sync.dart';
+import 'package:fluxer_app/features/chat/utils/message_screen_reader_announce.dart';
 import 'package:fluxer_app/features/chat/utils/message_send_failure_messages.dart';
 import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
 import 'package:fluxer_app/features/chat/utils/url_sanitization_utils.dart';
@@ -1305,6 +1306,14 @@ class ChatViewModel extends _$ChatViewModel {
       if (ev is MessageCreated) {
         if (ev.event.message.author.id == ref.read(currentUserIdProvider)) {
           clearStickyUnread();
+        } else {
+          announceIncomingMessageIfEnabled(
+            ref,
+            Message.fromSdk(
+              ev.event.message,
+              currentUserId: ref.read(currentUserIdProvider),
+            ),
+          );
         }
         if (!ev.snapshot.acknowledgedByGateway) {
           unawaited(ackCurrentChannel());

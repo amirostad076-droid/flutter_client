@@ -76,6 +76,27 @@ void main() {
       expect(restored.customThemeCss, isNull);
     });
 
+    test('roundtrips screen reader announce preference', () {
+      const local = AccessibilityLocalState(
+        hideKeyboardHints: false,
+        channelTypingIndicatorMode: ChannelTypingIndicatorMode.avatars,
+        showSelectedChannelTypingIndicator: false,
+        showFadedUnreadOnMutedChannels: false,
+        dmMessagePreviewMode: DmMessagePreviewMode.all,
+        showFavorites: true,
+        useSystemLocaleForTimeFormat: false,
+        messageGroupSpacing: 16,
+        compactMessageGroupSpacing: 0,
+        saturationFactor: 1,
+        customThemeCss: null,
+        screenReaderAnnounceNewMessages: true,
+        advanced: kDefaultAdvancedAccessibility,
+      );
+      final proto = AccessibilitySyncedField.toProto(local);
+      final restored = AccessibilitySyncedField.fromProto(proto);
+      expect(restored.screenReaderAnnounceNewMessages, isTrue);
+    });
+
     test('toProtoForPush preserves desktop-only fields from wire base', () {
       const local = AccessibilityLocalState(
         hideKeyboardHints: true,
@@ -96,6 +117,8 @@ void main() {
       final wireBase = accessibility_pb.AccessibilitySettings(
         showMessageSendButton: true,
         autoSendKlipyGifs: true,
+        syncReducedMotionWithSystem: false,
+        reducedMotionOverride: true,
       );
       final pushed = AccessibilitySyncedField.toProtoForPush(
         local: local,
@@ -104,6 +127,28 @@ void main() {
       expect(pushed.showMessageSendButton, isTrue);
       expect(pushed.autoSendKlipyGifs, isTrue);
       expect(pushed.hideKeyboardHints, isTrue);
+      expect(pushed.syncReducedMotionWithSystem, isFalse);
+      expect(pushed.reducedMotionOverride, isTrue);
+    });
+
+    test('toProto does not write local-only motion fields', () {
+      const local = AccessibilityLocalState(
+        hideKeyboardHints: false,
+        channelTypingIndicatorMode: ChannelTypingIndicatorMode.avatars,
+        showSelectedChannelTypingIndicator: false,
+        showFadedUnreadOnMutedChannels: false,
+        dmMessagePreviewMode: DmMessagePreviewMode.all,
+        showFavorites: true,
+        useSystemLocaleForTimeFormat: false,
+        messageGroupSpacing: 16,
+        compactMessageGroupSpacing: 0,
+        saturationFactor: 1,
+        customThemeCss: null,
+        advanced: kDefaultAdvancedAccessibility,
+      );
+      final proto = AccessibilitySyncedField.toProto(local);
+      expect(proto.hasSyncReducedMotionWithSystem(), isFalse);
+      expect(proto.hasReducedMotionOverride(), isFalse);
     });
 
     test('toProtoForPush keeps wire custom theme css when local has none', () {

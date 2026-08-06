@@ -1144,49 +1144,61 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget> {
                 child: MouseRegion(
                   onEnter: (_) => setState(() => _isHovered = true),
                   onExit: (_) => setState(() => _isHovered = false),
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      if (_suppressNextFolderTap) {
-                        _suppressNextFolderTap = false;
-                        return;
-                      }
-                      ref
-                          .read(folderExpandedStateProvider.notifier)
-                          .toggle(folder.id);
-                    },
-                    onSecondaryTapUp: (TapUpDetails details) {
-                      unawaited(
-                        _showFolderContextMenu(context, details.globalPosition),
-                      );
-                    },
-                    child: SizedBox(
-                      width: 48,
-                      height: 48,
-                      child: isExpanded
-                          ? Center(
-                              child: PhosphorIcon(
-                                guildFolderIconForName(folder.icon),
-                                color: context.colors.textPrimary,
-                                size: 24,
-                              ),
-                            )
-                          : Center(
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 70),
-                                curve: Curves.easeOut,
-                                width: 48,
-                                height: 48,
-                                decoration: BoxDecoration(
-                                  color: folderSurface,
-                                  borderRadius: BorderRadius.circular(48 * 0.3),
+                  child: Semantics(
+                    button: true,
+                    expanded: isExpanded,
+                    label: isExpanded
+                        ? l10n.guildNavbarCollapseFolder(folderName)
+                        : folderName,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        if (_suppressNextFolderTap) {
+                          _suppressNextFolderTap = false;
+                          return;
+                        }
+                        ref
+                            .read(folderExpandedStateProvider.notifier)
+                            .toggle(folder.id);
+                      },
+                      onSecondaryTapUp: (TapUpDetails details) {
+                        unawaited(
+                          _showFolderContextMenu(
+                            context,
+                            details.globalPosition,
+                          ),
+                        );
+                      },
+                      child: SizedBox(
+                        width: 48,
+                        height: 48,
+                        child: isExpanded
+                            ? Center(
+                                child: PhosphorIcon(
+                                  guildFolderIconForName(folder.icon),
+                                  color: context.colors.textPrimary,
+                                  size: 24,
                                 ),
-                                child: _buildFolderContent(
-                                  context,
-                                  folderAccent,
+                              )
+                            : Center(
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 70),
+                                  curve: Curves.easeOut,
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color: folderSurface,
+                                    borderRadius: BorderRadius.circular(
+                                      48 * 0.3,
+                                    ),
+                                  ),
+                                  child: _buildFolderContent(
+                                    context,
+                                    folderAccent,
+                                  ),
                                 ),
                               ),
-                            ),
+                      ),
                     ),
                   ),
                 ),
@@ -2234,6 +2246,19 @@ class _GuildListItemState extends State<_GuildListItem>
   int get _displayMentionCount =>
       widget.guildUnreadReady ? widget.mentionCount : 0;
 
+  String _guildSemanticLabel(FluxerLocalizations l10n) {
+    final StringBuffer label = StringBuffer(widget.label);
+    if (widget.isSelected) {
+      label.write(', ${l10n.guildNavbarGuildSelected}');
+    }
+    if (_displayMentionCount > 0) {
+      label.write(', ${l10n.guildNavbarGuildMentions(_displayMentionCount)}');
+    } else if (_displayHasUnread) {
+      label.write(', ${l10n.guildNavbarGuildUnread}');
+    }
+    return label.toString();
+  }
+
   Duration get _unreadIndicatorDuration {
     if (!widget.guildUnreadReady || !_animateUnreadIndicator) {
       return Duration.zero;
@@ -2272,6 +2297,7 @@ class _GuildListItemState extends State<_GuildListItem>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     final isActive = widget.isSelected || _isHovered;
     final activeAnimatedIconUrl = isActive
         ? widget.guild?.animatedIconUrl
@@ -2342,70 +2368,79 @@ class _GuildListItemState extends State<_GuildListItem>
                 child: MouseRegion(
                   onEnter: (_) => setState(() => _isHovered = true),
                   onExit: (_) => setState(() => _isHovered = false),
-                  child: GestureDetector(
-                    onTap: widget.onTap,
-                    onSecondaryTapUp: widget.guild != null
-                        ? (details) => unawaited(
-                            _showContextMenu(context, details.globalPosition),
-                          )
-                        : null,
-                    onLongPress:
-                        widget.guild != null && widget.enableLongPressMenu
-                        ? () => unawaited(_showActionSheet(context))
-                        : null,
-                    child: SizedBox(
-                      width: 48,
-                      height: 48,
-                      child: Center(
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 70),
-                          curve: Curves.easeOut,
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: bgColor,
-                            borderRadius: BorderRadius.circular(borderRadius),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadiusGeometry.circular(
-                              borderRadius,
+                  child: Semantics(
+                    button: true,
+                    selected: widget.isSelected,
+                    label: _guildSemanticLabel(l10n),
+                    child: GestureDetector(
+                      onTap: widget.onTap,
+                      onSecondaryTapUp: widget.guild != null
+                          ? (details) => unawaited(
+                              _showContextMenu(context, details.globalPosition),
+                            )
+                          : null,
+                      onLongPress:
+                          widget.guild != null && widget.enableLongPressMenu
+                          ? () => unawaited(_showActionSheet(context))
+                          : null,
+                      child: SizedBox(
+                        width: 48,
+                        height: 48,
+                        child: Center(
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 70),
+                            curve: Curves.easeOut,
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: bgColor,
+                              borderRadius: BorderRadius.circular(borderRadius),
                             ),
-                            child: widget.isUnavailable
-                                ? Center(
-                                    child: PhosphorIcon(
-                                      PhosphorIconsBold.exclamationMark,
-                                      color: context.colors.textOnBrandPrimary,
-                                      size: 32,
-                                    ),
-                                  )
-                                : iconUrl != null
-                                ? CachedNetworkImage(
-                                    imageUrl: iconUrl,
-                                    memCacheWidth: _guildNavbarIconMemCache(
+                            child: ClipRRect(
+                              borderRadius: BorderRadiusGeometry.circular(
+                                borderRadius,
+                              ),
+                              child: widget.isUnavailable
+                                  ? Center(
+                                      child: PhosphorIcon(
+                                        PhosphorIconsBold.exclamationMark,
+                                        color:
+                                            context.colors.textOnBrandPrimary,
+                                        size: 32,
+                                      ),
+                                    )
+                                  : iconUrl != null
+                                  ? CachedNetworkImage(
+                                      imageUrl: iconUrl,
+                                      memCacheWidth: _guildNavbarIconMemCache(
+                                        context,
+                                        44,
+                                      ),
+                                      memCacheHeight: _guildNavbarIconMemCache(
+                                        context,
+                                        44,
+                                      ),
+                                      fadeInDuration:
+                                          activeAnimatedIconUrl != null
+                                          ? const Duration(milliseconds: 200)
+                                          : const Duration(milliseconds: 500),
+                                      errorBuilder: (context, url, error) =>
+                                          _buildBackupIcon(
+                                            context,
+                                            isActive: isActive,
+                                          ),
+                                      progressIndicatorBuilder:
+                                          (context, url, progress) =>
+                                              _buildBackupIcon(
+                                                context,
+                                                isActive: isActive,
+                                              ),
+                                    )
+                                  : _buildBackupIcon(
                                       context,
-                                      44,
+                                      isActive: isActive,
                                     ),
-                                    memCacheHeight: _guildNavbarIconMemCache(
-                                      context,
-                                      44,
-                                    ),
-                                    fadeInDuration:
-                                        activeAnimatedIconUrl != null
-                                        ? const Duration(milliseconds: 200)
-                                        : const Duration(milliseconds: 500),
-                                    errorBuilder: (context, url, error) =>
-                                        _buildBackupIcon(
-                                          context,
-                                          isActive: isActive,
-                                        ),
-                                    progressIndicatorBuilder:
-                                        (context, url, progress) =>
-                                            _buildBackupIcon(
-                                              context,
-                                              isActive: isActive,
-                                            ),
-                                  )
-                                : _buildBackupIcon(context, isActive: isActive),
+                            ),
                           ),
                         ),
                       ),
@@ -3900,42 +3935,47 @@ class _DashedGuildIconState extends State<_DashedGuildIcon>
           child: MouseRegion(
             onEnter: (_) => _onEnter(),
             onExit: (_) => _onExit(),
-            child: GestureDetector(
-              onTap: widget.onTap,
-              child: AnimatedBuilder(
-                animation: _controller,
-                builder: (context, _) {
-                  final Color activeColor = widget.isSelected
-                      ? context.colors.brandPrimary
-                      : (_colorAnim.value ?? context.colors.interactiveMuted);
-                  return SizedBox(
-                    width: 48,
-                    height: 48,
-                    child: Center(
-                      child: SizedBox(
-                        width: 44,
-                        height: 44,
-                        child: CustomPaint(
-                          painter: DashedBorderPainter(
-                            shape: DashedBorderShape.roundedRectangle,
-                            borderRadius: widget.isSelected
-                                ? 13
-                                : _radiusAnim.value,
-                            color: activeColor,
-                            isSolid: widget.isSelected,
-                          ),
-                          child: Center(
-                            child: PhosphorIcon(
-                              widget.icon,
+            child: Semantics(
+              button: true,
+              selected: widget.isSelected,
+              label: widget.label,
+              child: GestureDetector(
+                onTap: widget.onTap,
+                child: AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, _) {
+                    final Color activeColor = widget.isSelected
+                        ? context.colors.brandPrimary
+                        : (_colorAnim.value ?? context.colors.interactiveMuted);
+                    return SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Center(
+                        child: SizedBox(
+                          width: 44,
+                          height: 44,
+                          child: CustomPaint(
+                            painter: DashedBorderPainter(
+                              shape: DashedBorderShape.roundedRectangle,
+                              borderRadius: widget.isSelected
+                                  ? 13
+                                  : _radiusAnim.value,
                               color: activeColor,
-                              size: 20,
+                              isSolid: widget.isSelected,
+                            ),
+                            child: Center(
+                              child: PhosphorIcon(
+                                widget.icon,
+                                color: activeColor,
+                                size: 20,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
           ),

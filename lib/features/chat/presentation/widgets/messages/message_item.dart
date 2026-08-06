@@ -34,6 +34,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/messages/spoiler_o
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/expression_picker.dart';
 import 'package:fluxer_app/features/chat/providers/messages/spoiler_reveal_provider.dart';
 import 'package:fluxer_app/features/chat/utils/embed_gallery_utils.dart';
+import 'package:fluxer_app/features/chat/utils/message_accessibility_summary.dart';
 import 'package:fluxer_app/features/chat/utils/message_timestamp_format.dart';
 import 'package:fluxer_app/features/chat/utils/spoiler_utils.dart';
 import 'package:fluxer_app/features/chat/utils/uploading_attachment_utils.dart';
@@ -673,8 +674,18 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       ),
     );
     final onReply = widget.onReply;
+    final Widget semanticBody = Semantics(
+      container: true,
+      label: _messageSemanticLabel(
+        context,
+        msg,
+        isSending: isSending,
+        isFailed: isFailed,
+      ),
+      child: body,
+    );
     if (!isTouch || onReply == null || widget.inboxPreviewMode) {
-      return _wrapMessageSendingDim(dim: dimEntireMessage, child: body);
+      return _wrapMessageSendingDim(dim: dimEntireMessage, child: semanticBody);
     }
     final bool canEditOwnMessage =
         widget.onEdit != null &&
@@ -693,9 +704,31 @@ class _MessageItemState extends ConsumerState<MessageItem> {
             ),
         onReply: onReply,
         onEdit: canEditOwnMessage ? widget.onEdit : null,
-        child: body,
+        child: semanticBody,
       ),
     );
+  }
+
+  String _messageSemanticLabel(
+    BuildContext context,
+    Message msg, {
+    required bool isSending,
+    required bool isFailed,
+  }) {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    final String author = msg.authorName.isNotEmpty
+        ? msg.authorName
+        : msg.authorId;
+    final String summary = messageAccessibilitySummary(msg, l10n);
+    final StringBuffer label = StringBuffer(
+      l10n.messageAccessibilityLabel(author, summary),
+    );
+    if (isSending) {
+      label.write(l10n.messageAccessibilitySendingSuffix);
+    } else if (isFailed) {
+      label.write(l10n.messageAccessibilityFailedSuffix);
+    }
+    return label.toString();
   }
 
   bool _hasUploadingPlaceholderAttachments(Message msg) {

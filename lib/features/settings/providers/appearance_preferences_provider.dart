@@ -48,6 +48,9 @@ class AppearancePreferencesState {
     this.showMediaDownloadButton = true,
     this.showMediaFavoriteButton = true,
     this.showSuppressEmbedsButton = true,
+    this.screenReaderAnnounceNewMessages = false,
+    this.syncReducedMotionWithSystem = true,
+    this.reducedMotionOverride = false,
   });
 
   final ChannelTypingIndicatorMode channelTypingIndicatorMode;
@@ -66,6 +69,9 @@ class AppearancePreferencesState {
   final bool showMediaDownloadButton;
   final bool showMediaFavoriteButton;
   final bool showSuppressEmbedsButton;
+  final bool screenReaderAnnounceNewMessages;
+  final bool syncReducedMotionWithSystem;
+  final bool reducedMotionOverride;
 
   AppearancePreferencesState copyWith({
     ChannelTypingIndicatorMode? channelTypingIndicatorMode,
@@ -84,6 +90,9 @@ class AppearancePreferencesState {
     bool? showMediaDownloadButton,
     bool? showMediaFavoriteButton,
     bool? showSuppressEmbedsButton,
+    bool? screenReaderAnnounceNewMessages,
+    bool? syncReducedMotionWithSystem,
+    bool? reducedMotionOverride,
   }) {
     return AppearancePreferencesState(
       channelTypingIndicatorMode:
@@ -112,6 +121,13 @@ class AppearancePreferencesState {
           showMediaFavoriteButton ?? this.showMediaFavoriteButton,
       showSuppressEmbedsButton:
           showSuppressEmbedsButton ?? this.showSuppressEmbedsButton,
+      screenReaderAnnounceNewMessages:
+          screenReaderAnnounceNewMessages ??
+          this.screenReaderAnnounceNewMessages,
+      syncReducedMotionWithSystem:
+          syncReducedMotionWithSystem ?? this.syncReducedMotionWithSystem,
+      reducedMotionOverride:
+          reducedMotionOverride ?? this.reducedMotionOverride,
     );
   }
 }
@@ -151,6 +167,9 @@ class AppearancePreferences extends _$AppearancePreferences {
         showMediaDownloadButton: prefs.showMediaDownloadButton,
         showMediaFavoriteButton: prefs.showMediaFavoriteButton,
         showSuppressEmbedsButton: prefs.showSuppressEmbedsButton,
+        screenReaderAnnounceNewMessages: prefs.screenReaderAnnounceNewMessages,
+        syncReducedMotionWithSystem: prefs.syncReducedMotionWithSystem,
+        reducedMotionOverride: prefs.reducedMotionOverride,
       );
     }
   }
@@ -173,6 +192,7 @@ class AppearancePreferences extends _$AppearancePreferences {
         showMediaDownloadButton: value.showMediaDownloadButton,
         showMediaFavoriteButton: value.showMediaFavoriteButton,
         showSuppressEmbedsButton: value.showSuppressEmbedsButton,
+        screenReaderAnnounceNewMessages: value.screenReaderAnnounceNewMessages,
       );
       await _persist();
     } finally {
@@ -287,6 +307,22 @@ class AppearancePreferences extends _$AppearancePreferences {
     _markAccessibilityDirty();
   }
 
+  Future<void> setScreenReaderAnnounceNewMessages({required bool value}) async {
+    state = state.copyWith(screenReaderAnnounceNewMessages: value);
+    await _persist();
+    _markAccessibilityDirty();
+  }
+
+  Future<void> setSyncReducedMotionWithSystem({required bool value}) async {
+    state = state.copyWith(syncReducedMotionWithSystem: value);
+    await _persist();
+  }
+
+  Future<void> setReducedMotionOverride({required bool value}) async {
+    state = state.copyWith(reducedMotionOverride: value);
+    await _persist();
+  }
+
   void _markAccessibilityDirty() {
     if (_isApplyingRemote) {
       return;
@@ -343,6 +379,11 @@ class AppearancePreferences extends _$AppearancePreferences {
         showMediaDownloadButton: Value(state.showMediaDownloadButton),
         showMediaFavoriteButton: Value(state.showMediaFavoriteButton),
         showSuppressEmbedsButton: Value(state.showSuppressEmbedsButton),
+        screenReaderAnnounceNewMessages: Value(
+          state.screenReaderAnnounceNewMessages,
+        ),
+        syncReducedMotionWithSystem: Value(state.syncReducedMotionWithSystem),
+        reducedMotionOverride: Value(state.reducedMotionOverride),
       ),
     );
   }

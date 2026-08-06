@@ -6,6 +6,8 @@ import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_mode.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
+import 'package:fluxer_app/features/accessibility/resolve_reduced_motion.dart';
+import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/native_titlebar.dart';
 import 'package:fluxer_app/features/shell/presentation/widgets/required_action_gate.dart';
 import 'package:fluxer_app/features/ui/toast/fluxer_toast_overlay.dart';
@@ -24,6 +26,9 @@ class FluxerApp extends ConsumerWidget {
     final router = ref.watch(fluxerRouterProvider);
     final themePref = ref.watch(themePreferenceProvider);
     final Locale appLocale = ref.watch(effectiveAppLocaleProvider);
+    final AppearancePreferencesState appearance = ref.watch(
+      appearancePreferencesProvider,
+    );
 
     final darkTheme = buildFluxerTheme(
       colorTheme: themePref.darkColorTheme,
@@ -98,7 +103,21 @@ class FluxerApp extends ConsumerWidget {
           );
         }
 
-        return content;
+        final bool platformReducedMotion = MediaQuery.disableAnimationsOf(
+          context,
+        );
+        final bool disableAnimations = resolveReducedMotion(
+          syncReducedMotionWithSystem: appearance.syncReducedMotionWithSystem,
+          reducedMotionOverride: appearance.reducedMotionOverride,
+          platformReducedMotion: platformReducedMotion,
+        );
+        if (!disableAnimations) {
+          return content;
+        }
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(disableAnimations: true),
+          child: content,
+        );
       },
     );
   }
