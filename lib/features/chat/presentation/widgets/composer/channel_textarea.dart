@@ -93,6 +93,7 @@ const double _kMobileComposerSuffixHeight =
     _kMobileComposerSuffixVerticalPadding * 2 +
     _kMobileComposerSuffixButtonExtent;
 const double _kComposerTopPadding = 8;
+const double _kMobileComposerTopPadding = 3;
 const double _kDesktopComposerAttachIconSize = 26;
 const double _kWideComposerActionExtent = 36;
 const double _kWideComposerIconSize = 24;
@@ -768,7 +769,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           child: Padding(
             padding: EdgeInsets.fromLTRB(
               mobileComposer ? 8 : 12,
-              _kComposerTopPadding,
+              mobileComposer
+                  ? _kMobileComposerTopPadding
+                  : _kComposerTopPadding,
               mobileComposer ? 8 : 12,
               mobileComposer ? 8 : 10,
             ),
