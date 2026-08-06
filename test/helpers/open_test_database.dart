@@ -37,8 +37,8 @@ Future<void> _releaseWidgetTree() async {
   if (BindingBase.debugBindingType() == null) {
     return; // No binding was ever initialised, so there is no tree.
   }
-  if (WidgetsBinding.instance
-      case final TestWidgetsFlutterBinding binding when binding.inTest) {
+  if (WidgetsBinding.instance case final TestWidgetsFlutterBinding binding
+      when binding.inTest) {
     binding
       ..attachRootWidget(binding.wrapWithDefaultView(const SizedBox.shrink()))
       ..scheduleFrame();

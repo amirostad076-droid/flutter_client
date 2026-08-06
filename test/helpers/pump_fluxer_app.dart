@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
@@ -33,10 +34,13 @@ Widget pumpFluxerApp({
 
 Future<void> pumpFluxerFrames(
   WidgetTester tester, {
-  Duration duration = const Duration(milliseconds: 100),
+  Duration step = const Duration(milliseconds: 100),
+  Duration timeout = const Duration(seconds: 3),
 }) async {
+  await tester.pumpAndSettle(step, EnginePhase.sendSemanticsUpdate, timeout);
+}
+
+Future<void> pumpFluxerFramesQuick(WidgetTester tester) async {
   await tester.pump();
-  if (duration > Duration.zero) {
-    await tester.pump(duration);
-  }
+  await tester.pump(const Duration(milliseconds: 100));
 }

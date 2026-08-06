@@ -543,9 +543,7 @@ void main() {
         await _waitForDebounce(syncStore);
 
         usersApi.firstPushGate!.complete();
-        for (var i = 0; i < 32; i++) {
-          await pumpEventQueue();
-        }
+        await drainAsyncWork();
         await _waitForDebounce(syncStore);
 
         expect(usersApi.pushCount, greaterThanOrEqualTo(2));
