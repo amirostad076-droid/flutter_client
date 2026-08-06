@@ -621,7 +621,6 @@ platform :mac do
       "--release",
       "--flavor",
       "canary",
-      "--no-codesign",
       "--build-name",
       flutter_build_name,
       "--build-number",
