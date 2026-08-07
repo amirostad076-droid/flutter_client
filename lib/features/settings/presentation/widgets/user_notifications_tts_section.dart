@@ -30,78 +30,84 @@ class UserNotificationsTtsSection extends ConsumerWidget {
     return FluxerSettingsSection(
       title: l10n.notificationsTtsSectionTitle,
       children: [
-        FluxerSettingsSwitchItem(
-          label: l10n.notificationsTtsEnableCommandLabel,
-          description: l10n.notificationsTtsEnableCommandDescription,
-          value: appearance.enableTtsCommand,
-          onChanged: (bool value) =>
-              unawaited(appearanceNotifier.setEnableTtsCommand(value: value)),
-        ),
-        SizedBox(height: layout.s3),
-        Text.rich(
-          TextSpan(
-            style: textStyles.smallText.copyWith(color: colors.textSecondary),
-            children: [
-              TextSpan(text: l10n.notificationsTtsAccessibilityLinkPrefix),
-              WidgetSpan(
-                alignment: PlaceholderAlignment.baseline,
-                baseline: TextBaseline.alphabetic,
-                child: GestureDetector(
-                  onTap: () => unawaited(
-                    UserSettingsModal.show(
-                      context,
-                      initialSection: UserSettingsSection.accessibility,
-                    ),
-                  ),
-                  child: Text(
-                    l10n.notificationsTtsAccessibilityLinkLabel,
-                    style: textStyles.smallText.copyWith(
-                      color: colors.textLink,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FluxerSettingsSwitchItem(
+              label: l10n.notificationsTtsEnableCommandLabel,
+              description: l10n.notificationsTtsEnableCommandDescription,
+              value: appearance.enableTtsCommand,
+              onChanged: (bool value) => unawaited(
+                appearanceNotifier.setEnableTtsCommand(value: value),
+              ),
+            ),
+            SizedBox(height: layout.s3),
+            Text.rich(
+              TextSpan(
+                style: textStyles.smallText.copyWith(
+                  color: colors.textSecondary,
                 ),
+                children: [
+                  TextSpan(text: l10n.notificationsTtsAccessibilityLinkPrefix),
+                  WidgetSpan(
+                    alignment: PlaceholderAlignment.baseline,
+                    baseline: TextBaseline.alphabetic,
+                    child: GestureDetector(
+                      onTap: () => unawaited(
+                        UserSettingsModal.show(
+                          context,
+                          initialSection: UserSettingsSection.accessibility,
+                        ),
+                      ),
+                      child: Text(
+                        l10n.notificationsTtsAccessibilityLinkLabel,
+                        style: textStyles.smallText.copyWith(
+                          color: colors.textLink,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ),
+                  TextSpan(text: l10n.notificationsTtsAccessibilityLinkSuffix),
+                ],
               ),
-              TextSpan(text: l10n.notificationsTtsAccessibilityLinkSuffix),
-            ],
-          ),
+            ),
+          ],
         ),
-        SizedBox(height: layout.s4),
-        Text(
-          l10n.notificationsTtsAutoNarrationTitle,
-          style: textStyles.label.copyWith(color: colors.textPrimary),
-        ),
-        SizedBox(height: layout.s1),
-        Text(
-          l10n.notificationsTtsAutoNarrationDescription,
-          style: textStyles.smallText.copyWith(color: colors.textSecondary),
-        ),
-        SizedBox(height: layout.s3),
-        Semantics(
-          label: l10n.notificationsTtsModeAriaLabel,
-          container: true,
-          child: FluxerRadioGroup<TtsNotificationMode>(
-            value: notificationPrefs.ttsNotificationMode,
-            onChanged: (TtsNotificationMode value) =>
-                unawaited(notificationNotifier.setTtsNotificationMode(value)),
-            items: [
-              FluxerRadioItem(
-                value: TtsNotificationMode.forAllChannels,
-                label: l10n.notificationsTtsModeAllChannelsName,
-                description: l10n.notificationsTtsModeAllChannelsDescription,
+        FluxerSettingsSubsection(
+          title: l10n.notificationsTtsAutoNarrationTitle,
+          description: l10n.notificationsTtsAutoNarrationDescription,
+          children: [
+            Semantics(
+              label: l10n.notificationsTtsModeAriaLabel,
+              container: true,
+              child: FluxerRadioGroup<TtsNotificationMode>(
+                value: notificationPrefs.ttsNotificationMode,
+                onChanged: (TtsNotificationMode value) => unawaited(
+                  notificationNotifier.setTtsNotificationMode(value),
+                ),
+                items: [
+                  FluxerRadioItem(
+                    value: TtsNotificationMode.forAllChannels,
+                    label: l10n.notificationsTtsModeAllChannelsName,
+                    description:
+                        l10n.notificationsTtsModeAllChannelsDescription,
+                  ),
+                  FluxerRadioItem(
+                    value: TtsNotificationMode.forCurrentChannel,
+                    label: l10n.notificationsTtsModeCurrentChannelName,
+                    description:
+                        l10n.notificationsTtsModeCurrentChannelDescription,
+                  ),
+                  FluxerRadioItem(
+                    value: TtsNotificationMode.never,
+                    label: l10n.notificationsTtsModeNeverName,
+                    description: l10n.notificationsTtsModeNeverDescription,
+                  ),
+                ],
               ),
-              FluxerRadioItem(
-                value: TtsNotificationMode.forCurrentChannel,
-                label: l10n.notificationsTtsModeCurrentChannelName,
-                description: l10n.notificationsTtsModeCurrentChannelDescription,
-              ),
-              FluxerRadioItem(
-                value: TtsNotificationMode.never,
-                label: l10n.notificationsTtsModeNeverName,
-                description: l10n.notificationsTtsModeNeverDescription,
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ],
     );
