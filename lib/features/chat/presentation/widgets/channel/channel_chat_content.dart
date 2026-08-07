@@ -272,13 +272,13 @@ class _ChannelChatContentState extends ConsumerState<ChannelChatContent> {
 
     final bool reserveBottomSafeArea = chatLayoutReservesBottomSafeArea(
       isMobile: isMobile,
-      keyboardSlotOccupied: isMobile
-          ? false
-          : ref.watch(
-              bottomInputSlotProvider.select(
-                (BottomInputSlotState state) => state.slotHeight > 0,
-              ),
+      keyboardSlotOccupied:
+          !isMobile &&
+          ref.watch(
+            bottomInputSlotProvider.select(
+              (BottomInputSlotState state) => state.slotHeight > 0,
             ),
+          ),
     );
 
     return ColoredBox(

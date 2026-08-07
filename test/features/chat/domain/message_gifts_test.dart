@@ -13,13 +13,9 @@ void main() {
     timestamp: DateTime.utc(2026),
   );
 
-  setUp(() {
-    InstanceEndpoints.resetToDefaults();
-  });
+  setUp(InstanceEndpoints.resetToDefaults);
 
-  tearDown(() {
-    InstanceEndpoints.resetToDefaults();
-  });
+  tearDown(InstanceEndpoints.resetToDefaults);
 
   group('Message.gifts', () {
     test('returns empty when no gift links', () {

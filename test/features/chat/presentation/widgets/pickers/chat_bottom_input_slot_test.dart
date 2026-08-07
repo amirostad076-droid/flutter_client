@@ -38,10 +38,10 @@ Widget _buildSpacerHarness(ProviderContainer container) {
         textTheme: FluxerTextTheme.fromColors(colorTheme),
         layoutTheme: FluxerLayoutTheme.scaled(),
       ),
-      home: Scaffold(
+      home: const Scaffold(
         body: MediaQuery(
           data: _mobileMediaQuery,
-          child: const Column(
+          child: Column(
             children: <Widget>[
               Expanded(child: SizedBox()),
               BottomInputSpacer(),
@@ -75,7 +75,7 @@ void main() {
             textTheme: FluxerTextTheme.fromColors(buildDarkColorTheme()),
             layoutTheme: FluxerLayoutTheme.scaled(),
           ),
-          home: Scaffold(
+          home: const Scaffold(
             body: MediaQuery(
               data: _mobileMediaQuery,
               child: SafeArea(

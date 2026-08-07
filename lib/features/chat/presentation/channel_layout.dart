@@ -157,13 +157,13 @@ class _ChannelLayoutState extends ConsumerState<ChannelLayout> {
     );
     final bool reserveBottomSafeArea = chatLayoutReservesBottomSafeArea(
       isMobile: isMobile,
-      keyboardSlotOccupied: isMobile
-          ? false
-          : ref.watch(
-              bottomInputSlotProvider.select(
-                (BottomInputSlotState state) => state.slotHeight > 0,
-              ),
+      keyboardSlotOccupied:
+          !isMobile &&
+          ref.watch(
+            bottomInputSlotProvider.select(
+              (BottomInputSlotState state) => state.slotHeight > 0,
             ),
+          ),
     );
 
     return MobileChatBackScope(

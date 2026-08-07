@@ -155,7 +155,6 @@ void main() {
         mobileGifAutoplayOverridden: true,
         mobileAnimateEmojiOverridden: true,
         mobileStickerAnimationOverridden: true,
-        mobileGifAutoplayValue: true,
         mobileAnimateEmojiValue: false,
         advanced: kDefaultAdvancedAccessibility,
       );

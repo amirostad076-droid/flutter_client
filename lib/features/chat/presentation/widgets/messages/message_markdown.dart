@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
-import 'package:fluxer_app/features/settings/providers/advanced_preferences_provider.dart';
-import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
-import 'package:fluxer_app/features/settings/domain/search_provider_engine.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/utils/markdown_timestamp_format.dart';
+import 'package:fluxer_app/features/settings/domain/search_provider_engine.dart';
+import 'package:fluxer_app/features/settings/providers/advanced_preferences_provider.dart';
+import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/use_12_hour_time_format_provider.dart';
 import 'package:fluxer_app/features/settings/utils/search_selection_context_menu.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';

@@ -194,7 +194,6 @@ class _EmbedCard extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(width: 48, child: Center(child: icon)),
               const SizedBox(width: 12),

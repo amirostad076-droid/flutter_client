@@ -9,8 +9,6 @@ void main() {
         const MotionPreferencesInput(
           syncWithSystem: false,
           manualReducedMotion: true,
-          animateEmoji: true,
-          gifAutoPlay: true,
         ),
       );
       expect(model.reducedMotion, isTrue);
@@ -27,9 +25,6 @@ void main() {
         const MotionPreferencesInput(
           syncWithSystem: false,
           manualReducedMotion: true,
-          animateEmoji: true,
-          gifAutoPlay: true,
-          animateStickers: StickerAnimationOptions.alwaysAnimate,
           keepAnimatedEmojiUnderReducedMotion: true,
           keepGifAutoPlayUnderReducedMotion: true,
           keepStickerAnimationUnderReducedMotion: true,
@@ -48,7 +43,7 @@ void main() {
 
     test('uses mobile gif default when not overridden', () {
       final model = resolveMotionPreferencesModel(
-        const MotionPreferencesInput(isMobile: true, gifAutoPlay: true),
+        const MotionPreferencesInput(isMobile: true),
       );
       expect(model.effectiveGifAutoPlay, isTrue);
     });

@@ -83,13 +83,13 @@ void main() {
       await tester.tap(editableFinder);
       await tester.pump();
       final editable = tester.widget<EditableText>(editableFinder);
-      expect(editable.focusNode!.hasFocus, isTrue);
+      expect(editable.focusNode.hasFocus, isTrue);
 
       await tester.tap(find.bySemanticsLabel('Open color picker'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
 
-      expect(editable.focusNode!.hasFocus, isFalse);
+      expect(editable.focusNode.hasFocus, isFalse);
     });
   });
 }
