@@ -609,6 +609,16 @@ platform :mac do
       build_configuration: "Release-canary",
       code_signing_identity: "Apple Distribution"
     )
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "macos/Runner.xcodeproj",
+      team_id: ENV.fetch("APPLE_TEAM_ID"),
+      targets: ["Runner"],
+      build_configurations: ["Release-canary"],
+      code_sign_identity: "Apple Distribution",
+      profile_uuid: runner_profile_uuid,
+      sdk: "macosx*"
+    )
     cocoapods(
       podfile: "macos/Podfile",
       clean_install: true
@@ -649,6 +659,7 @@ platform :mac do
         "FLUTTER_BUILD_NAME=#{flutter_build_name}",
         "FLUTTER_BUILD_NUMBER=#{flutter_build_number}",
         "CODE_SIGN_STYLE=Manual",
+        "CODE_SIGN_IDENTITY[sdk=macosx*]=Apple Distribution",
       ].join(" ")
     )
     changelog = "Build from GitHub Actions run: #{ENV['GITHUB_SERVER_URL']}/#{ENV['GITHUB_REPOSITORY']}/actions/runs/#{ENV['GITHUB_RUN_ID']}"
