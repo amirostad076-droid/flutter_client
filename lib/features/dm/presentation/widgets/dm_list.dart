@@ -391,10 +391,7 @@ class _DMListState extends ConsumerState<DMList> {
             Expanded(
               child: Text(
                 'Quick Switcher',
-                style: TextStyle(
-                  color: context.colors.textPrimaryMuted,
-                  fontSize: 13,
-                ),
+                style: context.textStyles.bodySmall.copyWith(fontSize: 13),
               ),
             ),
             _buildKbdBadge(context, 'CTRL'),
@@ -414,10 +411,9 @@ class _DMListState extends ConsumerState<DMList> {
     ),
     child: Text(
       label,
-      style: TextStyle(
+      style: context.textStyles.smallText.copyWith(
         color: context.colors.textPrimaryMuted,
         fontSize: 10,
-        fontWeight: FontWeight.w600,
       ),
     ),
   );
@@ -596,12 +592,7 @@ class _DMListState extends ConsumerState<DMList> {
                     const SizedBox(width: 8),
                     Text(
                       l10n.dmAddFriends,
-                      style: TextStyle(
-                        color: context.colors.textPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        height: 20 / 14,
-                      ),
+                      style: context.textStyles.label.copyWith(height: 20 / 14),
                     ),
                   ],
                 ),
@@ -623,9 +614,8 @@ class _DMListState extends ConsumerState<DMList> {
                     alignment: Alignment.center,
                     child: Text(
                       '$pendingCount',
-                      style: TextStyle(
+                      style: context.textStyles.smallText.copyWith(
                         color: context.colors.textPrimary,
-                        fontSize: 12,
                         fontWeight: FontWeight.w700,
                         height: 16 / 12,
                       ),
@@ -746,12 +736,10 @@ class _DMListState extends ConsumerState<DMList> {
         const SizedBox(width: 12),
         Text(
           FluxerLocalizations.of(context).personalNotesTitle,
-          style: TextStyle(
+          style: context.textStyles.username.copyWith(
             color: isSelected
                 ? context.colors.surfaceInteractiveSelectedColor
                 : context.colors.textPrimary,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
           ),
         ),
       ],
@@ -772,10 +760,9 @@ class _DMListState extends ConsumerState<DMList> {
           Expanded(
             child: Text(
               l10n.dmListDirectMessagesTitle,
-              style: TextStyle(
+              style: context.textStyles.label.copyWith(
                 color: context.colors.textPrimaryMuted,
                 fontSize: 13,
-                fontWeight: FontWeight.w500,
               ),
             ),
           ),
@@ -873,7 +860,7 @@ class _DMListState extends ConsumerState<DMList> {
       fontSize: isMobile ? 16 : 13,
       height: isMobile ? null : 16 / 13,
     );
-    final secondaryStyle = TextStyle(
+    final secondaryStyle = context.textStyles.timestamp.copyWith(
       color: secondaryColor,
       fontSize: 11,
       fontWeight: FontWeight.w500,
@@ -980,9 +967,8 @@ class _DMListState extends ConsumerState<DMList> {
               const SizedBox(width: 8),
               Text(
                 _formatRelativeTime(c.lastMessageTime),
-                style: TextStyle(
+                style: context.textStyles.timestamp.copyWith(
                   color: timestampColor,
-                  fontSize: 12,
                   height: 16 / 12,
                 ),
               ),

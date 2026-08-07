@@ -124,7 +124,7 @@ class _AppBottomNavItem extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 config.label,
-                style: TextStyle(fontSize: 12, color: itemColor),
+                style: context.textStyles.timestamp.copyWith(color: itemColor),
               ),
             ],
           ),

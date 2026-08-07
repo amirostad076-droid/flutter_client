@@ -2075,17 +2075,15 @@ class _MessageListState extends ConsumerState<MessageList> {
                       const SizedBox(height: 16),
                       Text(
                         'No messages yet',
-                        style: TextStyle(
+                        style: context.textStyles.bodyMedium.copyWith(
                           color: context.colors.textPrimaryMuted,
-                          fontSize: 16,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Be the first to send a message!',
-                        style: TextStyle(
+                        style: context.textStyles.bodySmall.copyWith(
                           color: context.colors.textTertiaryMuted,
-                          fontSize: 14,
                         ),
                       ),
                     ],

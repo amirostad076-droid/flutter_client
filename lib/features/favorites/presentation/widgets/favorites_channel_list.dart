@@ -535,9 +535,8 @@ class _DmPlaceholderAvatar extends StatelessWidget {
       ),
       child: Text(
         'DM',
-        style: TextStyle(
+        style: context.textStyles.smallText.copyWith(
           fontSize: 10,
-          fontWeight: FontWeight.w600,
           color: context.colors.brandPrimary,
         ),
       ),

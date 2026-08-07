@@ -50,10 +50,8 @@ class _VoiceConnectionDetailsPopoutState
                 Expanded(
                   child: Text(
                     l10n.voiceConnectionTitle,
-                    style: TextStyle(
+                    style: context.textStyles.categoryName.copyWith(
                       color: colors.textPrimary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -111,7 +109,7 @@ class _VoiceConnectionDetailsPopoutState
                   Expanded(
                     child: Text(
                       l10n.voiceConnectionAdvancedStats,
-                      style: TextStyle(
+                      style: context.textStyles.smallText.copyWith(
                         color: colors.textTertiary,
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -167,7 +165,7 @@ class _Section extends StatelessWidget {
       children: <Widget>[
         Text(
           title,
-          style: TextStyle(
+          style: context.textStyles.smallText.copyWith(
             color: context.colors.textTertiary,
             fontSize: 11,
             fontWeight: FontWeight.w700,
@@ -194,15 +192,15 @@ class _Row extends StatelessWidget {
         children: <Widget>[
           Text(
             label,
-            style: TextStyle(color: context.colors.textSecondary, fontSize: 12),
+            style: context.textStyles.timestamp.copyWith(
+              color: context.colors.textSecondary,
+            ),
           ),
           const Spacer(),
           Text(
             value,
-            style: TextStyle(
+            style: context.textStyles.smallText.copyWith(
               color: context.colors.textPrimary,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
             ),
           ),
         ],

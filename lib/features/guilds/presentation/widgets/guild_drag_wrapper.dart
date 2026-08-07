@@ -723,10 +723,9 @@ class _DragFeedbackInitials extends StatelessWidget {
     return Center(
       child: Text(
         initials,
-        style: TextStyle(
+        style: context.textStyles.smallText.copyWith(
           color: color,
           fontSize: _dragFeedbackInitialsFontSize(initialsLength),
-          fontWeight: FontWeight.w600,
           height: 1,
         ),
       ),
@@ -776,9 +775,9 @@ class _FolderMiniGrid extends StatelessWidget {
                             child: Center(
                               child: Text(
                                 abbreviateGuildName(guild.name, maxLength: 2),
-                                style: const TextStyle(
+                                style: context.textStyles.smallText.copyWith(
                                   fontSize: 8,
-                                  fontWeight: FontWeight.w600,
+                                  color: context.colors.textPrimary,
                                 ),
                               ),
                             ),

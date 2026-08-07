@@ -128,11 +128,11 @@ class AttachmentImage extends StatelessWidget {
                 color: Colors.black.withValues(alpha: 0.72),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 child: Text(
                   'GIF',
-                  style: TextStyle(
+                  style: context.textStyles.smallText.copyWith(
                     color: Colors.white,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,

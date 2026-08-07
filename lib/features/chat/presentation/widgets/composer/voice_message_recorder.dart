@@ -710,10 +710,10 @@ class _VoiceMessageRecorderState extends ConsumerState<VoiceMessageRecorder>
                     const SizedBox(width: 10),
                     Text(
                       formatVoiceDurationMs(_recordingDurationMs),
-                      style: const TextStyle(
+                      style: context.textStyles.label.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
-                        fontFeatures: [FontFeature.tabularFigures()],
+                        fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
                     const SizedBox(width: 10),

@@ -125,9 +125,8 @@ class _ReactionChip extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 '${reaction.count}',
-                style: TextStyle(
+                style: context.textStyles.smallText.copyWith(
                   color: _chipCountColor(context, hasReacted: hasReacted),
-                  fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
               ),

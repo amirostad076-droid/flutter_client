@@ -168,10 +168,9 @@ class QuickSwitcherResultRow extends StatelessWidget {
       children: <Widget>[
         Text(
           title,
-          style: TextStyle(
+          style: context.textStyles.username.copyWith(
             color: titleColor,
             fontSize: 15,
-            fontWeight: FontWeight.w500,
             height: 18 / 15,
           ),
           maxLines: 1,
@@ -181,7 +180,7 @@ class QuickSwitcherResultRow extends StatelessWidget {
           const SizedBox(height: 1),
           Text(
             subtitle,
-            style: TextStyle(
+            style: context.textStyles.bodySmall.copyWith(
               color: subtitleColor,
               fontSize: 13,
               height: 16 / 13,

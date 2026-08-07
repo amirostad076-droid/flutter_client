@@ -94,9 +94,7 @@ class _QuickSwitcherTabButton extends StatelessWidget {
         return AnimatedDefaultTextStyle(
           duration: motion.normal,
           curve: motion.curve,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
+          style: context.textStyles.categoryName.copyWith(
             height: 18 / 14,
             color: isSelected ? colors.textPrimary : colors.textSecondary,
           ),

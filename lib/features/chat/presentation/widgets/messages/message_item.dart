@@ -940,10 +940,8 @@ class _MessageItemState extends ConsumerState<MessageItem> {
               const SizedBox(width: 4),
               Text(
                 FluxerLocalizations.of(context).chatMessageFailedToSend,
-                style: TextStyle(
+                style: context.textStyles.smallText.copyWith(
                   color: context.colors.textDanger,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -975,7 +973,9 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     );
     if (msg.hasFailed && msg.content.trim().isNotEmpty) {
       markdown = DefaultTextStyle(
-        style: TextStyle(color: context.colors.textDanger),
+        style: context.textStyles.messageText.copyWith(
+          color: context.colors.textDanger,
+        ),
         child: markdown,
       );
     }
@@ -1062,7 +1062,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                   children: [
                     Text(
                       _formatShortTimestamp(msg.timestamp.toLocal()),
-                      style: TextStyle(
+                      style: context.textStyles.timestamp.copyWith(
                         color: context.colors.textTertiaryMuted,
                         fontSize: 10,
                       ),
@@ -1171,9 +1171,8 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                           : null,
                       child: Text(
                         authorDisplay.displayName,
-                        style: TextStyle(
+                        style: context.textStyles.username.copyWith(
                           color: roleColor ?? context.colors.textChat,
-                          fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -1281,9 +1280,8 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                       Flexible(
                         child: Text(
                           msg.authorName,
-                          style: TextStyle(
+                          style: context.textStyles.username.copyWith(
                             color: context.colors.textChat,
-                            fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
                           overflow: TextOverflow.ellipsis,

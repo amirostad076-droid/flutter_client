@@ -213,7 +213,7 @@ class _TypingPill extends ConsumerWidget {
         spans.add(
           TextSpan(
             text: user.display.displayName,
-            style: TextStyle(
+            style: baseStyle.copyWith(
               color: roleColor ?? colors.textPrimary,
               fontWeight: FontWeight.w600,
             ),

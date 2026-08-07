@@ -145,10 +145,8 @@ class FriendsList extends ConsumerWidget {
                       ),
                       child: Text(
                         'Add Friend',
-                        style: TextStyle(
+                        style: context.textStyles.channelName.copyWith(
                           color: context.colors.brandPrimaryFill,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -241,12 +239,10 @@ class FriendsList extends ConsumerWidget {
             ),
             child: Text(
               label,
-              style: TextStyle(
+              style: context.textStyles.channelName.copyWith(
                 color: isActive
                     ? context.colors.textPrimary
                     : context.colors.textPrimaryMuted,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -267,13 +263,10 @@ class FriendsList extends ConsumerWidget {
     ),
     child: TextField(
       onChanged: ref.read(dmViewModelProvider.notifier).updateSearch,
-      style: TextStyle(color: context.colors.textChat, fontSize: 14),
+      style: context.textStyles.inputText.copyWith(fontSize: 14),
       decoration: InputDecoration(
         hintText: _searchHint(activeTab),
-        hintStyle: TextStyle(
-          color: context.colors.textPrimaryMuted,
-          fontSize: 14,
-        ),
+        hintStyle: context.textStyles.bodySmall,
         prefixIcon: PhosphorIcon(
           PhosphorIconsBold.magnifyingGlass,
           size: 20,
@@ -352,9 +345,7 @@ class FriendsList extends ConsumerWidget {
             alignment: Alignment.centerLeft,
             child: Text(
               'Active Now',
-              style: TextStyle(
-                color: context.colors.textPrimary,
-                fontSize: 16,
+              style: context.textStyles.channelName.copyWith(
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -382,10 +373,8 @@ class FriendsList extends ConsumerWidget {
                   SizedBox(height: context.layout.s3),
                   Text(
                     "It's quiet for now...",
-                    style: TextStyle(
+                    style: context.textStyles.channelName.copyWith(
                       color: context.colors.textSecondary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   SizedBox(height: context.layout.s3),
@@ -395,9 +384,8 @@ class FriendsList extends ConsumerWidget {
                     'activity will appear '
                     'here.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: context.textStyles.bodySmall.copyWith(
                       color: context.colors.textTertiary,
-                      fontSize: 14,
                       height: 1.4,
                     ),
                   ),
@@ -432,11 +420,7 @@ class FriendsList extends ConsumerWidget {
               SizedBox(height: context.layout.s4),
               Text(
                 _emptyTitle(activeTab: activeTab, searchQuery: searchQuery),
-                style: TextStyle(
-                  color: context.colors.textPrimary,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: context.textStyles.heading,
               ),
               SizedBox(height: context.layout.s2),
               ConstrainedBox(
@@ -447,9 +431,8 @@ class FriendsList extends ConsumerWidget {
                     searchQuery: searchQuery,
                   ),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: context.textStyles.bodySmall.copyWith(
                     color: context.colors.textTertiary,
-                    fontSize: 14,
                   ),
                 ),
               ),
@@ -509,10 +492,7 @@ class FriendsList extends ConsumerWidget {
                       children: [
                         Text(
                           friend.displayName,
-                          style: TextStyle(
-                            color: context.colors.textPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: context.textStyles.channelName,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 1),
@@ -526,7 +506,7 @@ class FriendsList extends ConsumerWidget {
                         else
                           Text(
                             _statusText(friend),
-                            style: TextStyle(
+                            style: context.textStyles.timestamp.copyWith(
                               color: friend.status == 'offline'
                                   ? context.colors.textTertiary
                                   : context.colors.textPrimaryMuted.withValues(

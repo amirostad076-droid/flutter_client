@@ -984,8 +984,7 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
             const SizedBox(height: 8),
             Text(
               FluxerLocalizations.of(context).emojiSearchEmpty,
-              style: TextStyle(
-                fontSize: 14,
+              style: context.textStyles.bodySmall.copyWith(
                 color: colors.textPrimaryMuted.withValues(alpha: 0.7),
               ),
             ),
@@ -1261,8 +1260,7 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
               ],
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 14,
+                style: context.textStyles.categoryName.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colors.textPrimaryMuted,
                 ),
@@ -1573,7 +1571,9 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
                 Expanded(
                   child: Text(
                     ':${customEmoji.name}:',
-                    style: TextStyle(fontSize: 14, color: colors.textPrimary),
+                    style: context.textStyles.bodySmall.copyWith(
+                      color: colors.textPrimary,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -1603,7 +1603,9 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
               Expanded(
                 child: Text(
                   ':${emoji.primaryName}:',
-                  style: TextStyle(fontSize: 14, color: colors.textPrimary),
+                  style: context.textStyles.bodySmall.copyWith(
+                    color: colors.textPrimary,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -1838,9 +1840,8 @@ class _GuildInitial extends StatelessWidget {
     alignment: Alignment.center,
     child: Text(
       name.isNotEmpty ? name[0].toUpperCase() : '?',
-      style: TextStyle(
+      style: context.textStyles.smallText.copyWith(
         fontSize: size <= 16 ? 8 : 11,
-        fontWeight: FontWeight.w600,
         color: colors.textPrimaryMuted,
       ),
     ),

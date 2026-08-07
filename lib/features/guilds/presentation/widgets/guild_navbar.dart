@@ -1274,9 +1274,9 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget> {
                             child: Center(
                               child: Text(
                                 abbreviateGuildName(guild.name, maxLength: 2),
-                                style: const TextStyle(
+                                style: context.textStyles.smallText.copyWith(
                                   fontSize: 8,
-                                  fontWeight: FontWeight.w600,
+                                  color: context.colors.textPrimary,
                                 ),
                               ),
                             ),
@@ -2284,10 +2284,9 @@ class _GuildListItemState extends State<_GuildListItem>
           ? PhosphorIcon(widget.icon!, color: iconColor, size: 32)
           : Text(
               initials,
-              style: TextStyle(
+              style: context.textStyles.smallText.copyWith(
                 color: iconColor,
                 fontSize: _guildNavbarInitialsFontSize(initialsLength),
-                fontWeight: FontWeight.w600,
                 height: 1,
               ),
             ),
@@ -4132,11 +4131,7 @@ class _UnavailableGuildsIndicator extends StatelessWidget {
               child: Text(
                 l10n.guildUnavailableOutageTooltip(count),
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: context.colors.textPrimary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: context.textStyles.label,
               ),
             ),
             child: SizedBox(
@@ -4197,14 +4192,7 @@ class _TooltipLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: TextStyle(
-        color: context.colors.textPrimary,
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-      ),
-    );
+    return Text(label, style: context.textStyles.channelName);
   }
 }
 
@@ -4246,11 +4234,7 @@ class _GuildTooltipContent extends ConsumerWidget {
           ? Text(
               l10n.guildUnavailableOutageTooltip(unavailableCount),
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: context.colors.textPrimary,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
+              style: context.textStyles.label,
             )
           : Column(
               mainAxisSize: MainAxisSize.min,
@@ -4266,11 +4250,7 @@ class _GuildTooltipContent extends ConsumerWidget {
                     Flexible(
                       child: Text(
                         guild.name,
-                        style: TextStyle(
-                          color: context.colors.textPrimary,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: context.textStyles.channelName,
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
@@ -4283,9 +4263,8 @@ class _GuildTooltipContent extends ConsumerWidget {
                   const SizedBox(height: 6),
                   Text(
                     l10n.guildNavbarStaffOnlyAccessible,
-                    style: TextStyle(
+                    style: context.textStyles.bodySmall.copyWith(
                       color: context.colors.statusDanger,
-                      fontSize: 14,
                     ),
                   ),
                 ],
@@ -4294,7 +4273,7 @@ class _GuildTooltipContent extends ConsumerWidget {
                   const SizedBox(height: 6),
                   Text(
                     l10n.guildNavbarInvitesPaused,
-                    style: TextStyle(
+                    style: context.textStyles.bodySmall.copyWith(
                       color: context.colors.textSecondary,
                       fontSize: 13,
                     ),
@@ -4313,7 +4292,7 @@ class _GuildTooltipContent extends ConsumerWidget {
                       const SizedBox(width: 6),
                       Text(
                         _mutedText(l10n),
-                        style: TextStyle(
+                        style: context.textStyles.bodySmall.copyWith(
                           color: context.colors.textSecondary,
                           fontSize: 13,
                         ),

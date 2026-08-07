@@ -699,7 +699,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                 children: [
                   Text(
                     l10n.perGuildPremiumUpsellText,
-                    style: TextStyle(
+                    style: context.textStyles.bodySmall.copyWith(
                       color: colors.textOnBrandPrimary,
                       fontSize: 13,
                       height: 1.4,

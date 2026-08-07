@@ -881,9 +881,8 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                 ? l10n.channelNoSendPermissionHint
                 : _resolveHintText(),
             hintMaxLines: 1,
-            hintStyle: TextStyle(
+            hintStyle: context.textStyles.inputHint.copyWith(
               color: context.colors.textTertiaryMuted,
-              fontSize: 16,
               overflow: TextOverflow.ellipsis,
             ),
             filled: true,
@@ -913,9 +912,8 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                 ? l10n.channelNoSendPermissionHint
                 : _resolveHintText(),
             hintMaxLines: 1,
-            hintStyle: TextStyle(
+            hintStyle: context.textStyles.inputHint.copyWith(
               color: context.colors.textTertiaryMuted,
-              fontSize: 16,
               overflow: TextOverflow.ellipsis,
             ),
             border: InputBorder.none,
@@ -1226,9 +1224,8 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           ? FluxerLocalizations.of(context).channelNoSendPermissionHint
           : _resolveHintText(),
       hintMaxLines: 1,
-      hintStyle: TextStyle(
+      hintStyle: context.textStyles.inputHint.copyWith(
         color: context.colors.textTertiaryMuted,
-        fontSize: 16,
         overflow: TextOverflow.ellipsis,
       ),
       filled: true,
