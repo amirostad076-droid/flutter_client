@@ -551,4 +551,53 @@ void main() {
       expect(resolveChannelIdFromCallKitExtra(null), isNull);
     });
   });
+
+  group('shouldEnableLiveKitEngineForCallKitAudioSession', () {
+    test('enables engine when CallKit audio session is active', () {
+      expect(
+        shouldEnableLiveKitEngineForCallKitAudioSession(
+          isAudioSessionActive: true,
+        ),
+        isTrue,
+      );
+    });
+    test('disables engine when CallKit audio session is inactive', () {
+      expect(
+        shouldEnableLiveKitEngineForCallKitAudioSession(
+          isAudioSessionActive: false,
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('shouldRestoreLiveKitAutomaticAudioSession', () {
+    test('restores when CallKit owned audio and no sessions remain', () {
+      expect(
+        shouldRestoreLiveKitAutomaticAudioSession(
+          callKitOwnsAudio: true,
+          hasCallKitSessions: false,
+        ),
+        isTrue,
+      );
+    });
+    test('keeps external ownership while CallKit sessions remain', () {
+      expect(
+        shouldRestoreLiveKitAutomaticAudioSession(
+          callKitOwnsAudio: true,
+          hasCallKitSessions: true,
+        ),
+        isFalse,
+      );
+    });
+    test('does nothing when CallKit never owned audio', () {
+      expect(
+        shouldRestoreLiveKitAutomaticAudioSession(
+          callKitOwnsAudio: false,
+          hasCallKitSessions: false,
+        ),
+        isFalse,
+      );
+    });
+  });
 }

@@ -1033,6 +1033,7 @@ class VoiceSession extends _$VoiceSession {
     );
     _armLiveKitConnectWatchdog(attempt);
     try {
+      await applicator.applySpeakerOutput(settings: voiceSettings);
       try {
         await room.prepareConnection(event.endpoint, event.token);
       } on Object catch (e) {

@@ -170,3 +170,16 @@ String? resolveChannelIdFromCallKitExtra(Map<String, dynamic>? extra) {
   }
   return null;
 }
+
+bool shouldEnableLiveKitEngineForCallKitAudioSession({
+  required bool isAudioSessionActive,
+}) {
+  return isAudioSessionActive;
+}
+
+bool shouldRestoreLiveKitAutomaticAudioSession({
+  required bool callKitOwnsAudio,
+  required bool hasCallKitSessions,
+}) {
+  return callKitOwnsAudio && !hasCallKitSessions;
+}
