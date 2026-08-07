@@ -9,6 +9,7 @@ import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_sto
 import 'package:fluxer_app/core/synced_preferences/fields/accessibility_synced_field.dart';
 import 'package:fluxer_app/core/synced_preferences/fields/privacy_synced_field.dart';
 import 'package:fluxer_app/core/synced_preferences/fields/sidebar_synced_field.dart';
+import 'package:fluxer_app/features/voice/tts/tts_rate_utils.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'appearance_preferences_provider.g.dart';
@@ -51,6 +52,8 @@ class AppearancePreferencesState {
     this.screenReaderAnnounceNewMessages = false,
     this.syncReducedMotionWithSystem = true,
     this.reducedMotionOverride = false,
+    this.enableTtsCommand = true,
+    this.ttsRate = kDefaultTtsRate,
   });
 
   final ChannelTypingIndicatorMode channelTypingIndicatorMode;
@@ -72,6 +75,8 @@ class AppearancePreferencesState {
   final bool screenReaderAnnounceNewMessages;
   final bool syncReducedMotionWithSystem;
   final bool reducedMotionOverride;
+  final bool enableTtsCommand;
+  final double ttsRate;
 
   AppearancePreferencesState copyWith({
     ChannelTypingIndicatorMode? channelTypingIndicatorMode,
@@ -93,6 +98,8 @@ class AppearancePreferencesState {
     bool? screenReaderAnnounceNewMessages,
     bool? syncReducedMotionWithSystem,
     bool? reducedMotionOverride,
+    bool? enableTtsCommand,
+    double? ttsRate,
   }) {
     return AppearancePreferencesState(
       channelTypingIndicatorMode:
@@ -128,6 +135,8 @@ class AppearancePreferencesState {
           syncReducedMotionWithSystem ?? this.syncReducedMotionWithSystem,
       reducedMotionOverride:
           reducedMotionOverride ?? this.reducedMotionOverride,
+      enableTtsCommand: enableTtsCommand ?? this.enableTtsCommand,
+      ttsRate: ttsRate ?? this.ttsRate,
     );
   }
 }
@@ -170,6 +179,8 @@ class AppearancePreferences extends _$AppearancePreferences {
         screenReaderAnnounceNewMessages: prefs.screenReaderAnnounceNewMessages,
         syncReducedMotionWithSystem: prefs.syncReducedMotionWithSystem,
         reducedMotionOverride: prefs.reducedMotionOverride,
+        enableTtsCommand: prefs.enableTtsCommand,
+        ttsRate: prefs.ttsRate,
       );
     }
   }
@@ -193,6 +204,8 @@ class AppearancePreferences extends _$AppearancePreferences {
         showMediaFavoriteButton: value.showMediaFavoriteButton,
         showSuppressEmbedsButton: value.showSuppressEmbedsButton,
         screenReaderAnnounceNewMessages: value.screenReaderAnnounceNewMessages,
+        enableTtsCommand: value.enableTtsCommand,
+        ttsRate: value.ttsRate,
       );
       await _persist();
     } finally {
@@ -323,6 +336,18 @@ class AppearancePreferences extends _$AppearancePreferences {
     await _persist();
   }
 
+  Future<void> setEnableTtsCommand({required bool value}) async {
+    state = state.copyWith(enableTtsCommand: value);
+    await _persist();
+    _markAccessibilityDirty();
+  }
+
+  Future<void> setTtsRate(double rate) async {
+    state = state.copyWith(ttsRate: clampTtsRate(rate));
+    await _persist();
+    _markAccessibilityDirty();
+  }
+
   void _markAccessibilityDirty() {
     if (_isApplyingRemote) {
       return;
@@ -384,6 +409,8 @@ class AppearancePreferences extends _$AppearancePreferences {
         ),
         syncReducedMotionWithSystem: Value(state.syncReducedMotionWithSystem),
         reducedMotionOverride: Value(state.reducedMotionOverride),
+        enableTtsCommand: Value(state.enableTtsCommand),
+        ttsRate: Value(state.ttsRate),
       ),
     );
   }

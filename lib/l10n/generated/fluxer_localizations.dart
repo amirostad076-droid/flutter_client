@@ -7486,6 +7486,148 @@ abstract class FluxerLocalizations {
   /// **'Read new messages aloud when they arrive in the active channel.'**
   String get accessibilityScreenReaderAnnounceNewMessagesDescription;
 
+  /// Section title for text-to-speech accessibility settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Text-to-speech'**
+  String get accessibilityTtsGroupTitle;
+
+  /// Description under the speech playback speed label.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a speed for spoken text.'**
+  String get accessibilityTtsGroupDescription;
+
+  /// Label for the TTS speech rate selector.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech playback speed'**
+  String get accessibilityTtsSpeechPlaybackSpeedLabel;
+
+  /// Button label to play the TTS sample line.
+  ///
+  /// In en, this message translates to:
+  /// **'Play sample'**
+  String get accessibilityTtsPlaySampleLabel;
+
+  /// Button label to stop the TTS sample playback.
+  ///
+  /// In en, this message translates to:
+  /// **'Silence sample'**
+  String get accessibilityTtsSilenceSampleLabel;
+
+  /// Description for the TTS sample playback controls.
+  ///
+  /// In en, this message translates to:
+  /// **'Hear the sample line spoken with your chosen speed.'**
+  String get accessibilityTtsSampleDescription;
+
+  /// Sample line spoken when previewing TTS speed.
+  ///
+  /// In en, this message translates to:
+  /// **'Doc, I\'m from the future. I came here in a time machine that you invented. Now, I need your help to get back to the year 1985.'**
+  String get accessibilityTtsSampleText;
+
+  /// Shown when TTS preview cannot run on the device.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech synthesis is unavailable on this device.'**
+  String get accessibilityTtsUnsupportedDescription;
+
+  /// Shown when TTS playback fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech playback failed. Try again, or check that audio output is working.'**
+  String get accessibilityTtsPlaybackFailedDescription;
+
+  /// TTS substitution for unresolved user mentions.
+  ///
+  /// In en, this message translates to:
+  /// **'unknown user'**
+  String get ttsSubstitutionUnknownUser;
+
+  /// TTS substitution for unresolved role mentions.
+  ///
+  /// In en, this message translates to:
+  /// **'unknown role'**
+  String get ttsSubstitutionUnknownRole;
+
+  /// TTS substitution for unresolved channel mentions.
+  ///
+  /// In en, this message translates to:
+  /// **'unknown channel'**
+  String get ttsSubstitutionUnknownChannel;
+
+  /// TTS substitution for fenced code blocks.
+  ///
+  /// In en, this message translates to:
+  /// **'code block'**
+  String get ttsSubstitutionCodeBlock;
+
+  /// TTS substitution for spoiler content.
+  ///
+  /// In en, this message translates to:
+  /// **'spoiler'**
+  String get ttsSubstitutionSpoiler;
+
+  /// TTS substitution for custom emoji.
+  ///
+  /// In en, this message translates to:
+  /// **'emoji {emojiName}'**
+  String ttsSubstitutionEmoji(String emojiName);
+
+  /// TTS substitution for slash command invocations.
+  ///
+  /// In en, this message translates to:
+  /// **'slash {commandName}'**
+  String ttsSubstitutionSlashCommand(String commandName);
+
+  /// TTS sentence for a normal message.
+  ///
+  /// In en, this message translates to:
+  /// **'{authorName} said: {formatted}'**
+  String ttsAuthorSaid(String authorName, String formatted);
+
+  /// TTS sentence for a reply message.
+  ///
+  /// In en, this message translates to:
+  /// **'Replying to {replyAuthorName}, {authorName} said: {formatted}'**
+  String ttsReplyingToSaid(
+    String replyAuthorName,
+    String authorName,
+    String formatted,
+  );
+
+  /// TTS sentence for non-text-only messages.
+  ///
+  /// In en, this message translates to:
+  /// **'{authorName} {description}'**
+  String ttsAuthorDescription(String authorName, String description);
+
+  /// TTS phrase for sticker-only messages.
+  ///
+  /// In en, this message translates to:
+  /// **'sent a sticker'**
+  String get ttsSentSticker;
+
+  /// TTS phrase for a single attachment-only message.
+  ///
+  /// In en, this message translates to:
+  /// **'sent an attachment'**
+  String get ttsSentAttachment;
+
+  /// TTS phrase for multi-attachment messages.
+  ///
+  /// In en, this message translates to:
+  /// **'sent {count} attachments'**
+  String ttsSentAttachments(int count);
+
+  /// TTS phrase for embed-only messages.
+  ///
+  /// In en, this message translates to:
+  /// **'sent an embed'**
+  String get ttsSentEmbed;
+
   /// Section title for reduced motion accessibility settings.
   ///
   /// In en, this message translates to:
@@ -8749,6 +8891,18 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Copy Message'**
   String get chatMessageCopyText;
+
+  /// Action label for reading a message aloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Speak message'**
+  String get chatMessageSpeak;
+
+  /// Action label for stopping TTS playback.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop speaking'**
+  String get chatMessageStopSpeaking;
 
   /// Action label for pinning a message.
   ///
@@ -12623,6 +12777,96 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Default replies to omit the @mention, and warn the sender if they enable it'**
   String get notificationsMentionPreferNoMentionDescription;
+
+  /// Notifications settings section title for TTS controls.
+  ///
+  /// In en, this message translates to:
+  /// **'Text-to-speech notifications'**
+  String get notificationsTtsSectionTitle;
+
+  /// Toggle label for enabling /tts speech playback.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable /tts speech playback'**
+  String get notificationsTtsEnableCommandLabel;
+
+  /// Toggle description for enabling /tts speech playback.
+  ///
+  /// In en, this message translates to:
+  /// **'Let /tts read your message aloud. Disabling the setting keeps those commands as regular text.'**
+  String get notificationsTtsEnableCommandDescription;
+
+  /// Prefix before the Accessibility settings link in TTS notifications settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust playback speed in '**
+  String get notificationsTtsAccessibilityLinkPrefix;
+
+  /// Link label that opens Accessibility settings from TTS notifications settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Accessibility'**
+  String get notificationsTtsAccessibilityLinkLabel;
+
+  /// Suffix after the Accessibility settings link in TTS notifications settings.
+  ///
+  /// In en, this message translates to:
+  /// **'.'**
+  String get notificationsTtsAccessibilityLinkSuffix;
+
+  /// Title for automatic TTS narration mode settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic message narration'**
+  String get notificationsTtsAutoNarrationTitle;
+
+  /// Description for automatic TTS narration mode settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Converts incoming content to speech, regardless of whether it came from /tts.'**
+  String get notificationsTtsAutoNarrationDescription;
+
+  /// TTS narration mode: speak messages from every channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Every channel'**
+  String get notificationsTtsModeAllChannelsName;
+
+  /// Description for speaking messages from every channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Let every incoming message be spoken, regardless of which channel is open.'**
+  String get notificationsTtsModeAllChannelsDescription;
+
+  /// TTS narration mode: speak only the active channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Active channel only'**
+  String get notificationsTtsModeCurrentChannelName;
+
+  /// Description for speaking only the active channel.
+  ///
+  /// In en, this message translates to:
+  /// **'Narrates only the channel you\'re viewing. Narration follows you between channels.'**
+  String get notificationsTtsModeCurrentChannelDescription;
+
+  /// TTS narration mode: never speak automatically.
+  ///
+  /// In en, this message translates to:
+  /// **'Never automatically'**
+  String get notificationsTtsModeNeverName;
+
+  /// Description for never speaking automatically.
+  ///
+  /// In en, this message translates to:
+  /// **'Remain silent unless someone runs /tts manually.'**
+  String get notificationsTtsModeNeverDescription;
+
+  /// Accessibility label for the TTS narration mode radio group.
+  ///
+  /// In en, this message translates to:
+  /// **'Speak all messages out loud'**
+  String get notificationsTtsModeAriaLabel;
 
   /// Notifications settings section title for sound controls.
   ///

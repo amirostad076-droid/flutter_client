@@ -870,6 +870,7 @@ class Message {
   final String? clientNonce;
   final String? sendError;
   final MessageCall? call;
+  final bool tts;
 
   const Message({
     required this.id,
@@ -904,6 +905,7 @@ class Message {
     this.clientNonce,
     this.sendError,
     this.call,
+    this.tts = false,
   });
 
   factory Message.fromSdk(MessageResponseSchema sdk, {String? currentUserId}) {
@@ -949,6 +951,7 @@ class Message {
       flags: sdk.flags,
       clientNonce: sdk.nonce,
       call: messageCallFromSdk(sdk.call),
+      tts: sdk.tts,
     );
   }
 
@@ -1333,6 +1336,7 @@ class Message {
     Object? clientNonce = _unset,
     Object? sendError = _unset,
     Object? call = _unset,
+    bool? tts,
   }) {
     return Message(
       id: id ?? this.id,
@@ -1369,6 +1373,7 @@ class Message {
           : clientNonce as String?,
       sendError: sendError == _unset ? this.sendError : sendError as String?,
       call: call == _unset ? this.call : call as MessageCall?,
+      tts: tts ?? this.tts,
     );
   }
 
@@ -1525,6 +1530,16 @@ class Message {
   bool get isPin => type == messageTypeChannelPinnedMessage;
   bool get isSending => deliveryState == MessageDeliveryState.sending;
   bool get hasFailed => deliveryState == MessageDeliveryState.failed;
+
+  String get speakableContent {
+    if (content.trim().isNotEmpty) {
+      return content;
+    }
+    if (messageSnapshots.isNotEmpty) {
+      return messageSnapshots.first.content;
+    }
+    return content;
+  }
 
   bool get shouldCacheAuthorUser => webhookId == null || webhookId!.isEmpty;
 

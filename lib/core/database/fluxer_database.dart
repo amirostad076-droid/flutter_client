@@ -141,7 +141,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 79;
+  int get schemaVersion => 80;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -1051,6 +1051,25 @@ class FluxerDatabase extends _$FluxerDatabase {
             userPreferencesTable,
             userPreferencesTable.reducedMotionOverride,
           );
+        }
+      }
+      if (from < 80) {
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'user_preferences',
+          columnName: 'enable_tts_command',
+        )) {
+          await m.addColumn(
+            userPreferencesTable,
+            userPreferencesTable.enableTtsCommand,
+          );
+        }
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'user_preferences',
+          columnName: 'tts_rate',
+        )) {
+          await m.addColumn(userPreferencesTable, userPreferencesTable.ttsRate);
         }
       }
     },

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/user_accessibility_tts_section.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/wide_settings_content_layout.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -150,6 +151,7 @@ class UserAccessibility extends ConsumerWidget {
               ),
             ],
           ),
+          const UserAccessibilityTtsSection(),
           FluxerSettingsSection(
             title: l10n.accessibilityReducedMotionGroupTitle,
             description: l10n.accessibilityReducedMotionGroupDescription,

@@ -5595,6 +5595,140 @@
     "@accessibilityScreenReaderAnnounceNewMessagesDescription": {
         "description": "Toggle description for announcing incoming messages to screen readers."
     },
+    "accessibilityTtsGroupTitle": "Text-to-speech",
+    "@accessibilityTtsGroupTitle": {
+        "description": "Section title for text-to-speech accessibility settings."
+    },
+    "accessibilityTtsGroupDescription": "Choose a speed for spoken text.",
+    "@accessibilityTtsGroupDescription": {
+        "description": "Description under the speech playback speed label."
+    },
+    "accessibilityTtsSpeechPlaybackSpeedLabel": "Speech playback speed",
+    "@accessibilityTtsSpeechPlaybackSpeedLabel": {
+        "description": "Label for the TTS speech rate selector."
+    },
+    "accessibilityTtsPlaySampleLabel": "Play sample",
+    "@accessibilityTtsPlaySampleLabel": {
+        "description": "Button label to play the TTS sample line."
+    },
+    "accessibilityTtsSilenceSampleLabel": "Silence sample",
+    "@accessibilityTtsSilenceSampleLabel": {
+        "description": "Button label to stop the TTS sample playback."
+    },
+    "accessibilityTtsSampleDescription": "Hear the sample line spoken with your chosen speed.",
+    "@accessibilityTtsSampleDescription": {
+        "description": "Description for the TTS sample playback controls."
+    },
+    "accessibilityTtsSampleText": "Doc, I'm from the future. I came here in a time machine that you invented. Now, I need your help to get back to the year 1985.",
+    "@accessibilityTtsSampleText": {
+        "description": "Sample line spoken when previewing TTS speed."
+    },
+    "accessibilityTtsUnsupportedDescription": "Speech synthesis is unavailable on this device.",
+    "@accessibilityTtsUnsupportedDescription": {
+        "description": "Shown when TTS preview cannot run on the device."
+    },
+    "accessibilityTtsPlaybackFailedDescription": "Speech playback failed. Try again, or check that audio output is working.",
+    "@accessibilityTtsPlaybackFailedDescription": {
+        "description": "Shown when TTS playback fails."
+    },
+    "ttsSubstitutionUnknownUser": "unknown user",
+    "@ttsSubstitutionUnknownUser": {
+        "description": "TTS substitution for unresolved user mentions."
+    },
+    "ttsSubstitutionUnknownRole": "unknown role",
+    "@ttsSubstitutionUnknownRole": {
+        "description": "TTS substitution for unresolved role mentions."
+    },
+    "ttsSubstitutionUnknownChannel": "unknown channel",
+    "@ttsSubstitutionUnknownChannel": {
+        "description": "TTS substitution for unresolved channel mentions."
+    },
+    "ttsSubstitutionCodeBlock": "code block",
+    "@ttsSubstitutionCodeBlock": {
+        "description": "TTS substitution for fenced code blocks."
+    },
+    "ttsSubstitutionSpoiler": "spoiler",
+    "@ttsSubstitutionSpoiler": {
+        "description": "TTS substitution for spoiler content."
+    },
+    "ttsSubstitutionEmoji": "emoji {emojiName}",
+    "@ttsSubstitutionEmoji": {
+        "description": "TTS substitution for custom emoji.",
+        "placeholders": {
+            "emojiName": {
+                "type": "String"
+            }
+        }
+    },
+    "ttsSubstitutionSlashCommand": "slash {commandName}",
+    "@ttsSubstitutionSlashCommand": {
+        "description": "TTS substitution for slash command invocations.",
+        "placeholders": {
+            "commandName": {
+                "type": "String"
+            }
+        }
+    },
+    "ttsAuthorSaid": "{authorName} said: {formatted}",
+    "@ttsAuthorSaid": {
+        "description": "TTS sentence for a normal message.",
+        "placeholders": {
+            "authorName": {
+                "type": "String"
+            },
+            "formatted": {
+                "type": "String"
+            }
+        }
+    },
+    "ttsReplyingToSaid": "Replying to {replyAuthorName}, {authorName} said: {formatted}",
+    "@ttsReplyingToSaid": {
+        "description": "TTS sentence for a reply message.",
+        "placeholders": {
+            "replyAuthorName": {
+                "type": "String"
+            },
+            "authorName": {
+                "type": "String"
+            },
+            "formatted": {
+                "type": "String"
+            }
+        }
+    },
+    "ttsAuthorDescription": "{authorName} {description}",
+    "@ttsAuthorDescription": {
+        "description": "TTS sentence for non-text-only messages.",
+        "placeholders": {
+            "authorName": {
+                "type": "String"
+            },
+            "description": {
+                "type": "String"
+            }
+        }
+    },
+    "ttsSentSticker": "sent a sticker",
+    "@ttsSentSticker": {
+        "description": "TTS phrase for sticker-only messages."
+    },
+    "ttsSentAttachment": "sent an attachment",
+    "@ttsSentAttachment": {
+        "description": "TTS phrase for a single attachment-only message."
+    },
+    "ttsSentAttachments": "sent {count} attachments",
+    "@ttsSentAttachments": {
+        "description": "TTS phrase for multi-attachment messages.",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "ttsSentEmbed": "sent an embed",
+    "@ttsSentEmbed": {
+        "description": "TTS phrase for embed-only messages."
+    },
     "accessibilityReducedMotionGroupTitle": "Reduced motion",
     "@accessibilityReducedMotionGroupTitle": {
         "description": "Section title for reduced motion accessibility settings."
@@ -6649,6 +6783,14 @@
     "chatMessageCopyText": "Copy Message",
     "@chatMessageCopyText": {
         "description": "Action label for copying message text."
+    },
+    "chatMessageSpeak": "Speak message",
+    "@chatMessageSpeak": {
+        "description": "Action label for reading a message aloud."
+    },
+    "chatMessageStopSpeaking": "Stop speaking",
+    "@chatMessageStopSpeaking": {
+        "description": "Action label for stopping TTS playback."
     },
     "chatMessagePin": "Pin message",
     "@chatMessagePin": {
@@ -9542,6 +9684,66 @@
     "notificationsMentionPreferNoMentionDescription": "Default replies to omit the @mention, and warn the sender if they enable it",
     "@notificationsMentionPreferNoMentionDescription": {
         "description": "Description for the prefer no @mention option."
+    },
+    "notificationsTtsSectionTitle": "Text-to-speech notifications",
+    "@notificationsTtsSectionTitle": {
+        "description": "Notifications settings section title for TTS controls."
+    },
+    "notificationsTtsEnableCommandLabel": "Enable /tts speech playback",
+    "@notificationsTtsEnableCommandLabel": {
+        "description": "Toggle label for enabling /tts speech playback."
+    },
+    "notificationsTtsEnableCommandDescription": "Let /tts read your message aloud. Disabling the setting keeps those commands as regular text.",
+    "@notificationsTtsEnableCommandDescription": {
+        "description": "Toggle description for enabling /tts speech playback."
+    },
+    "notificationsTtsAccessibilityLinkPrefix": "Adjust playback speed in ",
+    "@notificationsTtsAccessibilityLinkPrefix": {
+        "description": "Prefix before the Accessibility settings link in TTS notifications settings."
+    },
+    "notificationsTtsAccessibilityLinkLabel": "Accessibility",
+    "@notificationsTtsAccessibilityLinkLabel": {
+        "description": "Link label that opens Accessibility settings from TTS notifications settings."
+    },
+    "notificationsTtsAccessibilityLinkSuffix": ".",
+    "@notificationsTtsAccessibilityLinkSuffix": {
+        "description": "Suffix after the Accessibility settings link in TTS notifications settings."
+    },
+    "notificationsTtsAutoNarrationTitle": "Automatic message narration",
+    "@notificationsTtsAutoNarrationTitle": {
+        "description": "Title for automatic TTS narration mode settings."
+    },
+    "notificationsTtsAutoNarrationDescription": "Converts incoming content to speech, regardless of whether it came from /tts.",
+    "@notificationsTtsAutoNarrationDescription": {
+        "description": "Description for automatic TTS narration mode settings."
+    },
+    "notificationsTtsModeAllChannelsName": "Every channel",
+    "@notificationsTtsModeAllChannelsName": {
+        "description": "TTS narration mode: speak messages from every channel."
+    },
+    "notificationsTtsModeAllChannelsDescription": "Let every incoming message be spoken, regardless of which channel is open.",
+    "@notificationsTtsModeAllChannelsDescription": {
+        "description": "Description for speaking messages from every channel."
+    },
+    "notificationsTtsModeCurrentChannelName": "Active channel only",
+    "@notificationsTtsModeCurrentChannelName": {
+        "description": "TTS narration mode: speak only the active channel."
+    },
+    "notificationsTtsModeCurrentChannelDescription": "Narrates only the channel you're viewing. Narration follows you between channels.",
+    "@notificationsTtsModeCurrentChannelDescription": {
+        "description": "Description for speaking only the active channel."
+    },
+    "notificationsTtsModeNeverName": "Never automatically",
+    "@notificationsTtsModeNeverName": {
+        "description": "TTS narration mode: never speak automatically."
+    },
+    "notificationsTtsModeNeverDescription": "Remain silent unless someone runs /tts manually.",
+    "@notificationsTtsModeNeverDescription": {
+        "description": "Description for never speaking automatically."
+    },
+    "notificationsTtsModeAriaLabel": "Speak all messages out loud",
+    "@notificationsTtsModeAriaLabel": {
+        "description": "Accessibility label for the TTS narration mode radio group."
     },
     "notificationsSoundsSectionTitle": "Sounds",
     "@notificationsSoundsSectionTitle": {

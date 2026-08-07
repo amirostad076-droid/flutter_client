@@ -9,6 +9,7 @@ import 'package:fluxer_app/core/theme/custom_theme_css.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/settings/providers/advanced_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
+import 'package:fluxer_app/features/voice/tts/tts_rate_utils.dart';
 import 'package:protobuf/protobuf.dart' as $pb;
 
 class AccessibilityLocalState {
@@ -32,6 +33,8 @@ class AccessibilityLocalState {
     this.showSuppressEmbedsButton = true,
     this.hasSaturationFactorInProto = true,
     this.hasCustomThemeCssInProto = true,
+    this.enableTtsCommand = true,
+    this.ttsRate = kDefaultTtsRate,
   });
 
   final bool hideKeyboardHints;
@@ -53,6 +56,8 @@ class AccessibilityLocalState {
   final bool showSuppressEmbedsButton;
   final bool hasSaturationFactorInProto;
   final bool hasCustomThemeCssInProto;
+  final bool enableTtsCommand;
+  final double ttsRate;
 }
 
 class AccessibilitySyncedField
@@ -88,6 +93,8 @@ class AccessibilitySyncedField
       showMediaDownloadButton: appearance.showMediaDownloadButton,
       showMediaFavoriteButton: appearance.showMediaFavoriteButton,
       showSuppressEmbedsButton: appearance.showSuppressEmbedsButton,
+      enableTtsCommand: appearance.enableTtsCommand,
+      ttsRate: appearance.ttsRate,
       advanced: AdvancedAccessibilityLocalState(
         enableTextSelection: advanced.enableTextSelection,
         voiceChannelJoinRequiresDoubleClick:
@@ -179,6 +186,8 @@ class AccessibilitySyncedField
         a.showSuppressEmbedsButton == b.showSuppressEmbedsButton &&
         a.screenReaderAnnounceNewMessages ==
             b.screenReaderAnnounceNewMessages &&
+        a.enableTtsCommand == b.enableTtsCommand &&
+        a.ttsRate == b.ttsRate &&
         normalizeCustomThemeCss(a.customThemeCss) ==
             normalizeCustomThemeCss(b.customThemeCss) &&
         _advancedStatesEqual(a.advanced, b.advanced);
@@ -238,6 +247,8 @@ class AccessibilitySyncedField
       showMediaFavoriteButton: remote.showMediaFavoriteButton,
       showSuppressEmbedsButton: remote.showSuppressEmbedsButton,
       screenReaderAnnounceNewMessages: remote.screenReaderAnnounceNewMessages,
+      enableTtsCommand: remote.enableTtsCommand,
+      ttsRate: remote.ttsRate,
       advanced: remote.advanced,
       hasSaturationFactorInProto:
           remote.hasSaturationFactorInProto || local.hasSaturationFactorInProto,
@@ -341,6 +352,10 @@ class AccessibilitySyncedField
       ),
       hasSaturationFactorInProto: proto.hasSaturationFactor(),
       hasCustomThemeCssInProto: proto.hasCustomThemeCss(),
+      enableTtsCommand: !proto.hasEnableTtsCommand() || proto.enableTtsCommand,
+      ttsRate: proto.hasTtsRate()
+          ? clampTtsRate(proto.ttsRate)
+          : kDefaultTtsRate,
     );
   }
 
@@ -374,7 +389,9 @@ class AccessibilitySyncedField
           ..showMediaFavoriteButton = local.showMediaFavoriteButton
           ..showSuppressEmbedsButton = local.showSuppressEmbedsButton
           ..screenReaderAnnounceNewMessages =
-              local.screenReaderAnnounceNewMessages;
+              local.screenReaderAnnounceNewMessages
+          ..enableTtsCommand = local.enableTtsCommand
+          ..ttsRate = local.ttsRate;
     _applyAdvancedToProto(settings, local.advanced, wireBase: wireBase);
     if (effectiveCss != null) {
       return settings..customThemeCss = effectiveCss;
@@ -403,6 +420,8 @@ class AccessibilitySyncedField
       showMediaFavoriteButton: local.showMediaFavoriteButton,
       showSuppressEmbedsButton: local.showSuppressEmbedsButton,
       screenReaderAnnounceNewMessages: local.screenReaderAnnounceNewMessages,
+      enableTtsCommand: local.enableTtsCommand,
+      ttsRate: local.ttsRate,
     );
     _applyAdvancedToProto(settings, local.advanced);
     if (effectiveCss != null) {

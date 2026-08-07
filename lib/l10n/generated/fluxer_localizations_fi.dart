@@ -4441,6 +4441,97 @@ class FluxerLocalizationsFi extends FluxerLocalizations {
       'Read new messages aloud when they arrive in the active channel.';
 
   @override
+  String get accessibilityTtsGroupTitle => 'Text-to-speech';
+
+  @override
+  String get accessibilityTtsGroupDescription =>
+      'Choose a speed for spoken text.';
+
+  @override
+  String get accessibilityTtsSpeechPlaybackSpeedLabel =>
+      'Speech playback speed';
+
+  @override
+  String get accessibilityTtsPlaySampleLabel => 'Play sample';
+
+  @override
+  String get accessibilityTtsSilenceSampleLabel => 'Silence sample';
+
+  @override
+  String get accessibilityTtsSampleDescription =>
+      'Hear the sample line spoken with your chosen speed.';
+
+  @override
+  String get accessibilityTtsSampleText =>
+      'Doc, I\'m from the future. I came here in a time machine that you invented. Now, I need your help to get back to the year 1985.';
+
+  @override
+  String get accessibilityTtsUnsupportedDescription =>
+      'Speech synthesis is unavailable on this device.';
+
+  @override
+  String get accessibilityTtsPlaybackFailedDescription =>
+      'Speech playback failed. Try again, or check that audio output is working.';
+
+  @override
+  String get ttsSubstitutionUnknownUser => 'unknown user';
+
+  @override
+  String get ttsSubstitutionUnknownRole => 'unknown role';
+
+  @override
+  String get ttsSubstitutionUnknownChannel => 'unknown channel';
+
+  @override
+  String get ttsSubstitutionCodeBlock => 'code block';
+
+  @override
+  String get ttsSubstitutionSpoiler => 'spoiler';
+
+  @override
+  String ttsSubstitutionEmoji(String emojiName) {
+    return 'emoji $emojiName';
+  }
+
+  @override
+  String ttsSubstitutionSlashCommand(String commandName) {
+    return 'slash $commandName';
+  }
+
+  @override
+  String ttsAuthorSaid(String authorName, String formatted) {
+    return '$authorName said: $formatted';
+  }
+
+  @override
+  String ttsReplyingToSaid(
+    String replyAuthorName,
+    String authorName,
+    String formatted,
+  ) {
+    return 'Replying to $replyAuthorName, $authorName said: $formatted';
+  }
+
+  @override
+  String ttsAuthorDescription(String authorName, String description) {
+    return '$authorName $description';
+  }
+
+  @override
+  String get ttsSentSticker => 'sent a sticker';
+
+  @override
+  String get ttsSentAttachment => 'sent an attachment';
+
+  @override
+  String ttsSentAttachments(int count) {
+    return 'sent $count attachments';
+  }
+
+  @override
+  String get ttsSentEmbed => 'sent an embed';
+
+  @override
   String get accessibilityReducedMotionGroupTitle => 'Reduced motion';
 
   @override
@@ -5208,6 +5299,12 @@ class FluxerLocalizationsFi extends FluxerLocalizations {
 
   @override
   String get chatMessageCopyText => 'Kopioi viesti';
+
+  @override
+  String get chatMessageSpeak => 'Speak message';
+
+  @override
+  String get chatMessageStopSpeaking => 'Stop speaking';
 
   @override
   String get chatMessagePin => 'Kiinnitä viesti';
@@ -7483,6 +7580,59 @@ class FluxerLocalizationsFi extends FluxerLocalizations {
   @override
   String get notificationsMentionPreferNoMentionDescription =>
       'Default replies to omit the @mention, and warn the sender if they enable it';
+
+  @override
+  String get notificationsTtsSectionTitle => 'Text-to-speech notifications';
+
+  @override
+  String get notificationsTtsEnableCommandLabel =>
+      'Enable /tts speech playback';
+
+  @override
+  String get notificationsTtsEnableCommandDescription =>
+      'Let /tts read your message aloud. Disabling the setting keeps those commands as regular text.';
+
+  @override
+  String get notificationsTtsAccessibilityLinkPrefix =>
+      'Adjust playback speed in ';
+
+  @override
+  String get notificationsTtsAccessibilityLinkLabel => 'Accessibility';
+
+  @override
+  String get notificationsTtsAccessibilityLinkSuffix => '.';
+
+  @override
+  String get notificationsTtsAutoNarrationTitle =>
+      'Automatic message narration';
+
+  @override
+  String get notificationsTtsAutoNarrationDescription =>
+      'Converts incoming content to speech, regardless of whether it came from /tts.';
+
+  @override
+  String get notificationsTtsModeAllChannelsName => 'Every channel';
+
+  @override
+  String get notificationsTtsModeAllChannelsDescription =>
+      'Let every incoming message be spoken, regardless of which channel is open.';
+
+  @override
+  String get notificationsTtsModeCurrentChannelName => 'Active channel only';
+
+  @override
+  String get notificationsTtsModeCurrentChannelDescription =>
+      'Narrates only the channel you\'re viewing. Narration follows you between channels.';
+
+  @override
+  String get notificationsTtsModeNeverName => 'Never automatically';
+
+  @override
+  String get notificationsTtsModeNeverDescription =>
+      'Remain silent unless someone runs /tts manually.';
+
+  @override
+  String get notificationsTtsModeAriaLabel => 'Speak all messages out loud';
 
   @override
   String get notificationsSoundsSectionTitle => 'Sounds';

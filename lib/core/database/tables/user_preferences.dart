@@ -116,6 +116,9 @@ class UserPreferencesTable extends Table {
       boolean().withDefault(const Constant(true))();
   BoolColumn get reducedMotionOverride =>
       boolean().withDefault(const Constant(false))();
+  BoolColumn get enableTtsCommand =>
+      boolean().withDefault(const Constant(true))();
+  RealColumn get ttsRate => real().withDefault(const Constant(1))();
 
   @override
   String get tableName => 'user_preferences';

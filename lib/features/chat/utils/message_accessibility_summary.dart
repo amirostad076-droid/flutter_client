@@ -1,55 +1,30 @@
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/utils/message_content_stripper.dart';
 import 'package:fluxer_app/features/chat/utils/system_message_text.dart';
 import 'package:fluxer_app/features/chat/utils/voice_message_attachment.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 
 const int kMessageAccessibilitySummaryMaxLength = 120;
 
-final RegExp _spoilerContentRegex = RegExp(r'\|\|([\s\S]*?)\|\|');
-final RegExp _customEmojiRegex = RegExp(r'<a?:([^:>]+):\d+>');
-final RegExp _userMentionRegex = RegExp(r'<@!?\d+>');
-final RegExp _roleMentionRegex = RegExp(r'<@&\d+>');
-final RegExp _channelMentionRegex = RegExp(r'<#\d+>');
-final RegExp _markdownLinkRegex = RegExp(r'\[([^\]]+)\]\([^)]+\)');
-final RegExp _inlineCodeRegex = RegExp('`([^`]+)`');
-final RegExp _fencedCodeBlockRegex = RegExp(r'```[^\n]*\n([\s\S]*?)```');
-final RegExp _blockQuotePrefixRegex = RegExp(r'^>+\s?', multiLine: true);
-final RegExp _headingPrefixRegex = RegExp(r'^#{1,6}\s+', multiLine: true);
-final RegExp _boldAsteriskRegex = RegExp(r'\*\*(.+?)\*\*');
-final RegExp _boldUnderscoreRegex = RegExp('__(.+?)__');
-final RegExp _italicAsteriskRegex = RegExp(
-  r'(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)',
-);
-final RegExp _italicUnderscoreRegex = RegExp('(?<!_)_(?!_)(.+?)(?<!_)_(?!_)');
-final RegExp _strikethroughRegex = RegExp('~~(.+?)~~');
-final RegExp _collapsedWhitespaceRegex = RegExp(r'\s+');
-
 String plainTextFromMessageContent(String content, FluxerLocalizations l10n) {
   var text = content;
-  text = text.replaceAll(_spoilerContentRegex, l10n.chatAttachmentSpoiler);
-  text = text.replaceAllMapped(
-    _customEmojiRegex,
-    (match) => ':${match.group(1)}:',
+  text = text.replaceAll(
+    MessageContentPatterns.spoiler,
+    l10n.chatAttachmentSpoiler,
   );
-  text = text.replaceAll(_userMentionRegex, '@');
-  text = text.replaceAll(_roleMentionRegex, '@');
-  text = text.replaceAll(_channelMentionRegex, '#');
+  text = text.replaceAllMapped(MessageContentPatterns.customEmoji, (match) {
+    return ':${match.group(1)}:';
+  });
+  text = text.replaceAllMapped(MessageContentPatterns.userMention, (_) => '@');
+  text = text.replaceAllMapped(MessageContentPatterns.roleMention, (_) => '@');
   text = text.replaceAllMapped(
-    _fencedCodeBlockRegex,
-    (match) => match.group(1)?.trim() ?? '',
+    MessageContentPatterns.channelMention,
+    (_) => '#',
   );
-  text = text.replaceAllMapped(
-    _markdownLinkRegex,
-    (match) => match.group(1) ?? '',
-  );
-  text = text.replaceAllMapped(
-    _inlineCodeRegex,
-    (match) => match.group(1) ?? '',
-  );
-  text = _stripSimpleMarkdownEmphasis(text);
-  text = text.replaceAll(_blockQuotePrefixRegex, '');
-  text = text.replaceAll(_headingPrefixRegex, '');
-  return text.trim().replaceAll(_collapsedWhitespaceRegex, ' ');
+  text = extractFencedCodeBlockContent(text);
+  text = stripMessageMarkdownLinks(text);
+  text = stripMessageInlineCode(text);
+  return stripMessageStructuralMarkdown(text);
 }
 
 String truncateAccessibilitySummary(String text) {
@@ -121,20 +96,6 @@ String? _resolveAccessibilitySummary(
     embeds: message.embeds,
     messageFlags: message.flags,
   );
-}
-
-String _stripSimpleMarkdownEmphasis(String text) {
-  var result = text;
-  for (final RegExp pattern in <RegExp>[
-    _boldAsteriskRegex,
-    _boldUnderscoreRegex,
-    _strikethroughRegex,
-    _italicAsteriskRegex,
-    _italicUnderscoreRegex,
-  ]) {
-    result = result.replaceAllMapped(pattern, (match) => match.group(1) ?? '');
-  }
-  return result;
 }
 
 String? _summaryFromParts({

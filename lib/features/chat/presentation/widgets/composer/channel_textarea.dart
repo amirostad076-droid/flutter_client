@@ -68,6 +68,7 @@ import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/guilds/services/guild_verification.dart';
 import 'package:fluxer_app/features/settings/providers/advanced_preferences_provider.dart';
+import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_confirm_sheet.dart';
 import 'package:fluxer_app/features/ui/input/inline_token_clipboard.dart';
@@ -1506,7 +1507,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       ComposerContentSend() => resolved,
       ComposerReplaceCommand() => resolved,
     };
-    final bool tts = command is ComposerTtsCommand;
+    final bool tts =
+        command is ComposerTtsCommand &&
+        ref.read(appearancePreferencesProvider).enableTtsCommand;
 
     if (emojiContext.blocksContent(baseContent)) {
       final FluxerLocalizations l10n = FluxerLocalizations.of(context);
