@@ -62,19 +62,24 @@ class _EmbedAnimatedImageState extends ConsumerState<EmbedAnimatedImage> {
 
   @override
   void dispose() {
-    _controller?.unregister(widget.visibilityKey);
     _controller?.removeListener(_onControllerChanged);
+    _controller?.unregister(widget.visibilityKey);
     _playingNotifier.dispose();
     super.dispose();
   }
 
   void _onControllerChanged() {
+    if (!mounted) {
+      return;
+    }
     _syncPlaying();
   }
 
   void _syncPlaying({bool? allowed}) {
-    final bool gifAllowed =
-        allowed ?? effectiveMotionOf(ref, context).effectiveGifAutoPlay;
+    if (!mounted) {
+      return;
+    }
+    final bool gifAllowed = allowed ?? _allowedGifAutoPlay ?? true;
     final bool playing =
         gifAllowed &&
         (_controller?.isPlaying(widget.visibilityKey) ?? _localVisible);
