@@ -502,23 +502,11 @@ void main() {
   });
 
   group('shouldDismissCallKitOnForeground', () {
-    test('ios in voice keeps CallKit session', () {
-      expect(
-        shouldDismissCallKitOnForeground(isIos: true, isInVoice: true),
-        isFalse,
-      );
+    test('in voice keeps CallKit session', () {
+      expect(shouldDismissCallKitOnForeground(isInVoice: true), isFalse);
     });
-    test('ios not in voice dismisses CallKit', () {
-      expect(
-        shouldDismissCallKitOnForeground(isIos: true, isInVoice: false),
-        isTrue,
-      );
-    });
-    test('android in voice still dismisses on foreground', () {
-      expect(
-        shouldDismissCallKitOnForeground(isIos: false, isInVoice: true),
-        isTrue,
-      );
+    test('not in voice dismisses CallKit', () {
+      expect(shouldDismissCallKitOnForeground(isInVoice: false), isTrue);
     });
   });
 
@@ -595,6 +583,68 @@ void main() {
         shouldRestoreLiveKitAutomaticAudioSession(
           callKitOwnsAudio: false,
           hasCallKitSessions: false,
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('hasActiveVoiceCallKitSession', () {
+    test('true when an activeVoice session exists', () {
+      expect(
+        hasActiveVoiceCallKitSession(<VoiceCallKitSession>[
+          const VoiceCallKitSession(
+            callKitId: 'a',
+            channelId: 'c1',
+            kind: VoiceCallKitSessionKind.incomingRing,
+          ),
+          const VoiceCallKitSession(
+            callKitId: 'b',
+            channelId: 'c2',
+            kind: VoiceCallKitSessionKind.activeVoice,
+          ),
+        ]),
+        isTrue,
+      );
+    });
+    test('false when only ring sessions exist', () {
+      expect(
+        hasActiveVoiceCallKitSession(<VoiceCallKitSession>[
+          const VoiceCallKitSession(
+            callKitId: 'a',
+            channelId: 'c1',
+            kind: VoiceCallKitSessionKind.incomingRing,
+          ),
+        ]),
+        isFalse,
+      );
+    });
+  });
+
+  group('shouldScheduleCallKitAudioSessionRecovery', () {
+    test('schedules recovery on deactivate while active voice remains', () {
+      expect(
+        shouldScheduleCallKitAudioSessionRecovery(
+          isAudioSessionActive: false,
+          hasActiveVoiceSession: true,
+        ),
+        isTrue,
+      );
+    });
+    test('does not schedule when session activates', () {
+      expect(
+        shouldScheduleCallKitAudioSessionRecovery(
+          isAudioSessionActive: true,
+          hasActiveVoiceSession: true,
+        ),
+        isFalse,
+      );
+    });
+    test('does not schedule when no active voice session', () {
+      expect(
+        shouldScheduleCallKitAudioSessionRecovery(
+          isAudioSessionActive: false,
+          hasActiveVoiceSession: false,
         ),
         isFalse,
       );

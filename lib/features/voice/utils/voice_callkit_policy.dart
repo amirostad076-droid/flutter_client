@@ -146,14 +146,8 @@ bool shouldDeferMobileCallKitStartCall({
       lifecycleState == AppLifecycleState.hidden;
 }
 
-bool shouldDismissCallKitOnForeground({
-  required bool isIos,
-  required bool isInVoice,
-}) {
-  if (isIos && isInVoice) {
-    return false;
-  }
-  return true;
+bool shouldDismissCallKitOnForeground({required bool isInVoice}) {
+  return !isInVoice;
 }
 
 String resolveVoiceCallKitSessionId() {
@@ -183,3 +177,21 @@ bool shouldRestoreLiveKitAutomaticAudioSession({
 }) {
   return callKitOwnsAudio && !hasCallKitSessions;
 }
+
+bool hasActiveVoiceCallKitSession(Iterable<VoiceCallKitSession> sessions) {
+  return sessions.any(
+    (VoiceCallKitSession session) =>
+        session.kind == VoiceCallKitSessionKind.activeVoice,
+  );
+}
+
+bool shouldScheduleCallKitAudioSessionRecovery({
+  required bool isAudioSessionActive,
+  required bool hasActiveVoiceSession,
+}) {
+  return !isAudioSessionActive && hasActiveVoiceSession;
+}
+
+const Duration kVoiceCallKitAudioSessionRecoveryDelay = Duration(
+  milliseconds: 750,
+);

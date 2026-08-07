@@ -12,9 +12,11 @@ import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
+import 'package:fluxer_app/features/settings/providers/voice_settings_provider.dart';
 import 'package:fluxer_app/features/voice/providers/pending_incoming_voice_calls_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
+import 'package:fluxer_app/features/voice/services/voice_settings_applicator.dart';
 import 'package:fluxer_app/features/voice/utils/incoming_voice_call_actions.dart';
 import 'package:fluxer_app/features/voice/utils/voice_callkit_params.dart';
 import 'package:fluxer_app/features/voice/utils/voice_callkit_policy.dart';
@@ -63,6 +65,7 @@ class VoiceCallKitCoordinatorLogic {
   bool _isSyncingMuteToCallKit = false;
   bool _callKitOwnsAudioSession = false;
   DateTime? _suppressUserEndHandlingUntil;
+  Timer? _audioSessionRecoveryTimer;
 
   void init() {
     _eventSubscription = FlutterCallkitIncoming.onEvent.listen(
@@ -125,8 +128,55 @@ class VoiceCallKitCoordinatorLogic {
   }
 
   void dispose() {
+    _cancelAudioSessionRecovery();
     unawaited(_eventSubscription?.cancel());
     unawaited(_endAllCallKitSessions());
+  }
+
+  void _cancelAudioSessionRecovery() {
+    _audioSessionRecoveryTimer?.cancel();
+    _audioSessionRecoveryTimer = null;
+  }
+
+  void _scheduleAudioSessionRecovery() {
+    _cancelAudioSessionRecovery();
+    _audioSessionRecoveryTimer = Timer(
+      kVoiceCallKitAudioSessionRecoveryDelay,
+      () {
+        _scheduleSync(_recoverCallKitAudioSessionIfNeeded);
+      },
+    );
+  }
+
+  Future<void> _recoverCallKitAudioSessionIfNeeded() async {
+    if (!_sessions.hasActiveVoiceSession) {
+      return;
+    }
+    final VoiceCallKitVoiceSnapshot voice = _voiceCallKitVoiceSnapshot(
+      _ref.read(voiceSessionProvider),
+    );
+    if (!voice.isInVoice) {
+      return;
+    }
+    await _enterCallKitAudioOwnership();
+    try {
+      await AudioManager.instance.setEngineAvailability(
+        AudioEngineAvailability.defaultAvailability,
+      );
+    } on Object catch (error) {
+      talker.warning(
+        '[VoiceCallKit] audio session recovery setEngineAvailability failed: $error',
+      );
+    }
+    try {
+      await _ref
+          .read(voiceSettingsApplicatorProvider)
+          .applySpeakerOutput(settings: _ref.read(voiceSettingsProvider));
+    } on Object catch (error) {
+      talker.warning(
+        '[VoiceCallKit] audio session recovery applySpeakerOutput failed: $error',
+      );
+    }
   }
 
   Future<void> _enterCallKitAudioOwnership() async {
@@ -169,6 +219,7 @@ class VoiceCallKitCoordinatorLogic {
 
   Future<void> _handleToggleAudioSession({required bool isActive}) async {
     if (isActive) {
+      _cancelAudioSessionRecovery();
       await _enterCallKitAudioOwnership();
     }
     final bool enableEngine = shouldEnableLiveKitEngineForCallKitAudioSession(
@@ -184,6 +235,13 @@ class VoiceCallKitCoordinatorLogic {
       talker.warning('[VoiceCallKit] setEngineAvailability failed: $error');
     }
     if (!isActive) {
+      if (shouldScheduleCallKitAudioSessionRecovery(
+        isAudioSessionActive: false,
+        hasActiveVoiceSession: _sessions.hasActiveVoiceSession,
+      )) {
+        _scheduleAudioSessionRecovery();
+        return;
+      }
       await _exitCallKitAudioOwnership();
     }
   }
@@ -331,10 +389,7 @@ class VoiceCallKitCoordinatorLogic {
       final VoiceCallKitVoiceSnapshot voice = _voiceCallKitVoiceSnapshot(
         _ref.read(voiceSessionProvider),
       );
-      if (!shouldDismissCallKitOnForeground(
-        isIos: Platform.isIOS,
-        isInVoice: voice.isInVoice,
-      )) {
+      if (!shouldDismissCallKitOnForeground(isInVoice: voice.isInVoice)) {
         return;
       }
       await _dismissCallKitUiOnly();
