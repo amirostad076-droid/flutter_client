@@ -273,14 +273,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
-  change_case:
-    dependency: transitive
-    description:
-      name: change_case
-      sha256: e41ef3df58521194ef8d7649928954805aeb08061917cf658322305e61568003
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.0"
   characters:
     dependency: transitive
     description:
@@ -1539,14 +1531,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.17.6"
-  native_toolchain_cmake:
-    dependency: transitive
-    description:
-      name: native_toolchain_cmake
-      sha256: de90e8952bad0684bdcff4d674c53d961f5cd1fdcf3a0255a669a35986c4ac1d
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.7"
   nested:
     dependency: transitive
     description:
@@ -2546,13 +2530,12 @@ packages:
     source: hosted
     version: "3.4.1"
   unifiedpush_linux:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: unifiedpush_linux
-      sha256: c062d5eedd1cec70bcd33270cc4e01ae0ff6501f33d471167c06b34a968adfeb
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0"
+      path: "packages/unifiedpush_linux_stub"
+      relative: true
+    source: path
+    version: "1.0.0+fluxer"
   unifiedpush_platform_interface:
     dependency: transitive
     description:
@@ -2761,14 +2744,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.3"
-  webcrypto:
-    dependency: transitive
-    description:
-      name: webcrypto
-      sha256: "9885ed99a846191542dd6ca820c83a098117df56be57453832233a3fef68f3f2"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.6.1"
   webdriver:
     dependency: transitive
     description:
@@ -2785,14 +2760,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.1"
-  webpush_encryption:
-    dependency: transitive
-    description:
-      name: webpush_encryption
-      sha256: "5b83272b91acda6ae515fcd980c94f06bf413702282497c5a68f5dfc64fed27f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.1"
   webrtc_interface:
     dependency: transitive
     description:

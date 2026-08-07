@@ -38,6 +38,9 @@ jobs:
       - name: Strip Firebase dependencies if present
         run: dart tool/strip_firebase_deps.dart
 
+      - name: Apply macOS dependency overrides
+        run: bash tool/apply_macos_pub_overrides.sh
+
       - name: Get dependencies
         run: flutter pub get
 
