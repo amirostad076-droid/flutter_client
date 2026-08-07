@@ -10,6 +10,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/chat_fullscreen_video_launch_context.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_list_renderer.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_gift.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_image.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_invite.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_link.dart';
@@ -833,6 +834,14 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: EmbedInvite(code: code),
+          ),
+        ),
+      ),
+      ...msg.gifts.map(
+        (code) => wrapPart(
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: EmbedGift(code: code),
           ),
         ),
       ),

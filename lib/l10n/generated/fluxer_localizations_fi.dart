@@ -763,6 +763,140 @@ class FluxerLocalizationsFi extends FluxerLocalizations {
   String get embedThemeUnavailableButton => 'Teemat eivät saatavilla';
 
   @override
+  String embedGiftVisionaryLifetime(String productName) {
+    return 'Visionary (lifetime $productName)';
+  }
+
+  @override
+  String embedGiftDurationDays(int count, String productName) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days of $productName',
+      one: '1 day of $productName',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String embedGiftDurationWeeks(int count, String productName) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weeks of $productName',
+      one: '1 week of $productName',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String embedGiftDurationMonths(int count, String productName) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count months of $productName',
+      one: '1 month of $productName',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String embedGiftDurationYears(int count, String productName) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count years of $productName',
+      one: '1 year of $productName',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String embedGiftFrom(String creatorTag) {
+    return 'From $creatorTag';
+  }
+
+  @override
+  String get embedGiftClaimHelp => 'Click to claim your gift!';
+
+  @override
+  String get embedGiftAlreadyRedeemed => 'Already redeemed';
+
+  @override
+  String get embedGiftClaimAccountHelp =>
+      'Claim your account to redeem this gift.';
+
+  @override
+  String get embedGiftClaim => 'Claim gift';
+
+  @override
+  String get embedGiftClaimed => 'Gift claimed';
+
+  @override
+  String get embedGiftClaimAccount => 'Claim account to redeem';
+
+  @override
+  String get embedGiftUnknownTitle => 'Unknown gift';
+
+  @override
+  String get embedGiftUnknownSubtitle =>
+      'This gift code is invalid or already claimed.';
+
+  @override
+  String get embedGiftUnavailable => 'Gift unavailable';
+
+  @override
+  String giftAcceptClaimSubscription(String productName) {
+    return 'Claim your gift to activate your $productName subscription!';
+  }
+
+  @override
+  String get giftAcceptAlreadyClaimed => 'This gift has already been claimed.';
+
+  @override
+  String get giftAcceptMaybeLater => 'Maybe later';
+
+  @override
+  String get giftRedeemedToast => 'Gift redeemed!';
+
+  @override
+  String get giftRedeemInvalidTitle => 'Invalid gift code';
+
+  @override
+  String get giftRedeemInvalidMessage =>
+      'This code is invalid or already used.';
+
+  @override
+  String get giftRedeemAlreadyRedeemedTitle => 'Gift already redeemed';
+
+  @override
+  String get giftRedeemAlreadyRedeemedMessage =>
+      'This code was already redeemed.';
+
+  @override
+  String get giftRedeemNotFoundTitle => 'Gift not found';
+
+  @override
+  String get giftRedeemNotFoundMessage => 'This code doesn\'t exist.';
+
+  @override
+  String get giftRedeemFailedTitle => 'Failed to redeem gift';
+
+  @override
+  String get giftRedeemFailedMessage =>
+      'Couldn\'t redeem this gift. Try again.';
+
+  @override
+  String get giftVisionaryCannotRedeemTitle => 'Can\'t redeem this gift';
+
+  @override
+  String get giftVisionaryCannotRedeemMessage =>
+      'Visionary accounts can\'t redeem Plutonium gifts. Copy the link to share it with a friend instead.';
+
+  @override
+  String get giftCopyLink => 'Copy gift link';
+
+  @override
   String get privacySettings => 'Tietosuoja-asetukset';
 
   @override

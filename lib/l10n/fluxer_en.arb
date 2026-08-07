@@ -1004,6 +1004,179 @@
     "@embedThemeUnavailableButton": {
         "description": "Button on the theme embed card - themes aren't supported in the client."
     },
+    "embedGiftVisionaryLifetime": "Visionary (lifetime {productName})",
+    "@embedGiftVisionaryLifetime": {
+        "description": "Gift duration title for a lifetime Visionary entitlement.",
+        "placeholders": {
+            "productName": {
+                "type": "String",
+                "example": "Plutonium"
+            }
+        }
+    },
+    "embedGiftDurationDays": "{count, plural, =1{1 day of {productName}} other{{count} days of {productName}}}",
+    "@embedGiftDurationDays": {
+        "description": "Gift duration title in days.",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "productName": {
+                "type": "String",
+                "example": "Plutonium"
+            }
+        }
+    },
+    "embedGiftDurationWeeks": "{count, plural, =1{1 week of {productName}} other{{count} weeks of {productName}}}",
+    "@embedGiftDurationWeeks": {
+        "description": "Gift duration title in weeks.",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "productName": {
+                "type": "String",
+                "example": "Plutonium"
+            }
+        }
+    },
+    "embedGiftDurationMonths": "{count, plural, =1{1 month of {productName}} other{{count} months of {productName}}}",
+    "@embedGiftDurationMonths": {
+        "description": "Gift duration title in months.",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "productName": {
+                "type": "String",
+                "example": "Plutonium"
+            }
+        }
+    },
+    "embedGiftDurationYears": "{count, plural, =1{1 year of {productName}} other{{count} years of {productName}}}",
+    "@embedGiftDurationYears": {
+        "description": "Gift duration title in years.",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "productName": {
+                "type": "String",
+                "example": "Plutonium"
+            }
+        }
+    },
+    "embedGiftFrom": "From {creatorTag}",
+    "@embedGiftFrom": {
+        "description": "Sender label on a gift code embed.",
+        "placeholders": {
+            "creatorTag": {
+                "type": "String"
+            }
+        }
+    },
+    "embedGiftClaimHelp": "Click to claim your gift!",
+    "@embedGiftClaimHelp": {
+        "description": "Help text on a redeemable gift embed."
+    },
+    "embedGiftAlreadyRedeemed": "Already redeemed",
+    "@embedGiftAlreadyRedeemed": {
+        "description": "Help text when a gift code has already been claimed."
+    },
+    "embedGiftClaimAccountHelp": "Claim your account to redeem this gift.",
+    "@embedGiftClaimAccountHelp": {
+        "description": "Help text on a gift embed for unclaimed accounts."
+    },
+    "embedGiftClaim": "Claim gift",
+    "@embedGiftClaim": {
+        "description": "Primary button on a redeemable gift embed."
+    },
+    "embedGiftClaimed": "Gift claimed",
+    "@embedGiftClaimed": {
+        "description": "Disabled button label after a gift is claimed."
+    },
+    "embedGiftClaimAccount": "Claim account to redeem",
+    "@embedGiftClaimAccount": {
+        "description": "Button on a gift embed for unclaimed accounts."
+    },
+    "embedGiftUnknownTitle": "Unknown gift",
+    "@embedGiftUnknownTitle": {
+        "description": "Title when a gift code cannot be resolved."
+    },
+    "embedGiftUnknownSubtitle": "This gift code is invalid or already claimed.",
+    "@embedGiftUnknownSubtitle": {
+        "description": "Subtitle when a gift code cannot be resolved."
+    },
+    "embedGiftUnavailable": "Gift unavailable",
+    "@embedGiftUnavailable": {
+        "description": "Disabled button when a gift cannot be claimed."
+    },
+    "giftAcceptClaimSubscription": "Claim your gift to activate your {productName} subscription!",
+    "@giftAcceptClaimSubscription": {
+        "description": "Help text on the gift accept modal for a claimable gift.",
+        "placeholders": {
+            "productName": {
+                "type": "String",
+                "example": "Plutonium"
+            }
+        }
+    },
+    "giftAcceptAlreadyClaimed": "This gift has already been claimed.",
+    "@giftAcceptAlreadyClaimed": {
+        "description": "Help text on the gift accept modal when already redeemed."
+    },
+    "giftAcceptMaybeLater": "Maybe later",
+    "@giftAcceptMaybeLater": {
+        "description": "Secondary dismiss button on the gift accept modal."
+    },
+    "giftRedeemedToast": "Gift redeemed!",
+    "@giftRedeemedToast": {
+        "description": "Success toast after redeeming a gift code."
+    },
+    "giftRedeemInvalidTitle": "Invalid gift code",
+    "@giftRedeemInvalidTitle": {
+        "description": "Error modal title for an invalid gift code."
+    },
+    "giftRedeemInvalidMessage": "This code is invalid or already used.",
+    "@giftRedeemInvalidMessage": {
+        "description": "Error modal body for an invalid gift code."
+    },
+    "giftRedeemAlreadyRedeemedTitle": "Gift already redeemed",
+    "@giftRedeemAlreadyRedeemedTitle": {
+        "description": "Error modal title when a gift was already redeemed."
+    },
+    "giftRedeemAlreadyRedeemedMessage": "This code was already redeemed.",
+    "@giftRedeemAlreadyRedeemedMessage": {
+        "description": "Error modal body when a gift was already redeemed."
+    },
+    "giftRedeemNotFoundTitle": "Gift not found",
+    "@giftRedeemNotFoundTitle": {
+        "description": "Error modal title when a gift code does not exist."
+    },
+    "giftRedeemNotFoundMessage": "This code doesn't exist.",
+    "@giftRedeemNotFoundMessage": {
+        "description": "Error modal body when a gift code does not exist."
+    },
+    "giftRedeemFailedTitle": "Failed to redeem gift",
+    "@giftRedeemFailedTitle": {
+        "description": "Generic gift redeem error modal title."
+    },
+    "giftRedeemFailedMessage": "Couldn't redeem this gift. Try again.",
+    "@giftRedeemFailedMessage": {
+        "description": "Generic gift redeem error modal body."
+    },
+    "giftVisionaryCannotRedeemTitle": "Can't redeem this gift",
+    "@giftVisionaryCannotRedeemTitle": {
+        "description": "Error modal title when a Visionary user cannot redeem Plutonium."
+    },
+    "giftVisionaryCannotRedeemMessage": "Visionary accounts can't redeem Plutonium gifts. Copy the link to share it with a friend instead.",
+    "@giftVisionaryCannotRedeemMessage": {
+        "description": "Error modal body when a Visionary user cannot redeem Plutonium."
+    },
+    "giftCopyLink": "Copy gift link",
+    "@giftCopyLink": {
+        "description": "Button to copy a gift share URL."
+    },
     "privacySettings": "Privacy Settings",
     "@privacySettings": {
         "description": "Title for guild privacy settings bottom sheet."

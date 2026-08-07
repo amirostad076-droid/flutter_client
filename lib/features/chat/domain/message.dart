@@ -6,6 +6,7 @@ import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/features/chat/utils/attachment_display_utils.dart';
 import 'package:fluxer_app/features/chat/utils/url_sanitization_utils.dart';
 import 'package:fluxer_app/features/chat/utils/voice_message_constants.dart';
+import 'package:fluxer_app/features/gifts/utils/gift_code_utils.dart';
 import 'package:fluxer_app/shared/utils/guild_user_display.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
 import 'package:fluxer_dart/export.dart';
@@ -1502,6 +1503,8 @@ class Message {
     }
     return result;
   }
+
+  List<String> get gifts => findGiftCodes(content);
 
   bool get isForwarded =>
       (messageReference?.isForward ?? false) && messageSnapshots.isNotEmpty ||

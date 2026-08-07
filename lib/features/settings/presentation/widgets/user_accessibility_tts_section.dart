@@ -64,7 +64,6 @@ class _UserAccessibilityTtsSectionState
             ),
             SizedBox(height: layout.s4),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 FluxerButton.primary(
                   size: FluxerButtonSize.compact,
@@ -213,7 +212,6 @@ class _TtsRateRow extends StatelessWidget {
         }
 
         return Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(child: text),
             SizedBox(width: layout.s4),
@@ -371,7 +369,7 @@ class _TtsRateComboboxState extends State<_TtsRateCombobox> {
                     ),
                     cursorColor: colors.textPrimary,
                     inputFormatters: <TextInputFormatter>[
-                      FilteringTextInputFormatter.allow(RegExp(r'[0-9.xX]')),
+                      FilteringTextInputFormatter.allow(RegExp('[0-9.xX]')),
                     ],
                     decoration: const InputDecoration(
                       isDense: true,

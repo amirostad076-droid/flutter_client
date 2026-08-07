@@ -1468,6 +1468,186 @@ abstract class FluxerLocalizations {
   /// **'Themes unavailable'**
   String get embedThemeUnavailableButton;
 
+  /// Gift duration title for a lifetime Visionary entitlement.
+  ///
+  /// In en, this message translates to:
+  /// **'Visionary (lifetime {productName})'**
+  String embedGiftVisionaryLifetime(String productName);
+
+  /// Gift duration title in days.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day of {productName}} other{{count} days of {productName}}}'**
+  String embedGiftDurationDays(int count, String productName);
+
+  /// Gift duration title in weeks.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 week of {productName}} other{{count} weeks of {productName}}}'**
+  String embedGiftDurationWeeks(int count, String productName);
+
+  /// Gift duration title in months.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 month of {productName}} other{{count} months of {productName}}}'**
+  String embedGiftDurationMonths(int count, String productName);
+
+  /// Gift duration title in years.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 year of {productName}} other{{count} years of {productName}}}'**
+  String embedGiftDurationYears(int count, String productName);
+
+  /// Sender label on a gift code embed.
+  ///
+  /// In en, this message translates to:
+  /// **'From {creatorTag}'**
+  String embedGiftFrom(String creatorTag);
+
+  /// Help text on a redeemable gift embed.
+  ///
+  /// In en, this message translates to:
+  /// **'Click to claim your gift!'**
+  String get embedGiftClaimHelp;
+
+  /// Help text when a gift code has already been claimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Already redeemed'**
+  String get embedGiftAlreadyRedeemed;
+
+  /// Help text on a gift embed for unclaimed accounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim your account to redeem this gift.'**
+  String get embedGiftClaimAccountHelp;
+
+  /// Primary button on a redeemable gift embed.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim gift'**
+  String get embedGiftClaim;
+
+  /// Disabled button label after a gift is claimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift claimed'**
+  String get embedGiftClaimed;
+
+  /// Button on a gift embed for unclaimed accounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim account to redeem'**
+  String get embedGiftClaimAccount;
+
+  /// Title when a gift code cannot be resolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown gift'**
+  String get embedGiftUnknownTitle;
+
+  /// Subtitle when a gift code cannot be resolved.
+  ///
+  /// In en, this message translates to:
+  /// **'This gift code is invalid or already claimed.'**
+  String get embedGiftUnknownSubtitle;
+
+  /// Disabled button when a gift cannot be claimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift unavailable'**
+  String get embedGiftUnavailable;
+
+  /// Help text on the gift accept modal for a claimable gift.
+  ///
+  /// In en, this message translates to:
+  /// **'Claim your gift to activate your {productName} subscription!'**
+  String giftAcceptClaimSubscription(String productName);
+
+  /// Help text on the gift accept modal when already redeemed.
+  ///
+  /// In en, this message translates to:
+  /// **'This gift has already been claimed.'**
+  String get giftAcceptAlreadyClaimed;
+
+  /// Secondary dismiss button on the gift accept modal.
+  ///
+  /// In en, this message translates to:
+  /// **'Maybe later'**
+  String get giftAcceptMaybeLater;
+
+  /// Success toast after redeeming a gift code.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift redeemed!'**
+  String get giftRedeemedToast;
+
+  /// Error modal title for an invalid gift code.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid gift code'**
+  String get giftRedeemInvalidTitle;
+
+  /// Error modal body for an invalid gift code.
+  ///
+  /// In en, this message translates to:
+  /// **'This code is invalid or already used.'**
+  String get giftRedeemInvalidMessage;
+
+  /// Error modal title when a gift was already redeemed.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift already redeemed'**
+  String get giftRedeemAlreadyRedeemedTitle;
+
+  /// Error modal body when a gift was already redeemed.
+  ///
+  /// In en, this message translates to:
+  /// **'This code was already redeemed.'**
+  String get giftRedeemAlreadyRedeemedMessage;
+
+  /// Error modal title when a gift code does not exist.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift not found'**
+  String get giftRedeemNotFoundTitle;
+
+  /// Error modal body when a gift code does not exist.
+  ///
+  /// In en, this message translates to:
+  /// **'This code doesn\'t exist.'**
+  String get giftRedeemNotFoundMessage;
+
+  /// Generic gift redeem error modal title.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to redeem gift'**
+  String get giftRedeemFailedTitle;
+
+  /// Generic gift redeem error modal body.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t redeem this gift. Try again.'**
+  String get giftRedeemFailedMessage;
+
+  /// Error modal title when a Visionary user cannot redeem Plutonium.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t redeem this gift'**
+  String get giftVisionaryCannotRedeemTitle;
+
+  /// Error modal body when a Visionary user cannot redeem Plutonium.
+  ///
+  /// In en, this message translates to:
+  /// **'Visionary accounts can\'t redeem Plutonium gifts. Copy the link to share it with a friend instead.'**
+  String get giftVisionaryCannotRedeemMessage;
+
+  /// Button to copy a gift share URL.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy gift link'**
+  String get giftCopyLink;
+
   /// Title for guild privacy settings bottom sheet.
   ///
   /// In en, this message translates to:
