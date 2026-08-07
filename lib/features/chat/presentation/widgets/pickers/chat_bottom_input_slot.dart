@@ -41,7 +41,11 @@ class BottomInputSpacer extends ConsumerWidget {
     if (slotHeight <= 0) {
       return const SizedBox.shrink();
     }
-    return _animatedSpacer(context, slotHeight);
+    return _keyboardSpacer(slotHeight);
+  }
+
+  Widget _keyboardSpacer(double height) {
+    return SizedBox(height: height);
   }
 
   Widget _animatedSpacer(BuildContext context, double height) {
