@@ -864,6 +864,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final AdvancedPreferencesState advanced = ref.watch(
       advancedPreferencesProvider,
     );
+    final bool showTextareaFocusRing = ref.watch(
+      appearancePreferencesProvider.select((s) => s.showTextareaFocusRing),
+    );
     final List<ExpressionPickerTab> composerButtonTabs =
         composerInputButtonVisibleTabs(perms: perms, advanced: advanced);
     final List<ExpressionPickerTab> popoutTabs = expressionPanelVisibleTabs(
@@ -917,7 +920,14 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             ),
             border: InputBorder.none,
             enabledBorder: InputBorder.none,
-            focusedBorder: InputBorder.none,
+            focusedBorder: showTextareaFocusRing
+                ? OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: context.colors.backgroundModifierAccentFocus,
+                    ),
+                  )
+                : InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(vertical: 2),
             isDense: true,
           );

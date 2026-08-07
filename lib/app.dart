@@ -26,28 +26,13 @@ class FluxerApp extends ConsumerWidget {
     final router = ref.watch(fluxerRouterProvider);
     final themePref = ref.watch(themePreferenceProvider);
     final Locale appLocale = ref.watch(effectiveAppLocaleProvider);
-    final AppearancePreferencesState appearance = ref.watch(
-      appearancePreferencesProvider,
-    );
-
-    final darkTheme = buildFluxerTheme(
-      colorTheme: themePref.darkColorTheme,
-      textTheme: themePref.darkTextTheme,
-      layoutTheme: themePref.layoutTheme,
-    );
-    final lightTheme = buildFluxerTheme(
-      colorTheme: themePref.lightColorTheme,
-      textTheme: themePref.lightTextTheme,
-      layoutTheme: themePref.layoutTheme,
-      brightness: Brightness.light,
-    );
-    final explicitTheme = buildFluxerTheme(
-      colorTheme: themePref.colorTheme,
-      textTheme: themePref.textTheme,
-      layoutTheme: themePref.layoutTheme,
-      brightness: themePref.mode == FluxerThemeMode.light
-          ? Brightness.light
-          : Brightness.dark,
+    final ({bool sync, bool override}) reducedMotionPrefs = ref.watch(
+      appearancePreferencesProvider.select(
+        (AppearancePreferencesState s) => (
+          sync: s.syncReducedMotionWithSystem,
+          override: s.reducedMotionOverride,
+        ),
+      ),
     );
 
     final ThemeMode themeMode;
@@ -56,17 +41,35 @@ class FluxerApp extends ConsumerWidget {
     switch (themePref.mode) {
       case FluxerThemeMode.system:
         themeMode = ThemeMode.system;
-        theme = lightTheme;
-        darkThemeData = darkTheme;
+        theme = buildFluxerTheme(
+          colorTheme: themePref.lightColorTheme,
+          textTheme: themePref.lightTextTheme,
+          layoutTheme: themePref.layoutTheme,
+          brightness: Brightness.light,
+        );
+        darkThemeData = buildFluxerTheme(
+          colorTheme: themePref.darkColorTheme,
+          textTheme: themePref.darkTextTheme,
+          layoutTheme: themePref.layoutTheme,
+        );
       case FluxerThemeMode.light:
         themeMode = ThemeMode.light;
-        theme = explicitTheme;
+        theme = buildFluxerTheme(
+          colorTheme: themePref.colorTheme,
+          textTheme: themePref.textTheme,
+          layoutTheme: themePref.layoutTheme,
+          brightness: Brightness.light,
+        );
         darkThemeData = null;
       case FluxerThemeMode.dark:
       case FluxerThemeMode.coal:
         themeMode = ThemeMode.dark;
-        theme = explicitTheme;
-        darkThemeData = explicitTheme;
+        theme = buildFluxerTheme(
+          colorTheme: themePref.colorTheme,
+          textTheme: themePref.textTheme,
+          layoutTheme: themePref.layoutTheme,
+        );
+        darkThemeData = theme;
     }
 
     return MaterialApp.router(
@@ -78,6 +81,7 @@ class FluxerApp extends ConsumerWidget {
       theme: theme,
       darkTheme: darkThemeData,
       themeMode: themeMode,
+      themeAnimationDuration: Duration.zero,
       routerConfig: router,
       builder: (context, child) {
         final Widget layered = InputModalityListener(
@@ -107,8 +111,8 @@ class FluxerApp extends ConsumerWidget {
           context,
         );
         final bool disableAnimations = resolveReducedMotion(
-          syncReducedMotionWithSystem: appearance.syncReducedMotionWithSystem,
-          reducedMotionOverride: appearance.reducedMotionOverride,
+          syncReducedMotionWithSystem: reducedMotionPrefs.sync,
+          reducedMotionOverride: reducedMotionPrefs.override,
           platformReducedMotion: platformReducedMotion,
         );
         if (!disableAnimations) {

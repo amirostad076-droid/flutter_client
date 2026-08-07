@@ -127,11 +127,11 @@ void main() {
       expect(pushed.showMessageSendButton, isTrue);
       expect(pushed.autoSendKlipyGifs, isTrue);
       expect(pushed.hideKeyboardHints, isTrue);
-      expect(pushed.syncReducedMotionWithSystem, isFalse);
-      expect(pushed.reducedMotionOverride, isTrue);
+      expect(pushed.syncReducedMotionWithSystem, isTrue);
+      expect(pushed.reducedMotionOverride, isFalse);
     });
 
-    test('toProto does not write local-only motion fields', () {
+    test('roundtrips motion and underline accessibility fields', () {
       const local = AccessibilityLocalState(
         hideKeyboardHints: false,
         channelTypingIndicatorMode: ChannelTypingIndicatorMode.avatars,
@@ -144,11 +144,36 @@ void main() {
         compactMessageGroupSpacing: 0,
         saturationFactor: 1,
         customThemeCss: null,
+        alwaysUnderlineLinks: true,
+        dimStrikethroughText: false,
+        showTextareaFocusRing: false,
+        escapeExitsKeyboardMode: true,
+        showContextMenuShortcuts: true,
+        confirmBeforeStartingCalls: false,
+        syncReducedMotionWithSystem: false,
+        reducedMotionOverride: true,
+        mobileGifAutoplayOverridden: true,
+        mobileAnimateEmojiOverridden: true,
+        mobileStickerAnimationOverridden: true,
+        mobileGifAutoplayValue: true,
+        mobileAnimateEmojiValue: false,
         advanced: kDefaultAdvancedAccessibility,
       );
       final proto = AccessibilitySyncedField.toProto(local);
-      expect(proto.hasSyncReducedMotionWithSystem(), isFalse);
-      expect(proto.hasReducedMotionOverride(), isFalse);
+      final restored = AccessibilitySyncedField.fromProto(proto);
+      expect(restored.alwaysUnderlineLinks, isTrue);
+      expect(restored.dimStrikethroughText, isFalse);
+      expect(restored.showTextareaFocusRing, isFalse);
+      expect(restored.escapeExitsKeyboardMode, isTrue);
+      expect(restored.showContextMenuShortcuts, isTrue);
+      expect(restored.confirmBeforeStartingCalls, isFalse);
+      expect(restored.syncReducedMotionWithSystem, isFalse);
+      expect(restored.reducedMotionOverride, isTrue);
+      expect(restored.mobileGifAutoplayOverridden, isTrue);
+      expect(restored.mobileAnimateEmojiOverridden, isTrue);
+      expect(restored.mobileStickerAnimationOverridden, isTrue);
+      expect(restored.mobileGifAutoplayValue, isTrue);
+      expect(restored.mobileAnimateEmojiValue, isFalse);
     });
 
     test('toProtoForPush keeps wire custom theme css when local has none', () {

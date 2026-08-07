@@ -4512,19 +4512,13 @@ class FluxerLocalizationsPt extends FluxerLocalizations {
       'Ajuste a intensidade das cores do tema em todo o aplicativo.';
 
   @override
-  String get accessibilityUnreadGroupTitle => 'Indicadores de não lidas';
+  String get accessibilityVisualGroupTitle => 'Visual';
 
   @override
-  String get accessibilityUnreadGroupDescription =>
-      'Controle como os indicadores de mensagens não lidas são exibidos.';
+  String get accessibilityAlwaysUnderlineLinksLabel => 'Always underline links';
 
   @override
-  String get accessibilityShowFadedUnreadOnMutedChannelsLabel =>
-      'Mostrar indicador de não lidas esmaecido em canais silenciados';
-
-  @override
-  String get accessibilityShowFadedUnreadOnMutedChannelsDescription =>
-      'Exiba um indicador de não lidas atenuado ao lado de mensagens diretas e canais silenciados para que você ainda possa ver rapidamente quando há atividade.';
+  String get accessibilityDimStrikethroughTextLabel => 'Dim strikethrough text';
 
   @override
   String get accessibilityDmMessagePreviewGroupTitle =>
@@ -4573,7 +4567,7 @@ class FluxerLocalizationsPt extends FluxerLocalizations {
 
   @override
   String get accessibilityScreenReaderAnnounceNewMessagesDescription =>
-      'Read new messages aloud when they arrive in the active channel.';
+      'Let screen readers announce new messages as they arrive in the open channel. Notification sounds are unaffected.';
 
   @override
   String get accessibilityTtsGroupTitle => 'Text-to-speech';
@@ -4591,6 +4585,151 @@ class FluxerLocalizationsPt extends FluxerLocalizations {
 
   @override
   String get accessibilityTtsSilenceSampleLabel => 'Silence sample';
+
+  @override
+  String get accessibilityPreviewButtonLabel => 'Preview button';
+
+  @override
+  String accessibilityPreviewLinksMessage(String linkPreviewExampleUrl) {
+    return 'This shows how links appear: $linkPreviewExampleUrl';
+  }
+
+  @override
+  String get accessibilityPreviewUserName => 'Preview User';
+
+  @override
+  String get accessibilityKeyboardGroupTitle => 'Keyboard';
+
+  @override
+  String get accessibilityShowTextareaFocusRingLabel =>
+      'Show focus ring on chat textarea';
+
+  @override
+  String get accessibilityEscapeExitsKeyboardModeLabel =>
+      'Escape key exits keyboard mode';
+
+  @override
+  String get accessibilityShowContextMenuShortcutsLabel =>
+      'Show context menu shortcuts';
+
+  @override
+  String get accessibilityConfirmBeforeStartingCallsLabel =>
+      'Confirm before starting calls';
+
+  @override
+  String get accessibilityAnimationGroupTitle => 'Animation';
+
+  @override
+  String get accessibilityReducedMotionActiveNote =>
+      'Reduced motion is on, so content animations are paused by default. You can still turn any of these back on to keep it playing.';
+
+  @override
+  String get accessibilityPlayAnimatedEmojisLabel => 'Play animated emojis';
+
+  @override
+  String get accessibilityAutoPlayGifsMobileLabel => 'Automatically play GIFs';
+
+  @override
+  String accessibilityAutoPlayGifsDesktopLabel(String productName) {
+    return 'Automatically play GIFs when $productName is focused';
+  }
+
+  @override
+  String get accessibilityPlayingDespiteReducedMotion =>
+      'Playing despite reduced motion.';
+
+  @override
+  String get accessibilityPausedEmojiByReducedMotion =>
+      'Paused by reduced motion. Turn on to keep animated emojis playing.';
+
+  @override
+  String get accessibilityPausedGifByReducedMotion =>
+      'Paused by reduced motion. Turn on to keep GIFs playing.';
+
+  @override
+  String get accessibilityGifDefaultsOffOnMobile =>
+      'Defaults to off on mobile to preserve battery life and data usage.';
+
+  @override
+  String get accessibilityStickerAnimationsTitle => 'Sticker animations';
+
+  @override
+  String get accessibilityStickerAnimationPreferenceLabel =>
+      'Sticker animation preference';
+
+  @override
+  String get accessibilityStickerAlwaysAnimateName => 'Always animate';
+
+  @override
+  String get accessibilityStickerAlwaysAnimateDescription =>
+      'Stickers will always animate';
+
+  @override
+  String get accessibilityStickerAnimateOnInteractionName =>
+      'Animate on interaction';
+
+  @override
+  String get accessibilityStickerAnimateOnPressDescription =>
+      'Stickers will animate when you press them';
+
+  @override
+  String get accessibilityStickerAnimateOnHoverDescription =>
+      'Stickers will animate when you hover or interact with them';
+
+  @override
+  String get accessibilityStickerNeverAnimateName => 'Never animate';
+
+  @override
+  String get accessibilityStickerNeverAnimateDescription =>
+      'Stickers will never animate';
+
+  @override
+  String get accessibilityStickersAlwaysDespiteReducedMotion =>
+      'Always animating despite reduced motion.';
+
+  @override
+  String get accessibilityStickersReducedMotionHint =>
+      'Reduced motion limits stickers to animate on interaction. Choose always animate to override.';
+
+  @override
+  String get accessibilityStickersDefaultsOnMobile =>
+      'Defaults to animate on interaction on mobile to preserve battery life.';
+
+  @override
+  String get accessibilityMotionGroupTitle => 'Motion';
+
+  @override
+  String get accessibilitySyncReducedMotionWithSystemLabel =>
+      'Sync reduced motion setting with system';
+
+  @override
+  String get accessibilitySyncReducedMotionWithSystemDescription =>
+      'Use this device\'s system reduced motion preference, or customize it below.';
+
+  @override
+  String get accessibilityReducedMotionOverrideLabel => 'Reduce motion';
+
+  @override
+  String get accessibilityReducedMotionOverrideSyncedDescription =>
+      'Disable animations and transitions. Currently controlled by your system setting.';
+
+  @override
+  String get accessibilityReducedMotionOverrideManualDescription =>
+      'Disable animations and transitions throughout the app.';
+
+  @override
+  String get accessibilityReducedMotionAnimationTabHint =>
+      'Animated emojis, GIFs and stickers stay under your control in the Animation tab.';
+
+  @override
+  String get accessibilityConfirmStartCallTitle => 'Start call?';
+
+  @override
+  String get accessibilityConfirmStartCallDescription =>
+      'Are you sure you want to start this call?';
+
+  @override
+  String get accessibilityConfirmStartCallConfirmLabel => 'Start call';
 
   @override
   String get accessibilityTtsSampleDescription =>
@@ -4667,53 +4806,9 @@ class FluxerLocalizationsPt extends FluxerLocalizations {
   String get ttsSentEmbed => 'sent an embed';
 
   @override
-  String get accessibilityReducedMotionGroupTitle => 'Reduced motion';
-
-  @override
-  String get accessibilityReducedMotionGroupDescription =>
-      'Control animation and motion effects.';
-
-  @override
-  String get accessibilitySyncReducedMotionWithSystemLabel =>
-      'Sync with system reduced motion';
-
-  @override
-  String get accessibilitySyncReducedMotionWithSystemDescription =>
-      'Use your device\'s reduced motion setting to limit animations in Fluxer.';
-
-  @override
-  String get accessibilityReducedMotionOverrideLabel => 'Always reduce motion';
-
-  @override
-  String get accessibilityReducedMotionOverrideDescription =>
-      'Disable animations in Fluxer regardless of your system setting.';
-
-  @override
   String messageScreenReaderAnnouncement(String author, String summary) {
     return '$author sent $summary';
   }
-
-  @override
-  String get accessibilityMediaButtonsGroupTitle => 'Media Buttons';
-
-  @override
-  String get accessibilityMediaButtonsGroupDescription =>
-      'Customize which buttons appear on media attachments and embeds.';
-
-  @override
-  String get accessibilityShowMediaDeleteButtonLabel => 'Show delete button';
-
-  @override
-  String get accessibilityShowMediaDownloadButtonLabel =>
-      'Show download button';
-
-  @override
-  String get accessibilityShowMediaFavoriteButtonLabel =>
-      'Show favorite button';
-
-  @override
-  String get accessibilityShowSuppressEmbedsButtonLabel =>
-      'Show suppress embeds button';
 
   @override
   String get dmListSentAnAttachment => 'Enviou um anexo';
@@ -15734,21 +15829,6 @@ class FluxerLocalizationsPtBr extends FluxerLocalizationsPt {
   @override
   String get accessibilitySaturationDescription =>
       'Ajuste a intensidade das cores do tema em todo o aplicativo.';
-
-  @override
-  String get accessibilityUnreadGroupTitle => 'Indicadores de não lidas';
-
-  @override
-  String get accessibilityUnreadGroupDescription =>
-      'Controle como os indicadores de mensagens não lidas são exibidos.';
-
-  @override
-  String get accessibilityShowFadedUnreadOnMutedChannelsLabel =>
-      'Mostrar indicador de não lidas esmaecido em canais silenciados';
-
-  @override
-  String get accessibilityShowFadedUnreadOnMutedChannelsDescription =>
-      'Exiba um indicador de não lidas atenuado ao lado de mensagens diretas e canais silenciados para que você ainda possa ver rapidamente quando há atividade.';
 
   @override
   String get accessibilityDmMessagePreviewGroupTitle =>

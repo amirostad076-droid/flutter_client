@@ -5700,21 +5700,17 @@
     "@accessibilitySaturationDescription": {
         "description": "Section description for the theme saturation slider on the accessibility settings page."
     },
-    "accessibilityUnreadGroupTitle": "Unread indicators",
-    "@accessibilityUnreadGroupTitle": {
-        "description": "Section title for unread-indicator accessibility settings."
+    "accessibilityVisualGroupTitle": "Visual",
+    "@accessibilityVisualGroupTitle": {
+        "description": "Section title for visual accessibility settings."
     },
-    "accessibilityUnreadGroupDescription": "Control how unread message indicators are displayed.",
-    "@accessibilityUnreadGroupDescription": {
-        "description": "Section description for unread-indicator accessibility settings."
+    "accessibilityAlwaysUnderlineLinksLabel": "Always underline links",
+    "@accessibilityAlwaysUnderlineLinksLabel": {
+        "description": "Toggle label for always underlining links in messages."
     },
-    "accessibilityShowFadedUnreadOnMutedChannelsLabel": "Show faded unread indicator on muted channels",
-    "@accessibilityShowFadedUnreadOnMutedChannelsLabel": {
-        "description": "Toggle label for showing a faded unread indicator on muted channels."
-    },
-    "accessibilityShowFadedUnreadOnMutedChannelsDescription": "Display a dimmed unread indicator next to muted direct messages and channels so you can still see at a glance when there's activity.",
-    "@accessibilityShowFadedUnreadOnMutedChannelsDescription": {
-        "description": "Toggle description for showing a faded unread indicator on muted channels."
+    "accessibilityDimStrikethroughTextLabel": "Dim strikethrough text",
+    "@accessibilityDimStrikethroughTextLabel": {
+        "description": "Toggle label for dimming strikethrough text in messages."
     },
     "accessibilityDmMessagePreviewGroupTitle": "DM message previews",
     "@accessibilityDmMessagePreviewGroupTitle": {
@@ -5764,7 +5760,7 @@
     "@accessibilityScreenReaderAnnounceNewMessagesLabel": {
         "description": "Toggle label for announcing incoming messages to screen readers."
     },
-    "accessibilityScreenReaderAnnounceNewMessagesDescription": "Read new messages aloud when they arrive in the active channel.",
+    "accessibilityScreenReaderAnnounceNewMessagesDescription": "Let screen readers announce new messages as they arrive in the open channel. Notification sounds are unaffected.",
     "@accessibilityScreenReaderAnnounceNewMessagesDescription": {
         "description": "Toggle description for announcing incoming messages to screen readers."
     },
@@ -5787,6 +5783,172 @@
     "accessibilityTtsSilenceSampleLabel": "Silence sample",
     "@accessibilityTtsSilenceSampleLabel": {
         "description": "Button label to stop the TTS sample playback."
+    },
+    "accessibilityPreviewButtonLabel": "Preview button",
+    "@accessibilityPreviewButtonLabel": {
+        "description": "Label for the no-op preview button on the accessibility settings page."
+    },
+    "accessibilityPreviewLinksMessage": "This shows how links appear: {linkPreviewExampleUrl}",
+    "@accessibilityPreviewLinksMessage": {
+        "description": "Sample message content in the accessibility preview.",
+        "placeholders": {
+            "linkPreviewExampleUrl": {
+                "type": "String"
+            }
+        }
+    },
+    "accessibilityPreviewUserName": "Preview User",
+    "@accessibilityPreviewUserName": {
+        "description": "Fallback display name for the accessibility preview message author."
+    },
+    "accessibilityKeyboardGroupTitle": "Keyboard",
+    "@accessibilityKeyboardGroupTitle": {
+        "description": "Section title for keyboard accessibility settings."
+    },
+    "accessibilityShowTextareaFocusRingLabel": "Show focus ring on chat textarea",
+    "@accessibilityShowTextareaFocusRingLabel": {
+        "description": "Toggle label for showing a focus ring on the chat textarea."
+    },
+    "accessibilityEscapeExitsKeyboardModeLabel": "Escape key exits keyboard mode",
+    "@accessibilityEscapeExitsKeyboardModeLabel": {
+        "description": "Toggle label for Escape exiting keyboard mode."
+    },
+    "accessibilityShowContextMenuShortcutsLabel": "Show context menu shortcuts",
+    "@accessibilityShowContextMenuShortcutsLabel": {
+        "description": "Toggle label for showing keyboard shortcuts in context menus."
+    },
+    "accessibilityConfirmBeforeStartingCallsLabel": "Confirm before starting calls",
+    "@accessibilityConfirmBeforeStartingCallsLabel": {
+        "description": "Toggle label for confirming before starting calls."
+    },
+    "accessibilityAnimationGroupTitle": "Animation",
+    "@accessibilityAnimationGroupTitle": {
+        "description": "Section title for animation accessibility settings."
+    },
+    "accessibilityReducedMotionActiveNote": "Reduced motion is on, so content animations are paused by default. You can still turn any of these back on to keep it playing.",
+    "@accessibilityReducedMotionActiveNote": {
+        "description": "Note shown above animation controls when reduced motion is active."
+    },
+    "accessibilityPlayAnimatedEmojisLabel": "Play animated emojis",
+    "@accessibilityPlayAnimatedEmojisLabel": {
+        "description": "Toggle label for playing animated emojis."
+    },
+    "accessibilityAutoPlayGifsMobileLabel": "Automatically play GIFs",
+    "@accessibilityAutoPlayGifsMobileLabel": {
+        "description": "Toggle label for GIF autoplay on mobile."
+    },
+    "accessibilityAutoPlayGifsDesktopLabel": "Automatically play GIFs when {productName} is focused",
+    "@accessibilityAutoPlayGifsDesktopLabel": {
+        "description": "Toggle label for GIF autoplay on desktop.",
+        "placeholders": {
+            "productName": {
+                "type": "String"
+            }
+        }
+    },
+    "accessibilityPlayingDespiteReducedMotion": "Playing despite reduced motion.",
+    "@accessibilityPlayingDespiteReducedMotion": {
+        "description": "Description when an animation setting overrides reduced motion."
+    },
+    "accessibilityPausedEmojiByReducedMotion": "Paused by reduced motion. Turn on to keep animated emojis playing.",
+    "@accessibilityPausedEmojiByReducedMotion": {
+        "description": "Description for emoji toggle while reduced motion is active."
+    },
+    "accessibilityPausedGifByReducedMotion": "Paused by reduced motion. Turn on to keep GIFs playing.",
+    "@accessibilityPausedGifByReducedMotion": {
+        "description": "Description for GIF toggle while reduced motion is active."
+    },
+    "accessibilityGifDefaultsOffOnMobile": "Defaults to off on mobile to preserve battery life and data usage.",
+    "@accessibilityGifDefaultsOffOnMobile": {
+        "description": "Helper text for GIF autoplay default on mobile."
+    },
+    "accessibilityStickerAnimationsTitle": "Sticker animations",
+    "@accessibilityStickerAnimationsTitle": {
+        "description": "Subsection title for sticker animation preference."
+    },
+    "accessibilityStickerAnimationPreferenceLabel": "Sticker animation preference",
+    "@accessibilityStickerAnimationPreferenceLabel": {
+        "description": "Accessibility label for the sticker animation radio group."
+    },
+    "accessibilityStickerAlwaysAnimateName": "Always animate",
+    "@accessibilityStickerAlwaysAnimateName": {
+        "description": "Radio option for always animating stickers."
+    },
+    "accessibilityStickerAlwaysAnimateDescription": "Stickers will always animate",
+    "@accessibilityStickerAlwaysAnimateDescription": {
+        "description": "Description for always animating stickers."
+    },
+    "accessibilityStickerAnimateOnInteractionName": "Animate on interaction",
+    "@accessibilityStickerAnimateOnInteractionName": {
+        "description": "Radio option for animating stickers on interaction."
+    },
+    "accessibilityStickerAnimateOnPressDescription": "Stickers will animate when you press them",
+    "@accessibilityStickerAnimateOnPressDescription": {
+        "description": "Description for sticker animate-on-press on touch devices."
+    },
+    "accessibilityStickerAnimateOnHoverDescription": "Stickers will animate when you hover or interact with them",
+    "@accessibilityStickerAnimateOnHoverDescription": {
+        "description": "Description for sticker animate-on-hover on desktop."
+    },
+    "accessibilityStickerNeverAnimateName": "Never animate",
+    "@accessibilityStickerNeverAnimateName": {
+        "description": "Radio option for never animating stickers."
+    },
+    "accessibilityStickerNeverAnimateDescription": "Stickers will never animate",
+    "@accessibilityStickerNeverAnimateDescription": {
+        "description": "Description for never animating stickers."
+    },
+    "accessibilityStickersAlwaysDespiteReducedMotion": "Always animating despite reduced motion.",
+    "@accessibilityStickersAlwaysDespiteReducedMotion": {
+        "description": "Description when stickers always-animate overrides reduced motion."
+    },
+    "accessibilityStickersReducedMotionHint": "Reduced motion limits stickers to animate on interaction. Choose always animate to override.",
+    "@accessibilityStickersReducedMotionHint": {
+        "description": "Description for stickers while reduced motion is active."
+    },
+    "accessibilityStickersDefaultsOnMobile": "Defaults to animate on interaction on mobile to preserve battery life.",
+    "@accessibilityStickersDefaultsOnMobile": {
+        "description": "Helper text for sticker animation default on mobile."
+    },
+    "accessibilityMotionGroupTitle": "Motion",
+    "@accessibilityMotionGroupTitle": {
+        "description": "Section title for motion accessibility settings."
+    },
+    "accessibilitySyncReducedMotionWithSystemLabel": "Sync reduced motion setting with system",
+    "@accessibilitySyncReducedMotionWithSystemLabel": {
+        "description": "Toggle label for syncing reduced motion with the operating system setting."
+    },
+    "accessibilitySyncReducedMotionWithSystemDescription": "Use this device's system reduced motion preference, or customize it below.",
+    "@accessibilitySyncReducedMotionWithSystemDescription": {
+        "description": "Toggle description for syncing reduced motion with the operating system setting."
+    },
+    "accessibilityReducedMotionOverrideLabel": "Reduce motion",
+    "@accessibilityReducedMotionOverrideLabel": {
+        "description": "Toggle label for reducing motion in Fluxer."
+    },
+    "accessibilityReducedMotionOverrideSyncedDescription": "Disable animations and transitions. Currently controlled by your system setting.",
+    "@accessibilityReducedMotionOverrideSyncedDescription": {
+        "description": "Reduce motion description while synced with system."
+    },
+    "accessibilityReducedMotionOverrideManualDescription": "Disable animations and transitions throughout the app.",
+    "@accessibilityReducedMotionOverrideManualDescription": {
+        "description": "Reduce motion description when not synced with system."
+    },
+    "accessibilityReducedMotionAnimationTabHint": "Animated emojis, GIFs and stickers stay under your control in the Animation tab.",
+    "@accessibilityReducedMotionAnimationTabHint": {
+        "description": "Extra hint under reduce motion while reduced motion is active."
+    },
+    "accessibilityConfirmStartCallTitle": "Start call?",
+    "@accessibilityConfirmStartCallTitle": {
+        "description": "Title for the confirm-before-starting-calls dialog."
+    },
+    "accessibilityConfirmStartCallDescription": "Are you sure you want to start this call?",
+    "@accessibilityConfirmStartCallDescription": {
+        "description": "Description for the confirm-before-starting-calls dialog."
+    },
+    "accessibilityConfirmStartCallConfirmLabel": "Start call",
+    "@accessibilityConfirmStartCallConfirmLabel": {
+        "description": "Confirm button for starting a call."
     },
     "accessibilityTtsSampleDescription": "Hear the sample line spoken with your chosen speed.",
     "@accessibilityTtsSampleDescription": {
@@ -5902,30 +6064,6 @@
     "@ttsSentEmbed": {
         "description": "TTS phrase for embed-only messages."
     },
-    "accessibilityReducedMotionGroupTitle": "Reduced motion",
-    "@accessibilityReducedMotionGroupTitle": {
-        "description": "Section title for reduced motion accessibility settings."
-    },
-    "accessibilityReducedMotionGroupDescription": "Control animation and motion effects.",
-    "@accessibilityReducedMotionGroupDescription": {
-        "description": "Section description for reduced motion accessibility settings."
-    },
-    "accessibilitySyncReducedMotionWithSystemLabel": "Sync with system reduced motion",
-    "@accessibilitySyncReducedMotionWithSystemLabel": {
-        "description": "Toggle label for syncing reduced motion with the operating system setting."
-    },
-    "accessibilitySyncReducedMotionWithSystemDescription": "Use your device's reduced motion setting to limit animations in Fluxer.",
-    "@accessibilitySyncReducedMotionWithSystemDescription": {
-        "description": "Toggle description for syncing reduced motion with the operating system setting."
-    },
-    "accessibilityReducedMotionOverrideLabel": "Always reduce motion",
-    "@accessibilityReducedMotionOverrideLabel": {
-        "description": "Toggle label for forcing reduced motion in Fluxer."
-    },
-    "accessibilityReducedMotionOverrideDescription": "Disable animations in Fluxer regardless of your system setting.",
-    "@accessibilityReducedMotionOverrideDescription": {
-        "description": "Toggle description for forcing reduced motion in Fluxer."
-    },
     "messageScreenReaderAnnouncement": "{author} sent {summary}",
     "@messageScreenReaderAnnouncement": {
         "description": "Screen reader announcement spoken when a new message arrives.",
@@ -5937,30 +6075,6 @@
                 "type": "String"
             }
         }
-    },
-    "accessibilityMediaButtonsGroupTitle": "Media Buttons",
-    "@accessibilityMediaButtonsGroupTitle": {
-        "description": "Section title for media button visibility settings on the accessibility settings page."
-    },
-    "accessibilityMediaButtonsGroupDescription": "Customize which buttons appear on media attachments and embeds.",
-    "@accessibilityMediaButtonsGroupDescription": {
-        "description": "Section description for media button visibility settings on the accessibility settings page."
-    },
-    "accessibilityShowMediaDeleteButtonLabel": "Show delete button",
-    "@accessibilityShowMediaDeleteButtonLabel": {
-        "description": "Toggle label for showing the delete button on media."
-    },
-    "accessibilityShowMediaDownloadButtonLabel": "Show download button",
-    "@accessibilityShowMediaDownloadButtonLabel": {
-        "description": "Toggle label for showing the download button on media."
-    },
-    "accessibilityShowMediaFavoriteButtonLabel": "Show favorite button",
-    "@accessibilityShowMediaFavoriteButtonLabel": {
-        "description": "Toggle label for showing the favorite button on media."
-    },
-    "accessibilityShowSuppressEmbedsButtonLabel": "Show suppress embeds button",
-    "@accessibilityShowSuppressEmbedsButtonLabel": {
-        "description": "Toggle label for showing the suppress embeds button on media."
     },
     "dmListSentAnAttachment": "Sent an attachment",
     "@dmListSentAnAttachment": {

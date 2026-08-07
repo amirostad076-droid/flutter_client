@@ -7564,29 +7564,23 @@ abstract class FluxerLocalizations {
   /// **'Adjust how vivid theme colors appear across the app.'**
   String get accessibilitySaturationDescription;
 
-  /// Section title for unread-indicator accessibility settings.
+  /// Section title for visual accessibility settings.
   ///
   /// In en, this message translates to:
-  /// **'Unread indicators'**
-  String get accessibilityUnreadGroupTitle;
+  /// **'Visual'**
+  String get accessibilityVisualGroupTitle;
 
-  /// Section description for unread-indicator accessibility settings.
+  /// Toggle label for always underlining links in messages.
   ///
   /// In en, this message translates to:
-  /// **'Control how unread message indicators are displayed.'**
-  String get accessibilityUnreadGroupDescription;
+  /// **'Always underline links'**
+  String get accessibilityAlwaysUnderlineLinksLabel;
 
-  /// Toggle label for showing a faded unread indicator on muted channels.
+  /// Toggle label for dimming strikethrough text in messages.
   ///
   /// In en, this message translates to:
-  /// **'Show faded unread indicator on muted channels'**
-  String get accessibilityShowFadedUnreadOnMutedChannelsLabel;
-
-  /// Toggle description for showing a faded unread indicator on muted channels.
-  ///
-  /// In en, this message translates to:
-  /// **'Display a dimmed unread indicator next to muted direct messages and channels so you can still see at a glance when there\'s activity.'**
-  String get accessibilityShowFadedUnreadOnMutedChannelsDescription;
+  /// **'Dim strikethrough text'**
+  String get accessibilityDimStrikethroughTextLabel;
 
   /// Section title for DM message preview accessibility settings.
   ///
@@ -7663,7 +7657,7 @@ abstract class FluxerLocalizations {
   /// Toggle description for announcing incoming messages to screen readers.
   ///
   /// In en, this message translates to:
-  /// **'Read new messages aloud when they arrive in the active channel.'**
+  /// **'Let screen readers announce new messages as they arrive in the open channel. Notification sounds are unaffected.'**
   String get accessibilityScreenReaderAnnounceNewMessagesDescription;
 
   /// Section title for text-to-speech accessibility settings.
@@ -7695,6 +7689,240 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Silence sample'**
   String get accessibilityTtsSilenceSampleLabel;
+
+  /// Label for the no-op preview button on the accessibility settings page.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview button'**
+  String get accessibilityPreviewButtonLabel;
+
+  /// Sample message content in the accessibility preview.
+  ///
+  /// In en, this message translates to:
+  /// **'This shows how links appear: {linkPreviewExampleUrl}'**
+  String accessibilityPreviewLinksMessage(String linkPreviewExampleUrl);
+
+  /// Fallback display name for the accessibility preview message author.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview User'**
+  String get accessibilityPreviewUserName;
+
+  /// Section title for keyboard accessibility settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyboard'**
+  String get accessibilityKeyboardGroupTitle;
+
+  /// Toggle label for showing a focus ring on the chat textarea.
+  ///
+  /// In en, this message translates to:
+  /// **'Show focus ring on chat textarea'**
+  String get accessibilityShowTextareaFocusRingLabel;
+
+  /// Toggle label for Escape exiting keyboard mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Escape key exits keyboard mode'**
+  String get accessibilityEscapeExitsKeyboardModeLabel;
+
+  /// Toggle label for showing keyboard shortcuts in context menus.
+  ///
+  /// In en, this message translates to:
+  /// **'Show context menu shortcuts'**
+  String get accessibilityShowContextMenuShortcutsLabel;
+
+  /// Toggle label for confirming before starting calls.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm before starting calls'**
+  String get accessibilityConfirmBeforeStartingCallsLabel;
+
+  /// Section title for animation accessibility settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Animation'**
+  String get accessibilityAnimationGroupTitle;
+
+  /// Note shown above animation controls when reduced motion is active.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduced motion is on, so content animations are paused by default. You can still turn any of these back on to keep it playing.'**
+  String get accessibilityReducedMotionActiveNote;
+
+  /// Toggle label for playing animated emojis.
+  ///
+  /// In en, this message translates to:
+  /// **'Play animated emojis'**
+  String get accessibilityPlayAnimatedEmojisLabel;
+
+  /// Toggle label for GIF autoplay on mobile.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically play GIFs'**
+  String get accessibilityAutoPlayGifsMobileLabel;
+
+  /// Toggle label for GIF autoplay on desktop.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically play GIFs when {productName} is focused'**
+  String accessibilityAutoPlayGifsDesktopLabel(String productName);
+
+  /// Description when an animation setting overrides reduced motion.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing despite reduced motion.'**
+  String get accessibilityPlayingDespiteReducedMotion;
+
+  /// Description for emoji toggle while reduced motion is active.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused by reduced motion. Turn on to keep animated emojis playing.'**
+  String get accessibilityPausedEmojiByReducedMotion;
+
+  /// Description for GIF toggle while reduced motion is active.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused by reduced motion. Turn on to keep GIFs playing.'**
+  String get accessibilityPausedGifByReducedMotion;
+
+  /// Helper text for GIF autoplay default on mobile.
+  ///
+  /// In en, this message translates to:
+  /// **'Defaults to off on mobile to preserve battery life and data usage.'**
+  String get accessibilityGifDefaultsOffOnMobile;
+
+  /// Subsection title for sticker animation preference.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticker animations'**
+  String get accessibilityStickerAnimationsTitle;
+
+  /// Accessibility label for the sticker animation radio group.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticker animation preference'**
+  String get accessibilityStickerAnimationPreferenceLabel;
+
+  /// Radio option for always animating stickers.
+  ///
+  /// In en, this message translates to:
+  /// **'Always animate'**
+  String get accessibilityStickerAlwaysAnimateName;
+
+  /// Description for always animating stickers.
+  ///
+  /// In en, this message translates to:
+  /// **'Stickers will always animate'**
+  String get accessibilityStickerAlwaysAnimateDescription;
+
+  /// Radio option for animating stickers on interaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Animate on interaction'**
+  String get accessibilityStickerAnimateOnInteractionName;
+
+  /// Description for sticker animate-on-press on touch devices.
+  ///
+  /// In en, this message translates to:
+  /// **'Stickers will animate when you press them'**
+  String get accessibilityStickerAnimateOnPressDescription;
+
+  /// Description for sticker animate-on-hover on desktop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stickers will animate when you hover or interact with them'**
+  String get accessibilityStickerAnimateOnHoverDescription;
+
+  /// Radio option for never animating stickers.
+  ///
+  /// In en, this message translates to:
+  /// **'Never animate'**
+  String get accessibilityStickerNeverAnimateName;
+
+  /// Description for never animating stickers.
+  ///
+  /// In en, this message translates to:
+  /// **'Stickers will never animate'**
+  String get accessibilityStickerNeverAnimateDescription;
+
+  /// Description when stickers always-animate overrides reduced motion.
+  ///
+  /// In en, this message translates to:
+  /// **'Always animating despite reduced motion.'**
+  String get accessibilityStickersAlwaysDespiteReducedMotion;
+
+  /// Description for stickers while reduced motion is active.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduced motion limits stickers to animate on interaction. Choose always animate to override.'**
+  String get accessibilityStickersReducedMotionHint;
+
+  /// Helper text for sticker animation default on mobile.
+  ///
+  /// In en, this message translates to:
+  /// **'Defaults to animate on interaction on mobile to preserve battery life.'**
+  String get accessibilityStickersDefaultsOnMobile;
+
+  /// Section title for motion accessibility settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Motion'**
+  String get accessibilityMotionGroupTitle;
+
+  /// Toggle label for syncing reduced motion with the operating system setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync reduced motion setting with system'**
+  String get accessibilitySyncReducedMotionWithSystemLabel;
+
+  /// Toggle description for syncing reduced motion with the operating system setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this device\'s system reduced motion preference, or customize it below.'**
+  String get accessibilitySyncReducedMotionWithSystemDescription;
+
+  /// Toggle label for reducing motion in Fluxer.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduce motion'**
+  String get accessibilityReducedMotionOverrideLabel;
+
+  /// Reduce motion description while synced with system.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable animations and transitions. Currently controlled by your system setting.'**
+  String get accessibilityReducedMotionOverrideSyncedDescription;
+
+  /// Reduce motion description when not synced with system.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable animations and transitions throughout the app.'**
+  String get accessibilityReducedMotionOverrideManualDescription;
+
+  /// Extra hint under reduce motion while reduced motion is active.
+  ///
+  /// In en, this message translates to:
+  /// **'Animated emojis, GIFs and stickers stay under your control in the Animation tab.'**
+  String get accessibilityReducedMotionAnimationTabHint;
+
+  /// Title for the confirm-before-starting-calls dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Start call?'**
+  String get accessibilityConfirmStartCallTitle;
+
+  /// Description for the confirm-before-starting-calls dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to start this call?'**
+  String get accessibilityConfirmStartCallDescription;
+
+  /// Confirm button for starting a call.
+  ///
+  /// In en, this message translates to:
+  /// **'Start call'**
+  String get accessibilityConfirmStartCallConfirmLabel;
 
   /// Description for the TTS sample playback controls.
   ///
@@ -7808,83 +8036,11 @@ abstract class FluxerLocalizations {
   /// **'sent an embed'**
   String get ttsSentEmbed;
 
-  /// Section title for reduced motion accessibility settings.
-  ///
-  /// In en, this message translates to:
-  /// **'Reduced motion'**
-  String get accessibilityReducedMotionGroupTitle;
-
-  /// Section description for reduced motion accessibility settings.
-  ///
-  /// In en, this message translates to:
-  /// **'Control animation and motion effects.'**
-  String get accessibilityReducedMotionGroupDescription;
-
-  /// Toggle label for syncing reduced motion with the operating system setting.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync with system reduced motion'**
-  String get accessibilitySyncReducedMotionWithSystemLabel;
-
-  /// Toggle description for syncing reduced motion with the operating system setting.
-  ///
-  /// In en, this message translates to:
-  /// **'Use your device\'s reduced motion setting to limit animations in Fluxer.'**
-  String get accessibilitySyncReducedMotionWithSystemDescription;
-
-  /// Toggle label for forcing reduced motion in Fluxer.
-  ///
-  /// In en, this message translates to:
-  /// **'Always reduce motion'**
-  String get accessibilityReducedMotionOverrideLabel;
-
-  /// Toggle description for forcing reduced motion in Fluxer.
-  ///
-  /// In en, this message translates to:
-  /// **'Disable animations in Fluxer regardless of your system setting.'**
-  String get accessibilityReducedMotionOverrideDescription;
-
   /// Screen reader announcement spoken when a new message arrives.
   ///
   /// In en, this message translates to:
   /// **'{author} sent {summary}'**
   String messageScreenReaderAnnouncement(String author, String summary);
-
-  /// Section title for media button visibility settings on the accessibility settings page.
-  ///
-  /// In en, this message translates to:
-  /// **'Media Buttons'**
-  String get accessibilityMediaButtonsGroupTitle;
-
-  /// Section description for media button visibility settings on the accessibility settings page.
-  ///
-  /// In en, this message translates to:
-  /// **'Customize which buttons appear on media attachments and embeds.'**
-  String get accessibilityMediaButtonsGroupDescription;
-
-  /// Toggle label for showing the delete button on media.
-  ///
-  /// In en, this message translates to:
-  /// **'Show delete button'**
-  String get accessibilityShowMediaDeleteButtonLabel;
-
-  /// Toggle label for showing the download button on media.
-  ///
-  /// In en, this message translates to:
-  /// **'Show download button'**
-  String get accessibilityShowMediaDownloadButtonLabel;
-
-  /// Toggle label for showing the favorite button on media.
-  ///
-  /// In en, this message translates to:
-  /// **'Show favorite button'**
-  String get accessibilityShowMediaFavoriteButtonLabel;
-
-  /// Toggle label for showing the suppress embeds button on media.
-  ///
-  /// In en, this message translates to:
-  /// **'Show suppress embeds button'**
-  String get accessibilityShowSuppressEmbedsButtonLabel;
 
   /// DM list row preview text when the most recent message has only attachments.
   ///
