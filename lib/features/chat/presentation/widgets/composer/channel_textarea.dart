@@ -106,13 +106,15 @@ bool _useMobileAttachmentSheet() {
 OutlineInputBorder _composerTouchInputOutlineBorder(
   BuildContext context, {
   required bool focused,
+  bool enabled = true,
 }) {
+  final Color color = focused
+      ? context.colors.backgroundModifierAccentFocus
+      : context.colors.backgroundModifierAccent;
   return OutlineInputBorder(
     borderRadius: BorderRadius.circular(24),
     borderSide: BorderSide(
-      color: focused
-          ? context.colors.backgroundModifierAccentFocus
-          : context.colors.backgroundModifierAccent,
+      color: enabled ? color : color.withValues(alpha: 0.5),
     ),
   );
 }
@@ -895,6 +897,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               context,
               focused: true,
             ),
+            disabledBorder: _composerTouchInputOutlineBorder(
+              context,
+              focused: false,
+              enabled: false,
+            ),
             isDense: true,
           )
         : InputDecoration(
@@ -1219,6 +1226,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       border: _composerTouchInputOutlineBorder(context, focused: false),
       enabledBorder: _composerTouchInputOutlineBorder(context, focused: false),
       focusedBorder: _composerTouchInputOutlineBorder(context, focused: true),
+      disabledBorder: _composerTouchInputOutlineBorder(
+        context,
+        focused: false,
+        enabled: false,
+      ),
       isDense: true,
       suffixIcon: Padding(
         padding: const EdgeInsets.symmetric(
