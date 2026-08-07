@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:ui' show FlutterView, PlatformDispatcher, TextDirection;
+
 import 'package:flutter/semantics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
@@ -5,6 +8,7 @@ import 'package:fluxer_app/features/chat/utils/message_accessibility_summary.dar
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/l10n/app_locale_provider.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:intl/intl.dart' show Bidi;
 
 void announceIncomingMessageIfEnabled(Ref ref, Message message) {
   if (!ref.read(
@@ -22,5 +26,13 @@ void announceIncomingMessageIfEnabled(Ref ref, Message message) {
           message.authorName.isNotEmpty ? message.authorName : message.authorId,
           summary,
         );
-  SemanticsService.announce(announcement, TextDirection.ltr);
+  final locale = PlatformDispatcher.instance.locale;
+  final TextDirection direction = Bidi.isRtlLanguage(locale.languageCode)
+      ? TextDirection.rtl
+      : TextDirection.ltr;
+  final FlutterView? view = PlatformDispatcher.instance.implicitView;
+  if (view == null) {
+    return;
+  }
+  unawaited(SemanticsService.sendAnnouncement(view, announcement, direction));
 }

@@ -50,6 +50,7 @@ import 'package:fluxer_app/features/voice/utils/call_actions.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/sheets/add_friend_sheet.dart';
 import 'package:fluxer_app/shared/utils/clipboard_utils.dart';
+import 'package:fluxer_app/shared/utils/navigation_item_semantics.dart';
 import 'package:fluxer_app/shared/widgets/debug_bottom_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -427,6 +428,7 @@ class _DMListState extends ConsumerState<DMList> {
     VoidCallback? onTap,
     VoidCallback? onLongPress,
     double? height,
+    String? semanticLabel,
   }) => FluxerSelectableRow(
     isSelected: isSelected,
     selectedColor: context.colors.surfaceInteractiveSelectedBg.withValues(
@@ -437,6 +439,7 @@ class _DMListState extends ConsumerState<DMList> {
     margin: margin,
     padding: padding,
     height: height,
+    semanticLabel: semanticLabel,
     onTap: onTap,
     onLongPress: onLongPress,
     child: child,
@@ -881,6 +884,13 @@ class _DMListState extends ConsumerState<DMList> {
             vertical: isMobile ? 2 : 1,
           ),
           padding: EdgeInsets.symmetric(horizontal: layout.s2),
+          semanticLabel: navigationItemSemanticLabel(
+            l10n: l10n,
+            name: displayName,
+            isSelected: isSelected,
+            hasUnread: hasUnread && !isSelected,
+            isMuted: isMuted,
+          ),
           onTap: () {
             unawaited(_navigateToDmChannel(c.id));
           },
@@ -1432,6 +1442,11 @@ class _DMListState extends ConsumerState<DMList> {
     height: 42,
     margin: EdgeInsets.symmetric(horizontal: context.layout.s2, vertical: 1),
     padding: EdgeInsets.symmetric(horizontal: context.layout.s2),
+    semanticLabel: navigationItemSemanticLabel(
+      l10n: FluxerLocalizations.of(context),
+      name: label,
+      isSelected: isSelected,
+    ),
     onTap: onTap,
     child: Row(
       children: [

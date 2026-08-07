@@ -536,12 +536,15 @@ class EditingInputBar extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        IconButton(
-          icon: const PhosphorIcon(PhosphorIconsFill.xCircle, size: 16),
-          color: context.colors.textPrimaryMuted,
-          onPressed: onCancel,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+        Semantics(
+          label: FluxerLocalizations.of(context).cancel,
+          child: IconButton(
+            icon: const PhosphorIcon(PhosphorIconsFill.xCircle, size: 16),
+            color: context.colors.textPrimaryMuted,
+            onPressed: onCancel,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+          ),
         ),
       ],
     ),

@@ -3443,6 +3443,12 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get voiceMessagePause => '暂停';
 
   @override
+  String get voiceMessageSeekForward => 'Seek forward';
+
+  @override
+  String get voiceMessageSeekBackward => 'Seek backward';
+
+  @override
   String voiceMessageSelectionTooShort(num seconds) {
     final intl.NumberFormat secondsNumberFormat = intl.NumberFormat.compact(
       locale: localeName,
@@ -5800,6 +5806,14 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String mediaViewerAttachmentIndex(int current, int total) {
     return '$current/$total';
   }
+
+  @override
+  String mediaViewerAttachmentThumbnail(int index) {
+    return 'Attachment $index';
+  }
+
+  @override
+  String get mediaViewerDismissBackdrop => 'Dismiss';
 
   @override
   String get chatAttachmentVideoToggleControls => '切换视频控件';
@@ -8671,6 +8685,63 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get navigationItemMuted => 'muted';
+
+  @override
+  String get authShowPassword => 'Show password';
+
+  @override
+  String get authHidePassword => 'Hide password';
+
+  @override
+  String get chatLoadingMessages => 'Loading messages';
+
+  @override
+  String get friendsMessageFriend => 'Message';
+
+  @override
+  String get friendsFriendActions => 'Friend actions';
+
+  @override
+  String get friendsAcceptRequest => 'Accept friend request';
+
+  @override
+  String get friendsDeclineRequest => 'Decline friend request';
+
+  @override
+  String get friendsCancelRequest => 'Cancel friend request';
+
+  @override
+  String get friendsOpenInbox => 'Inbox';
+
+  @override
+  String get profileRemoveFriend => 'Remove friend';
+
+  @override
+  String get profileUnblockUser => 'Unblock user';
+
+  @override
+  String get profileAcceptFriendRequest => 'Accept friend request';
+
+  @override
+  String get profileCancelFriendRequest => 'Cancel friend request';
+
+  @override
+  String get profileSendFriendRequest => 'Add friend';
+
+  @override
+  String get accountOverflowMenu => 'Account options';
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get navNotifications => 'Notifications';
+
+  @override
+  String get navYou => 'You';
 
   @override
   String get guildFolderSettingsTitle => 'Folder settings';

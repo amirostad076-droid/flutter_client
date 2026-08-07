@@ -71,6 +71,7 @@ import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/external_links/external_url_launcher.dart';
 import 'package:fluxer_app/shared/providers/input_modality_provider.dart';
 import 'package:fluxer_app/shared/utils/clipboard_utils.dart';
+import 'package:fluxer_app/shared/utils/navigation_item_semantics.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:go_router/go_router.dart';
@@ -730,6 +731,19 @@ class _ChannelTile extends ConsumerWidget {
           borderRadius: BorderRadius.circular(4),
           margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          semanticLabel: navigationItemSemanticLabel(
+            l10n: FluxerLocalizations.of(context),
+            name: channel.name,
+            isSelected: isSelected,
+            hasUnread: showUnreadIndicator,
+            mentionCount:
+                !isSelected &&
+                    mentionCount > 0 &&
+                    channelUnreadState.hasMentions
+                ? mentionCount
+                : 0,
+            isMuted: isChannelDirectlyMuted,
+          ),
           onSecondaryTapUp: (details) => unawaited(
             _showChannelActions(
               context,
@@ -1222,42 +1236,55 @@ class _CategoryHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return InkWell(
-      onTap: () {
-        unawaited(
-          ref
-              .read(guildUserSettingsRepositoryProvider)
-              .toggleCategoryCollapsed(
-                guildId: guildId,
-                categoryId: category.id,
-              ),
-        );
-      },
-      onSecondaryTapUp: (details) =>
-          unawaited(_showCategoryActions(context, ref, details.globalPosition)),
-      onLongPress: isTouchPrimaryInput(ref)
-          ? () => unawaited(_showCategoryActions(context, ref, Offset.zero))
-          : null,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 12, right: 8, top: 16, bottom: 4),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                category.name,
-                style: context.textStyles.categoryName,
-                overflow: TextOverflow.ellipsis,
-              ),
+    return Semantics(
+      button: true,
+      expanded: !isCollapsed,
+      label: category.name,
+      child: ExcludeSemantics(
+        child: InkWell(
+          onTap: () {
+            unawaited(
+              ref
+                  .read(guildUserSettingsRepositoryProvider)
+                  .toggleCategoryCollapsed(
+                    guildId: guildId,
+                    categoryId: category.id,
+                  ),
+            );
+          },
+          onSecondaryTapUp: (details) => unawaited(
+            _showCategoryActions(context, ref, details.globalPosition),
+          ),
+          onLongPress: isTouchPrimaryInput(ref)
+              ? () => unawaited(_showCategoryActions(context, ref, Offset.zero))
+              : null,
+          child: Padding(
+            padding: const EdgeInsets.only(
+              left: 12,
+              right: 8,
+              top: 16,
+              bottom: 4,
             ),
-            const SizedBox(width: 4),
-            PhosphorIcon(
-              isCollapsed
-                  ? PhosphorIconsBold.caretRight
-                  : PhosphorIconsBold.caretDown,
-              size: 12,
-              color: context.colors.textPrimaryMuted,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    category.name,
+                    style: context.textStyles.categoryName,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                PhosphorIcon(
+                  isCollapsed
+                      ? PhosphorIconsBold.caretRight
+                      : PhosphorIconsBold.caretDown,
+                  size: 12,
+                  color: context.colors.textPrimaryMuted,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -1566,6 +1593,11 @@ class _MembersSidebarTile extends ConsumerWidget {
       borderRadius: BorderRadius.circular(4),
       margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      semanticLabel: navigationItemSemanticLabel(
+        l10n: l10n,
+        name: l10n.guildMembersChannelListLabel,
+        isSelected: isSelected,
+      ),
       onTap: () => context.go(RoutePaths.guildMembers(guildId)),
       child: Row(
         children: <Widget>[

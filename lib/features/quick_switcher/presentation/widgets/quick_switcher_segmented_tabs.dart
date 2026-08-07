@@ -90,6 +90,9 @@ class _QuickSwitcherTabButton extends StatelessWidget {
     final motion = context.motion;
     return FluxerTappable(
       onTap: onTap,
+      selected: isSelected,
+      semanticLabel: label,
+      excludeChildSemantics: true,
       builder: (BuildContext context, Set<WidgetState> states) {
         return AnimatedDefaultTextStyle(
           duration: motion.normal,

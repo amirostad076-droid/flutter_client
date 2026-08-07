@@ -20,6 +20,7 @@ import 'package:fluxer_app/features/settings/providers/appearance_preferences_pr
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_confirm_sheet.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/user_profile.dart';
 import 'package:fluxer_app/shared/widgets/custom_status_display.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -171,16 +172,22 @@ class FriendsList extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(6),
                       hoverColor: context.colors.backgroundModifierHover,
                       onTap: toggle,
-                      child: Padding(
-                        padding: EdgeInsets.all(context.layout.s2),
-                        child: SvgPicture.asset(
-                          'assets/images/inbox-icon.svg',
-                          width: 24,
-                          height: 24,
-                          theme: SvgTheme(
-                            currentColor: isOpen
-                                ? context.colors.interactiveActive
-                                : context.colors.interactiveNormal,
+                      child: Semantics(
+                        button: true,
+                        label: FluxerLocalizations.of(context).friendsOpenInbox,
+                        child: Padding(
+                          padding: EdgeInsets.all(context.layout.s2),
+                          child: ExcludeSemantics(
+                            child: SvgPicture.asset(
+                              'assets/images/inbox-icon.svg',
+                              width: 24,
+                              height: 24,
+                              theme: SvgTheme(
+                                currentColor: isOpen
+                                    ? context.colors.interactiveActive
+                                    : context.colors.interactiveNormal,
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -196,14 +203,20 @@ class FriendsList extends ConsumerWidget {
               hoverColor: context.colors.backgroundModifierHover,
               onTap: () =>
                   navigateToContent(context, RoutePaths.notificationsPath),
-              child: Padding(
-                padding: EdgeInsets.all(context.layout.s2),
-                child: SvgPicture.asset(
-                  'assets/images/inbox-icon.svg',
-                  width: 24,
-                  height: 24,
-                  theme: SvgTheme(
-                    currentColor: context.colors.interactiveNormal,
+              child: Semantics(
+                button: true,
+                label: FluxerLocalizations.of(context).friendsOpenInbox,
+                child: Padding(
+                  padding: EdgeInsets.all(context.layout.s2),
+                  child: ExcludeSemantics(
+                    child: SvgPicture.asset(
+                      'assets/images/inbox-icon.svg',
+                      width: 24,
+                      height: 24,
+                      theme: SvgTheme(
+                        currentColor: context.colors.interactiveNormal,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -526,6 +539,9 @@ class FriendsList extends ConsumerWidget {
                       icon: PhosphorIconsFill.chatCircle,
                       color: context.colors.textPrimaryMuted,
                       backgroundColor: context.colors.backgroundModifierHover,
+                      semanticLabel: FluxerLocalizations.of(
+                        context,
+                      ).friendsMessageFriend,
                       onPressed: () =>
                           unawaited(_openFriendChat(context, ref, friend)),
                     ),
@@ -535,6 +551,9 @@ class FriendsList extends ConsumerWidget {
                       icon: PhosphorIconsBold.dotsThreeVertical,
                       color: context.colors.textPrimaryMuted,
                       backgroundColor: context.colors.backgroundModifierHover,
+                      semanticLabel: FluxerLocalizations.of(
+                        context,
+                      ).friendsFriendActions,
                       onPressed: () =>
                           unawaited(_openFriendMenu(context, ref, friend)),
                     ),
@@ -545,6 +564,9 @@ class FriendsList extends ConsumerWidget {
                       icon: PhosphorIconsBold.check,
                       color: context.colors.brandPrimaryFill,
                       backgroundColor: context.colors.brandPrimary,
+                      semanticLabel: FluxerLocalizations.of(
+                        context,
+                      ).friendsAcceptRequest,
                       onPressed: () => unawaited(
                         ref
                             .read(friendRepositoryProvider)
@@ -557,6 +579,9 @@ class FriendsList extends ConsumerWidget {
                       icon: PhosphorIconsBold.x,
                       color: context.colors.textPrimary,
                       backgroundColor: context.colors.statusDanger,
+                      semanticLabel: FluxerLocalizations.of(
+                        context,
+                      ).friendsDeclineRequest,
                       onPressed: () => unawaited(
                         _confirmRemoveRelationship(context, ref, friend),
                       ),
@@ -568,6 +593,9 @@ class FriendsList extends ConsumerWidget {
                       icon: PhosphorIconsBold.x,
                       color: context.colors.textPrimary,
                       backgroundColor: context.colors.backgroundTertiary,
+                      semanticLabel: FluxerLocalizations.of(
+                        context,
+                      ).friendsCancelRequest,
                       onPressed: () => unawaited(
                         _confirmCancelOutgoingRequest(context, ref, friend),
                       ),
@@ -586,16 +614,23 @@ class FriendsList extends ConsumerWidget {
     required Color color,
     required Color backgroundColor,
     required VoidCallback onPressed,
-  }) => Material(
-    color: backgroundColor,
-    shape: const CircleBorder(),
-    clipBehavior: Clip.antiAlias,
-    child: InkWell(
-      onTap: onPressed,
-      child: SizedBox(
-        width: 36,
-        height: 36,
-        child: Center(child: PhosphorIcon(icon, size: 20, color: color)),
+    required String semanticLabel,
+  }) => Semantics(
+    button: true,
+    label: semanticLabel,
+    child: ExcludeSemantics(
+      child: Material(
+        color: backgroundColor,
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          child: SizedBox(
+            width: 36,
+            height: 36,
+            child: Center(child: PhosphorIcon(icon, size: 20, color: color)),
+          ),
+        ),
       ),
     ),
   );

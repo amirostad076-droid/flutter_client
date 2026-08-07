@@ -396,6 +396,16 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
       return KeyEventResult.ignored;
     }
+    if (event.logicalKey == LogicalKeyboardKey.escape) {
+      final bool escapeExitsKeyboardMode = ref.read(
+        appearancePreferencesProvider.select((s) => s.escapeExitsKeyboardMode),
+      );
+      if (escapeExitsKeyboardMode) {
+        node.unfocus();
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    }
     if (event.logicalKey == LogicalKeyboardKey.keyV &&
         (HardwareKeyboard.instance.isMetaPressed ||
             HardwareKeyboard.instance.isControlPressed)) {

@@ -510,14 +510,20 @@ class _AttachmentMediaViewerShellState
                   _executeClose();
                 }
               },
-              child: ColoredBox(
-                color: Colors.black.withValues(alpha: backdropOpacity),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaX: isMobile ? 8 : 4,
-                    sigmaY: isMobile ? 8 : 4,
+              child: Semantics(
+                button: true,
+                label: l10n.mediaViewerDismissBackdrop,
+                child: ExcludeSemantics(
+                  child: ColoredBox(
+                    color: Colors.black.withValues(alpha: backdropOpacity),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(
+                        sigmaX: isMobile ? 8 : 4,
+                        sigmaY: isMobile ? 8 : 4,
+                      ),
+                      child: const SizedBox.expand(),
+                    ),
                   ),
-                  child: const SizedBox.expand(),
                 ),
               ),
             ),
@@ -791,10 +797,11 @@ class _MediaViewerThumbnailStrip extends StatelessWidget {
           final AttachmentMediaViewerItem item = items[index];
           final bool hideMatureThumbnail =
               item.isMatureMedia && channelId != null;
+          final FluxerLocalizations l10n = FluxerLocalizations.of(context);
           return Semantics(
             button: true,
             selected: isSelected,
-            label: 'Attachment ${index + 1}',
+            label: l10n.mediaViewerAttachmentThumbnail(index + 1),
             child: ExcludeSemantics(
               child: GestureDetector(
                 onTap: () => onSelectIndex(index),

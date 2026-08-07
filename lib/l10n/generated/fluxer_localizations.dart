@@ -6022,6 +6022,18 @@ abstract class FluxerLocalizations {
   /// **'Pause'**
   String get voiceMessagePause;
 
+  /// Accessibility hint when increasing voice message seek position.
+  ///
+  /// In en, this message translates to:
+  /// **'Seek forward'**
+  String get voiceMessageSeekForward;
+
+  /// Accessibility hint when decreasing voice message seek position.
+  ///
+  /// In en, this message translates to:
+  /// **'Seek backward'**
+  String get voiceMessageSeekBackward;
+
   /// Error when trimmed voice message is too short.
   ///
   /// In en, this message translates to:
@@ -10223,6 +10235,18 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'{current}/{total}'**
   String mediaViewerAttachmentIndex(int current, int total);
+
+  /// Accessibility label for a thumbnail in the media viewer strip.
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment {index}'**
+  String mediaViewerAttachmentThumbnail(int index);
+
+  /// Accessibility label for dismissing the media viewer by tapping the backdrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get mediaViewerDismissBackdrop;
 
   /// Accessibility label for the tap surface that shows or hides inline video playback controls.
   ///
@@ -15167,6 +15191,120 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 mention} other{{count} mentions}}'**
   String guildNavbarGuildMentions(int count);
+
+  /// Screen reader suffix when a channel, DM, or favorites item is muted.
+  ///
+  /// In en, this message translates to:
+  /// **'muted'**
+  String get navigationItemMuted;
+
+  /// Screen reader label for the show-password toggle on auth forms.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get authShowPassword;
+
+  /// Screen reader label for the hide-password toggle on auth forms.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get authHidePassword;
+
+  /// Screen reader label for the chat message list loading skeleton.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading messages'**
+  String get chatLoadingMessages;
+
+  /// Screen reader label for messaging a friend from the friends list.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get friendsMessageFriend;
+
+  /// Screen reader label for the friend overflow menu button.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend actions'**
+  String get friendsFriendActions;
+
+  /// Screen reader label for accepting a friend request.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept friend request'**
+  String get friendsAcceptRequest;
+
+  /// Screen reader label for declining a friend request.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline friend request'**
+  String get friendsDeclineRequest;
+
+  /// Screen reader label for canceling an outgoing friend request.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel friend request'**
+  String get friendsCancelRequest;
+
+  /// Screen reader label for the friends list inbox button.
+  ///
+  /// In en, this message translates to:
+  /// **'Inbox'**
+  String get friendsOpenInbox;
+
+  /// Screen reader label for removing a friend from a profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove friend'**
+  String get profileRemoveFriend;
+
+  /// Screen reader label for unblocking a user from a profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock user'**
+  String get profileUnblockUser;
+
+  /// Screen reader label for accepting a friend request from a profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept friend request'**
+  String get profileAcceptFriendRequest;
+
+  /// Screen reader label for canceling an outgoing friend request from a profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel friend request'**
+  String get profileCancelFriendRequest;
+
+  /// Screen reader label for sending a friend request from a profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Add friend'**
+  String get profileSendFriendRequest;
+
+  /// Screen reader label for the account row overflow menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Account options'**
+  String get accountOverflowMenu;
+
+  /// Bottom navigation label for the home tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get navHome;
+
+  /// Bottom navigation label for the notifications tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get navNotifications;
+
+  /// Bottom navigation label for the profile tab.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get navYou;
 
   /// Title of the community folder settings modal.
   ///

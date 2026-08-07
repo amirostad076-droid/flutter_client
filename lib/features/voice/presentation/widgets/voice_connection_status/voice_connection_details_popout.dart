@@ -58,6 +58,7 @@ class _VoiceConnectionDetailsPopoutState
                 IconButton(
                   visualDensity: VisualDensity.compact,
                   onPressed: widget.onClose,
+                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                   icon: PhosphorIcon(
                     PhosphorIconsRegular.x,
                     size: 16,
@@ -101,29 +102,36 @@ class _VoiceConnectionDetailsPopoutState
               ],
             ),
             SizedBox(height: layout.s3),
-            InkWell(
-              onTap: () =>
-                  setState(() => _advancedExpanded = !_advancedExpanded),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Text(
-                      l10n.voiceConnectionAdvancedStats,
-                      style: context.textStyles.smallText.copyWith(
-                        color: colors.textTertiary,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+            Semantics(
+              button: true,
+              expanded: _advancedExpanded,
+              label: l10n.voiceConnectionAdvancedStats,
+              child: InkWell(
+                onTap: () =>
+                    setState(() => _advancedExpanded = !_advancedExpanded),
+                child: ExcludeSemantics(
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          l10n.voiceConnectionAdvancedStats,
+                          style: context.textStyles.smallText.copyWith(
+                            color: colors.textTertiary,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
-                    ),
+                      PhosphorIcon(
+                        _advancedExpanded
+                            ? PhosphorIconsRegular.caretUp
+                            : PhosphorIconsRegular.caretDown,
+                        size: 12,
+                        color: colors.textTertiary,
+                      ),
+                    ],
                   ),
-                  PhosphorIcon(
-                    _advancedExpanded
-                        ? PhosphorIconsRegular.caretUp
-                        : PhosphorIconsRegular.caretDown,
-                    size: 12,
-                    color: colors.textTertiary,
-                  ),
-                ],
+                ),
               ),
             ),
             if (_advancedExpanded) ...<Widget>[

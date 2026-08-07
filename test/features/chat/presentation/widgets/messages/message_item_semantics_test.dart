@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_item.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_reactions_bar.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_dart/export.dart';
@@ -60,5 +61,25 @@ void main() {
       find.bySemanticsLabel(RegExp('Webhook.*hello world')),
       findsOneWidget,
     );
+  });
+
+  testWidgets('reaction chips expose emoji and count labels', (tester) async {
+    final SemanticsHandle handle = tester.ensureSemantics();
+
+    await tester.pumpWidget(
+      _app(
+        MessageReactionsBar(
+          reactions: const <Reaction>[
+            Reaction(emoji: '👍', count: 3, hasReacted: true),
+          ],
+          channelId: 'c1',
+          onReactionTap: (_, {emojiId, animated = false}) {},
+          isMobile: true,
+        ),
+      ),
+    );
+
+    expect(find.bySemanticsLabel('👍, 3'), findsOneWidget);
+    handle.dispose();
   });
 }

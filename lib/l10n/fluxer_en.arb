@@ -4637,6 +4637,14 @@
     "@voiceMessagePause": {
         "description": "Pause voice message preview."
     },
+    "voiceMessageSeekForward": "Seek forward",
+    "@voiceMessageSeekForward": {
+        "description": "Accessibility hint when increasing voice message seek position."
+    },
+    "voiceMessageSeekBackward": "Seek backward",
+    "@voiceMessageSeekBackward": {
+        "description": "Accessibility hint when decreasing voice message seek position."
+    },
     "voiceMessageSelectionTooShort": "Selection must be at least {seconds}s.",
     "@voiceMessageSelectionTooShort": {
         "description": "Error when trimmed voice message is too short.",
@@ -7792,6 +7800,19 @@
                 "type": "int"
             }
         }
+    },
+    "mediaViewerAttachmentThumbnail": "Attachment {index}",
+    "@mediaViewerAttachmentThumbnail": {
+        "description": "Accessibility label for a thumbnail in the media viewer strip.",
+        "placeholders": {
+            "index": {
+                "type": "int"
+            }
+        }
+    },
+    "mediaViewerDismissBackdrop": "Dismiss",
+    "@mediaViewerDismissBackdrop": {
+        "description": "Accessibility label for dismissing the media viewer by tapping the backdrop."
     },
     "chatAttachmentVideoToggleControls": "Toggle video controls",
     "@chatAttachmentVideoToggleControls": {
@@ -10986,6 +11007,82 @@
                 "type": "int"
             }
         }
+    },
+    "navigationItemMuted": "muted",
+    "@navigationItemMuted": {
+        "description": "Screen reader suffix when a channel, DM, or favorites item is muted."
+    },
+    "authShowPassword": "Show password",
+    "@authShowPassword": {
+        "description": "Screen reader label for the show-password toggle on auth forms."
+    },
+    "authHidePassword": "Hide password",
+    "@authHidePassword": {
+        "description": "Screen reader label for the hide-password toggle on auth forms."
+    },
+    "chatLoadingMessages": "Loading messages",
+    "@chatLoadingMessages": {
+        "description": "Screen reader label for the chat message list loading skeleton."
+    },
+    "friendsMessageFriend": "Message",
+    "@friendsMessageFriend": {
+        "description": "Screen reader label for messaging a friend from the friends list."
+    },
+    "friendsFriendActions": "Friend actions",
+    "@friendsFriendActions": {
+        "description": "Screen reader label for the friend overflow menu button."
+    },
+    "friendsAcceptRequest": "Accept friend request",
+    "@friendsAcceptRequest": {
+        "description": "Screen reader label for accepting a friend request."
+    },
+    "friendsDeclineRequest": "Decline friend request",
+    "@friendsDeclineRequest": {
+        "description": "Screen reader label for declining a friend request."
+    },
+    "friendsCancelRequest": "Cancel friend request",
+    "@friendsCancelRequest": {
+        "description": "Screen reader label for canceling an outgoing friend request."
+    },
+    "friendsOpenInbox": "Inbox",
+    "@friendsOpenInbox": {
+        "description": "Screen reader label for the friends list inbox button."
+    },
+    "profileRemoveFriend": "Remove friend",
+    "@profileRemoveFriend": {
+        "description": "Screen reader label for removing a friend from a profile."
+    },
+    "profileUnblockUser": "Unblock user",
+    "@profileUnblockUser": {
+        "description": "Screen reader label for unblocking a user from a profile."
+    },
+    "profileAcceptFriendRequest": "Accept friend request",
+    "@profileAcceptFriendRequest": {
+        "description": "Screen reader label for accepting a friend request from a profile."
+    },
+    "profileCancelFriendRequest": "Cancel friend request",
+    "@profileCancelFriendRequest": {
+        "description": "Screen reader label for canceling an outgoing friend request from a profile."
+    },
+    "profileSendFriendRequest": "Add friend",
+    "@profileSendFriendRequest": {
+        "description": "Screen reader label for sending a friend request from a profile."
+    },
+    "accountOverflowMenu": "Account options",
+    "@accountOverflowMenu": {
+        "description": "Screen reader label for the account row overflow menu."
+    },
+    "navHome": "Home",
+    "@navHome": {
+        "description": "Bottom navigation label for the home tab."
+    },
+    "navNotifications": "Notifications",
+    "@navNotifications": {
+        "description": "Bottom navigation label for the notifications tab."
+    },
+    "navYou": "You",
+    "@navYou": {
+        "description": "Bottom navigation label for the profile tab."
     },
     "guildFolderSettingsTitle": "Folder settings",
     "@guildFolderSettingsTitle": {

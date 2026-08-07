@@ -1101,16 +1101,23 @@ class _MessageItemState extends ConsumerState<MessageItem> {
 
   Widget _buildSilentIndicator(BuildContext context) {
     final String message = FluxerLocalizations.of(context).chatMessageSilent;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () =>
-          ref.read(toastProvider.notifier).show(FluxerToast(message: message)),
-      child: Tooltip(
-        message: message,
-        child: PhosphorIcon(
-          PhosphorIconsFill.bellSlash,
-          size: 14,
-          color: context.textStyles.timestamp.color,
+    return Semantics(
+      button: true,
+      label: message,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => ref
+            .read(toastProvider.notifier)
+            .show(FluxerToast(message: message)),
+        child: Tooltip(
+          message: message,
+          child: ExcludeSemantics(
+            child: PhosphorIcon(
+              PhosphorIconsFill.bellSlash,
+              size: 14,
+              color: context.textStyles.timestamp.color,
+            ),
+          ),
         ),
       ),
     );
@@ -1135,21 +1142,30 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     children: [
       _wrapMessageSendingDim(
         dim: dimMessagePartsExceptAttachments,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _canOpenAuthorProfile(msg)
-              ? () => _openAuthorProfile(context, msg)
+        child: Semantics(
+          button: _canOpenAuthorProfile(msg),
+          label: _canOpenAuthorProfile(msg)
+              ? FluxerLocalizations.of(context).voiceParticipantMenuViewProfile
               : null,
-          child: Padding(
-            padding: const EdgeInsets.only(top: kMessageAvatarTopPadding),
-            child: FluxerAvatar.user(
-              key: ValueKey<String>(
-                'msg-avatar-${msg.authorId}-${authorDisplay.avatarUrl ?? ''}',
+          image: true,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: _canOpenAuthorProfile(msg)
+                ? () => _openAuthorProfile(context, msg)
+                : null,
+            child: Padding(
+              padding: const EdgeInsets.only(top: kMessageAvatarTopPadding),
+              child: ExcludeSemantics(
+                child: FluxerAvatar.user(
+                  key: ValueKey<String>(
+                    'msg-avatar-${msg.authorId}-${authorDisplay.avatarUrl ?? ''}',
+                  ),
+                  fallbackText: authorDisplay.displayName,
+                  userId: msg.authorId,
+                  imageUrl: authorDisplay.avatarUrl,
+                  avatarColor: authorDisplay.avatarColor,
+                ),
               ),
-              fallbackText: authorDisplay.displayName,
-              userId: msg.authorId,
-              imageUrl: authorDisplay.avatarUrl,
-              avatarColor: authorDisplay.avatarColor,
             ),
           ),
         ),
