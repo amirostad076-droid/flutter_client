@@ -505,7 +505,6 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     required BuildContext context,
     required String channelId,
     required ChannelMessagePermissions perms,
-    required int contentLength,
     required int maxMessageLength,
     required int premiumMaxLength,
     required InputDecoration decoration,
@@ -513,15 +512,17 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     required int maxLines,
     TextAlignVertical? textAlignVertical,
   }) {
-    final bool showCounter = contentLength > (maxMessageLength * 0.8).floor();
+    // Keep counter padding reserved so the TextField does not rebuild on type.
     final EdgeInsets basePadding = decoration.contentPadding is EdgeInsets
         ? decoration.contentPadding! as EdgeInsets
         : const EdgeInsets.symmetric(horizontal: 12, vertical: 10);
     final InputDecoration effectiveDecoration = decoration.copyWith(
-      contentPadding: showCounter
-          ? basePadding + const EdgeInsets.only(right: 28, bottom: 18)
-          : basePadding,
+      contentPadding:
+          basePadding + const EdgeInsets.only(right: 28, bottom: 18),
     );
+    final bool canUpgrade =
+        maxMessageLength < premiumMaxLength &&
+        ref.watch(shouldShowPremiumCommerceProvider);
     return ComposerPasteScope(
       key: _pasteScopeKey,
       channelId: channelId,
@@ -563,14 +564,17 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             Positioned(
               right: 8,
               bottom: 8,
-              child: MessageCharacterCounter(
-                currentLength: contentLength,
-                maxLength: maxMessageLength,
-                canUpgrade:
-                    maxMessageLength < premiumMaxLength &&
-                    ref.watch(shouldShowPremiumCommerceProvider),
-                premiumMaxLength: premiumMaxLength,
-                onUpgradePressed: () => _showPlutoniumSheet(context),
+              child: ListenableBuilder(
+                listenable: _controller,
+                builder: (BuildContext context, Widget? child) {
+                  return MessageCharacterCounter(
+                    currentLength: _composerContentLength(_sendableWireText()),
+                    maxLength: maxMessageLength,
+                    canUpgrade: canUpgrade,
+                    premiumMaxLength: premiumMaxLength,
+                    onUpgradePressed: () => _showPlutoniumSheet(context),
+                  );
+                },
               ),
             ),
           ],
@@ -742,12 +746,12 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     );
     final ChannelMessagePermissions perms =
         watchChannelMessagePermissionsForComposer(ref, channelId);
-    final String guildId =
-        findChannelById(
-          ref.watch(channelListViewModelProvider),
-          channelId,
-        )?.guildId ??
-        '';
+    final String guildId = ref.watch(
+      channelListViewModelProvider.select(
+        (ChannelListState state) =>
+            findChannelById(state, channelId)?.guildId ?? '',
+      ),
+    );
     final bool mobileComposer = isMobileLayout(context);
     final bool isPanelOpen = ref.watch(expressionPanelProvider);
     final double bottomSlotHeight = mobileComposer
@@ -877,14 +881,36 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     );
     final int maxMessageLength = ref.watch(maxMessageLengthProvider);
     final int premiumMaxLength = ref.watch(premiumMaxMessageLengthProvider);
-    final AdvancedPreferencesState advanced = ref.watch(
-      advancedPreferencesProvider,
+    final (
+      bool showGifButton,
+      bool showMemesButton,
+      bool showStickersButton,
+      bool showEmojiButton,
+    ) = ref.watch(
+      advancedPreferencesProvider.select(
+        (AdvancedPreferencesState s) => (
+          s.showGifButton,
+          s.showMemesButton,
+          s.showStickersButton,
+          s.showEmojiButton,
+        ),
+      ),
     );
+    final AdvancedPreferencesState composerButtonPrefs =
+        AdvancedPreferencesState(
+          showGifButton: showGifButton,
+          showMemesButton: showMemesButton,
+          showStickersButton: showStickersButton,
+          showEmojiButton: showEmojiButton,
+        );
     final bool showTextareaFocusRing = ref.watch(
       appearancePreferencesProvider.select((s) => s.showTextareaFocusRing),
     );
     final List<ExpressionPickerTab> composerButtonTabs =
-        composerInputButtonVisibleTabs(perms: perms, advanced: advanced);
+        composerInputButtonVisibleTabs(
+          perms: perms,
+          advanced: composerButtonPrefs,
+        );
     final List<ExpressionPickerTab> popoutTabs = expressionPanelVisibleTabs(
       perms,
     );
@@ -974,23 +1000,15 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           SizedBox(width: touchActions ? _kTouchComposerActionSpacing : 8),
         ],
         Expanded(
-          child: ListenableBuilder(
-            listenable: _controller,
-            builder: (BuildContext context, Widget? child) {
-              final String sendableWire = _sendableWireText();
-              final int contentLength = _composerContentLength(sendableWire);
-              return _buildComposerField(
-                context: context,
-                channelId: channelId,
-                perms: perms,
-                contentLength: contentLength,
-                maxMessageLength: maxMessageLength,
-                premiumMaxLength: premiumMaxLength,
-                minLines: 1,
-                maxLines: 5,
-                decoration: inputDecoration,
-              );
-            },
+          child: _buildComposerField(
+            context: context,
+            channelId: channelId,
+            perms: perms,
+            maxMessageLength: maxMessageLength,
+            premiumMaxLength: premiumMaxLength,
+            minLines: 1,
+            maxLines: 5,
+            decoration: inputDecoration,
           ),
         ),
         SizedBox(width: touchActions ? _kTouchComposerActionSpacing : 4),
@@ -1285,23 +1303,15 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           const SizedBox(width: 8),
         ],
         Expanded(
-          child: ListenableBuilder(
-            listenable: _controller,
-            builder: (BuildContext context, Widget? child) {
-              final String sendableWire = _sendableWireText();
-              final int contentLength = _composerContentLength(sendableWire);
-              return _buildComposerField(
-                context: context,
-                channelId: channelId,
-                perms: perms,
-                contentLength: contentLength,
-                maxMessageLength: maxMessageLength,
-                premiumMaxLength: premiumMaxLength,
-                minLines: 1,
-                maxLines: 6,
-                decoration: mobileDecoration,
-              );
-            },
+          child: _buildComposerField(
+            context: context,
+            channelId: channelId,
+            perms: perms,
+            maxMessageLength: maxMessageLength,
+            premiumMaxLength: premiumMaxLength,
+            minLines: 1,
+            maxLines: 6,
+            decoration: mobileDecoration,
           ),
         ),
         const SizedBox(width: 8),
