@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/utils/call_duration_format.dart';
@@ -123,4 +124,46 @@ void main() {
       );
     });
   });
+
+  group('expandSystemMessageTemplate', () {
+    test('wraps usernames in tappable spans when onAuthorTap is provided', () {
+      final List<InlineSpan> spans = expandSystemMessageTemplate(
+        "Welcome, ${kSystemMessageUsernamePlaceholder}!",
+        authorName: 'Alice',
+        textStyle: const TextStyle(),
+        usernameStyle: const TextStyle(fontWeight: FontWeight.bold),
+        onAuthorTap: () {},
+      );
+
+      expect(_containsWidgetSpan(TextSpan(children: spans)), isTrue);
+    });
+
+    test('uses plain text spans when onAuthorTap is omitted', () {
+      final List<InlineSpan> spans = expandSystemMessageTemplate(
+        "Welcome, ${kSystemMessageUsernamePlaceholder}!",
+        authorName: 'Alice',
+        textStyle: const TextStyle(),
+        usernameStyle: const TextStyle(fontWeight: FontWeight.bold),
+      );
+
+      expect(_containsWidgetSpan(TextSpan(children: spans)), isFalse);
+    });
+  });
+}
+
+bool _containsWidgetSpan(InlineSpan span) {
+  if (span is WidgetSpan) {
+    return true;
+  }
+  if (span is TextSpan) {
+    final List<InlineSpan>? children = span.children;
+    if (children != null) {
+      for (final InlineSpan child in children) {
+        if (_containsWidgetSpan(child)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
 }

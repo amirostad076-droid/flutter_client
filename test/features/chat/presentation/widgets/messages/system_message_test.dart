@@ -226,7 +226,10 @@ void main() {
         ),
       );
 
-      expect(find.textContaining('Sample User added u2'), findsOneWidget);
+      expect(find.text('Sample User'), findsOneWidget);
+      expect(find.text('u2'), findsOneWidget);
+      expect(find.textContaining('added'), findsOneWidget);
+      expect(find.textContaining('to the group'), findsOneWidget);
     });
 
     testWidgets('renders localized channel rename with new name', (
