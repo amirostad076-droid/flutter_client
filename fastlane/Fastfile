@@ -650,6 +650,7 @@ platform :mac do
         signingStyle: "manual",
         teamID: ENV.fetch("APPLE_TEAM_ID"),
         signingCertificate: "Apple Distribution",
+        installerSigningCertificate: "Mac Installer Distribution",
         provisioningProfiles: {
           "com.fluxer.lite.canary" => runner_profile_uuid
         }
