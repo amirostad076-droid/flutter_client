@@ -317,10 +317,7 @@ void main() {
         (ChannelStreamItem item) => item.type.isCollapsedGroup,
       );
       expect(groupIndex, greaterThanOrEqualTo(0));
-      expect(
-        resolvePreviousMessageForStreamItem(stream, groupIndex),
-        isNull,
-      );
+      expect(resolvePreviousMessageForStreamItem(stream, groupIndex), isNull);
     });
   });
 }

@@ -939,7 +939,8 @@ class Message {
       bool mentionEveryone,
       List<String> mentionedUserIds,
       List<String> mentionRoles,
-    }) mentionMetadata = messageMentionMetadataFromSdk(
+    })
+    mentionMetadata = messageMentionMetadataFromSdk(
       mentionEveryone: sdk.mentionEveryone,
       mentionedUserIds: sdk.mentions.map((user) => user.id),
       mentionRoles: sdk.mentionRoles,
@@ -998,7 +999,8 @@ class Message {
       bool mentionEveryone,
       List<String> mentionedUserIds,
       List<String> mentionRoles,
-    }) mentionMetadata = messageMentionMetadataFromSdk(
+    })
+    mentionMetadata = messageMentionMetadataFromSdk(
       mentionEveryone: sdk.mentionEveryone,
       mentionedUserIds: sdk.mentions.map((user) => user.id),
       mentionRoles: sdk.mentionRoles,
@@ -1048,7 +1050,8 @@ class Message {
       bool mentionEveryone,
       List<String> mentionedUserIds,
       List<String> mentionRoles,
-    }) mentionMetadata = messageMentionMetadataFromSdk(
+    })
+    mentionMetadata = messageMentionMetadataFromSdk(
       mentionEveryone: sdk.mentionEveryone,
       mentionedUserIds: sdk.mentions.map((user) => user.id),
       mentionRoles: sdk.mentionRoles,
@@ -1105,7 +1108,8 @@ class Message {
       bool mentionEveryone,
       List<String> mentionedUserIds,
       List<String> mentionRoles,
-    }) mentionMetadata = messageMentionMetadataFromSdk(
+    })
+    mentionMetadata = messageMentionMetadataFromSdk(
       mentionEveryone: sdk.mentionEveryone,
       mentionedUserIds: sdk.mentions.map((user) => user.id),
       mentionRoles: sdk.mentionRoles,
@@ -1493,9 +1497,7 @@ class Message {
       replyToId != null && !(messageReference?.isForward ?? false);
 
   bool get hasMentionsForGrouping =>
-      mentionEveryone ||
-      mentionRoles.isNotEmpty ||
-      mentionedUserIds.isNotEmpty;
+      mentionEveryone || mentionRoles.isNotEmpty || mentionedUserIds.isNotEmpty;
 
   String? get replyParentMessageId => replyToId ?? messageReference?.messageId;
 

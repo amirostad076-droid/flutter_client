@@ -32,8 +32,7 @@ bool isNewMessageGroup(Message current, Message? previous) {
   }
   final bool isCurrentUserContent = current.isUserMessage;
   final bool isPrevUserContent = previous.isUserMessage;
-  final bool bothDisplaySystem =
-      currentIsDisplaySystem && prevIsDisplaySystem;
+  final bool bothDisplaySystem = currentIsDisplaySystem && prevIsDisplaySystem;
   if (!bothDisplaySystem &&
       current.type != previous.type &&
       !(isCurrentUserContent && isPrevUserContent)) {
