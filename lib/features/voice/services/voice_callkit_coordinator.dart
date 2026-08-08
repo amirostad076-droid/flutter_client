@@ -219,6 +219,12 @@ class VoiceCallKitCoordinatorLogic {
 
   Future<void> _handleToggleAudioSession({required bool isActive}) async {
     if (isActive) {
+      final VoiceCallKitVoiceSnapshot voice = _voiceCallKitVoiceSnapshot(
+        _ref.read(voiceSessionProvider),
+      );
+      if (!voice.isConnected) {
+        return;
+      }
       _cancelAudioSessionRecovery();
       await _enterCallKitAudioOwnership();
     }
