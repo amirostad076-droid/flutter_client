@@ -512,14 +512,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     required int maxLines,
     TextAlignVertical? textAlignVertical,
   }) {
-    // Keep counter padding reserved so the TextField does not rebuild on type.
     final EdgeInsets basePadding = decoration.contentPadding is EdgeInsets
         ? decoration.contentPadding! as EdgeInsets
         : const EdgeInsets.symmetric(horizontal: 12, vertical: 10);
-    final InputDecoration effectiveDecoration = decoration.copyWith(
-      contentPadding:
-          basePadding + const EdgeInsets.only(right: 28, bottom: 18),
-    );
     final bool canUpgrade =
         maxMessageLength < premiumMaxLength &&
         ref.watch(shouldShowPremiumCommerceProvider);
@@ -535,49 +530,59 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           unawaited(_handlePasteExceedsLimit(pastedText, channelId)),
       onValidationResult: _toastUploadValidation,
       builder: (BuildContext context, ComposerPasteScopeState pasteScope) {
-        return Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Semantics(
-              label: _resolveHintText(),
-              textField: true,
-              child: TextField(
-                controller: _controller,
-                focusNode: _focusNode,
-                scrollController: _composerScrollController,
-                enabled: perms.isComposerEnabled,
-                style: context.textStyles.inputText,
-                minLines: minLines,
-                maxLines: maxLines,
-                selectionWidthStyle: BoxWidthStyle.tight,
-                decoration: effectiveDecoration,
-                textAlignVertical: textAlignVertical,
-                textCapitalization: TextCapitalization.sentences,
-                contextMenuBuilder: pasteScope.buildContextMenu,
-                onTap: () {
-                  if (ref.read(expressionPanelProvider)) {
-                    _closeExpressionPanelAndFocusComposer();
-                  }
-                },
-              ),
-            ),
-            Positioned(
-              right: 8,
-              bottom: 8,
-              child: ListenableBuilder(
-                listenable: _controller,
-                builder: (BuildContext context, Widget? child) {
-                  return MessageCharacterCounter(
-                    currentLength: _composerContentLength(_sendableWireText()),
+        return ListenableBuilder(
+          listenable: _controller,
+          builder: (BuildContext context, Widget? child) {
+            final int contentLength = _composerContentLength(
+              _sendableWireText(),
+            );
+            final bool showCounter =
+                contentLength > (maxMessageLength * 0.8).floor();
+            final InputDecoration effectiveDecoration = decoration.copyWith(
+              contentPadding: showCounter
+                  ? basePadding + const EdgeInsets.only(right: 28, bottom: 18)
+                  : basePadding,
+            );
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Semantics(
+                  label: _resolveHintText(),
+                  textField: true,
+                  child: TextField(
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    scrollController: _composerScrollController,
+                    enabled: perms.isComposerEnabled,
+                    style: context.textStyles.inputText,
+                    minLines: minLines,
+                    maxLines: maxLines,
+                    selectionWidthStyle: BoxWidthStyle.tight,
+                    decoration: effectiveDecoration,
+                    textAlignVertical: textAlignVertical,
+                    textCapitalization: TextCapitalization.sentences,
+                    contextMenuBuilder: pasteScope.buildContextMenu,
+                    onTap: () {
+                      if (ref.read(expressionPanelProvider)) {
+                        _closeExpressionPanelAndFocusComposer();
+                      }
+                    },
+                  ),
+                ),
+                Positioned(
+                  right: 8,
+                  bottom: 8,
+                  child: MessageCharacterCounter(
+                    currentLength: contentLength,
                     maxLength: maxMessageLength,
                     canUpgrade: canUpgrade,
                     premiumMaxLength: premiumMaxLength,
                     onUpgradePressed: () => _showPlutoniumSheet(context),
-                  );
-                },
-              ),
-            ),
-          ],
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
