@@ -208,6 +208,11 @@ class _MessageListState extends ConsumerState<MessageList> {
   double? _lastViewportDimension;
 
   bool _userDragActive = false;
+  // Stays true after a user-driven leave of the 8px engage zone until the
+  // reader returns to the tail or an explicit jump/send re-engages it.
+  // Survives ScrollEnd (including ballistic) so onUserScrollEnd's 64px hold
+  // cannot re-arm follow.
+  bool _followDisarmed = false;
 
   // Invalidates deferred scroll effects scheduled against a previous UI
   // world: bumped on channel reload and on every wholesale window
@@ -418,6 +423,7 @@ class _MessageListState extends ConsumerState<MessageList> {
           return;
         }
         final List<Message> messages = state.messages;
+        _followDisarmed = false;
         _pin.onJumpToPresentLanded();
         _reanchor(
           messages.isEmpty ? null : messages.last.id,
@@ -509,6 +515,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     _anchorEpoch++;
     _anchorResolved = false;
     _pin.pinned = false;
+    _followDisarmed = false;
     _landAtLatestTailPending = false;
     _jumpToLatestTicket++;
     _jumpToLatestInFlight = false;
@@ -608,6 +615,14 @@ class _MessageListState extends ConsumerState<MessageList> {
         // update notifications, so page landings and reflows contribute
         // zero approach velocity.
         _demandSource.onScrollDelta(_towardOlderDelta(delta));
+        // A user-driven leave of the engage zone must disarm before
+        // ScrollEnd: a liveCreate can land mid-gesture while pinned.
+        if (_isUserDrivenScroll &&
+            _scrollController.hasClients &&
+            _centerTrailingDistance(_scrollController.position) > 8) {
+          _pin.pinned = false;
+          _followDisarmed = true;
+        }
       }
     } else if (notification is OverscrollNotification) {
       // At the hard wall a gesture toward the loaded edge moves ZERO pixels,
@@ -637,10 +652,18 @@ class _MessageListState extends ConsumerState<MessageList> {
     final double distanceFromLiveTail = _centerTrailingDistance(
       _scrollController.position,
     );
-    _pin.onUserScrollEnd(
-      distanceFromLiveTail: distanceFromLiveTail,
-      hasMoreNewer: state.hasMoreNewerMessages,
-    );
+    if (_followDisarmed) {
+      // Engage-only: the 64px hold would re-arm follow after a leave.
+      _pin.pinned = !state.hasMoreNewerMessages && distanceFromLiveTail <= 8;
+      if (_pin.pinned) {
+        _followDisarmed = false;
+      }
+    } else {
+      _pin.onUserScrollEnd(
+        distanceFromLiveTail: distanceFromLiveTail,
+        hasMoreNewer: state.hasMoreNewerMessages,
+      );
+    }
     _syncReadViewport();
     if (_pin.pinned) {
       if (isNearTrailingEdge(distanceFromTrailingEdge: distanceFromLiveTail)) {
@@ -1063,9 +1086,23 @@ class _MessageListState extends ConsumerState<MessageList> {
     // trailing edge would land on the newest message of the LOADED window,
     // which in a detached window is history, not the present.
     if (chatState.hasMoreNewerMessages) {
+      _followDisarmed = false;
       _requestJumpToLatest();
       return;
     }
+    // scrollToBottomSignal serves both the jump button and post-resync
+    // glue. While disarmed, honor only requests past the jump-button
+    // threshold (a tap); nearer ones are soft reconcile.
+    if (_followDisarmed && _scrollController.hasClients) {
+      final ScrollPosition position = _scrollController.position;
+      if (!isBeyondJumpToBottomThreshold(
+        distanceFromBottom: _centerTrailingDistance(position),
+        viewportHeight: position.viewportDimension,
+      )) {
+        return;
+      }
+    }
+    _followDisarmed = false;
     _pin.onJumpToPresentLanded();
     final int epoch = _uiEpoch;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1131,6 +1168,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     // Jump-to-present landing: re-anchor to the newest at the bottom and
     // engage the pin - the fresh layout at offset 0 IS the live tail.
     _pin.onJumpToPresentLanded();
+    _followDisarmed = false;
     _reanchor(
       next.isEmpty ? null : next.last.id,
       1,
@@ -1733,6 +1771,7 @@ class _MessageListState extends ConsumerState<MessageList> {
           }
           if (origin == MessagesOrigin.ownSend) {
             _pin.onOwnSend();
+            _followDisarmed = false;
           }
           if ((origin == MessagesOrigin.liveCreate ||
                   origin == MessagesOrigin.ownSend) &&
@@ -1740,15 +1779,20 @@ class _MessageListState extends ConsumerState<MessageList> {
             // Follow: authorized by the write's own origin AND the
             // event-sourced pin - never recomputed from geometry here. The
             // terminal newer page of the user's own pagination lands with
-            // pinned == false (they were detached) and preserves.
+            // pinned == false (they were detached) and preserves. A live
+            // drag/fling or a disarmed leave owns the position.
             final int followEpoch = _uiEpoch;
             WidgetsBinding.instance.addPostFrameCallback((_) {
               _runIfSameEpoch(followEpoch, () {
-                if (_scrollController.hasClients) {
-                  _scrollController.jumpTo(
-                    _scrollController.position.maxScrollExtent,
-                  );
+                if (!_scrollController.hasClients ||
+                    !_pin.pinned ||
+                    _followDisarmed ||
+                    _isUserDrivenScroll) {
+                  return;
                 }
+                _scrollController.jumpTo(
+                  _scrollController.position.maxScrollExtent,
+                );
               });
             });
           }
@@ -1757,12 +1801,14 @@ class _MessageListState extends ConsumerState<MessageList> {
             // sitting AT the tail. The framework clamps an offset that grew
             // too large but never grows one that got too small, so a row that
             // got taller pushes the newest message below the fold. jumpTo goes
-            // idle first, so a live drag or fling must own the position.
+            // idle first, so a live drag/fling or a disarmed leave must own
+            // the position.
             final int glueEpoch = _uiEpoch;
             WidgetsBinding.instance.addPostFrameCallback((_) {
               _runIfSameEpoch(glueEpoch, () {
                 if (!_scrollController.hasClients ||
                     !_pin.pinned ||
+                    _followDisarmed ||
                     _isUserDrivenScroll) {
                   return;
                 }
@@ -1917,6 +1963,7 @@ class _MessageListState extends ConsumerState<MessageList> {
         _anchorResolved = true;
         _anchorEpoch++;
         _pin.pinned = false;
+        _followDisarmed = false;
         if (canAnchorUnread) {
           // Unread open: the split falls BEFORE the first unread's stream
           // item, so the NEW divider - rendered at the top of that tile,
