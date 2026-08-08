@@ -162,29 +162,34 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
   });
 
-  testWidgets(
-    'BottomInputSpacer clamps to home inset when keyboard dismisses',
-    (tester) async {
-      final ProviderContainer container = ProviderContainer();
-      addTearDown(container.dispose);
-      final MobileKeyboardMetrics notifier = container.read(
-        mobileKeyboardMetricsProvider.notifier,
-      );
-      notifier.updateLayout(screenHeight: 800, isPortrait: true, isIos: true);
+  testWidgets('BottomInputSpacer stays collapsed when keyboard is dismissed', (
+    tester,
+  ) async {
+    final ProviderContainer container = ProviderContainer();
+    addTearDown(container.dispose);
+    final MobileKeyboardMetrics notifier = container.read(
+      mobileKeyboardMetricsProvider.notifier,
+    );
+    notifier.updateLayout(screenHeight: 800, isPortrait: true, isIos: true);
 
-      await tester.pumpWidget(_buildSpacerHarness(container));
+    await tester.pumpWidget(_buildSpacerHarness(container));
+    await tester.pump();
+
+    expect(tester.getSize(find.byType(BottomInputSpacer)).height, 0);
+
+    for (final double height in <double>[100, 20]) {
+      notifier.syncViewInsets(height, safeAreaBottom: 0);
       await tester.pump();
+      expect(
+        tester.getSize(_spacerSizedBoxFinder()).height,
+        height > _homeInset ? height : _homeInset,
+      );
+    }
 
-      for (final double height in <double>[100, 20, 0]) {
-        notifier.syncViewInsets(height, safeAreaBottom: 0);
-        await tester.pump();
-        expect(
-          tester.getSize(_spacerSizedBoxFinder()).height,
-          height > _homeInset ? height : _homeInset,
-        );
-      }
+    notifier.syncViewInsets(0, safeAreaBottom: 0);
+    await tester.pump();
+    expect(tester.getSize(find.byType(BottomInputSpacer)).height, 0);
 
-      await tester.pump(const Duration(milliseconds: 500));
-    },
-  );
+    await tester.pump(const Duration(milliseconds: 500));
+  });
 }

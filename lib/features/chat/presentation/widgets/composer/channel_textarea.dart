@@ -818,15 +818,12 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     );
     final bool mobileComposer = isMobileLayout(context);
     final bool isPanelOpen = ref.watch(expressionPanelProvider);
-    final double bottomSlotHeight = mobileComposer
-        ? 0
-        : ref.watch(
-            bottomInputSlotProvider.select(
-              (BottomInputSlotState state) => state.slotHeight,
-            ),
-          );
+    final double bottomSlotHeight = ref.watch(
+      bottomInputSlotProvider.select(
+        (BottomInputSlotState state) => state.slotHeight,
+      ),
+    );
     final bool showComposerSafeBar =
-        !mobileComposer &&
         MediaQuery.paddingOf(context).bottom > 0 &&
         bottomSlotHeight <= 0 &&
         !isPanelOpen;
