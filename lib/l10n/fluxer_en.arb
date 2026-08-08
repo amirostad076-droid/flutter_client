@@ -4695,6 +4695,109 @@
     "@chatAttachmentExpiredTooltip": {
         "description": "Tooltip when a file attachment link is no longer available."
     },
+    "chatTextualPreviewExpandLines": "{count, plural, one{Expand ({count} line)} other{Expand ({count} lines)}}",
+    "@chatTextualPreviewExpandLines": {
+        "description": "Expand button for textual attachment preview by line count.",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "chatTextualPreviewCollapseLines": "{count, plural, one{Collapse ({count} line)} other{Collapse ({count} lines)}}",
+    "@chatTextualPreviewCollapseLines": {
+        "description": "Collapse button for textual attachment preview by line count.",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "chatTextualPreviewExpandRows": "{count, plural, one{Expand ({count} row)} other{Expand ({count} rows)}}",
+    "@chatTextualPreviewExpandRows": {
+        "description": "Expand button for CSV attachment preview by row count.",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "chatTextualPreviewCollapseRows": "{count, plural, one{Collapse ({count} row)} other{Collapse ({count} rows)}}",
+    "@chatTextualPreviewCollapseRows": {
+        "description": "Collapse button for CSV attachment preview by row count.",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "chatTextualPreviewRemainingLines": "{count, plural, one{... ({count} line left)} other{... ({count} lines left)}}",
+    "@chatTextualPreviewRemainingLines": {
+        "description": "Suffix when inline textual preview truncates expanded content.",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "chatTextualPreviewRemainingRows": "{count, plural, one{... ({count} row left)} other{... ({count} rows left)}}",
+    "@chatTextualPreviewRemainingRows": {
+        "description": "Suffix when inline CSV preview truncates expanded rows.",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "chatTextualPreviewViewWholeFile": "View whole file",
+    "@chatTextualPreviewViewWholeFile": {
+        "description": "Opens fullscreen textual attachment preview."
+    },
+    "chatTextualPreviewChangeLanguage": "Change language",
+    "@chatTextualPreviewChangeLanguage": {
+        "description": "Opens language picker for textual attachment syntax highlighting."
+    },
+    "chatTextualPreviewSearchLanguage": "Search language…",
+    "@chatTextualPreviewSearchLanguage": {
+        "description": "Search field hint in textual preview language picker."
+    },
+    "chatTextualPreviewSyntaxHighlighting": "Syntax highlighting",
+    "@chatTextualPreviewSyntaxHighlighting": {
+        "description": "Title for textual preview language picker."
+    },
+    "chatTextualPreviewNoLanguagesFound": "No results found",
+    "@chatTextualPreviewNoLanguagesFound": {
+        "description": "Empty state when language search matches nothing."
+    },
+    "chatTextualPreviewMoreOptions": "More options",
+    "@chatTextualPreviewMoreOptions": {
+        "description": "Accessibility label for textual preview overflow menu."
+    },
+    "chatTextualPreviewWrapText": "Wrap text",
+    "@chatTextualPreviewWrapText": {
+        "description": "Toggle soft-wrapping in textual attachment previews."
+    },
+    "chatTextualPreviewSizeError": "File is too large for inline preview (limit {previewLimitKb} KB).",
+    "@chatTextualPreviewSizeError": {
+        "description": "Error when attachment exceeds textual preview size limit.",
+        "placeholders": {
+            "previewLimitKb": {
+                "type": "int"
+            }
+        }
+    },
+    "chatTextualPreviewLoadError": "Unable to load preview.",
+    "@chatTextualPreviewLoadError": {
+        "description": "Error when textual attachment content cannot be fetched."
+    },
+    "chatTextualPreviewLanguagePlaintext": "Plain text",
+    "@chatTextualPreviewLanguagePlaintext": {
+        "description": "Label for plaintext syntax highlighting option."
+    },
+    "chatTextualPreviewCopy": "Copy",
+    "@chatTextualPreviewCopy": {
+        "description": "Copy textual attachment preview contents to clipboard."
+    },
     "chatAttachmentSourceGallery": "Gallery",
     "@chatAttachmentSourceGallery": {
         "description": "Option to pick photos and videos from the device gallery."

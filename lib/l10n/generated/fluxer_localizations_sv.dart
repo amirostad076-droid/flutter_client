@@ -3640,6 +3640,107 @@ class FluxerLocalizationsSv extends FluxerLocalizations {
   String get chatAttachmentExpiredTooltip => 'Bilagan har gått ut';
 
   @override
+  String chatTextualPreviewExpandLines(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Expand ($count lines)',
+      one: 'Expand ($count line)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatTextualPreviewCollapseLines(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Collapse ($count lines)',
+      one: 'Collapse ($count line)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatTextualPreviewExpandRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Expand ($count rows)',
+      one: 'Expand ($count row)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatTextualPreviewCollapseRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Collapse ($count rows)',
+      one: 'Collapse ($count row)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatTextualPreviewRemainingLines(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '... ($count lines left)',
+      one: '... ($count line left)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String chatTextualPreviewRemainingRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '... ($count rows left)',
+      one: '... ($count row left)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get chatTextualPreviewViewWholeFile => 'View whole file';
+
+  @override
+  String get chatTextualPreviewChangeLanguage => 'Change language';
+
+  @override
+  String get chatTextualPreviewSearchLanguage => 'Search language…';
+
+  @override
+  String get chatTextualPreviewSyntaxHighlighting => 'Syntax highlighting';
+
+  @override
+  String get chatTextualPreviewNoLanguagesFound => 'No results found';
+
+  @override
+  String get chatTextualPreviewMoreOptions => 'More options';
+
+  @override
+  String get chatTextualPreviewWrapText => 'Wrap text';
+
+  @override
+  String chatTextualPreviewSizeError(int previewLimitKb) {
+    return 'File is too large for inline preview (limit $previewLimitKb KB).';
+  }
+
+  @override
+  String get chatTextualPreviewLoadError => 'Unable to load preview.';
+
+  @override
+  String get chatTextualPreviewLanguagePlaintext => 'Plain text';
+
+  @override
+  String get chatTextualPreviewCopy => 'Copy';
+
+  @override
   String get chatAttachmentSourceGallery => 'Galleri';
 
   @override

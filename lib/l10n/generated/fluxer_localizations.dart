@@ -6100,6 +6100,108 @@ abstract class FluxerLocalizations {
   /// **'Attachment expired'**
   String get chatAttachmentExpiredTooltip;
 
+  /// Expand button for textual attachment preview by line count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Expand ({count} line)} other{Expand ({count} lines)}}'**
+  String chatTextualPreviewExpandLines(int count);
+
+  /// Collapse button for textual attachment preview by line count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Collapse ({count} line)} other{Collapse ({count} lines)}}'**
+  String chatTextualPreviewCollapseLines(int count);
+
+  /// Expand button for CSV attachment preview by row count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Expand ({count} row)} other{Expand ({count} rows)}}'**
+  String chatTextualPreviewExpandRows(int count);
+
+  /// Collapse button for CSV attachment preview by row count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Collapse ({count} row)} other{Collapse ({count} rows)}}'**
+  String chatTextualPreviewCollapseRows(int count);
+
+  /// Suffix when inline textual preview truncates expanded content.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{... ({count} line left)} other{... ({count} lines left)}}'**
+  String chatTextualPreviewRemainingLines(int count);
+
+  /// Suffix when inline CSV preview truncates expanded rows.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{... ({count} row left)} other{... ({count} rows left)}}'**
+  String chatTextualPreviewRemainingRows(int count);
+
+  /// Opens fullscreen textual attachment preview.
+  ///
+  /// In en, this message translates to:
+  /// **'View whole file'**
+  String get chatTextualPreviewViewWholeFile;
+
+  /// Opens language picker for textual attachment syntax highlighting.
+  ///
+  /// In en, this message translates to:
+  /// **'Change language'**
+  String get chatTextualPreviewChangeLanguage;
+
+  /// Search field hint in textual preview language picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Search language…'**
+  String get chatTextualPreviewSearchLanguage;
+
+  /// Title for textual preview language picker.
+  ///
+  /// In en, this message translates to:
+  /// **'Syntax highlighting'**
+  String get chatTextualPreviewSyntaxHighlighting;
+
+  /// Empty state when language search matches nothing.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found'**
+  String get chatTextualPreviewNoLanguagesFound;
+
+  /// Accessibility label for textual preview overflow menu.
+  ///
+  /// In en, this message translates to:
+  /// **'More options'**
+  String get chatTextualPreviewMoreOptions;
+
+  /// Toggle soft-wrapping in textual attachment previews.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrap text'**
+  String get chatTextualPreviewWrapText;
+
+  /// Error when attachment exceeds textual preview size limit.
+  ///
+  /// In en, this message translates to:
+  /// **'File is too large for inline preview (limit {previewLimitKb} KB).'**
+  String chatTextualPreviewSizeError(int previewLimitKb);
+
+  /// Error when textual attachment content cannot be fetched.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load preview.'**
+  String get chatTextualPreviewLoadError;
+
+  /// Label for plaintext syntax highlighting option.
+  ///
+  /// In en, this message translates to:
+  /// **'Plain text'**
+  String get chatTextualPreviewLanguagePlaintext;
+
+  /// Copy textual attachment preview contents to clipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get chatTextualPreviewCopy;
+
   /// Option to pick photos and videos from the device gallery.
   ///
   /// In en, this message translates to:
