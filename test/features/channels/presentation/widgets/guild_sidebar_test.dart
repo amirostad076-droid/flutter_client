@@ -43,6 +43,7 @@ import 'package:riverpod/src/framework.dart' show Override;
 import '../../../../helpers/open_test_database.dart';
 import '../../../../helpers/pump_fluxer_app.dart';
 import '../../../../helpers/wide_layout_test_sizes.dart';
+import '../../../../helpers/test_l10n.dart';
 
 Future<void> _pumpSidebar(WidgetTester tester) async {
   await pumpFluxerFrames(tester);
@@ -758,6 +759,7 @@ void main() {
           UncontrolledProviderScope(
             container: container,
             child: MaterialApp(
+              locale: kTestLocale,
               localizationsDelegates:
                   FluxerLocalizations.localizationsDelegates,
               supportedLocales: FluxerLocalizations.supportedLocales,
@@ -878,6 +880,7 @@ void main() {
           UncontrolledProviderScope(
             container: container,
             child: MaterialApp(
+              locale: kTestLocale,
               localizationsDelegates:
                   FluxerLocalizations.localizationsDelegates,
               supportedLocales: FluxerLocalizations.supportedLocales,

@@ -11,6 +11,7 @@ import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../../helpers/test_l10n.dart';
 
 void _noop() {}
 
@@ -40,6 +41,7 @@ Widget buildTestApp(
   final colorTheme = buildDarkColorTheme();
   return ProviderScope(
     child: MaterialApp(
+      locale: kTestLocale,
       localizationsDelegates: FluxerLocalizations.localizationsDelegates,
       supportedLocales: FluxerLocalizations.supportedLocales,
       navigatorObservers: observers,

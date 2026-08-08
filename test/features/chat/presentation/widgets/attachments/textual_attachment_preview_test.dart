@@ -12,6 +12,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/attachments/textua
 import 'package:fluxer_app/features/chat/utils/attachment_preview_utils.dart';
 import 'package:fluxer_app/features/chat/utils/textual_attachment_content.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import '../../../../../helpers/test_l10n.dart';
 
 void main() {
   testWidgets('renders textual preview for eligible code attachment', (
@@ -114,6 +115,7 @@ Widget _buildTestApp({required Widget child}) {
   final colorTheme = buildDarkColorTheme();
   return ProviderScope(
     child: MaterialApp(
+      locale: kTestLocale,
       localizationsDelegates: FluxerLocalizations.localizationsDelegates,
       supportedLocales: FluxerLocalizations.supportedLocales,
       theme: buildFluxerTheme(

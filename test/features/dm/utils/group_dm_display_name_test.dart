@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/utils/group_dm_display_name.dart';
-import 'package:fluxer_app/l10n/generated/fluxer_localizations_en.dart';
+import '../../../helpers/test_l10n.dart';
 
 void main() {
-  final FluxerLocalizationsEn l10n = FluxerLocalizationsEn();
+  final FluxerLocalizations l10n = testL10n;
 
   DmConversation groupDm({
     String? name,

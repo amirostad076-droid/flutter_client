@@ -3,11 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/utils/call_duration_format.dart';
 import 'package:fluxer_app/features/chat/utils/system_message_text.dart';
-import 'package:fluxer_app/l10n/generated/fluxer_localizations_en.dart';
+import '../../../helpers/test_l10n.dart';
 
 void main() {
   group('resolveGuildJoinMessage', () {
-    final l10n = FluxerLocalizationsEn();
+    final l10n = testL10n;
 
     test('falls back to the first message for invalid ids', () {
       expect(
@@ -56,7 +56,7 @@ void main() {
   });
 
   group('resolvePinMessageTemplate', () {
-    final l10n = FluxerLocalizationsEn();
+    final l10n = testL10n;
 
     test('preserves username and link markers for rich text rendering', () {
       final template = resolvePinMessageTemplate(l10n);
@@ -69,7 +69,7 @@ void main() {
   });
 
   group('stringifySystemMessage', () {
-    final l10n = FluxerLocalizationsEn();
+    final l10n = testL10n;
 
     test('formats recipient remove self-leave', () {
       final String? text = stringifySystemMessage(
@@ -108,7 +108,7 @@ void main() {
   });
 
   group('formatCallDuration', () {
-    final l10n = FluxerLocalizationsEn();
+    final l10n = testL10n;
 
     test('returns few seconds for short calls', () {
       expect(

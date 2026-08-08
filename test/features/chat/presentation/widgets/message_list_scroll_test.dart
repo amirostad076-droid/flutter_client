@@ -43,6 +43,7 @@ import 'package:riverpod/src/framework.dart' show Override;
 
 import '../../../../helpers/open_test_database.dart';
 import '../../../../helpers/pump_fluxer_app.dart';
+import '../../../../helpers/test_l10n.dart';
 
 void main() {
   group('unread center open path', () {
@@ -4832,6 +4833,7 @@ Widget _messageListApp({
       ...overrides,
     ],
     child: MaterialApp(
+      locale: kTestLocale,
       localizationsDelegates: FluxerLocalizations.localizationsDelegates,
       supportedLocales: FluxerLocalizations.supportedLocales,
       theme: buildFluxerTheme(

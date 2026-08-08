@@ -10,6 +10,7 @@ import 'package:fluxer_app/features/chat/providers/pickers/bottom_input_slot_pro
 import 'package:fluxer_app/features/chat/providers/pickers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/mobile_keyboard_metrics_provider.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import '../../../../../helpers/test_l10n.dart';
 
 const double _homeInset = 34;
 const MediaQueryData _mobileMediaQuery = MediaQueryData(
@@ -31,6 +32,7 @@ Widget _buildSpacerHarness(ProviderContainer container) {
   return UncontrolledProviderScope(
     container: container,
     child: MaterialApp(
+      locale: kTestLocale,
       localizationsDelegates: FluxerLocalizations.localizationsDelegates,
       supportedLocales: FluxerLocalizations.supportedLocales,
       theme: buildFluxerTheme(
@@ -68,6 +70,7 @@ void main() {
       UncontrolledProviderScope(
         container: container,
         child: MaterialApp(
+          locale: kTestLocale,
           localizationsDelegates: FluxerLocalizations.localizationsDelegates,
           supportedLocales: FluxerLocalizations.supportedLocales,
           theme: buildFluxerTheme(
