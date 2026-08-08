@@ -10381,8 +10381,6 @@
     "advancedSettingSkipMarkAllAsReadDescription": "Mark all unread inbox channels as read immediately, without asking to confirm",
     "advancedSettingHideMutedChannelsLabel": "Hide muted channels by default",
     "advancedSettingHideMutedChannelsDescription": "Hide channels you've muted from community sidebars",
-    "advancedSettingSequentialFileSendLabel": "Send file messages in order",
-    "advancedSettingSequentialFileSendDescription": "Ensures file messages appear in the order you sent them",
     "advancedSettingShowGifIndicatorLabel": "Show GIF indicator",
     "advancedSettingShowAttachmentExpiryLabel": "Show attachment expiry indicator",
     "advancedSettingShowMediaDeleteLabel": "Show delete button",

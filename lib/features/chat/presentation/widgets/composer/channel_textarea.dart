@@ -1970,10 +1970,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final CloudUploadController notifier = ref.read(
       cloudUploadControllerProvider(channelId).notifier,
     );
-    final bool sequential = ref.read(
-      advancedPreferencesProvider.select((state) => state.sequentialFileSend),
-    );
-    if (!sequential || files.length <= 1) {
+    if (files.length <= 1) {
       final FileUploadValidationResult result = await notifier.addFiles(files);
       if (mounted) {
         _toastUploadValidation(result);

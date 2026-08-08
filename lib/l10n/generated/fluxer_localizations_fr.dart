@@ -8329,14 +8329,6 @@ class FluxerLocalizationsFr extends FluxerLocalizations {
       'Hide channels you\'ve muted from community sidebars';
 
   @override
-  String get advancedSettingSequentialFileSendLabel =>
-      'Send file messages in order';
-
-  @override
-  String get advancedSettingSequentialFileSendDescription =>
-      'Ensures file messages appear in the order you sent them';
-
-  @override
   String get advancedSettingShowGifIndicatorLabel => 'Show GIF indicator';
 
   @override

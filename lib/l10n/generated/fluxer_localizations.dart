@@ -13894,18 +13894,6 @@ abstract class FluxerLocalizations {
   /// **'Hide channels you\'ve muted from community sidebars'**
   String get advancedSettingHideMutedChannelsDescription;
 
-  /// No description provided for @advancedSettingSequentialFileSendLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Send file messages in order'**
-  String get advancedSettingSequentialFileSendLabel;
-
-  /// No description provided for @advancedSettingSequentialFileSendDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Ensures file messages appear in the order you sent them'**
-  String get advancedSettingSequentialFileSendDescription;
-
   /// No description provided for @advancedSettingShowGifIndicatorLabel.
   ///
   /// In en, this message translates to:
