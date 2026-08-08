@@ -408,7 +408,7 @@ void main() {
       final synced = container.read(chatViewModelProvider);
       expect(synced.isSyncingMessages, isFalse);
       expect(synced.messages, hasLength(1));
-      expect(synced.messages.first.id, cachedId);
+      expect(synced.messages.first.id, networkId);
     },
   );
 
