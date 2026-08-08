@@ -14,6 +14,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/channel_settings/channel_settings_nav_page.dart';
+import 'package:fluxer_app/features/channels/presentation/widgets/channel_unread_indicator.dart';
 import 'package:fluxer_app/features/channels/presentation/widgets/guild_sidebar.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/channel_mute_provider.dart';
@@ -32,6 +33,7 @@ import 'package:fluxer_app/features/mature_content/providers/mature_content_agre
 import 'package:fluxer_app/features/mature_content/providers/sensitive_content_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
+import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_state.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -40,6 +42,7 @@ import 'package:riverpod/src/framework.dart' show Override;
 
 import '../../../../helpers/open_test_database.dart';
 import '../../../../helpers/pump_fluxer_app.dart';
+import '../../../../helpers/wide_layout_test_sizes.dart';
 
 Future<void> _pumpSidebar(WidgetTester tester) async {
   await pumpFluxerFrames(tester);
@@ -96,6 +99,60 @@ void main() {
 
       expect(find.text('random'), findsOneWidget);
       expect(find.text('general'), findsNothing);
+    });
+  });
+
+  group('GuildSidebar selected channel indicators', () {
+    testWidgets('shows unread and mention indicators on mobile', (
+      tester,
+    ) async {
+      _setMobileSurface(tester);
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: _buildOverrides(
+            channelListState: _state(selectedChannelId: 'c1'),
+            selectedChannelId: 'c1',
+            unread: const {
+              'c1': UnreadState(
+                hasUnread: true,
+                hasUnreadMessages: true,
+                mentionCount: 2,
+              ),
+              'c2': UnreadState(),
+            },
+          ),
+        ),
+      );
+      await _pumpSidebar(tester);
+
+      expect(find.byType(ChannelUnreadIndicator), findsOneWidget);
+      expect(find.byType(FluxerBadge), findsOneWidget);
+    });
+
+    testWidgets('hides unread and mention indicators on wide layout', (
+      tester,
+    ) async {
+      _setWideSurface(tester);
+      await tester.pumpWidget(
+        _buildTestApp(
+          overrides: _buildOverrides(
+            channelListState: _state(selectedChannelId: 'c1'),
+            selectedChannelId: 'c1',
+            unread: const {
+              'c1': UnreadState(
+                hasUnread: true,
+                hasUnreadMessages: true,
+                mentionCount: 2,
+              ),
+              'c2': UnreadState(),
+            },
+          ),
+        ),
+      );
+      await _pumpSidebar(tester);
+
+      expect(find.byType(ChannelUnreadIndicator), findsNothing);
+      expect(find.byType(FluxerBadge), findsNothing);
     });
   });
 
@@ -904,6 +961,13 @@ void main() {
 
 void _setMobileSurface(WidgetTester tester) {
   tester.view.physicalSize = const Size(390, 844);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+}
+
+void _setWideSurface(WidgetTester tester) {
+  tester.view.physicalSize = kWideTestViewportSize;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);

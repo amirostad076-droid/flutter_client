@@ -703,8 +703,14 @@ class _ChannelTile extends ConsumerWidget {
     final Color textColor = rowOpacity < 1
         ? baseTextColor.withValues(alpha: baseTextColor.a * rowOpacity)
         : baseTextColor;
+    final bool showUnreadOnSelectedChannel = isMobileLayout(context);
     final bool showUnreadIndicator =
-        !isSelected && channelUnreadState.shouldShowUnreadIndicator;
+        channelUnreadState.shouldShowUnreadIndicator &&
+        (showUnreadOnSelectedChannel || !isSelected);
+    final bool showMentionBadge =
+        mentionCount > 0 &&
+        channelUnreadState.hasMentions &&
+        (showUnreadOnSelectedChannel || !isSelected);
 
     final int voiceUserLimit = channel.userLimit ?? 0;
     final bool showVoiceUserCount =
@@ -736,12 +742,7 @@ class _ChannelTile extends ConsumerWidget {
             name: channel.name,
             isSelected: isSelected,
             hasUnread: showUnreadIndicator,
-            mentionCount:
-                !isSelected &&
-                    mentionCount > 0 &&
-                    channelUnreadState.hasMentions
-                ? mentionCount
-                : 0,
+            mentionCount: showMentionBadge ? mentionCount : 0,
             isMuted: isChannelDirectlyMuted,
           ),
           onSecondaryTapUp: (details) => unawaited(
@@ -797,9 +798,7 @@ class _ChannelTile extends ConsumerWidget {
                 guildId: guildId,
                 isSelected: isSelected,
               ),
-              if (!isSelected &&
-                  mentionCount > 0 &&
-                  channelUnreadState.hasMentions) ...[
+              if (showMentionBadge) ...[
                 const SizedBox(width: 4),
                 FluxerBadge.count(count: mentionCount),
               ],
