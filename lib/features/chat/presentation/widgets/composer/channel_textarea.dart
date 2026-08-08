@@ -18,7 +18,9 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
+import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
 import 'package:fluxer_app/features/chat/domain/cloud_composer_attachments.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
@@ -46,6 +48,8 @@ import 'package:fluxer_app/features/chat/providers/pickers/mobile_keyboard_metri
 import 'package:fluxer_app/features/chat/providers/pickers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_blocked_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_indicator_shake_provider.dart';
+import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_rate_limited_alert_provider.dart';
+import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_tracker.dart';
 import 'package:fluxer_app/features/chat/providers/upload/cloud_upload_controller.dart';
 import 'package:fluxer_app/features/chat/service/composer_mention_controller.dart';
 import 'package:fluxer_app/features/chat/utils/bottom_input_slot_layout.dart';
@@ -1529,7 +1533,15 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       final bool isSlowmodeBlocked =
           ref.read(isSlowmodeBlockedProvider(channelId)).value ?? false;
       if (isSlowmodeBlocked) {
+        final Channel? channel = ref.read(channelByIdProvider(channelId)).value;
+        final int rateLimit = channel?.rateLimitPerUser ?? 0;
+        final Duration remaining = ref
+            .read(slowmodeTrackerProvider.notifier)
+            .remainingFor(channelId, rateLimit);
         ref.read(slowmodeIndicatorShakeProvider.notifier).requestShake();
+        if (remaining > Duration.zero) {
+          ref.read(slowmodeRateLimitedAlertProvider.notifier).show(remaining);
+        }
         return;
       }
     }

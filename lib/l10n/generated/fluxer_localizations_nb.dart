@@ -5573,6 +5573,22 @@ class FluxerLocalizationsNb extends FluxerLocalizations {
       'Kommentarer er utilgjengelige fordi en valgt kanal har sakte modus aktivert.';
 
   @override
+  String get forwardSendSlowmodeBlocked =>
+      'Waiting for slowmode in one or more selected channels to expire.';
+
+  @override
+  String get slowmodeRateLimitedTitle => 'Slowmode active';
+
+  @override
+  String slowmodeRateLimitedMessage(String duration) {
+    return 'Slowmode is on — wait $duration before sending another.';
+  }
+
+  @override
+  String get chatAttachmentDropSlowmodeDisabled =>
+      'Direct upload is disabled during slowmode.';
+
+  @override
   String get shareMediaTitle => 'Share to';
 
   @override

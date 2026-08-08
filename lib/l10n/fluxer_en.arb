@@ -7120,6 +7120,27 @@
     "@forwardCommentSlowmodeDisabled": {
         "description": "Notice shown in the forward sheet when the optional comment is disabled due to slowmode on a selected destination."
     },
+    "forwardSendSlowmodeBlocked": "Waiting for slowmode in one or more selected channels to expire.",
+    "@forwardSendSlowmodeBlocked": {
+        "description": "Notice shown in the forward sheet when send is blocked because a selected destination is cooling down."
+    },
+    "slowmodeRateLimitedTitle": "Slowmode active",
+    "@slowmodeRateLimitedTitle": {
+        "description": "Title for the modal shown when slowmode blocks sending a message."
+    },
+    "slowmodeRateLimitedMessage": "Slowmode is on — wait {duration} before sending another.",
+    "@slowmodeRateLimitedMessage": {
+        "description": "Body for the modal shown when slowmode blocks sending a message. {duration} is a formatted countdown.",
+        "placeholders": {
+            "duration": {
+                "type": "String"
+            }
+        }
+    },
+    "chatAttachmentDropSlowmodeDisabled": "Direct upload is disabled during slowmode.",
+    "@chatAttachmentDropSlowmodeDisabled": {
+        "description": "Overlay hint when shift-to-send is blocked because slowmode is active."
+    },
     "shareMediaTitle": "Share to",
     "@shareMediaTitle": {
         "description": "Title of the share-media bottom sheet."

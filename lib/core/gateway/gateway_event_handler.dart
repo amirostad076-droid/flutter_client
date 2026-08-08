@@ -114,6 +114,7 @@ class GatewayEventHandler {
     this.onGuildPermissionsChanged,
     this.onGuildPermissionsEvict,
     this.onChannelPermissionChanged,
+    this.onChannelDelete,
     this.onPermissionsClearAll,
     this.onMessageCreate,
     this.onMessageUpdate,
@@ -161,6 +162,7 @@ class GatewayEventHandler {
   final GuildCallback? onGuildPermissionsChanged;
   final GuildCallback? onGuildPermissionsEvict;
   final ChannelCallback? onChannelPermissionChanged;
+  final ChannelCallback? onChannelDelete;
   final void Function()? onPermissionsClearAll;
   final MessageCreateCallback? onMessageCreate;
   final MessageUpdateCallback? onMessageUpdate;
@@ -1893,6 +1895,7 @@ class GatewayEventHandler {
       event.channel.id,
       guildId: event.channel.guildId,
     );
+    onChannelDelete?.call(event.channel.id);
     unawaited(database.messageDao.deleteMessagesForChannel(event.channel.id));
     unawaited(database.channelDao.deleteChannel(event.channel.id));
     unawaited(database.dmChannelDao.deleteDmChannel(event.channel.id));

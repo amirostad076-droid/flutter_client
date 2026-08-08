@@ -9264,6 +9264,30 @@ abstract class FluxerLocalizations {
   /// **'Comments are unavailable because a selected channel has slowmode enabled.'**
   String get forwardCommentSlowmodeDisabled;
 
+  /// Notice shown in the forward sheet when send is blocked because a selected destination is cooling down.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for slowmode in one or more selected channels to expire.'**
+  String get forwardSendSlowmodeBlocked;
+
+  /// Title for the modal shown when slowmode blocks sending a message.
+  ///
+  /// In en, this message translates to:
+  /// **'Slowmode active'**
+  String get slowmodeRateLimitedTitle;
+
+  /// Body for the modal shown when slowmode blocks sending a message. {duration} is a formatted countdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Slowmode is on — wait {duration} before sending another.'**
+  String slowmodeRateLimitedMessage(String duration);
+
+  /// Overlay hint when shift-to-send is blocked because slowmode is active.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct upload is disabled during slowmode.'**
+  String get chatAttachmentDropSlowmodeDisabled;
+
   /// Title of the share-media bottom sheet.
   ///
   /// In en, this message translates to:

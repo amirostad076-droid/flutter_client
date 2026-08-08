@@ -5401,6 +5401,22 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
       '선택한 채널에 슬로우 모드가 활성화되어 댓글을 사용할 수 없습니다.';
 
   @override
+  String get forwardSendSlowmodeBlocked =>
+      'Waiting for slowmode in one or more selected channels to expire.';
+
+  @override
+  String get slowmodeRateLimitedTitle => 'Slowmode active';
+
+  @override
+  String slowmodeRateLimitedMessage(String duration) {
+    return 'Slowmode is on — wait $duration before sending another.';
+  }
+
+  @override
+  String get chatAttachmentDropSlowmodeDisabled =>
+      'Direct upload is disabled during slowmode.';
+
+  @override
   String get shareMediaTitle => 'Share to';
 
   @override
