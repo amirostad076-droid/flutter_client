@@ -25,9 +25,11 @@ class FluxerConfirmSheet {
     String? description,
     Widget? body,
     bool isDanger = false,
+    bool useRootNavigator = true,
   }) {
     return FluxerBottomSheet.show<bool>(
       context,
+      useRootNavigator: useRootNavigator,
       title: title,
       builder: (sheetContext, close) {
         final textStyles = sheetContext.textStyles;
