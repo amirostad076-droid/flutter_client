@@ -79,10 +79,7 @@ import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-const double _kVoiceMicDeniedOpacity = 0.45;
-
-/// Visual weight for the message field when the user cannot send messages.
-const double _kMessageInputDisabledOpacity = 0.55;
+const double _kComposerDisabledOpacity = 0.6;
 
 const double _kMobileComposerSuffixHorizontalPadding = 7;
 const double _kMobileComposerSuffixVerticalPadding = 4;
@@ -104,19 +101,71 @@ bool _useMobileAttachmentSheet() {
   return !kIsWeb && (Platform.isIOS || Platform.isAndroid);
 }
 
+Widget _composerOpacity({
+  required bool enabled,
+  required Widget child,
+  Key? key,
+}) {
+  return Opacity(
+    key: key,
+    opacity: enabled ? 1 : _kComposerDisabledOpacity,
+    child: child,
+  );
+}
+
+TextStyle _composerInputHintStyle(
+  BuildContext context, {
+  required bool enabled,
+}) {
+  final TextStyle base = context.textStyles.inputHint;
+  final double fontSize = base.fontSize ?? 16;
+  return base.copyWith(
+    color: enabled
+        ? context.colors.textTertiaryMuted
+        : context.colors.textTertiary,
+    fontSize: enabled ? fontSize : fontSize * 0.875,
+    overflow: TextOverflow.ellipsis,
+  );
+}
+
 OutlineInputBorder _composerTouchInputOutlineBorder(
   BuildContext context, {
   required bool focused,
-  bool enabled = true,
 }) {
-  final Color color = focused
-      ? context.colors.backgroundModifierAccentFocus
-      : context.colors.backgroundModifierAccent;
   return OutlineInputBorder(
     borderRadius: BorderRadius.circular(24),
     borderSide: BorderSide(
-      color: enabled ? color : color.withValues(alpha: 0.5),
+      color: focused
+          ? context.colors.backgroundModifierAccentFocus
+          : context.colors.backgroundModifierAccent,
     ),
+  );
+}
+
+InputDecoration _composerTouchInputDecoration({
+  required BuildContext context,
+  required String hintText,
+  required bool enabled,
+  EdgeInsetsGeometry? contentPadding,
+  Widget? suffixIcon,
+  BoxConstraints? suffixIconConstraints,
+}) {
+  return InputDecoration(
+    hintText: hintText,
+    hintMaxLines: 1,
+    hintStyle: _composerInputHintStyle(context, enabled: enabled),
+    filled: true,
+    fillColor: context.colors.backgroundTertiary,
+    contentPadding:
+        contentPadding ??
+        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    border: _composerTouchInputOutlineBorder(context, focused: false),
+    enabledBorder: _composerTouchInputOutlineBorder(context, focused: false),
+    focusedBorder: _composerTouchInputOutlineBorder(context, focused: true),
+    disabledBorder: _composerTouchInputOutlineBorder(context, focused: false),
+    isDense: true,
+    suffixIcon: suffixIcon,
+    suffixIconConstraints: suffixIconConstraints,
   );
 }
 
@@ -216,28 +265,31 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     FluxerButtonSize touchSize = FluxerButtonSize.small,
     bool leadingTouchGap = false,
   }) {
-    if (isTouchPrimaryInput(ref)) {
-      final Widget button = FluxerButton.circleAlt(
-        icon: icon,
-        size: touchSize,
-        iconSize: iconSize,
-        semanticLabel: tooltip,
-        onPressed: onPressed,
-      );
-      if (!leadingTouchGap) {
-        return button;
-      }
-      return Padding(
-        padding: const EdgeInsets.only(left: _kTouchComposerActionSpacing),
-        child: button,
-      );
+    final Widget button = isTouchPrimaryInput(ref)
+        ? FluxerButton.circleAlt(
+            icon: icon,
+            size: touchSize,
+            iconSize: iconSize,
+            semanticLabel: tooltip,
+            onPressed: onPressed,
+          )
+        : _wideComposerIconButton(
+            context: context,
+            icon: icon,
+            iconSize: iconSize,
+            tooltip: tooltip,
+            onPressed: onPressed,
+          );
+    final Widget wrapped = _composerOpacity(
+      enabled: onPressed != null,
+      child: button,
+    );
+    if (!leadingTouchGap) {
+      return wrapped;
     }
-    return _wideComposerIconButton(
-      context: context,
-      icon: icon,
-      iconSize: iconSize,
-      tooltip: tooltip,
-      onPressed: onPressed,
+    return Padding(
+      padding: const EdgeInsets.only(left: _kTouchComposerActionSpacing),
+      child: wrapped,
     );
   }
 
@@ -546,27 +598,30 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
             return Stack(
               clipBehavior: Clip.none,
               children: [
-                Semantics(
-                  label: _resolveHintText(),
-                  textField: true,
-                  child: TextField(
-                    controller: _controller,
-                    focusNode: _focusNode,
-                    scrollController: _composerScrollController,
-                    enabled: perms.isComposerEnabled,
-                    style: context.textStyles.inputText,
-                    minLines: minLines,
-                    maxLines: maxLines,
-                    selectionWidthStyle: BoxWidthStyle.tight,
-                    decoration: effectiveDecoration,
-                    textAlignVertical: textAlignVertical,
-                    textCapitalization: TextCapitalization.sentences,
-                    contextMenuBuilder: pasteScope.buildContextMenu,
-                    onTap: () {
-                      if (ref.read(expressionPanelProvider)) {
-                        _closeExpressionPanelAndFocusComposer();
-                      }
-                    },
+                _composerOpacity(
+                  enabled: perms.isComposerEnabled,
+                  child: Semantics(
+                    label: _resolveHintText(),
+                    textField: true,
+                    child: TextField(
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      scrollController: _composerScrollController,
+                      enabled: perms.isComposerEnabled,
+                      style: context.textStyles.inputText,
+                      minLines: minLines,
+                      maxLines: maxLines,
+                      selectionWidthStyle: BoxWidthStyle.tight,
+                      decoration: effectiveDecoration,
+                      textAlignVertical: textAlignVertical,
+                      textCapitalization: TextCapitalization.sentences,
+                      contextMenuBuilder: pasteScope.buildContextMenu,
+                      onTap: () {
+                        if (ref.read(expressionPanelProvider)) {
+                          _closeExpressionPanelAndFocusComposer();
+                        }
+                      },
+                    ),
                   ),
                 ),
                 Positioned(
@@ -922,46 +977,22 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     final bool touchInputStyle = isTouchPrimaryInput(ref);
     final bool touchActions = touchInputStyle;
+    final bool composerEnabled = perms.isComposerEnabled;
+    final String hintText = perms.showsNoSendPermissionHint
+        ? l10n.channelNoSendPermissionHint
+        : _resolveHintText();
     final InputDecoration inputDecoration = touchInputStyle
-        ? InputDecoration(
-            hintText: perms.showsNoSendPermissionHint
-                ? l10n.channelNoSendPermissionHint
-                : _resolveHintText(),
-            hintMaxLines: 1,
-            hintStyle: context.textStyles.inputHint.copyWith(
-              color: context.colors.textTertiaryMuted,
-              overflow: TextOverflow.ellipsis,
-            ),
-            filled: true,
-            fillColor: context.colors.backgroundTertiary,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 10,
-            ),
-            border: _composerTouchInputOutlineBorder(context, focused: false),
-            enabledBorder: _composerTouchInputOutlineBorder(
-              context,
-              focused: false,
-            ),
-            focusedBorder: _composerTouchInputOutlineBorder(
-              context,
-              focused: true,
-            ),
-            disabledBorder: _composerTouchInputOutlineBorder(
-              context,
-              focused: false,
-              enabled: false,
-            ),
-            isDense: true,
+        ? _composerTouchInputDecoration(
+            context: context,
+            hintText: hintText,
+            enabled: composerEnabled,
           )
         : InputDecoration(
-            hintText: perms.showsNoSendPermissionHint
-                ? l10n.channelNoSendPermissionHint
-                : _resolveHintText(),
+            hintText: hintText,
             hintMaxLines: 1,
-            hintStyle: context.textStyles.inputHint.copyWith(
-              color: context.colors.textTertiaryMuted,
-              overflow: TextOverflow.ellipsis,
+            hintStyle: _composerInputHintStyle(
+              context,
+              enabled: composerEnabled,
             ),
             border: InputBorder.none,
             enabledBorder: InputBorder.none,
@@ -973,6 +1004,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                     ),
                   )
                 : InputBorder.none,
+            disabledBorder: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(vertical: 2),
             isDense: true,
           );
@@ -1258,27 +1290,13 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
 
     final int maxMessageLength = ref.watch(maxMessageLengthProvider);
     final int premiumMaxLength = ref.watch(premiumMaxMessageLengthProvider);
-    final InputDecoration mobileDecoration = InputDecoration(
+    final InputDecoration mobileDecoration = _composerTouchInputDecoration(
+      context: context,
       hintText: perms.showsNoSendPermissionHint
           ? FluxerLocalizations.of(context).channelNoSendPermissionHint
           : _resolveHintText(),
-      hintMaxLines: 1,
-      hintStyle: context.textStyles.inputHint.copyWith(
-        color: context.colors.textTertiaryMuted,
-        overflow: TextOverflow.ellipsis,
-      ),
-      filled: true,
-      fillColor: context.colors.backgroundTertiary,
+      enabled: perms.isComposerEnabled,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      border: _composerTouchInputOutlineBorder(context, focused: false),
-      enabledBorder: _composerTouchInputOutlineBorder(context, focused: false),
-      focusedBorder: _composerTouchInputOutlineBorder(context, focused: true),
-      disabledBorder: _composerTouchInputOutlineBorder(
-        context,
-        focused: false,
-        enabled: false,
-      ),
-      isDense: true,
       suffixIcon: Padding(
         padding: const EdgeInsets.symmetric(
           vertical: _kMobileComposerSuffixVerticalPadding,
@@ -1296,14 +1314,17 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     return Row(
       children: [
         if (perms.canShowAttachControls) ...[
-          FluxerButton.circleAlt(
-            icon: PhosphorIconsBold.plus,
-            semanticLabel: FluxerLocalizations.of(
-              context,
-            ).chatAttachmentSourceBrowse,
-            onPressed: perms.isAttachEnabled
-                ? () => unawaited(_pickAttachments(context))
-                : null,
+          _composerOpacity(
+            enabled: perms.isAttachEnabled,
+            child: FluxerButton.circleAlt(
+              icon: PhosphorIconsBold.plus,
+              semanticLabel: FluxerLocalizations.of(
+                context,
+              ).chatAttachmentSourceBrowse,
+              onPressed: perms.isAttachEnabled
+                  ? () => unawaited(_pickAttachments(context))
+                  : null,
+            ),
           ),
           const SizedBox(width: 8),
         ],
@@ -1768,35 +1789,40 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final bool isPanelOpen = ref.watch(expressionPanelProvider);
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
 
-    return FluxerButton.ghost(
-      icon: isPanelOpen ? PhosphorIconsFill.keyboard : PhosphorIconsFill.smiley,
-      isSquare: true,
-      size: FluxerButtonSize.compact,
-      semanticLabel: isPanelOpen
-          ? l10n.composerShowKeyboard
-          : l10n.composerOpenExpressionPicker,
-      onPressed: !perms.isComposerEnabled
-          ? null
-          : () {
-              if (isPanelOpen) {
-                _closeExpressionPanelAndFocusComposer();
-              } else {
-                final MobileKeyboardMetricsState metrics = ref.read(
-                  mobileKeyboardMetricsProvider,
-                );
-                if (metrics.isKeyboardVisible) {
-                  final double grossLock = resolveTransitionLockHeight(
-                    liveKeyboardHeight: metrics.liveKeyboardHeight,
-                    anchorHeight: metrics.resolveAnchorHeight(),
+    return _composerOpacity(
+      enabled: perms.isComposerEnabled,
+      child: FluxerButton.ghost(
+        icon: isPanelOpen
+            ? PhosphorIconsFill.keyboard
+            : PhosphorIconsFill.smiley,
+        isSquare: true,
+        size: FluxerButtonSize.compact,
+        semanticLabel: isPanelOpen
+            ? l10n.composerShowKeyboard
+            : l10n.composerOpenExpressionPicker,
+        onPressed: !perms.isComposerEnabled
+            ? null
+            : () {
+                if (isPanelOpen) {
+                  _closeExpressionPanelAndFocusComposer();
+                } else {
+                  final MobileKeyboardMetricsState metrics = ref.read(
+                    mobileKeyboardMetricsProvider,
                   );
-                  ref
-                      .read(bottomInputSlotProvider.notifier)
-                      .beginPanelTransition(grossLock);
+                  if (metrics.isKeyboardVisible) {
+                    final double grossLock = resolveTransitionLockHeight(
+                      liveKeyboardHeight: metrics.liveKeyboardHeight,
+                      anchorHeight: metrics.resolveAnchorHeight(),
+                    );
+                    ref
+                        .read(bottomInputSlotProvider.notifier)
+                        .beginPanelTransition(grossLock);
+                  }
+                  ref.read(expressionPanelProvider.notifier).open();
+                  FocusScope.of(context).unfocus();
                 }
-                ref.read(expressionPanelProvider.notifier).open();
-                FocusScope.of(context).unfocus();
-              }
-            },
+              },
+      ),
     );
   }
 
@@ -1839,6 +1865,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         : perms.isComposerEnabled
         ? () => unawaited(_onSendPressed())
         : _showNoSendPermissionToast;
+    final bool sendVisuallyEnabled =
+        perms.isComposerEnabled && sendOnPressed != null && !isSlowmodeBlocked;
+    final bool voiceVisuallyEnabled = !voiceDisabled;
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     if (!useHoldToRecord) {
       final bool touchActions = isTouchPrimaryInput(ref);
@@ -1848,11 +1877,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           transitionBuilder: (child, animation) =>
               FadeTransition(opacity: animation, child: child),
           child: showSendButton
-              ? Opacity(
+              ? _composerOpacity(
                   key: const ValueKey('send'),
-                  opacity: isSlowmodeBlocked
-                      ? _kMessageInputDisabledOpacity
-                      : 1.0,
+                  enabled: sendVisuallyEnabled,
                   child: FluxerButton.circle(
                     icon: PhosphorIconsBold.arrowUp,
                     iconSize: 20,
@@ -1862,9 +1889,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                   ),
                 )
               : showVoiceButton
-              ? Opacity(
+              ? _composerOpacity(
                   key: const ValueKey('voice'),
-                  opacity: canUseVoice ? 1.0 : _kVoiceMicDeniedOpacity,
+                  enabled: voiceVisuallyEnabled,
                   child: FluxerButton.circleAlt(
                     icon: PhosphorIconsFill.microphone,
                     semanticLabel: l10n.voiceMessageTitle,
@@ -1889,11 +1916,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
           transitionBuilder: (child, animation) =>
               FadeTransition(opacity: animation, child: child),
           child: showSendButton
-              ? Opacity(
+              ? _composerOpacity(
                   key: const ValueKey('send'),
-                  opacity: isSlowmodeBlocked
-                      ? _kMessageInputDisabledOpacity
-                      : 1.0,
+                  enabled: sendVisuallyEnabled,
                   child: _wideComposerIconButton(
                     context: context,
                     icon: PhosphorIconsBold.arrowUp,
@@ -1903,9 +1928,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                   ),
                 )
               : showVoiceButton
-              ? Opacity(
+              ? _composerOpacity(
                   key: const ValueKey('voice'),
-                  opacity: canUseVoice ? 1.0 : _kVoiceMicDeniedOpacity,
+                  enabled: voiceVisuallyEnabled,
                   child: _wideComposerIconButton(
                     context: context,
                     icon: PhosphorIconsFill.microphone,
@@ -1929,9 +1954,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       transitionBuilder: (child, animation) =>
           FadeTransition(opacity: animation, child: child),
       child: showSendButton
-          ? Opacity(
+          ? _composerOpacity(
               key: const ValueKey('send'),
-              opacity: isSlowmodeBlocked ? _kMessageInputDisabledOpacity : 1.0,
+              enabled: sendVisuallyEnabled,
               child: FluxerButton.circle(
                 icon: PhosphorIconsBold.arrowUp,
                 iconSize: 20,
@@ -1941,9 +1966,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               ),
             )
           : showVoiceButton
-          ? Opacity(
+          ? _composerOpacity(
               key: const ValueKey('voice'),
-              opacity: canUseVoice ? 1.0 : _kVoiceMicDeniedOpacity,
+              enabled: voiceVisuallyEnabled,
               child: useHoldToRecord
                   ? VoiceMessageRecorder(
                       channelId: channelId,
