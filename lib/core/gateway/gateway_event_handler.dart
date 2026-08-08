@@ -1456,17 +1456,29 @@ class GatewayEventHandler {
       }
     }
 
+    final UserGuildSettingsResponse? guildSettings =
+        await _guildSettingsForStorage(channelResolution.guildStorageId);
+    final DateTime now = DateTime.now();
     final UserNotificationSettings notificationLevel =
         channelResolution.isGuild && channelResolution.guildChannel != null
         ? resolveMessageNotifications(
             channel: channelResolution.guildChannel!,
-            guildSettings: await _guildSettingsForStorage(
-              channelResolution.guildStorageId,
-            ),
+            guildSettings: guildSettings,
           )
         : resolvePrivateMessageNotifications(
-            guildSettings: await _guildSettingsForStorage('@me'),
+            guildSettings: guildSettings,
             channelId: channelId,
+          );
+    final bool isChannelMuted =
+        channelResolution.isGuild && channelResolution.guildChannel != null
+        ? isGuildOrCategoryOrChannelMuted(
+            channel: channelResolution.guildChannel!,
+            guildSettings: guildSettings,
+            now: now,
+          )
+        : isChannelOverrideMuted(
+            guildSettings?.channelOverrides?[channelId],
+            now: now,
           );
 
     onMessageCreate?.call(
@@ -1478,6 +1490,7 @@ class GatewayEventHandler {
           guildStorageId: channelResolution.guildStorageId,
           acknowledgedByGateway: acknowledgedByGateway,
           notificationLevel: notificationLevel,
+          isChannelMuted: isChannelMuted,
         ),
       ),
     );
