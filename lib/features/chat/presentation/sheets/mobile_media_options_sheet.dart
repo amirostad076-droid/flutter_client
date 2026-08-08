@@ -28,10 +28,8 @@ Future<void> showMobileMediaOptionsSheet({
   await FluxerBottomSheet.showScrollable<void>(
     context,
     useRootNavigator: true,
-    maxHeight: 0.8,
     initialChildSize: 0.4,
     minChildSize: 0.25,
-    maxChildSize: 0.8,
     builder:
         (
           BuildContext sheetContext,

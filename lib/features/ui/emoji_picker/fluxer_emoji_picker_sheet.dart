@@ -32,7 +32,6 @@ class FluxerEmojiPickerSheet {
     return FluxerBottomSheet.showScrollable<void>(
       context,
       title: title,
-      maxHeight: maxHeight,
       initialChildSize: sheetSize,
       maxChildSize: sheetSize,
       builder: (context, scrollController, close) {

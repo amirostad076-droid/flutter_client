@@ -415,6 +415,58 @@ void main() {
       expect(tester.getTopLeft(handle).dy, closeTo(restTop, 0.5));
     });
 
+    testWidgets('upward handle drag keeps the expanded sheet size', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildTestApp(
+          Builder(
+            builder: (context) {
+              return ElevatedButton(
+                onPressed: () {
+                  unawaited(
+                    FluxerBottomSheet.showScrollable(
+                      context,
+                      initialChildSize: 0.4,
+                      maxChildSize: 0.8,
+                      builder: (context, scrollController, close) {
+                        return ListView.builder(
+                          controller: scrollController,
+                          itemCount: 20,
+                          itemBuilder: (context, index) =>
+                              ListTile(title: Text('Scroll Item $index')),
+                        );
+                      },
+                    ),
+                  );
+                },
+                child: const Text('Open'),
+              );
+            },
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      final Finder handle = find.byType(FluxerBottomSheetDragHandle);
+      final double initialTop = tester.getTopLeft(handle).dy;
+
+      final TestGesture gesture = await tester.startGesture(
+        tester.getCenter(handle),
+      );
+      await gesture.moveBy(const Offset(0, -200));
+      await tester.pump();
+      expect(tester.getTopLeft(handle).dy, lessThan(initialTop));
+
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Scroll Item 0'), findsOneWidget);
+      expect(tester.getTopLeft(handle).dy, lessThan(initialTop - 20));
+    });
+
     testWidgets(
       'scrollable sheet dismisses from handle when scroll controller is unattached',
       (tester) async {
@@ -955,6 +1007,71 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(capturedInset, expectedInset);
+    });
+
+    testWidgets('showScrollable does not compound maxHeight and maxChildSize', (
+      tester,
+    ) async {
+      const Size screenSize = Size(400, 800);
+      const double cap = 0.8;
+
+      Future<double> measureSheetHeight({
+        double? maxHeight,
+        double maxChildSize = cap,
+      }) async {
+        await tester.pumpWidget(
+          MediaQuery(
+            data: const MediaQueryData(size: screenSize),
+            child: buildTestApp(
+              Builder(
+                builder: (context) {
+                  return ElevatedButton(
+                    onPressed: () {
+                      unawaited(
+                        FluxerBottomSheet.showScrollable(
+                          context,
+                          maxHeight: maxHeight,
+                          maxChildSize: maxChildSize,
+                          initialChildSize: cap,
+                          builder: (context, scrollController, close) {
+                            return ListView(
+                              controller: scrollController,
+                              children: const [SizedBox(height: 2000)],
+                            );
+                          },
+                        ),
+                      );
+                    },
+                    child: const Text('Open'),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+
+        final Finder sheetMaterial = find.descendant(
+          of: find.byType(DraggableScrollableSheet),
+          matching: find.byType(Material),
+        );
+        final double height = tester.getSize(sheetMaterial).height;
+
+        await tester.tapAt(const Offset(20, 20));
+        await tester.pumpAndSettle();
+
+        return height;
+      }
+
+      final double maxChildOnlyHeight = await measureSheetHeight();
+      final double bothParamsHeight = await measureSheetHeight(
+        maxHeight: cap,
+        maxChildSize: cap,
+      );
+
+      expect(bothParamsHeight, closeTo(maxChildOnlyHeight, 1));
     });
 
     testWidgets('system bottom inset is zero while keyboard is open', (
