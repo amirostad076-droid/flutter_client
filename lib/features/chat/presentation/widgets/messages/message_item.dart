@@ -104,6 +104,7 @@ class MessageRenderSettings {
     required this.revealSpoilers,
     required this.chatPreferences,
     required this.messageGroupSpacing,
+    this.messageDisplayCompact = false,
   });
 
   final String? activeGuildId;
@@ -114,6 +115,7 @@ class MessageRenderSettings {
   final bool revealSpoilers;
   final ChatPreferencesState chatPreferences;
   final double messageGroupSpacing;
+  final bool messageDisplayCompact;
 
   @override
   bool operator ==(Object other) =>
@@ -127,7 +129,8 @@ class MessageRenderSettings {
           renderSpoilers == other.renderSpoilers &&
           revealSpoilers == other.revealSpoilers &&
           chatPreferences == other.chatPreferences &&
-          messageGroupSpacing == other.messageGroupSpacing;
+          messageGroupSpacing == other.messageGroupSpacing &&
+          messageDisplayCompact == other.messageDisplayCompact;
 
   @override
   int get hashCode => Object.hash(
@@ -139,6 +142,7 @@ class MessageRenderSettings {
     revealSpoilers,
     chatPreferences,
     messageGroupSpacing,
+    messageDisplayCompact,
   );
 }
 

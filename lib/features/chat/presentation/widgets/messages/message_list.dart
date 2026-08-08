@@ -1261,10 +1261,12 @@ class _MessageListState extends ConsumerState<MessageList> {
         renderDaySeparator &&
         (previousMessage == null ||
             !_isSameDay(message.timestamp, previousMessage.timestamp));
-    final bool isGrouped =
-        !message.isSystemMessage &&
-        !isNewDay &&
-        _shouldGroup(message, previousMessage);
+    final bool isGrouped = computeMessageRowGrouped(
+      message: message,
+      previousMessage: previousMessage,
+      messageDisplayCompact: renderSettings.messageDisplayCompact,
+      isNewDay: isNewDay,
+    );
     final bool isJumpHighlighted = message.id == highlightedMessageId;
     final bool isUnreadBoundary =
         !prependUnreadSeparator && message.id == visualUnreadId;
@@ -1299,6 +1301,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       leading,
       isGuildSendDisabled,
       swipeToReplyEnabled,
+      renderSettings.messageDisplayCompact,
     );
     return _tileCache.resolve(message.id, signature, () {
       if (message.isSystemMessage) {
@@ -2281,9 +2284,6 @@ class _MessageListState extends ConsumerState<MessageList> {
     return null;
   }
 
-  bool _shouldGroup(Message current, Message? previous) =>
-      shouldGroupMessages(current, previous);
-
   bool _isSameDay(DateTime a, DateTime b) {
     final DateTime localA = a.toLocal();
     final DateTime localB = b.toLocal();
@@ -2517,6 +2517,9 @@ class _MessageListSettingsLayer extends ConsumerWidget {
       chatPreferences: _watchChatMediaPreferences(ref),
       messageGroupSpacing: ref.watch(
         appearancePreferencesProvider.select((s) => s.messageGroupSpacing),
+      ),
+      messageDisplayCompact: ref.watch(
+        userSettingsViewModelProvider.select((s) => s.messageDisplayCompact),
       ),
     );
     return builder(context, settings, guildId, isGuildSendDisabled, (
