@@ -3784,9 +3784,7 @@ class ChatViewModel extends _$ChatViewModel {
         if (readState != null &&
             !readState.manual &&
             (readState.lastMessageId?.isNotEmpty ?? false)) {
-          await ref
-              .read(readStateRepositoryProvider)
-              .applyLocalAckLatest(channelId);
+          await ref.read(readStateRepositoryProvider).ackLatest(channelId);
         }
       }
       return;

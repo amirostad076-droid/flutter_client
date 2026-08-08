@@ -3150,6 +3150,8 @@ void main() {
       final readState = await db.readStateDao.getReadState('channel-1');
       expect(readState?.lastMessageId, deletedId);
       expect(readState?.mentionCount, 0);
+      // Must reach the server, or the next READY re-marks the channel unread.
+      expect(adapter.ackedMessageIds, <String>[deletedId]);
       expect(
         hasUnreadByReadState(
           channelLastMessageId: deletedId,
