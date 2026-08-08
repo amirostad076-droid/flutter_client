@@ -1839,7 +1839,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       final bool touchActions = isTouchPrimaryInput(ref);
       if (touchActions) {
         return AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
+          duration: context.motion.panel,
           transitionBuilder: (child, animation) =>
               FadeTransition(opacity: animation, child: child),
           child: showSendButton
@@ -1880,7 +1880,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
         width: _kWideComposerActionExtent,
         height: _kWideComposerActionExtent,
         child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
+          duration: context.motion.panel,
           transitionBuilder: (child, animation) =>
               FadeTransition(opacity: animation, child: child),
           child: showSendButton
@@ -1920,7 +1920,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       );
     }
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 200),
+      duration: context.motion.panel,
       transitionBuilder: (child, animation) =>
           FadeTransition(opacity: animation, child: child),
       child: showSendButton

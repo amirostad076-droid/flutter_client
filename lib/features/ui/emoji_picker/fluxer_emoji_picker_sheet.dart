@@ -154,7 +154,7 @@ class _SheetContentState extends State<_SheetContent> {
                 child: GestureDetector(
                   onTap: () => setState(() => _selectedTab = tab),
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
+                    duration: context.motion.normal,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 6,

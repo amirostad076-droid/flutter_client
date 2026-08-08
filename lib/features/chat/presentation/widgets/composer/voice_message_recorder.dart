@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/system_permissions/system_permission_kind.dart';
 import 'package:fluxer_app/core/system_permissions/system_permission_service.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
+import 'package:fluxer_app/core/theme/fluxer_motion_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/voice_message_live_waveform.dart';
 import 'package:fluxer_app/features/chat/providers/messages/voice_message_max_duration_provider.dart';
@@ -76,13 +77,19 @@ class _VoiceMessageRecorderState extends ConsumerState<VoiceMessageRecorder>
     _initBarAnimations();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _barAnimationController?.duration = context.motion.normal;
+  }
+
   void _initBarAnimations() {
     if (_barAnimationController != null) {
       return;
     }
     final AnimationController controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 150),
+      duration: FluxerMotionTheme.normalDuration,
     );
     _barAnimationController = controller;
     _barFadeAnimation = CurvedAnimation(

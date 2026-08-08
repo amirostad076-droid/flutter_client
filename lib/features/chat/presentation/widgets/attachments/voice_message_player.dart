@@ -357,10 +357,7 @@ class _VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
   @override
   Widget build(BuildContext context) {
     final FluxerColorTheme colors = context.colors;
-    final bool reduceMotion = MediaQuery.disableAnimationsOf(context);
-    final Duration animDuration = reduceMotion
-        ? Duration.zero
-        : const Duration(milliseconds: 200);
+    final Duration animDuration = context.motion.panel;
     final bool isLight = Theme.of(context).brightness == Brightness.light;
     final Color idleBackground = colors.backgroundSecondary;
     final Color activeBackground = colors.brandPrimary;

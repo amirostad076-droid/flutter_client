@@ -68,7 +68,7 @@ class UnreadInboxCardHeader extends StatelessWidget {
       onPressed: onToggleCollapsed,
       icon: AnimatedRotation(
         turns: collapsed ? -0.25 : 0,
-        duration: const Duration(milliseconds: 150),
+        duration: context.motion.normal,
         child: Icon(
           PhosphorIconsBold.caretDown,
           size: 14,

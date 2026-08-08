@@ -144,7 +144,7 @@ class _RadioIndicator extends StatelessWidget {
     )!;
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
+      duration: context.motion.normal,
       width: 18,
       height: 18,
       decoration: BoxDecoration(
