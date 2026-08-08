@@ -629,6 +629,66 @@ void main() {
   );
 
   test(
+    'sparse cache-first sync expands to full latest page after network refresh',
+    () async {
+      final db = openTestDatabase();
+      final anchorId = _snowflakeForUtc(DateTime.utc(2026, 5, 16, 10));
+      final middleId = _snowflakeForUtc(DateTime.utc(2026, 5, 16, 11));
+      final latestId = _snowflakeForUtc(DateTime.utc(2026, 5, 16, 12));
+      await db.messageDao.upsertMessages([
+        _cachedMessage(id: latestId, channelId: 'channel-1', authorId: 'other'),
+      ]);
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(
+          id: 'channel-1',
+          guildId: 'guild-1',
+          name: 'general',
+          lastMessageId: Value(latestId),
+        ),
+      );
+      await db.readStateDao.upsertReadState(
+        ReadStatesCompanion(
+          channelId: const Value('channel-1'),
+          lastMessageId: Value(latestId),
+          mentionCount: const Value(0),
+        ),
+      );
+      final adapter = _ChatAdapter(
+        initialMessages: [
+          _messageJson(id: latestId, channelId: 'channel-1', authorId: 'other'),
+          _messageJson(id: middleId, channelId: 'channel-1', authorId: 'other'),
+          _messageJson(id: anchorId, channelId: 'channel-1', authorId: 'other'),
+        ],
+      )..holdMessageFetch = true;
+      final container = _container(db, adapter);
+      addTearDown(container.dispose);
+
+      final notifier = container.read(chatViewModelProvider.notifier);
+      await notifier.switchChannel('channel-1');
+      final sparseState = container.read(chatViewModelProvider);
+      expect(sparseState.isLoading, isFalse);
+      expect(sparseState.isSyncingMessages, isTrue);
+      expect(sparseState.messages.map((m) => m.id), [latestId]);
+      expect(sparseState.hasMoreMessages, isTrue);
+
+      adapter.releaseMessageFetch();
+      for (var i = 0; i < 30; i++) {
+        await _flushAsync();
+        final current = container.read(chatViewModelProvider);
+        if (!current.isLoading && !current.isSyncingMessages) {
+          break;
+        }
+      }
+
+      final state = container.read(chatViewModelProvider);
+      expect(state.isLoading, isFalse);
+      expect(state.isSyncingMessages, isFalse);
+      expect(state.messages.map((m) => m.id), [anchorId, middleId, latestId]);
+      expect(state.hasMoreMessages, isFalse);
+    },
+  );
+
+  test(
     'gateway recovery removes deleted message from already loaded channel',
     () async {
       final db = openTestDatabase();

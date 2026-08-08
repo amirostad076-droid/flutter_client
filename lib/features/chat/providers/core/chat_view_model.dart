@@ -1949,7 +1949,9 @@ class ChatViewModel extends _$ChatViewModel {
         return;
       }
       if (cached.isNotEmpty && !hasUnread) {
-        final bool willRefresh = _shouldRefreshChannelFromNetwork(channelId);
+        final bool incompleteCache = cached.length < _kPageSize;
+        final bool willRefresh =
+            incompleteCache || _shouldRefreshChannelFromNetwork(channelId);
         state = _switchedChannelState(
           channelId: channelId,
           messages: _applyPendingLocalMutations(cached, cacheOrdinal),
@@ -1960,7 +1962,7 @@ class ChatViewModel extends _$ChatViewModel {
           isSyncingMessages: willRefresh,
           isLoadingMore: false,
           isLoadingNewer: false,
-          hasMoreMessages: cached.length >= _kPageSize,
+          hasMoreMessages: incompleteCache || cached.length >= _kPageSize,
           hasMoreNewerMessages: false,
           replaceWindow: true,
         );
@@ -1970,8 +1972,8 @@ class ChatViewModel extends _$ChatViewModel {
           unawaited(
             _refreshMessagesFromNetwork(
               channelId,
-              isDirectLatestLoad: false,
-              preserveLoadedWindow: true,
+              isDirectLatestLoad: incompleteCache,
+              preserveLoadedWindow: !incompleteCache,
               shouldApplyResult: isCurrentSwitch,
             ),
           );
