@@ -630,14 +630,12 @@ GoRouter fluxerRouter(Ref ref) {
               GoRoute(
                 path: '/channels/@me',
                 name: RouteNames.dms,
-                pageBuilder: (BuildContext context, GoRouterState state) =>
-                    _dmShellTransitionPage(context, state),
+                pageBuilder: _dmShellTransitionPage,
                 routes: [
                   GoRoute(
                     path: ':channelId',
                     name: RouteNames.dmChannel,
-                    pageBuilder: (BuildContext context, GoRouterState state) =>
-                        _dmShellTransitionPage(context, state),
+                    pageBuilder: _dmShellTransitionPage,
                     routes: [
                       GoRoute(
                         path: 'call',
@@ -674,9 +672,7 @@ GoRouter fluxerRouter(Ref ref) {
                       GoRoute(
                         path: ':messageId',
                         name: RouteNames.dmMessage,
-                        pageBuilder:
-                            (BuildContext context, GoRouterState state) =>
-                                _dmShellTransitionPage(context, state),
+                        pageBuilder: _dmShellTransitionPage,
                       ),
                     ],
                   ),
