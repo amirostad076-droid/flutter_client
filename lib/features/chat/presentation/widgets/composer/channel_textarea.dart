@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/limits/instance_limit_provider.dart';
 import 'package:fluxer_app/core/limits/limit_key.dart';
+import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
 import 'package:fluxer_app/core/permissions/channel_permission_reads.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/platform/fluxer_platform.dart';
@@ -369,6 +370,22 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
 
   String _sendableWireText() =>
       stripPrivateUseCharacters(_controller.toWireText());
+
+  Duration? _activeSlowmodeRemainingForSend(String channelId) {
+    final Channel? channel = ref.read(channelByIdProvider(channelId)).value;
+    final int rateLimit = channel?.rateLimitPerUser ?? 0;
+    if (rateLimit <= 0) {
+      return null;
+    }
+    final int? cachedBits = ref.read(channelPermissionCacheProvider)[channelId];
+    if (cachedBits != null && bypassesSlowmode(cachedBits)) {
+      return null;
+    }
+    final Duration remaining = ref
+        .read(slowmodeTrackerProvider.notifier)
+        .remainingFor(channelId, rateLimit);
+    return remaining > Duration.zero ? remaining : null;
+  }
 
   void _showCorruptedCustomEmojiToast() {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
@@ -1518,18 +1535,14 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final ComposerCommand command = parseComposerCommand(wireText);
 
     if (command is! ComposerReplaceCommand) {
-      final bool isSlowmodeBlocked =
-          ref.read(isSlowmodeBlockedProvider(channelId)).value ?? false;
-      if (isSlowmodeBlocked) {
-        final Channel? channel = ref.read(channelByIdProvider(channelId)).value;
-        final int rateLimit = channel?.rateLimitPerUser ?? 0;
-        final Duration remaining = ref
-            .read(slowmodeTrackerProvider.notifier)
-            .remainingFor(channelId, rateLimit);
+      final Duration? slowmodeRemaining = _activeSlowmodeRemainingForSend(
+        channelId,
+      );
+      if (slowmodeRemaining != null) {
         ref.read(slowmodeIndicatorShakeProvider.notifier).requestShake();
-        if (remaining > Duration.zero) {
-          ref.read(slowmodeRateLimitedAlertProvider.notifier).show(remaining);
-        }
+        ref
+            .read(slowmodeRateLimitedAlertProvider.notifier)
+            .show(slowmodeRemaining);
         return;
       }
     }
@@ -1587,8 +1600,6 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       return;
     }
 
-    _controller.clear();
-    vm.updateMessageText('');
     FluxerHaptics.light();
     unawaited(vm.sendMessage(text: baseContent.trim(), tts: tts));
   }
