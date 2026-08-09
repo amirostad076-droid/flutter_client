@@ -137,6 +137,51 @@ void main() {
     expect(session.isActiveHost('a'), isFalse);
   });
 
+  test('update refreshes media item duration for system controls', () async {
+    const MediaItem itemWithoutDuration = MediaItem(id: 'a', title: 'Track A');
+    const MediaItem itemWithDuration = MediaItem(
+      id: 'a',
+      title: 'Track A',
+      duration: Duration(seconds: 90),
+    );
+
+    await session.claim(
+      hostId: 'a',
+      mediaItem: itemWithoutDuration,
+      callbacks: callbacksFor(
+        onPause: () {},
+        onResume: () {},
+        onSeek: (_) {},
+        onStop: () {},
+      ),
+      playing: true,
+      position: Duration.zero,
+      bufferedPosition: Duration.zero,
+      speed: 1,
+    );
+
+    session.update(
+      hostId: 'a',
+      mediaItem: itemWithDuration,
+      playing: true,
+      position: const Duration(seconds: 5),
+      bufferedPosition: const Duration(seconds: 90),
+      speed: 1,
+    );
+
+    await pumpEventQueue();
+
+    expect(handler.mediaItem.value?.duration, const Duration(seconds: 90));
+    expect(
+      handler.playbackState.value.updatePosition,
+      const Duration(seconds: 5),
+    );
+    expect(
+      handler.playbackState.value.systemActions,
+      contains(MediaAction.seek),
+    );
+  });
+
   test('clearForVoiceCall stops playback and blocks new claims', () async {
     var stopped = false;
 

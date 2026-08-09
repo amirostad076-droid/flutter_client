@@ -87,6 +87,7 @@ class ChatAttachmentAudioSession {
 
   void update({
     required String hostId,
+    required MediaItem mediaItem,
     required bool playing,
     required Duration position,
     required Duration bufferedPosition,
@@ -94,9 +95,10 @@ class ChatAttachmentAudioSession {
     bool loading = false,
     bool completed = false,
   }) {
-    if (_activeHostId != hostId || _activeMediaItem == null) {
+    if (_activeHostId != hostId) {
       return;
     }
+    _activeMediaItem = mediaItem;
     unawaited(
       _publish(
         mediaItem: _activeMediaItem,

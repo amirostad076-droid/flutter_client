@@ -50,6 +50,7 @@ class ChatAttachmentAudioBinding {
   }
 
   void update({
+    required MediaItem mediaItem,
     required bool playing,
     required Duration position,
     required Duration bufferedPosition,
@@ -62,6 +63,7 @@ class ChatAttachmentAudioBinding {
     }
     _session.update(
       hostId: hostId,
+      mediaItem: mediaItem,
       playing: playing,
       position: position,
       bufferedPosition: bufferedPosition,

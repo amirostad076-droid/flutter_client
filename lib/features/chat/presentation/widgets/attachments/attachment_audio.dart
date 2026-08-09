@@ -89,6 +89,17 @@ class _AttachmentAudioState extends State<AttachmentAudio> {
     });
   }
 
+  Duration get _mediaSessionTotalDuration {
+    if (_duration > Duration.zero) {
+      return _duration;
+    }
+    final int? attachmentDuration = widget.attachment.duration;
+    if (attachmentDuration != null && attachmentDuration > 0) {
+      return Duration(milliseconds: attachmentDuration);
+    }
+    return Duration.zero;
+  }
+
   void _syncMediaSession({
     required bool playing,
     bool loading = false,
@@ -100,7 +111,7 @@ class _AttachmentAudioState extends State<AttachmentAudio> {
       title: widget.attachment.filename,
       playing: playing,
       position: _position,
-      totalDuration: _duration,
+      totalDuration: _mediaSessionTotalDuration,
       playbackRate: _playbackRate,
       loading: loading,
       completed: completed,

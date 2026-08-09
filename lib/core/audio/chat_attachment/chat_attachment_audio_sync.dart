@@ -43,6 +43,11 @@ void syncChatAttachmentAudioSession({
   }
   if (binding.isActive) {
     binding.update(
+      mediaItem: buildChatAttachmentAudioMediaItem(
+        attachment: attachment,
+        title: title,
+        duration: totalDuration > Duration.zero ? totalDuration : null,
+      ),
       playing: playing,
       position: position,
       bufferedPosition: bufferedPosition,

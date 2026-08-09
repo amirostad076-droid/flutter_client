@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:fluxer_app/core/audio/chat_attachment/chat_attachment_audio_artwork.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 
 MediaItem buildChatAttachmentAudioMediaItem({
@@ -18,5 +19,6 @@ MediaItem buildChatAttachmentAudioMediaItem({
     id: mediaId.isNotEmpty ? mediaId : attachment.filename,
     title: title,
     duration: resolvedDuration,
+    artUri: chatAttachmentAudioArtUri,
   );
 }
