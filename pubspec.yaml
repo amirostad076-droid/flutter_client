@@ -155,6 +155,7 @@ flutter:
     - assets/images/icons/channels/
     - assets/images/badges/
     - assets/images/connections/
+    - assets/images/browsers/
     - assets/emojis.json
     - assets/emoji-sprites/
 

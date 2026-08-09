@@ -13672,6 +13672,42 @@ abstract class FluxerLocalizations {
   /// **'Failed to update time format'**
   String get languageAndTimeTimeFormatSyncFailed;
 
+  /// User settings navigation item for default app preferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Default Apps'**
+  String get userSettingsNavDefaultApps;
+
+  /// Title for the default web browser settings section.
+  ///
+  /// In en, this message translates to:
+  /// **'Web Browser'**
+  String get defaultAppsWebBrowserSectionTitle;
+
+  /// Description for the default web browser settings section.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which browser opens when you tap a link.'**
+  String get defaultAppsWebBrowserSectionDescription;
+
+  /// Footnote explaining that installed native apps take priority over the chosen browser.
+  ///
+  /// In en, this message translates to:
+  /// **'If an app is installed for a site, links will open in that app first.'**
+  String get defaultAppsWebBrowserNativeAppNote;
+
+  /// Default web browser option for the in-app browser.
+  ///
+  /// In en, this message translates to:
+  /// **'In-app browser'**
+  String get defaultAppsWebBrowserInApp;
+
+  /// Default web browser option for the system default browser.
+  ///
+  /// In en, this message translates to:
+  /// **'External browser'**
+  String get defaultAppsWebBrowserExternal;
+
   /// User settings navigation item for advanced settings.
   ///
   /// In en, this message translates to:

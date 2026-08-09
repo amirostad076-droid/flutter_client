@@ -8230,6 +8230,26 @@ class FluxerLocalizationsEs extends FluxerLocalizations {
       'No se pudo actualizar el formato de hora';
 
   @override
+  String get userSettingsNavDefaultApps => 'Default Apps';
+
+  @override
+  String get defaultAppsWebBrowserSectionTitle => 'Web Browser';
+
+  @override
+  String get defaultAppsWebBrowserSectionDescription =>
+      'Choose which browser opens when you tap a link.';
+
+  @override
+  String get defaultAppsWebBrowserNativeAppNote =>
+      'If an app is installed for a site, links will open in that app first.';
+
+  @override
+  String get defaultAppsWebBrowserInApp => 'In-app browser';
+
+  @override
+  String get defaultAppsWebBrowserExternal => 'External browser';
+
+  @override
   String get userSettingsNavAdvanced => 'Avanzado';
 
   @override

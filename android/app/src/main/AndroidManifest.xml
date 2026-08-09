@@ -199,5 +199,9 @@
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
         </intent>
+        <package android:name="com.android.chrome" />
+        <package android:name="org.mozilla.firefox" />
+        <package android:name="com.duckduckgo.mobile.android" />
+        <package android:name="com.qwant.liberty" />
     </queries>
 </manifest>
