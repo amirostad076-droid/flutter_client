@@ -130,7 +130,6 @@ class _VoiceChannelParticipantTile extends ConsumerWidget {
               fallbackText: p.displayName,
               size: 20,
               showStatus: false,
-              avatarColor: p.avatarColor,
             ),
             const SizedBox(width: 6),
             Expanded(
