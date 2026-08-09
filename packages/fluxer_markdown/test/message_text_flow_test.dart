@@ -176,6 +176,33 @@ void main() {
       expect(tappedHref, url);
     });
 
+    testWidgets('autolink taps preserve percent-encoded characters', (
+      tester,
+    ) async {
+      const String url = 'https://example.com/path%20with%20spaces';
+      String? tappedHref;
+      final FluxerMarkdownConfig config = FluxerMarkdownConfig(
+        resolveEmojiShortcode: _noopEmojiShortcode,
+        unicodeEmojiUrlBuilder: _noopUnicodeEmojiUrl,
+        customEmojiUrlBuilder: _noopCustomEmojiUrl,
+        onTapLink: (_, href) async {
+          tappedHref = href;
+        },
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: FluxerMarkdown(data: 'See $url for details', config: config),
+          ),
+        ),
+      );
+
+      await tester.tapOnText(find.textRange.ofSubstring(url));
+
+      expect(tappedHref, url);
+    });
+
     testWidgets('blank markdown link labels render as plain text', (
       tester,
     ) async {

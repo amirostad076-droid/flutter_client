@@ -327,7 +327,7 @@ class FluxerLocalhostAutolinkSyntax extends md.InlineSyntax {
     final int consumeLength = _autolinkConsumeLength(matchedText);
     final String text = matchedText.substring(0, consumeLength);
     final md.Element anchor = md.Element.text('a', text)
-      ..attributes['href'] = Uri.encodeFull(text);
+      ..attributes['href'] = text;
     parser
       ..addNode(anchor)
       ..consume(consumeLength);
@@ -370,6 +370,84 @@ int _autolinkConsumeLength(String text) {
     }
   }
   return text.length - excludedLength;
+}
+
+class FluxerAutolinkExtensionSyntax extends md.InlineSyntax {
+  static const String _linkPattern =
+      r'(?:(?:https?|ftp):\/\/|www\.)'
+      r'(?:[-_a-z0-9]+\.)*(?:[-a-z0-9]+\.[-a-z0-9]+)'
+      r'[^\s<]*'
+      r'[^\s<?!.,:*_~]';
+
+  static const String _emailPattern =
+      r'[-_.+a-z0-9]+@(?:[-_a-z0-9]+\.)+[-_a-z0-9]*[a-z0-9]';
+
+  FluxerAutolinkExtensionSyntax()
+    : super('($_linkPattern)|($_emailPattern)', caseSensitive: false);
+
+  @override
+  bool tryMatch(md.InlineParser parser, [int? startMatchPos]) {
+    startMatchPos ??= parser.pos;
+    final Match? startMatch = pattern.matchAsPrefix(
+      parser.source,
+      startMatchPos,
+    );
+    if (startMatch == null) {
+      return false;
+    }
+    if (startMatch[1] != null && parser.pos > 0) {
+      final String precededBy = String.fromCharCode(
+        parser.charAt(parser.pos - 1),
+      );
+      const Set<String> validPrecedingChars = {
+        '\n',
+        ' ',
+        '*',
+        '_',
+        '~',
+        '(',
+        '>',
+      };
+      if (!validPrecedingChars.contains(precededBy)) {
+        return false;
+      }
+    }
+    if (startMatch[2] != null && parser.source.length > startMatch.end) {
+      final String followedBy = String.fromCharCode(
+        parser.charAt(startMatch.end),
+      );
+      const Set<String> invalidFollowingChars = {'_', '-'};
+      if (invalidFollowingChars.contains(followedBy)) {
+        return false;
+      }
+    }
+    parser.writeText();
+    return onMatch(parser, startMatch);
+  }
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) {
+    final String matchedText = match[0]!;
+    final bool isEmailLink = match[2] != null;
+    final int consumeLength = isEmailLink
+        ? matchedText.length
+        : _autolinkConsumeLength(matchedText);
+    final String text = matchedText.substring(0, consumeLength);
+
+    var destination = text;
+    if (isEmailLink) {
+      destination = 'mailto:$destination';
+    } else if (destination.startsWith('www.')) {
+      destination = 'http://$destination';
+    }
+
+    final md.Element anchor = md.Element.text('a', text)
+      ..attributes['href'] = destination;
+    parser
+      ..addNode(anchor)
+      ..consume(consumeLength);
+    return true;
+  }
 }
 
 class FluxerAppLinkSyntax extends md.InlineSyntax {

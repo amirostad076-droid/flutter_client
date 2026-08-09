@@ -428,7 +428,7 @@ class FluxerMarkdown extends StatelessWidget {
       if (config.unicodeEmojiPattern != null)
         FluxerRawUnicodeEmojiSyntax(config.unicodeEmojiPattern!),
       FluxerLocalhostAutolinkSyntax(),
-      md.AutolinkExtensionSyntax(),
+      FluxerAutolinkExtensionSyntax(),
     ];
   }
 }

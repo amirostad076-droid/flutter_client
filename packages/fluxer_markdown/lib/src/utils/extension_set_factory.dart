@@ -14,7 +14,7 @@ md.ExtensionSet buildFluxerMarkdownExtensionSet(
     md.InlineHtmlSyntax(),
     md.StrikethroughSyntax(),
     FluxerLocalhostAutolinkSyntax(),
-    md.AutolinkExtensionSyntax(),
+    FluxerAutolinkExtensionSyntax(),
   ];
 
   return md.ExtensionSet(

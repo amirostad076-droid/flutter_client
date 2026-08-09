@@ -97,6 +97,26 @@ void main() {
       );
     });
 
+    test('encoded characters in autolink hrefs are not double-encoded', () {
+      for (final String input in <String>[
+        'https://example.com/path%20with%20spaces',
+        'https://example.com/file%2Fname?query=hello%20world',
+        'http://localhost:5173/path%20test',
+      ]) {
+        final nodes = MarkdownParseTestHelper.parseInline(input, features);
+        expect(
+          MarkdownParseTestHelper.containsTag(nodes, 'a'),
+          isTrue,
+          reason: input,
+        );
+        final md.Element link = nodes.whereType<md.Element>().firstWhere(
+          (md.Element node) => node.tag == 'a',
+        );
+        expect(link.attributes['href'], input, reason: input);
+        expect(link.textContent, input, reason: input);
+      }
+    });
+
     test('localhost http urls autolink', () {
       for (final String input in <String>[
         'http://localhost:5173',
