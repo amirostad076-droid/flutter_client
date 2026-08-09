@@ -682,6 +682,12 @@ class FluxerLocalizationsLt extends FluxerLocalizations {
   String get embedInviteUnavailable => 'Kvietimas negalimas';
 
   @override
+  String get embedInviteJoinGroup => 'Join group';
+
+  @override
+  String get embedInviteAlreadyJoined => 'Already joined';
+
+  @override
   String get inviteAcceptTitle => 'Jūs buvote pakviestas prisijungti';
 
   @override

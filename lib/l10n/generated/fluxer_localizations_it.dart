@@ -677,6 +677,12 @@ class FluxerLocalizationsIt extends FluxerLocalizations {
   String get embedInviteUnavailable => 'Invito non disponibile';
 
   @override
+  String get embedInviteJoinGroup => 'Join group';
+
+  @override
+  String get embedInviteAlreadyJoined => 'Already joined';
+
+  @override
   String get inviteAcceptTitle => 'Sei stato invitato a unirti';
 
   @override

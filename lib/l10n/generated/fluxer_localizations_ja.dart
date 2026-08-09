@@ -658,6 +658,12 @@ class FluxerLocalizationsJa extends FluxerLocalizations {
   String get embedInviteUnavailable => '招待が無効です';
 
   @override
+  String get embedInviteJoinGroup => 'Join group';
+
+  @override
+  String get embedInviteAlreadyJoined => 'Already joined';
+
+  @override
   String get inviteAcceptTitle => '参加のご招待がありました';
 
   @override

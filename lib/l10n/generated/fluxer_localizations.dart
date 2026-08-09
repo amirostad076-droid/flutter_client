@@ -1318,6 +1318,18 @@ abstract class FluxerLocalizations {
   /// **'Invite Unavailable'**
   String get embedInviteUnavailable;
 
+  /// Button to join a group DM from an invite embed card.
+  ///
+  /// In en, this message translates to:
+  /// **'Join group'**
+  String get embedInviteJoinGroup;
+
+  /// Disabled button label on a group DM invite embed when the user is already a member.
+  ///
+  /// In en, this message translates to:
+  /// **'Already joined'**
+  String get embedInviteAlreadyJoined;
+
   /// Title of the invite accept modal.
   ///
   /// In en, this message translates to:

@@ -655,6 +655,12 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
   String get embedInviteUnavailable => '초대 사용 불가';
 
   @override
+  String get embedInviteJoinGroup => 'Join group';
+
+  @override
+  String get embedInviteAlreadyJoined => 'Already joined';
+
+  @override
   String get inviteAcceptTitle => '참여하도록 초대되었습니다';
 
   @override

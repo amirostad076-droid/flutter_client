@@ -682,6 +682,12 @@ class FluxerLocalizationsCs extends FluxerLocalizations {
   String get embedInviteUnavailable => 'Pozvání není k dispozici';
 
   @override
+  String get embedInviteJoinGroup => 'Join group';
+
+  @override
+  String get embedInviteAlreadyJoined => 'Already joined';
+
+  @override
   String get inviteAcceptTitle => 'Byli jste pozváni do';
 
   @override

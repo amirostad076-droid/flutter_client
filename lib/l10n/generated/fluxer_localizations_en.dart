@@ -679,6 +679,12 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get embedInviteUnavailable => 'Invite Unavailable';
 
   @override
+  String get embedInviteJoinGroup => 'Join group';
+
+  @override
+  String get embedInviteAlreadyJoined => 'Already joined';
+
+  @override
   String get inviteAcceptTitle => 'You\'ve been invited to join';
 
   @override
@@ -19688,6 +19694,12 @@ class FluxerLocalizationsEnUs extends FluxerLocalizationsEn {
 
   @override
   String get embedInviteUnavailable => 'Invite Unavailable';
+
+  @override
+  String get embedInviteJoinGroup => 'Join group';
+
+  @override
+  String get embedInviteAlreadyJoined => 'Already joined';
 
   @override
   String get inviteAcceptTitle => 'You\'ve been invited to join';

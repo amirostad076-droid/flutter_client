@@ -899,6 +899,14 @@
     "@embedInviteUnavailable": {
         "description": "Disabled button label when an invite is unavailable."
     },
+    "embedInviteJoinGroup": "Join group",
+    "@embedInviteJoinGroup": {
+        "description": "Button to join a group DM from an invite embed card."
+    },
+    "embedInviteAlreadyJoined": "Already joined",
+    "@embedInviteAlreadyJoined": {
+        "description": "Disabled button label on a group DM invite embed when the user is already a member."
+    },
     "inviteAcceptTitle": "You've been invited to join",
     "@inviteAcceptTitle": {
         "description": "Title of the invite accept modal."

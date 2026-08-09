@@ -685,6 +685,12 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
   String get embedInviteUnavailable => 'Η πρόσκληση δεν είναι διαθέσιμη';
 
   @override
+  String get embedInviteJoinGroup => 'Join group';
+
+  @override
+  String get embedInviteAlreadyJoined => 'Already joined';
+
+  @override
   String get inviteAcceptTitle => 'Έχετε προσκληθεί να συμμετάσχετε';
 
   @override

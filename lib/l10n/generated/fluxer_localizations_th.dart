@@ -676,6 +676,12 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
   String get embedInviteUnavailable => 'คำเชิญไม่พร้อมใช้งาน';
 
   @override
+  String get embedInviteJoinGroup => 'Join group';
+
+  @override
+  String get embedInviteAlreadyJoined => 'Already joined';
+
+  @override
   String get inviteAcceptTitle => 'คุณได้รับเชิญให้เข้าร่วม';
 
   @override

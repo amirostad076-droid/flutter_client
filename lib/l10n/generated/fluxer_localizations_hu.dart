@@ -684,6 +684,12 @@ class FluxerLocalizationsHu extends FluxerLocalizations {
   String get embedInviteUnavailable => 'A meghívó nem elérhető';
 
   @override
+  String get embedInviteJoinGroup => 'Join group';
+
+  @override
+  String get embedInviteAlreadyJoined => 'Already joined';
+
+  @override
   String get inviteAcceptTitle => 'Meghívást kaptál, hogy csatlakozz';
 
   @override

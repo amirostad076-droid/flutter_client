@@ -651,6 +651,12 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get embedInviteUnavailable => '邀请不可用';
 
   @override
+  String get embedInviteJoinGroup => 'Join group';
+
+  @override
+  String get embedInviteAlreadyJoined => 'Already joined';
+
+  @override
   String get inviteAcceptTitle => '您已被邀请加入';
 
   @override
