@@ -82,6 +82,7 @@ import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/input_modality_provider.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
 import 'package:fluxer_app/shared/utils/fluxer_haptics.dart';
+import 'package:fluxer_app/shared/utils/keyboard_focus_restore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -223,9 +224,11 @@ class ChannelTextarea extends ConsumerStatefulWidget {
   ConsumerState<ChannelTextarea> createState() => _ChannelTextareaState();
 }
 
-class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
+class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
+    with WidgetsBindingObserver {
   late final ComposerMentionController _controller;
   final FocusNode _focusNode = FocusNode();
+  late final KeyboardFocusRestoreHandle _keyboardRestore;
   final ScrollController _composerScrollController = ScrollController();
   final GlobalKey<ComposerAutocompleteFieldState> _composerFieldKey =
       GlobalKey<ComposerAutocompleteFieldState>();
@@ -324,9 +327,46 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
   @override
   void initState() {
     super.initState();
+    _keyboardRestore = KeyboardFocusRestoreHandle(
+      focusNode: _focusNode,
+      shouldTrackOnBackground: _shouldTrackKeyboardRestore,
+      canRestoreFocus: _canRestoreKeyboardFocus,
+    );
+    WidgetsBinding.instance.addObserver(this);
     _controller = ComposerMentionController(ref: ref);
     _focusNode.onKeyEvent = _handleComposerFieldKeyEvent;
     _controller.addListener(_syncStateFromController);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _keyboardRestore.handleLifecycleState(state);
+  }
+
+  bool _shouldTrackKeyboardRestore() {
+    if (!mounted || !isMobileLayout(context)) {
+      return false;
+    }
+    if (ref.read(expressionPanelProvider)) {
+      return false;
+    }
+    if (!_focusNode.canRequestFocus) {
+      return false;
+    }
+    if (_focusNode.hasFocus) {
+      return true;
+    }
+    return ref.read(mobileKeyboardMetricsProvider).isKeyboardVisible;
+  }
+
+  bool _canRestoreKeyboardFocus() {
+    if (!mounted || !isMobileLayout(context)) {
+      return false;
+    }
+    if (ref.read(expressionPanelProvider)) {
+      return false;
+    }
+    return _focusNode.canRequestFocus;
   }
 
   void _syncStateFromController() {
@@ -457,6 +497,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _focusNode
       ..unfocus()
       ..dispose();

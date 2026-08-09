@@ -15,6 +15,7 @@ import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/features/ui/tabs/fluxer_segmented_tabs.dart';
 import 'package:fluxer_app/features/ui/tabs/fluxer_tabs.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/utils/keyboard_focus_restore.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/exceptions.dart';
 
@@ -99,13 +100,18 @@ class _SudoVerificationSheetContentState
   final _passwordController = TextEditingController();
   final _totpController = TextEditingController();
   final _inputFocusNode = FocusNode();
-  bool _shouldRestoreKeyboardOnResume = false;
+  late final KeyboardFocusRestoreHandle _keyboardRestore;
 
   bool get _canShowTextInput => !_isLoading && (_hasPassword || _hasTotp);
 
   @override
   void initState() {
     super.initState();
+    _keyboardRestore = KeyboardFocusRestoreHandle(
+      focusNode: _inputFocusNode,
+      shouldTrackOnBackground: () => _canShowTextInput,
+      canRestoreFocus: () => mounted && _canShowTextInput,
+    );
     WidgetsBinding.instance.addObserver(this);
     unawaited(_loadMethods());
   }
@@ -121,44 +127,7 @@ class _SudoVerificationSheetContentState
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.paused) {
-      if (_canShowTextInput) {
-        _shouldRestoreKeyboardOnResume = true;
-      }
-      return;
-    }
-    if (state == AppLifecycleState.resumed && _shouldRestoreKeyboardOnResume) {
-      _shouldRestoreKeyboardOnResume = false;
-      _scheduleInputFocusRestore();
-    }
-  }
-
-  void _scheduleInputFocusRestore() {
-    if (!_canShowTextInput) {
-      return;
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _restoreInputFocus();
-    });
-  }
-
-  void _restoreInputFocus() {
-    if (!mounted || !_canShowTextInput || !_inputFocusNode.canRequestFocus) {
-      return;
-    }
-
-    _inputFocusNode.requestFocus();
-
-    // iOS dismisses the keyboard when backgrounding; retry after layout settles.
-    Future<void>.delayed(const Duration(milliseconds: 100), () {
-      if (!mounted || !_canShowTextInput || !_inputFocusNode.canRequestFocus) {
-        return;
-      }
-      if (!_inputFocusNode.hasFocus) {
-        _inputFocusNode.requestFocus();
-      }
-    });
+    _keyboardRestore.handleLifecycleState(state);
   }
 
   Future<void> _loadMethods() async {
@@ -186,8 +155,8 @@ class _SudoVerificationSheetContentState
           _selectedMethod = _SudoMethod.password;
         }
       });
-      if (_shouldRestoreKeyboardOnResume) {
-        _scheduleInputFocusRestore();
+      if (_keyboardRestore.hasPendingRestore) {
+        _keyboardRestore.scheduleRestoreIfPending();
       }
     } on Exception catch (e) {
       talker.warning('[SudoDialog] Failed to load MFA methods: $e');
@@ -196,8 +165,8 @@ class _SudoVerificationSheetContentState
       }
       // Fall back to password-only.
       setState(() => _isLoading = false);
-      if (_shouldRestoreKeyboardOnResume) {
-        _scheduleInputFocusRestore();
+      if (_keyboardRestore.hasPendingRestore) {
+        _keyboardRestore.scheduleRestoreIfPending();
       }
     }
   }
