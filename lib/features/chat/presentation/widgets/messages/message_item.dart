@@ -1517,6 +1517,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           staticUrl: FluxerMediaUrl.sticker(id: sticker.id),
           visibilityKey:
               '${widget.message.channelId}_${widget.message.id}_${sticker.id}',
+          useStickerAnimationPreference: true,
           fit: BoxFit.contain,
           placeholder: const SizedBox(
             width: _kMessageStickerSize,
