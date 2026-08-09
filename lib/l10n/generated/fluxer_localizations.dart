@@ -8777,13 +8777,13 @@ abstract class FluxerLocalizations {
   /// Voice participant context menu item to community-mute another member.
   ///
   /// In en, this message translates to:
-  /// **'Mute'**
+  /// **'Community mute'**
   String get voiceParticipantMenuCommunityMute;
 
   /// Voice participant context menu item to community-deafen another member.
   ///
   /// In en, this message translates to:
-  /// **'Deafen'**
+  /// **'Community deafen'**
   String get voiceParticipantMenuCommunityDeafen;
 
   /// Voice participant context menu slider label for per-user volume.

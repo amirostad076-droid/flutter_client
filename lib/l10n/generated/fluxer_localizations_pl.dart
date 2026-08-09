@@ -5324,10 +5324,10 @@ class FluxerLocalizationsPl extends FluxerLocalizations {
   String get voiceParticipantMenuUnfocus => 'Unfocus';
 
   @override
-  String get voiceParticipantMenuCommunityMute => 'Mute';
+  String get voiceParticipantMenuCommunityMute => 'Community mute';
 
   @override
-  String get voiceParticipantMenuCommunityDeafen => 'Deafen';
+  String get voiceParticipantMenuCommunityDeafen => 'Community deafen';
 
   @override
   String get voiceParticipantMenuUserVolume => 'User volume';

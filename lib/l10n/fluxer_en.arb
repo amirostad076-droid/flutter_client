@@ -6762,11 +6762,11 @@
     "@voiceParticipantMenuUnfocus": {
         "description": "Voice participant context menu item to return to grid layout."
     },
-    "voiceParticipantMenuCommunityMute": "Mute",
+    "voiceParticipantMenuCommunityMute": "Community mute",
     "@voiceParticipantMenuCommunityMute": {
         "description": "Voice participant context menu item to community-mute another member."
     },
-    "voiceParticipantMenuCommunityDeafen": "Deafen",
+    "voiceParticipantMenuCommunityDeafen": "Community deafen",
     "@voiceParticipantMenuCommunityDeafen": {
         "description": "Voice participant context menu item to community-deafen another member."
     },
