@@ -102,9 +102,9 @@ void main() {
       expect(image.playing, isFalse);
     });
 
-    testWidgets('respects scope cap', (tester) async {
+    testWidgets('plays all visible images in scope', (tester) async {
       final AnimatedImagePlaybackController controller =
-          AnimatedImagePlaybackController(maxActive: 1);
+          AnimatedImagePlaybackController();
       await tester.pumpWidget(
         _wrap(
           AnimatedImagePlaybackScope(
@@ -137,31 +137,7 @@ void main() {
           .widgetList<FluxerAnimatedImage>(find.byType(FluxerAnimatedImage))
           .toList();
       final int activeCount = images.where((img) => img.playing).length;
-      expect(activeCount, 1);
-    });
-
-    testWidgets('pauses inside a scope while scrolling', (tester) async {
-      final AnimatedImagePlaybackController controller =
-          AnimatedImagePlaybackController(maxActive: 3);
-      await tester.pumpWidget(
-        _wrap(
-          AnimatedImagePlaybackScope(
-            controller: controller,
-            child: const EmbedAnimatedImage(
-              animatedUrl: 'https://x/a.webp',
-              staticUrl: 'https://x/a.png',
-              visibilityKey: 'v1',
-            ),
-          ),
-        ),
-      );
-      await tester.pump();
-      controller.setScrolling(value: true);
-      await tester.pump();
-      final FluxerAnimatedImage image = tester.widget<FluxerAnimatedImage>(
-        find.byType(FluxerAnimatedImage),
-      );
-      expect(image.playing, isFalse);
+      expect(activeCount, 2);
     });
 
     testWidgets('sticker mode stays static when never animate', (tester) async {

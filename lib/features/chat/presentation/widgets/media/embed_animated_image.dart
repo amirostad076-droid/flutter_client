@@ -8,7 +8,7 @@ import 'package:fluxer_dart/export.dart' show StickerAnimationOptions;
 import 'package:visibility_detector/visibility_detector.dart';
 
 /// Plays [animatedUrl] while visible and [staticUrl] otherwise. Respects the
-/// nearest [AnimatedImagePlaybackScope] for scrolling pause and cap.
+/// nearest [AnimatedImagePlaybackScope] for visibility coordination.
 class EmbedAnimatedImage extends ConsumerStatefulWidget {
   const EmbedAnimatedImage({
     required this.animatedUrl,

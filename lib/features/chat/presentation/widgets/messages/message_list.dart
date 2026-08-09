@@ -435,7 +435,6 @@ class _MessageListState extends ConsumerState<MessageList> {
   }
 
   void _onScroll() {
-    _animatedImagePlaybackController.setScrolling(value: _isUserDrivenScroll);
     if (!_anchorResolved) {
       return;
     }
