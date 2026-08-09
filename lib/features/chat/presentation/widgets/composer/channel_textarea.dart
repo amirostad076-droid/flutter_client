@@ -995,6 +995,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
               context,
               enabled: composerEnabled,
             ),
+            filled: false,
             border: InputBorder.none,
             enabledBorder: InputBorder.none,
             focusedBorder: showTextareaFocusRing
@@ -1023,18 +1024,6 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
                 ? () => unawaited(_pickAttachments(context))
                 : null,
           ),
-          if (_isDesktop && !touchActions) ...[
-            const SizedBox(width: 4),
-            _buildComposerActionButton(
-              context: context,
-              icon: PhosphorIconsFill.clipboard,
-              iconSize: 22,
-              tooltip: l10n.chatAttachmentPasteTooltip,
-              onPressed: perms.isAttachEnabled
-                  ? () => unawaited(_pasteClipboardAttachments())
-                  : null,
-            ),
-          ],
           SizedBox(width: touchActions ? _kTouchComposerActionSpacing : 8),
         ],
         Expanded(
@@ -2147,9 +2136,5 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     ref
         .read(toastProvider.notifier)
         .show(FluxerToast(message: msg, variant: FluxerToastVariant.warning));
-  }
-
-  Future<void> _pasteClipboardAttachments() async {
-    await _pasteScopeKey.currentState?.handlePaste();
   }
 }
