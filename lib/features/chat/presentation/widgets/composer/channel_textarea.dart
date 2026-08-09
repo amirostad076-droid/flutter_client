@@ -80,6 +80,7 @@ import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/input_modality_provider.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
+import 'package:fluxer_app/shared/utils/fluxer_haptics.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -1509,6 +1510,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
       chatViewModelProvider.select((s) => s.editingMessage != null),
     );
     if (isEditing) {
+      FluxerHaptics.light();
       unawaited(vm.sendMessage(text: wireText.trim()));
       return;
     }
@@ -1587,6 +1589,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
 
     _controller.clear();
     vm.updateMessageText('');
+    FluxerHaptics.light();
     unawaited(vm.sendMessage(text: baseContent.trim(), tts: tts));
   }
 

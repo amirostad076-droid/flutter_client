@@ -22,6 +22,7 @@ import 'package:fluxer_app/features/ui/toast/fluxer_toast.dart';
 import 'package:fluxer_app/features/ui/toast/toast_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/utils/fluxer_haptics.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 // Hold to record on mobile. Overlay bar, lock on drag up, release to send.
@@ -328,6 +329,7 @@ class _VoiceMessageRecorderState extends ConsumerState<VoiceMessageRecorder>
       _recordingDurationMs = 0;
       _waveformBars = List<double>.filled(kVoiceMessageWaveformBarCount, 0);
     });
+    FluxerHaptics.medium();
     _forwardBarAnimation();
     _updateRecordingOverlay();
     _listenForMaxDuration();
@@ -482,6 +484,9 @@ class _VoiceMessageRecorderState extends ConsumerState<VoiceMessageRecorder>
         );
     final bool next = insideLockIndicator || passesThreshold;
     if (next != _lockPreview) {
+      if (next) {
+        FluxerHaptics.light();
+      }
       setState(() => _lockPreview = next);
       _updateRecordingOverlay();
     }
@@ -504,6 +509,7 @@ class _VoiceMessageRecorderState extends ConsumerState<VoiceMessageRecorder>
     _updateLockPreview(event.position);
     if (_lockPreview && !_isLocked) {
       // Locked: keep recording until trash or send on the overlay.
+      FluxerHaptics.medium();
       setState(() {
         _isLocked = true;
         _lockPreview = false;
