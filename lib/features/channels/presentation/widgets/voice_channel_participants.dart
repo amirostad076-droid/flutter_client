@@ -125,6 +125,7 @@ class _VoiceChannelParticipantTile extends ConsumerWidget {
         child: Row(
           children: <Widget>[
             FluxerAvatar.user(
+              userId: p.userId,
               imageUrl: p.avatarUrl,
               fallbackText: p.displayName,
               size: 20,
