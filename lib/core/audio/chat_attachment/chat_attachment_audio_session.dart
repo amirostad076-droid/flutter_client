@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:fluxer_app/core/audio/chat_attachment/chat_attachment_audio_context.dart';
 
 typedef ChatAttachmentAudioAction = Future<void> Function();
 typedef ChatAttachmentAudioSeekAction =
@@ -69,7 +72,9 @@ class ChatAttachmentAudioSession {
     _activeHostId = hostId;
     _activeCallbacks = callbacks;
     _activeMediaItem = mediaItem;
-    _publish(
+    await configureChatAttachmentAudioSession();
+    await activateChatAttachmentAudioSession();
+    await _publish(
       mediaItem: mediaItem,
       playing: playing,
       position: position,
@@ -92,14 +97,16 @@ class ChatAttachmentAudioSession {
     if (_activeHostId != hostId || _activeMediaItem == null) {
       return;
     }
-    _publish(
-      mediaItem: _activeMediaItem,
-      playing: playing,
-      position: position,
-      bufferedPosition: bufferedPosition,
-      speed: speed,
-      loading: loading,
-      completed: completed,
+    unawaited(
+      _publish(
+        mediaItem: _activeMediaItem,
+        playing: playing,
+        position: position,
+        bufferedPosition: bufferedPosition,
+        speed: speed,
+        loading: loading,
+        completed: completed,
+      ),
     );
   }
 
@@ -109,6 +116,7 @@ class ChatAttachmentAudioSession {
     }
     _clearActiveHost();
     _publishIdle();
+    unawaited(restoreMixableSfxAudioSession());
   }
 
   Future<void> clearForVoiceCall() async {
@@ -119,6 +127,7 @@ class ChatAttachmentAudioSession {
     }
     _clearActiveHost();
     _publishIdle();
+    await restoreMixableSfxAudioSession();
   }
 
   void restoreAfterVoiceCall() {
@@ -152,6 +161,7 @@ class ChatAttachmentAudioSession {
     await callbacks.onStopRequested();
     _clearActiveHost();
     _publishIdle();
+    await restoreMixableSfxAudioSession();
   }
 
   Future<void> handleSystemSeek(Duration position) => _withActiveCallbacks(
@@ -175,7 +185,7 @@ class ChatAttachmentAudioSession {
     _activeMediaItem = null;
   }
 
-  void _publish({
+  Future<void> _publish({
     required MediaItem? mediaItem,
     required bool playing,
     required Duration position,
@@ -183,23 +193,25 @@ class ChatAttachmentAudioSession {
     required double speed,
     required bool loading,
     required bool completed,
-  }) {
+  }) async {
     final ChatAttachmentAudioPublisher? handler = _handler;
     if (handler == null) {
       return;
     }
-    handler
-      ..publishMediaItem(mediaItem)
-      ..publishPlaybackState(
-        _buildPlaybackState(
-          playing: playing,
-          position: position,
-          bufferedPosition: bufferedPosition,
-          speed: speed,
-          loading: loading,
-          completed: completed,
-        ),
-      );
+    handler.publishMediaItem(mediaItem);
+    if (mediaItem != null) {
+      await Future<void>.delayed(Duration.zero);
+    }
+    handler.publishPlaybackState(
+      _buildPlaybackState(
+        playing: playing,
+        position: position,
+        bufferedPosition: bufferedPosition,
+        speed: speed,
+        loading: loading,
+        completed: completed,
+      ),
+    );
   }
 
   void _publishIdle() {

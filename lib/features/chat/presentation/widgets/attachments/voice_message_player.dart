@@ -5,7 +5,6 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluxer_app/core/audio/chat_attachment/chat_attachment_audio_binding.dart';
-import 'package:fluxer_app/core/audio/chat_attachment/chat_attachment_audio_context.dart';
 import 'package:fluxer_app/core/audio/chat_attachment/chat_attachment_audio_sync.dart';
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -319,7 +318,6 @@ class _VoiceMessagePlayerState extends State<VoiceMessagePlayer> {
     }
     final AudioPlayer player = AudioPlayer();
     _player = player;
-    unawaited(configureChatAttachmentAudioContext(player));
     unawaited(player.setReleaseMode(ReleaseMode.stop));
     unawaited(player.setVolume(_isMuted ? 0 : _volume));
     unawaited(player.setPlaybackRate(_playbackRate));
