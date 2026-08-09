@@ -2012,22 +2012,9 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea> {
     final CloudUploadController notifier = ref.read(
       cloudUploadControllerProvider(channelId).notifier,
     );
-    if (files.length <= 1) {
-      final FileUploadValidationResult result = await notifier.addFiles(files);
-      if (mounted) {
-        _toastUploadValidation(result);
-      }
-      return;
-    }
-    for (final ComposerUploadFile file in files) {
-      final FileUploadValidationResult result = await notifier.addFiles([file]);
-      if (!result.isValid) {
-        if (mounted) {
-          _toastUploadValidation(result);
-        }
-        break;
-      }
-      await ref.read(chatViewModelProvider.notifier).sendMessage(text: '');
+    final FileUploadValidationResult result = await notifier.addFiles(files);
+    if (mounted) {
+      _toastUploadValidation(result);
     }
   }
 
