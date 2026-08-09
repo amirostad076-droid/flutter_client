@@ -893,6 +893,7 @@ class _ChannelTile extends ConsumerWidget {
             menuState: menuState,
             onAction: (ChannelMenuAction action) => _handleChannelMenuAction(
               action,
+              hostContext: context,
               menuContext: sheetContext,
               ref: ref,
               close: close,
@@ -911,6 +912,7 @@ class _ChannelTile extends ConsumerWidget {
         menuState: menuState,
         onAction: (ChannelMenuAction action) => _handleChannelMenuAction(
           action,
+          hostContext: context,
           menuContext: menuContext,
           ref: ref,
           close: close,
@@ -938,6 +940,7 @@ class _ChannelTile extends ConsumerWidget {
 
   void _handleChannelMenuAction(
     ChannelMenuAction action, {
+    required BuildContext hostContext,
     required BuildContext menuContext,
     required WidgetRef ref,
     required VoidCallback close,
@@ -957,7 +960,7 @@ class _ChannelTile extends ConsumerWidget {
         close();
         unawaited(
           showChannelInviteModal(
-            menuContext,
+            hostContext,
             ref,
             channelId: channel.id,
             channelName: channel.name,
