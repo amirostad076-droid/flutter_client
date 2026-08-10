@@ -94,6 +94,7 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
     readStateWriteBatcher: ref.read(readStateWriteBatcherProvider),
     messageMentionContextCache: mentionCache,
     messageWriteBatcher: ref.read(messageWriteBatcherProvider),
+    channelLastMessageIndex: ref.read(channelLastMessageIndexProvider),
     mentionFeedWriteBatcher: ref.read(mentionFeedWriteBatcherProvider),
     reactionWriteBatcher: ref.read(reactionWriteBatcherProvider),
     currentUserId: currentUserId,
