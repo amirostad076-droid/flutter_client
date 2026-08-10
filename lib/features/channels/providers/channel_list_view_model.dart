@@ -17,12 +17,14 @@ class ChannelListState {
   final List<ChannelCategory> categories;
   final String? selectedChannelId;
   final bool isMemberListVisible;
+  final bool hasReceivedInitialChannelList;
 
   const ChannelListState({
     required this.guild,
     required this.categories,
     required this.selectedChannelId,
     this.isMemberListVisible = true,
+    this.hasReceivedInitialChannelList = false,
   });
 
   ChannelListState copyWith({
@@ -30,12 +32,15 @@ class ChannelListState {
     List<ChannelCategory>? categories,
     String? selectedChannelId,
     bool? isMemberListVisible,
+    bool? hasReceivedInitialChannelList,
   }) {
     return ChannelListState(
       guild: guild ?? this.guild,
       categories: categories ?? this.categories,
       selectedChannelId: selectedChannelId ?? this.selectedChannelId,
       isMemberListVisible: isMemberListVisible ?? this.isMemberListVisible,
+      hasReceivedInitialChannelList:
+          hasReceivedInitialChannelList ?? this.hasReceivedInitialChannelList,
     );
   }
 }
@@ -79,6 +84,7 @@ class ChannelListViewModel extends _$ChannelListViewModel {
       categories: cachedCategories,
       selectedChannelId: state.selectedChannelId,
       isMemberListVisible: state.isMemberListVisible,
+      hasReceivedInitialChannelList: cachedCategories.isNotEmpty,
     );
 
     final repo = ref.read(channelRepositoryProvider);
@@ -89,7 +95,10 @@ class ChannelListViewModel extends _$ChannelListViewModel {
           (channels) {
             final categories = groupChannelsIntoCategories(channels);
             _categoryCache[guildId] = categories;
-            state = state.copyWith(categories: categories);
+            state = state.copyWith(
+              categories: categories,
+              hasReceivedInitialChannelList: true,
+            );
             final ChannelPermissionCaches cachedBits = ref.read(
               channelPermissionCacheProvider,
             );

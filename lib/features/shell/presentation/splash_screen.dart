@@ -177,7 +177,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       return;
     }
     _timersStarted = true;
-    unawaited(ref.read(serviceStatusIncidentReadProvider.notifier).refresh());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      unawaited(ref.read(serviceStatusIncidentReadProvider.notifier).refresh());
+    });
     _statusTimer = Timer(_statusPageDisplayDelay, () {
       if (mounted) {
         setState(() => _showStatusData = true);

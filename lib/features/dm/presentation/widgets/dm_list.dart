@@ -24,6 +24,7 @@ import 'package:fluxer_app/features/dm/presentation/create_dm_flow.dart';
 import 'package:fluxer_app/features/dm/presentation/edit_group_dm_flow.dart';
 import 'package:fluxer_app/features/dm/presentation/group_dm_invites_flow.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/dm_list_message_preview_row.dart';
+import 'package:fluxer_app/features/dm/presentation/widgets/dm_list_skeleton.dart';
 import 'package:fluxer_app/features/dm/presentation/widgets/group_dm_avatar.dart';
 import 'package:fluxer_app/features/dm/providers/dm_list_presence_provider.dart';
 import 'package:fluxer_app/features/dm/providers/dm_list_scroll_store_provider.dart';
@@ -233,6 +234,11 @@ class _DMListState extends ConsumerState<DMList> {
       sortedDmConversationsProvider,
     );
     final String? selectedId = ref.watch(activeChannelIdProvider);
+    final bool hasReceivedInitialConversations = ref.watch(
+      dmViewModelProvider.select(
+        (DmViewState state) => state.hasReceivedInitialConversations,
+      ),
+    );
 
     final isMobile = isMobileLayout(context);
     final pinnedIds = ref.watch(pinnedDmChannelIdsProvider).value ?? {};
@@ -316,14 +322,16 @@ class _DMListState extends ConsumerState<DMList> {
                 _buildDmHeader(context),
               ],
               Expanded(
-                child: _buildConvoList(
-                  context,
-                  visibleConvos,
-                  selectedId,
-                  isMobile: isMobile,
-                  pinnedIds: pinnedIds,
-                  mutedIds: mutedIds,
-                ),
+                child: hasReceivedInitialConversations
+                    ? _buildConvoList(
+                        context,
+                        visibleConvos,
+                        selectedId,
+                        isMobile: isMobile,
+                        pinnedIds: pinnedIds,
+                        mutedIds: mutedIds,
+                      )
+                    : const DmListSkeleton(),
               ),
             ],
           ),

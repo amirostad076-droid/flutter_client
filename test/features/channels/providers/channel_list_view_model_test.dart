@@ -143,6 +143,63 @@ void main() {
       'banner_hash',
     );
   });
+
+  test(
+    'hasReceivedInitialChannelList is false until first channel watch emit',
+    () async {
+      final Map<String, StreamController<List<Channel>>> controllers =
+          <String, StreamController<List<Channel>>>{};
+      final Map<String, StreamController<Guild?>> guildControllers =
+          <String, StreamController<Guild?>>{};
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          channelRepositoryProvider.overrideWithValue(
+            _FakeChannelRepository(controllers),
+          ),
+          guildRepositoryProvider.overrideWithValue(
+            _FakeGuildRepository(guildControllers),
+          ),
+          channelPermissionCacheProvider.overrideWithValue(
+            ChannelPermissionCaches(
+              effective: <String, int>{'c1': Permission.viewChannel.value},
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final ChannelListViewModel notifier = container.read(
+        channelListViewModelProvider.notifier,
+      );
+      const Guild guild = Guild(id: 'guild-a', name: 'Guild A');
+      final StreamController<List<Channel>> controller =
+          StreamController<List<Channel>>.broadcast();
+      addTearDown(controller.close);
+      controllers['guild-a'] = controller;
+      guildControllers['guild-a'] = StreamController<Guild?>.broadcast();
+
+      notifier.loadChannels('guild-a', guild: guild);
+
+      expect(
+        container
+            .read(channelListViewModelProvider)
+            .hasReceivedInitialChannelList,
+        isFalse,
+      );
+
+      controller.add(const <Channel>[
+        Channel(id: 'c1', guildId: 'guild-a', name: 'general'),
+      ]);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(
+        container
+            .read(channelListViewModelProvider)
+            .hasReceivedInitialChannelList,
+        isTrue,
+      );
+    },
+  );
 }
 
 class _FakeChannelRepository implements ChannelRepository {
