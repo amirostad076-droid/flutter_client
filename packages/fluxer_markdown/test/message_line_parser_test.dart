@@ -66,6 +66,10 @@ void main() {
         isFalse,
       );
       expect(
+        usesMessageLineParsing(FluxerMarkdownContext.restrictedChannelTopic),
+        isTrue,
+      );
+      expect(
         usesMessageLineParsing(FluxerMarkdownContext.standardWithJumbo),
         isTrue,
       );

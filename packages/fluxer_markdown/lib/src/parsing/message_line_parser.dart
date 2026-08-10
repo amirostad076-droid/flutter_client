@@ -23,7 +23,8 @@ final class MessageBlockSpoilerSegment extends MessageContentSegment {
 
 bool usesMessageLineParsing(FluxerMarkdownContext context) {
   return context == FluxerMarkdownContext.standardWithJumbo ||
-      context == FluxerMarkdownContext.standardWithoutJumbo;
+      context == FluxerMarkdownContext.standardWithoutJumbo ||
+      context == FluxerMarkdownContext.restrictedChannelTopic;
 }
 
 String normalizeBlockquoteBarMarkdown(String text) {
