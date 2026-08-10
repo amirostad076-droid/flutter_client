@@ -121,7 +121,7 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
                   FluxerSelect<NotificationsInboxTab>(
                     hint: '',
                     enableSearch: false,
-                    useRootNavigator: false,
+                    useShellTabOverlayNavigator: true,
                     value: segment,
                     items: <FluxerSelectItem<NotificationsInboxTab>>[
                       FluxerSelectItem<NotificationsInboxTab>(
