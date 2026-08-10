@@ -2441,7 +2441,10 @@ class ChatViewModel extends _$ChatViewModel {
       }
 
       // Around page missing the requested anchor: the server was not centred
-      // where we asked, so its shape cannot seal either edge. Keep both open.
+      // where we asked, so the page shape cannot seal the older edge. Newer
+      // still comes from the pointer consult - a missing anchor already makes
+      // aroundPageReachesLiveTail false (detached), and pointer equality can
+      // still prove the live tail (deleted/filtered ack near the present).
       final bool aroundTargetMissing =
           effectiveAroundMessageId != null &&
           !page.messages.any(
@@ -2468,7 +2471,6 @@ class ChatViewModel extends _$ChatViewModel {
                     page.messages.length >= effectiveLimit ||
                     (effectiveAroundMessageId != null &&
                         page.messages.isNotEmpty));
-      final bool effectiveHasMoreNewer = aroundTargetMissing || hasMoreNewer;
       // The wholesale write commits as ONE queue item, and it composes its list
       // INSIDE the closure, from the window as it stands at write time. The
       // page is prefetched input; the merge against local state is a reduction,
@@ -2490,7 +2492,7 @@ class ChatViewModel extends _$ChatViewModel {
             isLoading: false,
             isSyncingMessages: false,
             hasMoreMessages: hasMoreOlder,
-            hasMoreNewerMessages: effectiveHasMoreNewer,
+            hasMoreNewerMessages: hasMoreNewer,
             errorMessage: null,
             messageLoadFailed: false,
             windowEpoch: state.windowEpoch + 1,
@@ -2525,8 +2527,7 @@ class ChatViewModel extends _$ChatViewModel {
       // AFTER the commit, and only here: the probe pages forward from the window
       // this install just published, so firing it before the commit would have
       // it fetch from whatever the window used to end on. A missing around
-      // target already forced both edges open; probing would only try to seal
-      // a shape that is not evidence.
+      // target leaves the older edge open without a trustworthy shape to probe.
       if (newerConsult.needsTailProbe && !aroundTargetMissing) {
         _confirmProvisionalTail(channelId);
       }
@@ -5449,8 +5450,7 @@ class ChatViewModel extends _$ChatViewModel {
               limit: aroundLimit,
             ),
           );
-      final bool hasMoreNewer =
-          aroundTargetMissing || newerConsult.hasMoreNewer;
+      final bool hasMoreNewer = newerConsult.hasMoreNewer;
       if (!isCurrentJump()) {
         return;
       }
@@ -5486,7 +5486,8 @@ class ChatViewModel extends _$ChatViewModel {
               ),
               origin: MessagesOrigin.windowSwap,
             ),
-            // Missing around target: keep both pagination edges open.
+            // Missing around target: keep the older edge open. Newer comes
+            // from the pointer consult (detached when the anchor is absent).
             hasMoreMessages:
                 aroundTargetMissing || page.messages.length >= _kPageSize,
             hasMoreNewerMessages: hasMoreNewer,

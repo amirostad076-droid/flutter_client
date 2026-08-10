@@ -195,6 +195,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   // by scrolling the closest snowflake neighbour. The timeout is the residual
   // escape when even that cannot settle.
   String? _pendingScrollTargetChannelId;
+  int? _pendingScrollTargetWindowEpoch;
   Timer? _pendingScrollTargetTimer;
   bool _landAtLatestTailPending = false;
   int _jumpToLatestTicket = 0;
@@ -931,9 +932,13 @@ class _MessageListState extends ConsumerState<MessageList> {
     _pendingScrollTarget = messageId;
     if (messageId == null) {
       _pendingScrollTargetChannelId = null;
+      _pendingScrollTargetWindowEpoch = null;
       return;
     }
     _pendingScrollTargetChannelId = _viewportChannelId;
+    _pendingScrollTargetWindowEpoch = ref
+        .read(chatViewModelProvider)
+        .windowEpoch;
     _pendingScrollTargetTimer = Timer(_kPendingScrollTargetTimeout, () {
       _pendingScrollTargetTimer = null;
       if (!mounted || _pendingScrollTarget != messageId) {
@@ -950,6 +955,7 @@ class _MessageListState extends ConsumerState<MessageList> {
     _pendingScrollTargetTimer = null;
     _pendingScrollTarget = null;
     _pendingScrollTargetChannelId = null;
+    _pendingScrollTargetWindowEpoch = null;
   }
 
   List<ChannelStreamItem> _channelStreamFor({
@@ -1225,24 +1231,22 @@ class _MessageListState extends ConsumerState<MessageList> {
       return;
     }
     final List<Message> messages = ref.read(chatViewModelProvider).messages;
-    final String? scrollId = resolveJumpScrollTargetId(
-      jumpTargetId: messageId,
-      messageIds: messages.map((Message m) => m.id),
+    final bool targetLoaded = messages.any(
+      (Message message) => message.id == messageId,
     );
-    if (scrollId == null) {
-      // Empty window: the VM's around-swap installs it; the pending target
-      // is consumed (as a re-anchor) when the page arrives.
+    if (!targetLoaded) {
+      // Out-of-window ask: park until the around page arrives. Neighbour
+      // fallback is only for an installed page that omitted the target.
       _setPendingScrollTarget(messageId);
+      talker.debug('[MessageList] pending target parked $messageId');
       return;
     }
-    if (scrollId != messageId) {
-      talker.debug(
-        '[MessageList] jump target $messageId missing; '
-        'scroll neighbour $scrollId',
-      );
-    }
     _clearPendingScrollTarget();
-    _reanchor(scrollId, _kUnreadOpenAnchor, edge: MessageListAnchorEdge.before);
+    _reanchor(
+      messageId,
+      _kUnreadOpenAnchor,
+      edge: MessageListAnchorEdge.before,
+    );
     final int highlightEpoch = _uiEpoch;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _runIfSameEpoch(highlightEpoch, () {
@@ -2073,10 +2077,21 @@ class _MessageListState extends ConsumerState<MessageList> {
     // and the correction post-frame can find scroll clients.
     if (!isLoading && _anchorResolved && _pendingScrollTarget != null) {
       final String target = _pendingScrollTarget!;
-      final String? scrollId = resolveJumpScrollTargetId(
-        jumpTargetId: target,
-        messageIds: messages.map((Message m) => m.id),
+      final int windowEpoch = ref.read(chatViewModelProvider).windowEpoch;
+      final bool windowUpdatedSincePark =
+          _pendingScrollTargetWindowEpoch != null &&
+          windowEpoch != _pendingScrollTargetWindowEpoch;
+      final bool targetLoaded = messages.any(
+        (Message message) => message.id == target,
       );
+      final String? scrollId = targetLoaded
+          ? target
+          : windowUpdatedSincePark
+          ? resolveJumpScrollTargetId(
+              jumpTargetId: target,
+              messageIds: messages.map((Message m) => m.id),
+            )
+          : null;
       if (scrollId != null) {
         _clearPendingScrollTarget();
         talker.debug(
@@ -2099,8 +2114,8 @@ class _MessageListState extends ConsumerState<MessageList> {
           '[MessageList] pending target $target dropped: load failed',
         );
         _clearPendingScrollTarget();
-      } else if (messages.isNotEmpty) {
-        // Window landed without any neighbour to settle on.
+      } else if (windowUpdatedSincePark && messages.isNotEmpty) {
+        // New window landed without a neighbour to settle on
         talker.debug(
           '[MessageList] pending target $target not in ${messages.length} '
           'messages',
