@@ -1903,14 +1903,21 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
         (state) => state.showMessageSendButton,
       ),
     );
-    final bool showVoiceButton =
-        !showSendButtonPreference &&
-        shouldShowComposerVoiceButton(
+    final bool showVoiceButton = shouldShowComposerVoiceButton(
+      permissions: perms,
+      hasSendable: hasSendable,
+      isEditing: isEditing,
+      showMessageSendButtonPreference: showSendButtonPreference,
+    );
+    final bool showSendButton =
+        hasSendable ||
+        showSendButtonPreference ||
+        shouldShowComposerSendButtonFallback(
           permissions: perms,
           hasSendable: hasSendable,
           isEditing: isEditing,
+          showMessageSendButtonPreference: showSendButtonPreference,
         );
-    final bool showSendButton = hasSendable || showSendButtonPreference;
     final bool voiceDisabled =
         !canUseVoice || !perms.isComposerEnabled || isOverCharacterLimit;
     final VoidCallback? sendOnPressed = !hasSendable || isOverCharacterLimit
