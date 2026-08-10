@@ -2398,13 +2398,12 @@ void main() {
     );
 
     testWidgets(
-      'a target that never arrives still shows and serves jump-to-bottom',
+      'a missing jump target still settles and serves jump-to-bottom',
       (WidgetTester tester) async {
-        // #415. An `around=<id>` fetch whose target was deleted returns the
-        // neighbour window with no error, so the parked target is never
-        // consumed. It used to latch _hasActiveJumpTarget forever, which
-        // suppressed the read-viewport publish (no viewportHeight, so the
-        // button could not appear) and made the button's action a no-op.
+        // #415. An `around=<id>` fetch whose target was deleted or filtered
+        // returns the neighbouring window with no error. The list lands on the
+        // closest snowflake neighbour instead of latching a pending target
+        // forever (which used to suppress the jump-to-bottom escape hatch).
         tester.view.physicalSize = const Size(420, 640);
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
@@ -2452,8 +2451,8 @@ void main() {
         );
         await tester.pump();
 
-        // The around window lands without the target, then the signal parks
-        // while open mode is still unresolved.
+        // The around window lands without the target; scroll settles on a
+        // neighbour rather than parking forever.
         chatViewModel._testState = chatViewModel._testState.copyWith(
           write: (messages: source.messages, origin: MessagesOrigin.windowSwap),
           isLoading: false,
@@ -2476,7 +2475,7 @@ void main() {
         expect(
           viewport.viewportHeight,
           greaterThan(0),
-          reason: 'a parked target must not withhold viewport geometry',
+          reason: 'a settled neighbour jump must publish viewport geometry',
         );
         expect(
           shouldShowJumpToBottomButton(
@@ -2488,7 +2487,7 @@ void main() {
             hasMoreNewerMessages: chatViewModel._testState.hasMoreNewerMessages,
           ),
           isTrue,
-          reason: 'the escape hatch must be reachable while a target is parked',
+          reason: 'the escape hatch must stay reachable after a neighbour land',
         );
 
         // Tapping the button routes through scrollToBottom(); with the tail

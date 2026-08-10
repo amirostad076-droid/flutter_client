@@ -190,9 +190,10 @@ class _MessageListState extends ConsumerState<MessageList> {
   late String _viewportChannelId;
   String? _pendingScrollTarget;
   // The channel the parked target belongs to, plus the deadline that retires
-  // it. An `around=<id>` fetch whose target was deleted returns the neighbour
-  // window with no error, so "the target never arrives" is a normal response
-  // and must never latch the list.
+  // it. An `around=<id>` fetch whose target was deleted or filtered returns the
+  // neighbour window with no error; once that window lands, pending is consumed
+  // by scrolling the closest snowflake neighbour. The timeout is the residual
+  // escape when even that cannot settle.
   String? _pendingScrollTargetChannelId;
   Timer? _pendingScrollTargetTimer;
   bool _landAtLatestTailPending = false;
@@ -1213,18 +1214,24 @@ class _MessageListState extends ConsumerState<MessageList> {
       return;
     }
     final List<Message> messages = ref.read(chatViewModelProvider).messages;
-    if (!messages.any((Message m) => m.id == messageId)) {
-      // Out of window: the VM's around-swap installs it; the pending target
+    final String? scrollId = resolveJumpScrollTargetId(
+      jumpTargetId: messageId,
+      messageIds: messages.map((Message m) => m.id),
+    );
+    if (scrollId == null) {
+      // Empty window: the VM's around-swap installs it; the pending target
       // is consumed (as a re-anchor) when the page arrives.
       _setPendingScrollTarget(messageId);
       return;
     }
+    if (scrollId != messageId) {
+      talker.debug(
+        '[MessageList] jump target $messageId missing; '
+        'scroll neighbour $scrollId',
+      );
+    }
     _clearPendingScrollTarget();
-    _reanchor(
-      messageId,
-      _kUnreadOpenAnchor,
-      edge: MessageListAnchorEdge.before,
-    );
+    _reanchor(scrollId, _kUnreadOpenAnchor, edge: MessageListAnchorEdge.before);
     final int highlightEpoch = _uiEpoch;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _runIfSameEpoch(highlightEpoch, () {
@@ -1962,6 +1969,14 @@ class _MessageListState extends ConsumerState<MessageList> {
         final bool canAnchorUnread =
             unreadAnchorId != null &&
             findChannelStreamDataIndex(channelStream, unreadAnchorId) != null;
+        final String? jumpRequestId =
+            _pendingScrollTarget ?? widget.targetMessageId;
+        final String? jumpAnchorId = jumpRequestId == null
+            ? null
+            : resolveJumpScrollTargetId(
+                jumpTargetId: jumpRequestId,
+                messageIds: messages.map((Message m) => m.id),
+              );
         _anchorResolved = true;
         _anchorEpoch++;
         _pin.pinned = false;
@@ -1972,6 +1987,13 @@ class _MessageListState extends ConsumerState<MessageList> {
           // even when the unread lives inside a collapsed group - sits at
           // the fraction. Underfill re-anchors bottom after the open frame.
           _anchorId = unreadAnchorId;
+          _anchorFraction = _kUnreadOpenAnchor;
+          _anchorEdge = MessageListAnchorEdge.before;
+          _scheduleUnderfillBottomReanchor();
+        } else if (jumpAnchorId != null) {
+          // Jump open: land on the target, or the closest neighbour when the
+          // around page omitted it (deleted / filtered). Never the live tail.
+          _anchorId = jumpAnchorId;
           _anchorFraction = _kUnreadOpenAnchor;
           _anchorEdge = MessageListAnchorEdge.before;
           _scheduleUnderfillBottomReanchor();
@@ -2040,18 +2062,25 @@ class _MessageListState extends ConsumerState<MessageList> {
     // and the correction post-frame can find scroll clients.
     if (!isLoading && _anchorResolved && _pendingScrollTarget != null) {
       final String target = _pendingScrollTarget!;
-      if (messages.any((Message m) => m.id == target)) {
+      final String? scrollId = resolveJumpScrollTargetId(
+        jumpTargetId: target,
+        messageIds: messages.map((Message m) => m.id),
+      );
+      if (scrollId != null) {
         _clearPendingScrollTarget();
-        talker.debug('[MessageList] consume pending target $target');
+        talker.debug(
+          '[MessageList] consume pending target $target'
+          '${scrollId == target ? '' : ' via neighbour $scrollId'}',
+        );
         // Mid-build re-anchor: direct field writes - THIS build already
         // renders the new anchor (setState here would assert).
-        _anchorId = target;
+        _anchorId = scrollId;
         _anchorFraction = _kUnreadOpenAnchor;
         _anchorEdge = MessageListAnchorEdge.before;
         _anchorEpoch++;
         _uiEpoch++;
         _demandSource.resetApproachVelocity();
-        _scheduleAnchorCenterCorrection(target);
+        _scheduleAnchorCenterCorrection(scrollId);
         _scheduleUnderfillBottomReanchor();
       } else if (messageLoadFailed) {
         // The page that would carry the target will not arrive.
@@ -2059,9 +2088,11 @@ class _MessageListState extends ConsumerState<MessageList> {
           '[MessageList] pending target $target dropped: load failed',
         );
         _clearPendingScrollTarget();
-      } else {
+      } else if (messages.isNotEmpty) {
+        // Window landed without any neighbour to settle on.
         talker.debug(
-          '[MessageList] pending target $target not in ${messages.length} messages',
+          '[MessageList] pending target $target not in ${messages.length} '
+          'messages',
         );
       }
     }
