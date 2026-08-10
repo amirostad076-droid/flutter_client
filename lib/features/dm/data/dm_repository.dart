@@ -105,8 +105,10 @@ class DmRepository {
     bool includeLastMessages = true,
   }) async {
     final channelIds = rows.map((r) => r.id).toList();
+    final Map<String, db.Message> lastMessagesForUnread = await _db.messageDao
+        .getLastMessageForChannels(channelIds);
     final Map<String, db.Message> lastMessages = includeLastMessages
-        ? await _db.messageDao.getLastMessageForChannels(channelIds)
+        ? lastMessagesForUnread
         : const <String, db.Message>{};
     final readStates = channelIds.isEmpty
         ? <db.ReadState>[]
@@ -134,13 +136,15 @@ class DmRepository {
 
     return rows.map((row) {
       final lastMsg = lastMessages[row.id];
+      final lastMsgForUnread = lastMessagesForUnread[row.id];
       final readState = readStateMap[row.id];
       final latestMessageId = resolveLatestMessageIdForUnread(
-        strictLatestMessageId: lastMsg?.id,
+        strictLatestMessageId: lastMsgForUnread?.id,
         channelLastMessageId: row.lastMessageId,
         ackLastMessageId: readState?.lastMessageId,
         mentionCount: readState?.mentionCount ?? 0,
-        channelLastMessageExistsInCache: lastMsg?.id == row.lastMessageId,
+        channelLastMessageExistsInCache:
+            lastMsgForUnread?.id == row.lastMessageId,
       );
       final recipientIds = parseDmChannelRecipientIds(row.recipientIds);
       final isGroup = isDmGroupType(row.type);
