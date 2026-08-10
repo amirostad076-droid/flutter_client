@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,10 +7,13 @@ import 'package:fluxer_app/core/constants/external_urls.dart';
 import 'package:fluxer_app/core/providers/active_instance_provider.dart';
 import 'package:fluxer_app/core/providers/app_startup_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
+import 'package:fluxer_app/core/providers/splash_exit_allowed_provider.dart';
+import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/auth/presentation/widgets/instance_domain_icon.dart';
 import 'package:fluxer_app/features/auth/presentation/widgets/offline_account_switcher_link.dart';
 import 'package:fluxer_app/features/shell/domain/service_status_incident.dart';
+import 'package:fluxer_app/features/shell/presentation/splash_reveal_overlay.dart';
 import 'package:fluxer_app/features/shell/providers/service_status_incident_provider.dart';
 import 'package:fluxer_app/features/shell/utils/splash_quotes.dart';
 import 'package:fluxer_app/features/ui/animation/animation_controller_visibility_extension.dart';
@@ -39,6 +43,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   bool _showStatusData = false;
   bool _showProblems = false;
   bool _timersStarted = false;
+  bool _exitRevealStarted = false;
+  bool _splashLogoHidden = false;
+  AnimationController? _exitPulseController;
+  final GlobalKey _logoKey = GlobalKey();
   ServiceStatusIncident? _frozenIncident;
   String _frozenDisplayText = '';
 
@@ -54,18 +62,21 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       if (!mounted) {
         return;
       }
+      ref.read(splashExitAllowedProvider.notifier).reset();
       final AsyncValue<void> startup = ref.read(appStartupProvider);
       if (startup is AsyncError<dynamic>) {
         return;
       }
       _ensureSplashTimers();
       _cancelSplashIfReady();
+      _scheduleExitReveal();
     });
   }
 
   @override
   void dispose() {
     _cancelSplashTimers();
+    _exitPulseController?.dispose();
     _pulseController.dispose();
     super.dispose();
   }
@@ -83,6 +94,78 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     if (startup is AsyncData<void> && gatewayReady) {
       _cancelSplashTimers();
     }
+  }
+
+  void _allowSplashExit() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(splashExitAllowedProvider.notifier).allow();
+    });
+  }
+
+  void _scheduleExitReveal() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _maybeStartExitReveal();
+    });
+  }
+
+  void _maybeStartExitReveal() {
+    if (_exitRevealStarted) {
+      return;
+    }
+    final AsyncValue<void> startup = ref.read(appStartupProvider);
+    if (startup is! AsyncData<void> || !ref.read(gatewayReadyProvider)) {
+      return;
+    }
+    if (!ref.read(authStateProvider)) {
+      return;
+    }
+
+    _exitRevealStarted = true;
+    _cancelSplashTimers();
+    _pulseController.stop();
+
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _allowSplashExit();
+      return;
+    }
+
+    final AnimationController pulse = AnimationController(
+      vsync: this,
+      duration: SplashRevealOverlay.pulseDuration,
+    );
+    _exitPulseController = pulse;
+    setState(() {});
+    unawaited(_runExitPulseThenReveal(pulse));
+  }
+
+  Future<void> _runExitPulseThenReveal(AnimationController pulse) async {
+    await pulse.forward();
+    if (!mounted) {
+      return;
+    }
+
+    final Offset? logoCenter = _logoCenterGlobal();
+    SplashRevealOverlay.show(
+      context: context,
+      backgroundColor: context.colors.backgroundSecondary,
+      brandColor: context.colors.brandPrimary,
+      logoCenterGlobal:
+          logoCenter ?? MediaQuery.sizeOf(context).center(Offset.zero),
+      onShellMount: _allowSplashExit,
+    );
+    setState(() => _splashLogoHidden = true);
+  }
+
+  Offset? _logoCenterGlobal() {
+    final RenderObject? renderObject = _logoKey.currentContext
+        ?.findRenderObject();
+    if (renderObject is! RenderBox || !renderObject.hasSize) {
+      return null;
+    }
+    return renderObject.localToGlobal(renderObject.size.center(Offset.zero));
   }
 
   void _ensureSplashTimers() {
@@ -132,10 +215,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     final bool isGatewayReady = ref.watch(gatewayReadyProvider);
     final bool isReady = isStartupComplete && isGatewayReady;
     ref
-      ..listen<bool>(
-        gatewayReadyProvider,
-        (bool? previous, bool _) => _cancelSplashIfReady(),
-      )
+      ..listen<bool>(gatewayReadyProvider, (bool? previous, bool _) {
+        _cancelSplashIfReady();
+        _scheduleExitReveal();
+      })
       ..listen<AsyncValue<void>>(appStartupProvider, (
         AsyncValue<void>? previous,
         AsyncValue<void> next,
@@ -153,6 +236,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         }
         _ensureSplashTimers();
         _cancelSplashIfReady();
+        _scheduleExitReveal();
       });
     final ServiceStatusIncident? liveIncident = _showStatusData
         ? ref.watch(serviceStatusIncidentReadProvider)
@@ -217,7 +301,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          if (MediaQuery.disableAnimationsOf(context))
+                          if (!_exitRevealStarted &&
+                              MediaQuery.disableAnimationsOf(context))
                             Transform.scale(
                               scale: 1.25,
                               child: Container(
@@ -231,7 +316,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                                 ),
                               ),
                             )
-                          else
+                          else if (!_exitRevealStarted)
                             AnimatedBuilder(
                               animation: _pulseController,
                               builder: (BuildContext context, Widget? child) {
@@ -263,7 +348,36 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                                 );
                               },
                             ),
-                          const FluxerBrandLogo(size: _logoHeight),
+                          if (!_splashLogoHidden)
+                            AnimatedBuilder(
+                              animation:
+                                  _exitPulseController ?? _pulseController,
+                              builder: (BuildContext context, Widget? child) {
+                                final AnimationController? pulse =
+                                    _exitPulseController;
+                                final double scale;
+                                if (pulse != null) {
+                                  final double t = Curves.easeInCubic.transform(
+                                    pulse.value,
+                                  );
+                                  scale = lerpDouble(
+                                    1,
+                                    SplashRevealOverlay.pulseScale,
+                                    t,
+                                  )!;
+                                } else {
+                                  scale = 1;
+                                }
+                                return Transform.scale(
+                                  scale: scale,
+                                  child: child,
+                                );
+                              },
+                              child: KeyedSubtree(
+                                key: _logoKey,
+                                child: const FluxerBrandLogo(size: _logoHeight),
+                              ),
+                            ),
                         ],
                       ),
                     ),

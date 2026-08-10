@@ -4,6 +4,7 @@ import 'package:fluxer_app/core/providers/app_startup_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_reconnect_provider.dart';
+import 'package:fluxer_app/core/providers/splash_exit_allowed_provider.dart';
 import 'package:fluxer_app/core/router/channel_persistence_observer.dart';
 import 'package:fluxer_app/core/router/guild_root_redirect.dart';
 import 'package:fluxer_app/core/router/pre_reconnecting_location_provider.dart';
@@ -146,6 +147,7 @@ GoRouter fluxerRouter(Ref ref) {
       (_, _) => refreshNotifier.notify(),
     )
     ..listen(gatewayReadyProvider, (_, _) => refreshNotifier.notify())
+    ..listen(splashExitAllowedProvider, (_, _) => refreshNotifier.notify())
     ..listen(appStartupProvider, (_, _) => refreshNotifier.notify())
     ..listen(accountManagerProvider, (_, _) => refreshNotifier.notify())
     ..listen(
@@ -230,6 +232,9 @@ GoRouter fluxerRouter(Ref ref) {
         if (!isAuthenticated) {
           return '/login';
         }
+        if (!ref.read(splashExitAllowedProvider)) {
+          return null;
+        }
         return ref
             .read(preReconnectingLocationProvider.notifier)
             .takeOrRestore(ref.read(fluxerDatabaseProvider));
@@ -259,7 +264,12 @@ GoRouter fluxerRouter(Ref ref) {
       // Auth / startup routes
       GoRoute(
         path: '/loading',
-        builder: (context, state) => const SplashScreen(),
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          return shellInstantTransitionPage(
+            key: state.pageKey,
+            child: const SplashScreen(),
+          );
+        },
       ),
       GoRoute(
         path: '/login',
