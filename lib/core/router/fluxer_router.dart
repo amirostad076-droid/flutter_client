@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/observability/fluxer_route_trace_observer.dart';
 import 'package:fluxer_app/core/providers/app_startup_provider.dart';
@@ -161,6 +163,12 @@ GoRouter fluxerRouter(Ref ref) {
         .setHasOverlay(value: hasOverlay);
   }
 
+  void deferProviderWrite(void Function() write) {
+    // GoRouter redirect / restore can run during build. Provider writes must
+    // wait until after the current frame's synchronous work.
+    unawaited(Future<void>(write));
+  }
+
   ShellPopupRouteObserver createShellPopupRouteObserver() {
     return ShellPopupRouteObserver(setShellPopupOverlay);
   }
@@ -196,7 +204,9 @@ GoRouter fluxerRouter(Ref ref) {
           ref.read(addAccountInstanceGuardProvider) != null;
 
       if (isAccountSwitching) {
-        ref.read(preReconnectingLocationProvider.notifier).clear();
+        deferProviderWrite(
+          () => ref.read(preReconnectingLocationProvider.notifier).clear(),
+        );
         return isOnLoading ? null : '/loading';
       }
 
@@ -209,9 +219,13 @@ GoRouter fluxerRouter(Ref ref) {
       final isOnReconnecting = location == '/reconnecting';
 
       if (isAuthenticated && isConnectionFailed && !isOnReconnecting) {
-        ref
-            .read(preReconnectingLocationProvider.notifier)
-            .remember(path: state.uri.path, query: state.uri.query);
+        final String path = state.uri.path;
+        final String query = state.uri.query;
+        deferProviderWrite(
+          () => ref
+              .read(preReconnectingLocationProvider.notifier)
+              .remember(path: path, query: query),
+        );
         return '/reconnecting';
       }
 
@@ -221,9 +235,13 @@ GoRouter fluxerRouter(Ref ref) {
           !isOnReconnecting &&
           !isAddingAccount) {
         if (!isOnLoading) {
-          ref
-              .read(preReconnectingLocationProvider.notifier)
-              .remember(path: state.uri.path, query: state.uri.query);
+          final String path = state.uri.path;
+          final String query = state.uri.query;
+          deferProviderWrite(
+            () => ref
+                .read(preReconnectingLocationProvider.notifier)
+                .remember(path: path, query: query),
+          );
         }
         return isOnLoading ? null : '/loading';
       }
@@ -241,7 +259,9 @@ GoRouter fluxerRouter(Ref ref) {
       }
 
       if (!isAuthenticated) {
-        ref.read(preReconnectingLocationProvider.notifier).clear();
+        deferProviderWrite(
+          () => ref.read(preReconnectingLocationProvider.notifier).clear(),
+        );
       }
       if (!isAuthenticated && !isLoggingIn) {
         return '/login';

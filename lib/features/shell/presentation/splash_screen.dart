@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +8,7 @@ import 'package:fluxer_app/core/providers/app_startup_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
 import 'package:fluxer_app/core/providers/splash_exit_allowed_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/theme/color_utils.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/auth/presentation/widgets/instance_domain_icon.dart';
 import 'package:fluxer_app/features/auth/presentation/widgets/offline_account_switcher_link.dart';
@@ -17,6 +17,7 @@ import 'package:fluxer_app/features/shell/presentation/splash_reveal_overlay.dar
 import 'package:fluxer_app/features/shell/providers/service_status_incident_provider.dart';
 import 'package:fluxer_app/features/shell/utils/splash_quotes.dart';
 import 'package:fluxer_app/features/ui/animation/animation_controller_visibility_extension.dart';
+import 'package:fluxer_app/features/ui/background/starfield_background.dart';
 import 'package:fluxer_app/features/ui/icons/fluxer_brand_logo.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
@@ -35,6 +36,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   static const Duration _statusPageDisplayDelay = Duration(seconds: 5);
   static const Duration _problemsDelay = Duration(seconds: 10);
   static const Duration _footerFadeDuration = Duration(milliseconds: 400);
+  static const Color _splashMutedText = Color(0xFF9B94B8);
+  static const Color _splashLinkText = Color(0xFFC4B8F0);
+  static const Color _splashQuoteText = Color(0xFFD6D0EC);
 
   late final AnimationController _pulseController;
   late final SplashQuote _selectedQuote;
@@ -44,8 +48,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   bool _showProblems = false;
   bool _timersStarted = false;
   bool _exitRevealStarted = false;
-  bool _splashLogoHidden = false;
-  AnimationController? _exitPulseController;
   final GlobalKey _logoKey = GlobalKey();
   ServiceStatusIncident? _frozenIncident;
   String _frozenDisplayText = '';
@@ -76,7 +78,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   void dispose() {
     _cancelSplashTimers();
-    _exitPulseController?.dispose();
     _pulseController.dispose();
     super.dispose();
   }
@@ -132,31 +133,18 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       return;
     }
 
-    final AnimationController pulse = AnimationController(
-      vsync: this,
-      duration: SplashRevealOverlay.pulseDuration,
-    );
-    _exitPulseController = pulse;
-    setState(() {});
-    unawaited(_runExitPulseThenReveal(pulse));
-  }
-
-  Future<void> _runExitPulseThenReveal(AnimationController pulse) async {
-    await pulse.forward();
-    if (!mounted) {
-      return;
-    }
-
     final Offset? logoCenter = _logoCenterGlobal();
+    final Color brand = context.colors.brandPrimary;
     SplashRevealOverlay.show(
       context: context,
-      backgroundColor: context.colors.backgroundSecondary,
-      brandColor: context.colors.brandPrimary,
+      coverColor: StarfieldBackground.cutoutColor,
+      logoBrandColor: brand,
+      logoBrandSymbolColor: ColorUtils.bestContrastColor(brand.toARGB32()),
       logoCenterGlobal:
           logoCenter ?? MediaQuery.sizeOf(context).center(Offset.zero),
-      onShellMount: _allowSplashExit,
     );
-    setState(() => _splashLogoHidden = true);
+    _allowSplashExit();
+    setState(() {});
   }
 
   Offset? _logoCenterGlobal() {
@@ -166,6 +154,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       return null;
     }
     return renderObject.localToGlobal(renderObject.size.center(Offset.zero));
+  }
+
+  Widget _fadeExitContent({required Widget child}) {
+    if (_exitRevealStarted) {
+      return const SizedBox.shrink();
+    }
+    return child;
   }
 
   void _ensureSplashTimers() {
@@ -273,243 +268,233 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     final TextStyle footerPromptStyle = context.textStyles.bodySmall.copyWith(
       fontSize: 13,
       height: 1.4,
-      color: context.colors.textSecondary,
+      color: _splashMutedText,
     );
     final TextStyle footerLinkStyle = footerPromptStyle.copyWith(
-      color: context.colors.textLink,
+      color: _splashLinkText,
     );
     final TextStyle incidentCtaStyle = context.textStyles.smallText.copyWith(
       fontSize: 12,
       fontWeight: FontWeight.w600,
-      color: context.colors.textLink,
+      color: _splashLinkText,
     );
     final TextStyle instanceFooterStyle = context.textStyles.bodySmall.copyWith(
       fontSize: 12,
-      color: context.colors.textChatMuted,
+      color: _splashMutedText,
     );
 
     return Scaffold(
-      backgroundColor: context.colors.backgroundSecondary,
-      body: SafeArea(
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 512),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      height: _logoHeight * 2,
-                      width: _logoHeight * 2,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          if (!_exitRevealStarted &&
-                              MediaQuery.disableAnimationsOf(context))
-                            Transform.scale(
-                              scale: 1.25,
-                              child: Container(
-                                width: _logoHeight,
-                                height: _logoHeight,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: context.colors.brandPrimary.withValues(
-                                    alpha: 0.35,
-                                  ),
-                                ),
-                              ),
-                            )
-                          else if (!_exitRevealStarted)
-                            AnimatedBuilder(
-                              animation: _pulseController,
-                              builder: (BuildContext context, Widget? child) {
-                                const double startScale = 0.4;
-                                const double endScale = 1.4;
-                                final double scale =
-                                    startScale +
-                                    (endScale - startScale) *
-                                        Curves.easeOut.transform(
-                                          _pulseController.value,
-                                        );
-                                final double opacity =
-                                    (1 -
-                                        Curves.easeIn.transform(
-                                          _pulseController.value,
-                                        )) *
-                                    0.5;
-                                return Transform.scale(
-                                  scale: scale,
-                                  child: Container(
-                                    width: _logoHeight,
-                                    height: _logoHeight,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: context.colors.brandPrimary
-                                          .withValues(alpha: opacity),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          if (!_splashLogoHidden)
-                            AnimatedBuilder(
-                              animation:
-                                  _exitPulseController ?? _pulseController,
-                              builder: (BuildContext context, Widget? child) {
-                                final AnimationController? pulse =
-                                    _exitPulseController;
-                                final double scale;
-                                if (pulse != null) {
-                                  final double t = Curves.easeInCubic.transform(
-                                    pulse.value,
-                                  );
-                                  scale = lerpDouble(
-                                    1,
-                                    SplashRevealOverlay.pulseScale,
-                                    t,
-                                  )!;
-                                } else {
-                                  scale = 1;
-                                }
-                                return Transform.scale(
-                                  scale: scale,
-                                  child: child,
-                                );
-                              },
-                              child: KeyedSubtree(
-                                key: _logoKey,
-                                child: const FluxerBrandLogo(size: _logoHeight),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: startupError == null
-                          ? _buildNormalMessageArea(
-                              context,
-                              strings,
-                              visibleIncident,
-                              displayText,
-                              incidentCtaStyle,
-                            )
-                          : Text(
-                              statusText,
-                              style: context.textStyles.smallText.copyWith(
-                                color: context.colors.textDanger,
-                              ),
-                              textAlign: TextAlign.center,
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                    ),
-                    if (startupError != null) ...[
-                      const SizedBox(height: 16),
-                      FilledButton(
-                        onPressed: () =>
-                            ref.read(appStartupProvider.notifier).retry(),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: context.colors.brandPrimary,
-                        ),
-                        child: Text(strings.retry),
-                      ),
-                      const SizedBox(height: 12),
-                      const OfflineAccountSwitcherLink(),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 24,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (showConnectionFooter)
-                    AnimatedOpacity(
-                      opacity: 1,
-                      duration: _footerFadeDuration,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
+      backgroundColor: Colors.transparent,
+      body: StarfieldBackground(
+        child: SafeArea(
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 512),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        height: _logoHeight * 2,
+                        width: _logoHeight * 2,
+                        child: Stack(
+                          alignment: Alignment.center,
                           children: [
-                            Text(
-                              strings.splashConnectionIssuesPrompt,
-                              style: footerPromptStyle,
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 8),
-                            Wrap(
-                              alignment: WrapAlignment.center,
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              spacing: 8,
-                              children: [
-                                MouseRegion(
-                                  cursor: SystemMouseCursors.click,
-                                  child: GestureDetector(
-                                    onTap: () => handleExternalLinkTap(
-                                      context,
-                                      ExternalUrls.serviceStatus,
-                                    ),
-                                    child: Text(
-                                      strings.splashStatusPageLink,
-                                      style: footerLinkStyle,
-                                    ),
+                            if (!_exitRevealStarted &&
+                                MediaQuery.disableAnimationsOf(context))
+                              Transform.scale(
+                                scale: 1.25,
+                                child: Container(
+                                  width: _logoHeight,
+                                  height: _logoHeight,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: context.colors.brandPrimary
+                                        .withValues(alpha: 0.35),
                                   ),
                                 ),
-                                Text(
-                                  '·',
-                                  style: footerPromptStyle.copyWith(
-                                    color: context.colors.textChatMuted,
-                                  ),
-                                ),
-                                MouseRegion(
-                                  cursor: SystemMouseCursors.click,
-                                  child: GestureDetector(
-                                    onTap: () => handleExternalLinkTap(
-                                      context,
-                                      secondLinkUrl,
+                              )
+                            else if (!_exitRevealStarted)
+                              AnimatedBuilder(
+                                animation: _pulseController,
+                                builder: (BuildContext context, Widget? child) {
+                                  const double startScale = 0.4;
+                                  const double endScale = 1.4;
+                                  final double scale =
+                                      startScale +
+                                      (endScale - startScale) *
+                                          Curves.easeOut.transform(
+                                            _pulseController.value,
+                                          );
+                                  final double opacity =
+                                      (1 -
+                                          Curves.easeIn.transform(
+                                            _pulseController.value,
+                                          )) *
+                                      0.5;
+                                  return Transform.scale(
+                                    scale: scale,
+                                    child: Container(
+                                      width: _logoHeight,
+                                      height: _logoHeight,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: context.colors.brandPrimary
+                                            .withValues(alpha: opacity),
+                                      ),
                                     ),
-                                    child: Text(
-                                      footerIncident != null
-                                          ? strings.splashReadIncident
-                                          : strings.splashIncidentHistory,
-                                      style: footerLinkStyle,
-                                    ),
-                                  ),
+                                  );
+                                },
+                              ),
+                            if (!_exitRevealStarted)
+                              KeyedSubtree(
+                                key: _logoKey,
+                                child: FluxerBrandLogo(
+                                  size: _logoHeight,
+                                  backgroundColor: context.colors.brandPrimary,
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            const OfflineAccountSwitcherLink(),
+                              ),
                           ],
                         ),
                       ),
-                    ),
-                  if (showSelfHostedAccountSwitcher) ...[
-                    const OfflineAccountSwitcherLink(),
-                    const SizedBox(height: 16),
-                  ],
-                  if (showConnectionFooter) const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      InstanceDomainIcon(isOfficial: isOfficialInstance),
-                      const SizedBox(width: 4),
-                      Text(displayDomain, style: instanceFooterStyle),
+                      _fadeExitContent(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: startupError == null
+                              ? _buildNormalMessageArea(
+                                  context,
+                                  strings,
+                                  visibleIncident,
+                                  displayText,
+                                  incidentCtaStyle,
+                                )
+                              : Text(
+                                  statusText,
+                                  style: context.textStyles.smallText.copyWith(
+                                    color: context.colors.textDanger,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                        ),
+                      ),
+                      if (startupError != null)
+                        _fadeExitContent(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(height: 16),
+                              FilledButton(
+                                onPressed: () => ref
+                                    .read(appStartupProvider.notifier)
+                                    .retry(),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: context.colors.brandPrimary,
+                                ),
+                                child: Text(strings.retry),
+                              ),
+                              const SizedBox(height: 12),
+                              const OfflineAccountSwitcherLink(),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ],
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 24,
+                child: _fadeExitContent(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (showConnectionFooter)
+                        AnimatedOpacity(
+                          opacity: 1,
+                          duration: _footerFadeDuration,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  strings.splashConnectionIssuesPrompt,
+                                  style: footerPromptStyle,
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  alignment: WrapAlignment.center,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  spacing: 8,
+                                  children: [
+                                    MouseRegion(
+                                      cursor: SystemMouseCursors.click,
+                                      child: GestureDetector(
+                                        onTap: () => handleExternalLinkTap(
+                                          context,
+                                          ExternalUrls.serviceStatus,
+                                        ),
+                                        child: Text(
+                                          strings.splashStatusPageLink,
+                                          style: footerLinkStyle,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      '·',
+                                      style: footerPromptStyle.copyWith(
+                                        color: _splashMutedText,
+                                      ),
+                                    ),
+                                    MouseRegion(
+                                      cursor: SystemMouseCursors.click,
+                                      child: GestureDetector(
+                                        onTap: () => handleExternalLinkTap(
+                                          context,
+                                          secondLinkUrl,
+                                        ),
+                                        child: Text(
+                                          footerIncident != null
+                                              ? strings.splashReadIncident
+                                              : strings.splashIncidentHistory,
+                                          style: footerLinkStyle,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                const OfflineAccountSwitcherLink(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      if (showSelfHostedAccountSwitcher) ...[
+                        const OfflineAccountSwitcherLink(),
+                        const SizedBox(height: 16),
+                      ],
+                      if (showConnectionFooter) const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          InstanceDomainIcon(isOfficial: isOfficialInstance),
+                          const SizedBox(width: 4),
+                          Text(displayDomain, style: instanceFooterStyle),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -532,7 +517,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               onTap: () => handleExternalLinkTap(context, visibleIncident.url),
               child: Text(
                 displayText,
-                style: context.textStyles.quoteLink,
+                style: context.textStyles.quoteLink.copyWith(
+                  color: _splashQuoteText,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -558,14 +545,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       children: [
         Text(
           displayText,
-          style: context.textStyles.quote,
+          style: context.textStyles.quote.copyWith(color: _splashQuoteText),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 4),
         Text(
           _selectedQuote.source,
           style: context.textStyles.quoteLink.copyWith(
-            color: context.colors.textChatMuted,
+            color: _splashMutedText,
             fontStyle: FontStyle.normal,
           ),
           textAlign: TextAlign.center,
