@@ -45,6 +45,7 @@ class FluxerSelect<T> extends StatefulWidget {
     this.enabled = true,
     this.stretch = false,
     this.scrollableSheet = false,
+    this.useRootNavigator = true,
     super.key,
   }) : _onChanged = ((value) => onChanged(value as T));
 
@@ -66,6 +67,9 @@ class FluxerSelect<T> extends StatefulWidget {
   /// behave like a full scrollable sheet rather than a content-sized menu.
   final bool scrollableSheet;
 
+  /// Whether the options sheet is shown on the root navigator.
+  final bool useRootNavigator;
+
   @override
   State<FluxerSelect<T>> createState() => _FluxerSelectState<T>();
 }
@@ -86,6 +90,7 @@ class _FluxerSelectState<T> extends State<FluxerSelect<T>> {
   bool get enabled => widget.enabled;
   bool get stretch => widget.stretch;
   bool get scrollableSheet => widget.scrollableSheet;
+  bool get useRootNavigator => widget.useRootNavigator;
 
   @override
   Widget build(BuildContext context) {
@@ -233,7 +238,7 @@ class _FluxerSelectState<T> extends State<FluxerSelect<T>> {
     void handleSelected(BuildContext sheetContext, T selected) {
       didSelect = true;
       _onChanged(selected);
-      Navigator.of(sheetContext, rootNavigator: true).pop(selected);
+      Navigator.of(sheetContext, rootNavigator: useRootNavigator).pop(selected);
     }
 
     late final Future<T?> sheetFuture;
@@ -241,7 +246,7 @@ class _FluxerSelectState<T> extends State<FluxerSelect<T>> {
       sheetFuture = FluxerBottomSheet.showScrollable<T>(
         context,
         title: label,
-        useRootNavigator: true,
+        useRootNavigator: useRootNavigator,
         builder: (sheetContext, scrollController, close) {
           return _FluxerSelectSheet<T>(
             items: items,
@@ -259,7 +264,7 @@ class _FluxerSelectState<T> extends State<FluxerSelect<T>> {
         context,
         title: label,
         maxHeight: 0.58,
-        useRootNavigator: true,
+        useRootNavigator: useRootNavigator,
         variant: FluxerBottomSheetVariant.menu,
         builder: (sheetContext, close) => FluxerBottomSheetDismissDragTarget(
           onDismiss: close,
