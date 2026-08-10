@@ -100,11 +100,14 @@ List<MessageContentSegment> _parseMessageContentStructureUncached(
         final nextTrimmed = lines[i + blankCount].trimLeft();
         final isNextHeading = _isHeadingStart(nextTrimmed, features);
         if (_shouldPreserveBlankLines(
-          hasBufferedText: textFlowBuffer.isNotEmpty,
-          followsBlockSegment: _lastSegmentIsBlock(segments),
-          isNextHeading: isNextHeading,
-          previousWasHeading: previousWasHeading,
-        )) {
+              hasBufferedText: textFlowBuffer.isNotEmpty,
+              followsBlockSegment: _lastSegmentIsBlock(segments),
+              isNextHeading: isNextHeading,
+              previousWasHeading: previousWasHeading,
+            ) ||
+            (textFlowBuffer.isEmpty &&
+                !isNextHeading &&
+                !_lastSegmentIsBlock(segments))) {
           final bool followsBlock =
               textFlowBuffer.isEmpty && _lastSegmentIsBlock(segments);
           final int newlineCount = followsBlock ? blankCount + 1 : blankCount;

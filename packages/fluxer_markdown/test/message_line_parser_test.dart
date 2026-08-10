@@ -25,6 +25,19 @@ void main() {
       );
     });
 
+    test('preserves leading blank line before regular text', () {
+      const String input = '\nregular text below';
+      final List<MessageContentSegment> segments = parseMessageContentStructure(
+        input,
+        features,
+      );
+      expect(segments, hasLength(1));
+      expect(
+        (segments.first as MessageTextFlowSegment).text,
+        '\nregular text below',
+      );
+    });
+
     test('parseMessageTextFlowParts matches web-style text nodes', () {
       const String input = 'test line one\n\n\ntest line two';
       final List<String> parts = parseMessageTextFlowParts(input, features);

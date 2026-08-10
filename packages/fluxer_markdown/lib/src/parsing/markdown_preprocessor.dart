@@ -173,6 +173,24 @@ bool _hasVisibleContent(String value) {
   return false;
 }
 
+String? _takeMarkdownBufferText(StringBuffer buffer) {
+  final String raw = buffer.toString();
+  buffer.clear();
+  if (raw.isEmpty) {
+    return null;
+  }
+  var text = raw;
+  if (text.endsWith('\n')) {
+    text = text.substring(0, text.length - 1);
+  }
+  text = text.replaceFirst(RegExp(r'^[ \t]+'), '');
+  text = text.replaceFirst(RegExp(r'[ \t]+$'), '');
+  if (!_hasVisibleContent(text)) {
+    return null;
+  }
+  return text;
+}
+
 bool isBlockSpoilerStart(String line) {
   final String trimmed = line.trimLeft();
   if (!trimmed.startsWith('||')) {
@@ -265,10 +283,9 @@ List<FluxerMarkdownSegment> _parseFluxerMarkdownSegmentsUncached(
     if (features.allowSpoilers && isBlockSpoilerStart(line)) {
       final int? endIndex = parseBlockSpoilerEnd(lines, i);
       if (endIndex != null) {
-        final pending = mdBuffer.toString().trim();
-        if (pending.isNotEmpty) {
+        final String? pending = _takeMarkdownBufferText(mdBuffer);
+        if (pending != null) {
           segments.add(FluxerTextSegment(pending));
-          mdBuffer.clear();
         }
         final String body = parseBlockSpoilerBody(lines, i, endIndex);
         if (_hasVisibleContent(body)) {
@@ -290,10 +307,9 @@ List<FluxerMarkdownSegment> _parseFluxerMarkdownSegmentsUncached(
           i++;
           continue;
         }
-        final pending = mdBuffer.toString().trim();
-        if (pending.isNotEmpty) {
+        final String? pending = _takeMarkdownBufferText(mdBuffer);
+        if (pending != null) {
           segments.add(FluxerTextSegment(pending));
-          mdBuffer.clear();
         }
 
         final bodyLines = <String>[body];
@@ -319,10 +335,9 @@ List<FluxerMarkdownSegment> _parseFluxerMarkdownSegmentsUncached(
     if (features.allowAlerts) {
       final match = openRe.firstMatch(line);
       if (match != null) {
-        final pending = mdBuffer.toString().trim();
-        if (pending.isNotEmpty) {
+        final String? pending = _takeMarkdownBufferText(mdBuffer);
+        if (pending != null) {
           segments.add(FluxerTextSegment(pending));
-          mdBuffer.clear();
         }
 
         final rawType = match.group(1)!;
@@ -360,8 +375,8 @@ List<FluxerMarkdownSegment> _parseFluxerMarkdownSegmentsUncached(
     i++;
   }
 
-  final remaining = mdBuffer.toString().trim();
-  if (remaining.isNotEmpty) {
+  final String? remaining = _takeMarkdownBufferText(mdBuffer);
+  if (remaining != null) {
     segments.add(FluxerTextSegment(remaining));
   }
 
