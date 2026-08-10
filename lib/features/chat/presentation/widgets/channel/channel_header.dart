@@ -82,7 +82,12 @@ class ChannelHeader extends ConsumerWidget {
       currentUserId: currentUserId,
     );
     final bool isMemberListVisible = ref.watch(
-      channelListViewModelProvider.select((s) => s.isMemberListVisible),
+      channelListViewModelProvider.select(
+        (ChannelListState state) => state.isMemberListToggleActive(
+          channelId: channelId,
+          channelType: channel?.type,
+        ),
+      ),
     );
     final bool highContrast = _resolveHighContrast(
       ref,

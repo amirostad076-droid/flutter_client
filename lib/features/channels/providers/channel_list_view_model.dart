@@ -17,6 +17,7 @@ class ChannelListState {
   final List<ChannelCategory> categories;
   final String? selectedChannelId;
   final bool isMemberListVisible;
+  final Set<String> defaultHiddenChannelMembersOpen;
   final bool hasReceivedInitialChannelList;
 
   const ChannelListState({
@@ -24,6 +25,7 @@ class ChannelListState {
     required this.categories,
     required this.selectedChannelId,
     this.isMemberListVisible = true,
+    this.defaultHiddenChannelMembersOpen = const <String>{},
     this.hasReceivedInitialChannelList = false,
   });
 
@@ -32,6 +34,7 @@ class ChannelListState {
     List<ChannelCategory>? categories,
     String? selectedChannelId,
     bool? isMemberListVisible,
+    Set<String>? defaultHiddenChannelMembersOpen,
     bool? hasReceivedInitialChannelList,
   }) {
     return ChannelListState(
@@ -39,9 +42,35 @@ class ChannelListState {
       categories: categories ?? this.categories,
       selectedChannelId: selectedChannelId ?? this.selectedChannelId,
       isMemberListVisible: isMemberListVisible ?? this.isMemberListVisible,
+      defaultHiddenChannelMembersOpen:
+          defaultHiddenChannelMembersOpen ??
+          this.defaultHiddenChannelMembersOpen,
       hasReceivedInitialChannelList:
           hasReceivedInitialChannelList ?? this.hasReceivedInitialChannelList,
     );
+  }
+
+  bool isMemberListVisibleForChannel({
+    required String channelId,
+    required ChannelType? channelType,
+  }) {
+    if (!isMemberListVisible) {
+      return false;
+    }
+    if (channelType == ChannelType.guildVoice) {
+      return defaultHiddenChannelMembersOpen.contains(channelId);
+    }
+    return true;
+  }
+
+  bool isMemberListToggleActive({
+    required String channelId,
+    required ChannelType? channelType,
+  }) {
+    if (channelType == ChannelType.guildVoice) {
+      return defaultHiddenChannelMembersOpen.contains(channelId);
+    }
+    return isMemberListVisible;
   }
 }
 
@@ -84,6 +113,7 @@ class ChannelListViewModel extends _$ChannelListViewModel {
       categories: cachedCategories,
       selectedChannelId: state.selectedChannelId,
       isMemberListVisible: state.isMemberListVisible,
+      defaultHiddenChannelMembersOpen: state.defaultHiddenChannelMembersOpen,
       hasReceivedInitialChannelList: cachedCategories.isNotEmpty,
     );
 
@@ -143,12 +173,43 @@ class ChannelListViewModel extends _$ChannelListViewModel {
     state = state.copyWith(guild: guild);
   }
 
-  void toggleMemberList() {
-    setMemberListVisible(isVisible: !state.isMemberListVisible);
+  bool isMemberListVisibleForChannel({
+    required String channelId,
+    required ChannelType? channelType,
+  }) {
+    return state.isMemberListVisibleForChannel(
+      channelId: channelId,
+      channelType: channelType,
+    );
   }
 
-  void applyAutoMemberListForChannel(ChannelType channelType) {
-    setMemberListVisible(isVisible: channelType != ChannelType.guildVoice);
+  bool isMemberListToggleActive({
+    required String channelId,
+    required ChannelType? channelType,
+  }) {
+    return state.isMemberListToggleActive(
+      channelId: channelId,
+      channelType: channelType,
+    );
+  }
+
+  void toggleMemberList({
+    required String channelId,
+    required ChannelType? channelType,
+  }) {
+    if (channelType == ChannelType.guildVoice) {
+      final Set<String> next = Set<String>.from(
+        state.defaultHiddenChannelMembersOpen,
+      );
+      if (next.contains(channelId)) {
+        next.remove(channelId);
+      } else {
+        next.add(channelId);
+      }
+      state = state.copyWith(defaultHiddenChannelMembersOpen: next);
+      return;
+    }
+    setMemberListVisible(isVisible: !state.isMemberListVisible);
   }
 
   void setMemberListVisible({required bool isVisible}) {

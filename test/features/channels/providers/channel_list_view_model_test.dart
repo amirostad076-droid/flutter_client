@@ -200,6 +200,79 @@ void main() {
       );
     },
   );
+
+  test('member list stays closed when switching text channels', () {
+    final ProviderContainer container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final ChannelListViewModel notifier = container.read(
+      channelListViewModelProvider.notifier,
+    );
+
+    notifier.setMemberListVisible(isVisible: false);
+
+    expect(
+      container
+          .read(channelListViewModelProvider)
+          .isMemberListVisibleForChannel(
+            channelId: 'channel-a',
+            channelType: ChannelType.guildText,
+          ),
+      isFalse,
+    );
+    expect(
+      container
+          .read(channelListViewModelProvider)
+          .isMemberListVisibleForChannel(
+            channelId: 'channel-b',
+            channelType: ChannelType.guildText,
+          ),
+      isFalse,
+    );
+  });
+
+  test('voice channels hide member list unless explicitly opened', () {
+    final ProviderContainer container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final ChannelListViewModel notifier = container.read(
+      channelListViewModelProvider.notifier,
+    );
+
+    expect(
+      container
+          .read(channelListViewModelProvider)
+          .isMemberListVisibleForChannel(
+            channelId: 'voice-a',
+            channelType: ChannelType.guildVoice,
+          ),
+      isFalse,
+    );
+
+    notifier.toggleMemberList(
+      channelId: 'voice-a',
+      channelType: ChannelType.guildVoice,
+    );
+
+    expect(
+      container
+          .read(channelListViewModelProvider)
+          .isMemberListVisibleForChannel(
+            channelId: 'voice-a',
+            channelType: ChannelType.guildVoice,
+          ),
+      isTrue,
+    );
+    expect(
+      container
+          .read(channelListViewModelProvider)
+          .isMemberListVisibleForChannel(
+            channelId: 'voice-b',
+            channelType: ChannelType.guildVoice,
+          ),
+      isFalse,
+    );
+  });
 }
 
 class _FakeChannelRepository implements ChannelRepository {
