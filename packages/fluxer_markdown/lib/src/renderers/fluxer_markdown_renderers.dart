@@ -31,6 +31,12 @@ double _blockSpacingForStyle(TextStyle style) {
   return fontSize * 0.5;
 }
 
+double _headingAdjacentSpacing(TextStyle style) {
+  final double fontSize = style.fontSize ?? 16;
+  final double height = style.height ?? 1.375;
+  return fontSize * height;
+}
+
 double _orderedListMarkerColumnWidth(int largestNumber, double fontSize) {
   final digitCount = largestNumber.toString().length;
   return fontSize * (0.65 + digitCount * 0.6);
@@ -447,24 +453,24 @@ class _MarkdownBlockRenderer {
       case 'p':
         return _buildParagraph(node.children ?? const []);
       case 'h1':
-        return _buildParagraph(
+        return _buildHeadingParagraph(
           node.children ?? const [],
-          style: baseStyle.copyWith(fontSize: 22, fontWeight: FontWeight.w700),
+          baseStyle.copyWith(fontSize: 22, fontWeight: FontWeight.w700),
         );
       case 'h2':
-        return _buildParagraph(
+        return _buildHeadingParagraph(
           node.children ?? const [],
-          style: baseStyle.copyWith(fontSize: 20, fontWeight: FontWeight.w700),
+          baseStyle.copyWith(fontSize: 20, fontWeight: FontWeight.w700),
         );
       case 'h3':
-        return _buildParagraph(
+        return _buildHeadingParagraph(
           node.children ?? const [],
-          style: baseStyle.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
+          baseStyle.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
         );
       case 'h4':
-        return _buildParagraph(
+        return _buildHeadingParagraph(
           node.children ?? const [],
-          style: baseStyle.copyWith(fontSize: 16, fontWeight: FontWeight.w600),
+          baseStyle.copyWith(fontSize: 16, fontWeight: FontWeight.w600),
         );
       case 'blockquote':
         return _buildBlockquote(node);
@@ -487,6 +493,14 @@ class _MarkdownBlockRenderer {
         }
         return build(node.children ?? const []);
     }
+  }
+
+  Widget _buildHeadingParagraph(List<md.Node> nodes, TextStyle style) {
+    final double spacing = _headingAdjacentSpacing(baseStyle);
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: spacing),
+      child: _buildParagraph(nodes, style: style),
+    );
   }
 
   Widget _buildParagraph(

@@ -752,6 +752,88 @@ void main() {
       );
     });
 
+    testWidgets('preserves spacing between heading and regular text', (
+      tester,
+    ) async {
+      const String input = '# large text\n\nregular text below';
+      const TextStyle baseStyle = TextStyle(fontSize: 16, height: 1.375);
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: MediaQuery(
+            data: MediaQueryData(textScaler: TextScaler.noScaling),
+            child: Scaffold(
+              body: Center(
+                child: SizedBox(
+                  width: 320,
+                  child: FluxerMarkdown(
+                    data: input,
+                    config: _testMarkdownConfig,
+                    baseStyle: baseStyle,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final Finder headingFinder = find.textContaining(
+        'large text',
+        findRichText: true,
+      );
+      final Finder regularFinder = find.textContaining(
+        'regular text below',
+        findRichText: true,
+      );
+      expect(headingFinder, findsOneWidget);
+      expect(regularFinder, findsOneWidget);
+
+      final Offset headingBottom = tester.getBottomLeft(headingFinder);
+      final Offset regularTop = tester.getTopLeft(regularFinder);
+      final double lineHeight =
+          (baseStyle.fontSize ?? 16) * (baseStyle.height ?? 1.375);
+      expect(
+        regularTop.dy - headingBottom.dy,
+        greaterThanOrEqualTo(lineHeight - 1),
+      );
+    });
+
+    testWidgets(
+      'preserves extra blank lines after a heading in rendered text',
+      (tester) async {
+        const String input = '# large text\n\n\nregular text below';
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: MediaQuery(
+              data: MediaQueryData(textScaler: TextScaler.noScaling),
+              child: Scaffold(
+                body: Center(
+                  child: SizedBox(
+                    width: 320,
+                    child: FluxerMarkdown(
+                      data: input,
+                      config: _testMarkdownConfig,
+                      baseStyle: baseStyle,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        final List<String> richTexts = tester
+            .widgetList<RichText>(find.byType(RichText))
+            .map((RichText richText) => richText.text.toPlainText())
+            .toList();
+        expect(
+          richTexts.any(
+            (String text) => text.startsWith('\n\nregular text below'),
+          ),
+          isTrue,
+        );
+      },
+    );
+
     testWidgets('renders multi-line strikethrough across soft line breaks', (
       tester,
     ) async {

@@ -65,7 +65,7 @@ void main() {
       );
       expect(segments, hasLength(3));
       expect(segments[0], isA<MessageTextFlowSegment>());
-      // Web strips the blank line adjacent to a heading (it owns its margin).
+      // One adjacent blank line is replaced by heading margin; extras are kept.
       expect((segments[0] as MessageTextFlowSegment).text, 'before\n');
       expect(segments[1], isA<MessageBlockMarkdownSegment>());
       expect((segments[1] as MessageBlockMarkdownSegment).text, '# heading');
@@ -198,6 +198,32 @@ void main() {
       expect((segments[1] as MessageBlockMarkdownSegment).text, '# heading');
       expect(segments[2], isA<MessageTextFlowSegment>());
       expect((segments[2] as MessageTextFlowSegment).text, 'after');
+    });
+
+    test('preserves extra blank lines after a heading', () {
+      const String input = '# heading\n\n\nafter';
+      final List<MessageContentSegment> segments = parseMessageContentStructure(
+        input,
+        features,
+      );
+      expect(segments, hasLength(2));
+      expect(segments[0], isA<MessageBlockMarkdownSegment>());
+      expect((segments[0] as MessageBlockMarkdownSegment).text, '# heading');
+      expect(segments[1], isA<MessageTextFlowSegment>());
+      expect((segments[1] as MessageTextFlowSegment).text, '\n\nafter');
+    });
+
+    test('preserves extra blank lines before a heading', () {
+      const String input = 'before\n\n\n# heading';
+      final List<MessageContentSegment> segments = parseMessageContentStructure(
+        input,
+        features,
+      );
+      expect(segments, hasLength(2));
+      expect(segments[0], isA<MessageTextFlowSegment>());
+      expect((segments[0] as MessageTextFlowSegment).text, 'before\n\n');
+      expect(segments[1], isA<MessageBlockMarkdownSegment>());
+      expect((segments[1] as MessageBlockMarkdownSegment).text, '# heading');
     });
 
     test(
