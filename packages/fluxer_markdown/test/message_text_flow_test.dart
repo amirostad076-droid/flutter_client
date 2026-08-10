@@ -5,6 +5,7 @@ import 'package:fluxer_markdown/src/config/fluxer_markdown_config.dart';
 import 'package:fluxer_markdown/src/contexts/fluxer_markdown_context.dart';
 import 'package:fluxer_markdown/src/contexts/fluxer_markdown_features.dart';
 import 'package:fluxer_markdown/src/renderers/fluxer_markdown_renderers.dart';
+import 'package:fluxer_markdown/src/utils/markup_spacing.dart';
 import 'package:fluxer_markdown/src/widgets/fluxer_markdown.dart';
 import 'package:markdown/markdown.dart' as md;
 
@@ -790,8 +791,7 @@ void main() {
 
       final Offset headingBottom = tester.getBottomLeft(headingFinder);
       final Offset regularTop = tester.getTopLeft(regularFinder);
-      final double lineHeight =
-          (baseStyle.fontSize ?? 16) * (baseStyle.height ?? 1.375);
+      final double lineHeight = FluxerMarkupSpacing.headingBottom;
       expect(
         regularTop.dy - headingBottom.dy,
         greaterThanOrEqualTo(lineHeight - 1),

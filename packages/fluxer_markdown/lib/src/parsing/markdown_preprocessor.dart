@@ -56,6 +56,13 @@ String _preprocessFluxerMarkdownUncached(
     next = _neutralizeInvalidMaskedLinks(next);
     next = _escapeEmptyInlineFormatting(next);
 
+    if (!features.allowMaskedLinks) {
+      next = _escapeMaskedLinks(next);
+    }
+    if (!features.allowAutolinks) {
+      next = _escapeAutolinks(next);
+    }
+
     if (!features.allowSubtext && next.startsWith('-# ')) {
       next = '\\$next';
     }
@@ -68,6 +75,12 @@ String _preprocessFluxerMarkdownUncached(
     }
     if (features.allowLists && RegExp(r'^\s{0,3}\d+\\\.\s').hasMatch(next)) {
       next = next.replaceFirst(r'\', r'\\');
+    }
+    if (features.allowLists && RegExp(r'^ (?:[-*]|\d+\.)\s').hasMatch(next)) {
+      next = next.replaceFirstMapped(
+        RegExp(r'^ ([-*]|\d+\.)'),
+        (Match match) => ' \\${match.group(1)}',
+      );
     }
     if (!features.allowBlockquotes && RegExp(r'^\s{0,3}>').hasMatch(next)) {
       next = '\\$next';
@@ -95,13 +108,48 @@ String _neutralizeInvalidMaskedLinks(String line) {
   ) {
     final String text = match.group(1) ?? '';
     final String url = match.group(2) ?? '';
-    if (blankMarkdownLinkLabelPattern.hasMatch(text) ||
-        hasApostropheInMaskedLinkAuthority(url)) {
+    if (!hasVisibleMaskedLinkLabel(text) ||
+        hasApostropheInMaskedLinkAuthority(url) ||
+        isEmailLikeMaskedLinkLabel(text) ||
+        isSlashCommandLikeMaskedLinkLabel(text) ||
+        !isValidMaskedLinkUrl(url)) {
       final String escapedUrl = url.replaceAll(':', r'\:');
-      return r'\[' + text + r'\]\(' + escapedUrl + r'\)';
+      final String label = isEmailLikeMaskedLinkLabel(text)
+          ? text.replaceFirst('@', '@\u200b')
+          : text;
+      return r'\[' + label + r'\]\(' + escapedUrl + r'\)';
     }
     return match.group(0)!;
   });
+}
+
+String _escapeMaskedLinks(String line) {
+  return line.replaceAllMapped(RegExp(r'\[([^\]]*)\]\(([^)]+)\)'), (
+    Match match,
+  ) {
+    final String text = match.group(1) ?? '';
+    final String url = match.group(2) ?? '';
+    final String escapedUrl = url.replaceAll(':', r'\:');
+    return r'\[' + text + r'\]\(' + escapedUrl + r'\)';
+  });
+}
+
+String _escapeAutolinks(String line) {
+  return line
+      .replaceAllMapped(RegExp(r'<(https?://[^>]+)>'), (Match match) {
+        return r'\<' + match.group(1)! + r'\>';
+      })
+      .replaceAllMapped(RegExp(r'<(sms:\+[^>]+)>'), (Match match) {
+        return r'\<' + match.group(1)! + r'\>';
+      })
+      .replaceAllMapped(RegExp(r'<(\+[^>]+)>'), (Match match) {
+        return r'\<' + match.group(1)! + r'\>';
+      })
+      .replaceAllMapped(RegExp(r'<([^<>@\s]+@[^<>@\s]+\.[^<>@\s]+)>'), (
+        Match match,
+      ) {
+        return r'\<' + match.group(1)! + r'\>';
+      });
 }
 
 String _escapeEmptyInlineFormatting(String text) {
@@ -260,7 +308,7 @@ List<FluxerMarkdownSegment> _parseFluxerMarkdownSegmentsUncached(
     caseSensitive: false,
   );
   final lineRe = RegExp(r'^>\s?(.*)$');
-  final subtextRe = RegExp(r'^-#\s+(.*)$');
+  final subtextRe = RegExp(r'^-# ([^\s].*)$');
 
   final lines = text.split('\n');
   final segments = <FluxerMarkdownSegment>[];

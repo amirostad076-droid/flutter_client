@@ -2,6 +2,7 @@ import 'package:fluxer_markdown/src/config/fluxer_markdown_config.dart';
 import 'package:markdown/markdown.dart' as md;
 
 final RegExp blankMarkdownLinkLabelPattern = RegExp(r'^\s*$');
+const int kFluxerMarkdownMaxMaskedLinkUrlLength = 2048;
 
 bool hasApostropheInMaskedLinkAuthority(String url) {
   final Uri? uri = Uri.tryParse(url);
@@ -11,18 +12,120 @@ bool hasApostropheInMaskedLinkAuthority(String url) {
   return uri.host.contains("'");
 }
 
-class FluxerInlineCodeSyntax extends md.InlineSyntax {
-  FluxerInlineCodeSyntax() : super(r'`([^`\n]+)`');
+bool isEmailLikeMaskedLinkLabel(String text) {
+  final int atIndex = text.indexOf('@');
+  if (atIndex <= 0 || atIndex == text.length - 1) {
+    return false;
+  }
+  if (text.contains(RegExp(r'\s'))) {
+    return false;
+  }
+  return text.substring(atIndex + 1).contains('.');
+}
+
+bool isSlashCommandLikeMaskedLinkLabel(String text) {
+  final String trimmed = text.trim();
+  return trimmed.startsWith('</') &&
+      trimmed.endsWith('>') &&
+      trimmed.contains(':');
+}
+
+bool isValidMaskedLinkUrl(String url) {
+  if (url.isEmpty || url.length > kFluxerMarkdownMaxMaskedLinkUrlLength) {
+    return false;
+  }
+  if (url.contains('"')) {
+    return false;
+  }
+  final Uri? uri = Uri.tryParse(url);
+  if (uri == null) {
+    return false;
+  }
+  final String scheme = uri.scheme.toLowerCase();
+  return scheme == 'http' ||
+      scheme == 'https' ||
+      scheme == 'mailto' ||
+      scheme == 'tel' ||
+      scheme == 'sms' ||
+      scheme == 'fluxer';
+}
+
+bool isValidPhoneNumber(String text) {
+  if (!text.startsWith('+') || text.length < 7) {
+    return false;
+  }
+  final String digits = text.substring(1);
+  if (digits.isEmpty || !RegExp(r'^[1-9]').hasMatch(digits)) {
+    return false;
+  }
+  return RegExp(r'^[0-9][0-9 \-()]*$').hasMatch(digits);
+}
+
+String normalizePhoneNumber(String text) {
+  return text.replaceAll(RegExp(r'[^0-9+]'), '');
+}
+
+class FluxerAngleEmailLinkSyntax extends md.InlineSyntax {
+  FluxerAngleEmailLinkSyntax() : super(r'<([^<>@\s]+@[^<>@\s]+\.[^<>@\s]+)>');
 
   @override
   bool onMatch(md.InlineParser parser, Match match) {
-    final String? content = match.group(1);
-    if (content == null || content.isEmpty) {
+    final String? email = match.group(1);
+    if (email == null || email.isEmpty || email.startsWith('+')) {
       return false;
     }
-    parser.addNode(md.Element.text('code', content));
+    final md.Element anchor = md.Element.text('a', email)
+      ..attributes['href'] = 'mailto:$email';
+    parser.addNode(anchor);
     return true;
   }
+}
+
+class FluxerPhoneLinkSyntax extends md.InlineSyntax {
+  FluxerPhoneLinkSyntax() : super(r'<(\+[0-9][0-9 \-()]{5,})>');
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) {
+    final String? raw = match.group(1);
+    if (raw == null || !isValidPhoneNumber(raw)) {
+      return false;
+    }
+    final String normalized = normalizePhoneNumber(raw);
+    final md.Element anchor = md.Element.text('a', raw)
+      ..attributes['href'] = 'tel:$normalized';
+    parser.addNode(anchor);
+    return true;
+  }
+}
+
+class FluxerSmsLinkSyntax extends md.InlineSyntax {
+  FluxerSmsLinkSyntax() : super(r'<sms:(\+[0-9][0-9 \-()]{5,})>');
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) {
+    final String? raw = match.group(1);
+    if (raw == null || !isValidPhoneNumber(raw)) {
+      return false;
+    }
+    final String normalized = normalizePhoneNumber(raw);
+    final md.Element anchor = md.Element.text('a', raw)
+      ..attributes['href'] = 'sms:$normalized';
+    parser.addNode(anchor);
+    return true;
+  }
+}
+
+bool hasVisibleMaskedLinkLabel(String text) {
+  for (final int codeUnit in text.runes) {
+    if (codeUnit != 0x20 &&
+        codeUnit != 0x09 &&
+        codeUnit != 0x0A &&
+        codeUnit != 0x0D &&
+        codeUnit != 0x200E) {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool _hasVisibleMarkdownContent(String value) {
