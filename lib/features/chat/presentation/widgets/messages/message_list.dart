@@ -1074,7 +1074,13 @@ class _MessageListState extends ConsumerState<MessageList> {
     );
   }
 
-  void _onScrollToBottom() {
+  /// Honors [explicitIntent] requests from any distance; a bare signal is
+  /// filtered by [_isSoftReconcileWhileDisarmed].
+  void _onScrollToBottom({bool explicitIntent = false}) {
+    // Gated first: a dropped request must not retire the parked target.
+    if (!explicitIntent && _isSoftReconcileWhileDisarmed()) {
+      return;
+    }
     // The escape hatch preempts: retire any parked target instead of
     // refusing the tap.
     _clearPendingScrollTarget();
@@ -1090,18 +1096,6 @@ class _MessageListState extends ConsumerState<MessageList> {
       _requestJumpToLatest();
       return;
     }
-    // scrollToBottomSignal serves both the jump button and post-resync
-    // glue. While disarmed, honor only requests past the jump-button
-    // threshold (a tap); nearer ones are soft reconcile.
-    if (_followDisarmed && _scrollController.hasClients) {
-      final ScrollPosition position = _scrollController.position;
-      if (!isBeyondJumpToBottomThreshold(
-        distanceFromBottom: _centerTrailingDistance(position),
-        viewportHeight: position.viewportDimension,
-      )) {
-        return;
-      }
-    }
     _followDisarmed = false;
     _pin.onJumpToPresentLanded();
     final int epoch = _uiEpoch;
@@ -1115,6 +1109,23 @@ class _MessageListState extends ConsumerState<MessageList> {
         }
       });
     });
+  }
+
+  /// Only glue can have produced this request: the reader left the tail and
+  /// is still nearer than the jump button's own visibility threshold.
+  bool _isSoftReconcileWhileDisarmed() {
+    if (!_followDisarmed || !_scrollController.hasClients) {
+      return false;
+    }
+    // An unconfirmed tail must fetch the present, reconcile or not.
+    if (ref.read(chatViewModelProvider).hasMoreNewerMessages) {
+      return false;
+    }
+    final ScrollPosition position = _scrollController.position;
+    return !isBeyondJumpToBottomThreshold(
+      distanceFromBottom: _centerTrailingDistance(position),
+      viewportHeight: position.viewportDimension,
+    );
   }
 
   /// Arms the land-at-tail flag and starts a jump. Re-entrant requests are
@@ -1181,7 +1192,7 @@ class _MessageListState extends ConsumerState<MessageList> {
   }
 
   void _onUnreadBarMarkRead() {
-    _onScrollToBottom();
+    _onScrollToBottom(explicitIntent: true);
     unawaited(_chatViewModel.markCurrentChannelRead());
   }
 

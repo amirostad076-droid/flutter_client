@@ -1286,6 +1286,69 @@ void main() {
       },
     );
 
+    testWidgets(
+      'mark-read lands at the tail after a deliberate drag away, inside the '
+      'jump-button threshold',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(420, 640);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        final _AroundAckMessageListHarness harness =
+            await _createBottomMessageListHarness();
+        await tester.pumpWidget(
+          _messageListApp(
+            database: harness.database,
+            chatViewModel: harness.chatViewModel,
+          ),
+        );
+        await pumpFluxerFrames(tester);
+        for (int frame = 0; frame < 4; frame += 1) {
+          await tester.pump();
+        }
+        final ScrollPosition position = _messageListScrollPosition(tester);
+
+        // A finger drag, not a programmatic jump, is what disarms follow.
+        await tester.drag(_messageListScrollable(), const Offset(0, 120));
+        await pumpFluxerFrames(tester);
+        final double distance = position.maxScrollExtent - position.pixels;
+        expect(
+          distance,
+          greaterThan(kMessageListReadBottomThreshold),
+          reason: 'the unread bar only renders away from the tail',
+        );
+        expect(
+          distance,
+          lessThan(position.viewportDimension * kJumpToBottomViewportFraction),
+          reason:
+              'mark-read is the only to-tail intent reachable from inside '
+              'the jump button threshold',
+        );
+
+        harness.appendRealtimeMessage(acknowledgedByGateway: false);
+        await tester.pump();
+        await tester.pump();
+        expect(find.byType(MessageListNewMessagesBar), findsOneWidget);
+        expect(
+          position.maxScrollExtent - position.pixels,
+          greaterThan(kMessageListReadBottomThreshold),
+          reason: 'a disarmed leave must not follow the live arrival',
+        );
+
+        await tester.tap(find.text('Mark Read'));
+        await pumpFluxerFrames(tester);
+
+        expect(
+          position.pixels,
+          moreOrLessEquals(position.maxScrollExtent, epsilon: 1),
+          reason: 'mark-read is a to-tail intent, not glue',
+        );
+
+        await _disposeMessageList(tester);
+      },
+    );
+
     testWidgets('manual unread rollback ignores the auto-ack watermark', (
       WidgetTester tester,
     ) async {
