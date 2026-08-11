@@ -77,6 +77,14 @@ double voiceGridGap({
   if (edgeToEdge) {
     return (sidePadding: 0, verticalPadding: 0);
   }
+  // Compact grids pack into thin strips; scale padding down so min tiles fit.
+  if (compact) {
+    final double height = _sanitizeDimension(containerHeight);
+    return (
+      sidePadding: _clamp(height * 0.02, 6, 12),
+      verticalPadding: _clamp(height * 0.018, 5, 10),
+    );
+  }
   return (
     sidePadding: voiceGridEdgePaddingPx,
     verticalPadding: voiceGridEdgePaddingPx,
