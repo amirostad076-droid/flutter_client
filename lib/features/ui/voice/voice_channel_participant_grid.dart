@@ -213,6 +213,26 @@ class _VoiceChannelParticipantGridState
   void _revealOverlay() {
     setState(() => isOverlayVisible = true);
     _scheduleOverlayHide();
+    if (isPhoneVoiceOverlay(context)) {
+      ref.read(voiceCallOverlayProvider.notifier).reveal();
+    }
+  }
+
+  void _onBackgroundTap() {
+    if (!isPhoneVoiceOverlay(context)) {
+      return;
+    }
+    final VoiceCallOverlayState overlay = ref.read(voiceCallOverlayProvider);
+    if (overlay.showsOverlay) {
+      ref.read(voiceCallOverlayProvider.notifier).hide();
+      _cancelOverlayHideTimer();
+      if (isOverlayVisible) {
+        setState(() => isOverlayVisible = false);
+      }
+      return;
+    }
+    ref.read(voiceCallOverlayProvider.notifier).reveal();
+    _revealOverlay();
   }
 
   Participant? _resolveParticipant(
@@ -356,13 +376,6 @@ class _VoiceChannelParticipantGridState
     }
     ref.read(voiceCallLayoutProvider.notifier).pin(item.tileId);
     _revealOverlay();
-  }
-
-  void _onBackgroundTap() {
-    if (!isPhoneVoiceOverlay(context)) {
-      return;
-    }
-    ref.read(voiceCallOverlayProvider.notifier).toggle();
   }
 
   _VoiceGridTileItem? _findSelfTile(
@@ -682,6 +695,35 @@ class _VoiceChannelParticipantGridState
     return tiles.first;
   }
 
+  double? _resolveTileAspectRatio(
+    _VoiceGridTileItem tile,
+    Room? room,
+    String? me,
+    String? localConnectionId,
+  ) {
+    final Participant? participant = _resolveParticipant(
+      tile,
+      room,
+      me,
+      localConnectionId,
+    );
+    if (participant == null) {
+      return null;
+    }
+    final TrackPublication? publication =
+        tile.source == VoiceParticipantTileSource.screenShare
+        ? resolveScreenShareVideoPublication(
+            participant: participant,
+            requireTrack: false,
+          )
+        : resolveCameraPublicationAllowingNoTrack(participant);
+    final VideoDimensions? dimensions = publication?.dimensions;
+    if (dimensions == null || dimensions.width <= 0 || dimensions.height <= 0) {
+      return null;
+    }
+    return dimensions.width / dimensions.height;
+  }
+
   Widget _buildHangout({
     required BuildContext context,
     required double maxWidth,
@@ -705,12 +747,23 @@ class _VoiceChannelParticipantGridState
     );
     final double innerWidth = maxWidth - padding.horizontal;
     final double innerHeight = maxHeight - padding.vertical;
-    final List<Rect> rects = voiceHangoutTileRects(
-      tileCount: tiles.length,
-      width: innerWidth,
-      height: innerHeight,
-      landscape: landscape,
-    );
+    final double? singleAspect = tiles.length == 1
+        ? _resolveTileAspectRatio(tiles.first, room, me, localConnectionId)
+        : null;
+    final List<Rect> rects = tiles.length == 1
+        ? <Rect>[
+            voiceHangoutCenteredAspectRect(
+              width: innerWidth,
+              height: innerHeight,
+              aspectRatio: singleAspect ?? voiceGridTileAspectRatio,
+            ),
+          ]
+        : voiceHangoutTileRects(
+            tileCount: tiles.length,
+            width: innerWidth,
+            height: innerHeight,
+            landscape: landscape,
+          );
     final List<Widget> positioned = <Widget>[];
     for (int i = 0; i < tiles.length; i++) {
       final Rect rect = rects[i];
@@ -732,6 +785,7 @@ class _VoiceChannelParticipantGridState
             l10n: l10n,
             isFocusMain: false,
             isActiveScreenShare: false,
+            fillContainer: true,
           ),
         ),
       );
@@ -1037,6 +1091,12 @@ class _VoiceChannelParticipantGridState
       horizontal: compact ? 8 : 12,
       vertical: compact ? 8 : 12,
     );
+    final double? trackAspect = _resolveTileAspectRatio(
+      mainTile,
+      room,
+      me,
+      localConnectionId,
+    );
     final Widget mainStage = RepaintBoundary(
       child: _buildCard(
         context: context,
@@ -1050,16 +1110,26 @@ class _VoiceChannelParticipantGridState
         l10n: l10n,
         isFocusMain: true,
         isActiveScreenShare: isActiveScreenShareMain,
-        fillContainer: isActiveScreenShareMain,
+        fillContainer: true,
       ),
     );
     final Widget mainExpanded = isActiveScreenShareMain
         ? mainStage
-        : Center(
-            child: AspectRatio(
-              aspectRatio: voiceGridTileAspectRatio,
-              child: mainStage,
-            ),
+        : LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              final Rect rect = voiceHangoutCenteredAspectRect(
+                width: constraints.maxWidth,
+                height: constraints.maxHeight,
+                aspectRatio: trackAspect ?? voiceGridTileAspectRatio,
+              );
+              return Align(
+                child: SizedBox(
+                  width: rect.width,
+                  height: rect.height,
+                  child: mainStage,
+                ),
+              );
+            },
           );
     Widget filmstripTile(_VoiceGridTileItem tile) {
       return RepaintBoundary(
@@ -1489,11 +1559,11 @@ class _StreamStatusBadge extends StatelessWidget {
       return null;
     }
     final VideoDimensions? dimensions = publication.dimensions;
-    if (dimensions == null || dimensions.height <= 0) {
+    if (dimensions == null || dimensions.width <= 0 || dimensions.height <= 0) {
       return null;
     }
     return _StreamTrackInfo(
-      height: dimensions.height,
+      height: math.min(dimensions.width, dimensions.height),
       fps: _extractFps(publication),
     );
   }

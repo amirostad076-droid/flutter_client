@@ -52,7 +52,7 @@ List<Rect> voiceHangoutTileRects({
     return <Rect>[];
   }
   if (tileCount == 1) {
-    return <Rect>[Rect.fromLTWH(0, 0, width, height)];
+    return <Rect>[voiceHangoutCenteredAspectRect(width: width, height: height)];
   }
   if (tileCount == 2) {
     if (landscape) {

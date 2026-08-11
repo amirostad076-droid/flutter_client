@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' show Rect;
 
 import 'package:fluxer_app/features/voice/utils/voice_grid_layout/voice_grid_layout.dart';
 
@@ -22,6 +23,24 @@ List<List<T>> voiceGridPaginateTiles<T>({
     pages.add(tiles.sublist(i, end));
   }
   return pages;
+}
+
+Rect voiceHangoutCenteredAspectRect({
+  required double width,
+  required double height,
+  double aspectRatio = voiceGridTileAspectRatio,
+}) {
+  if (width <= 0 || height <= 0 || aspectRatio <= 0) {
+    return Rect.zero;
+  }
+  final double fittedWidth = math.min(width, height * aspectRatio);
+  final double fittedHeight = fittedWidth / aspectRatio;
+  return Rect.fromLTWH(
+    (width - fittedWidth) / 2,
+    (height - fittedHeight) / 2,
+    fittedWidth,
+    fittedHeight,
+  );
 }
 
 double voiceHangoutFilmstripCrossAxis({required bool compact}) {
