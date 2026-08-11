@@ -37,7 +37,15 @@ class SplashRevealOverlay {
     required Color logoBrandSymbolColor,
     required Offset logoCenterGlobal,
     VoidCallback? onComplete,
+    bool? animationsEnabled,
   }) {
+    final bool enabled =
+        animationsEnabled ?? !MediaQuery.disableAnimationsOf(context);
+    if (!enabled) {
+      onComplete?.call();
+      return;
+    }
+
     final OverlayState overlay = Overlay.of(context, rootOverlay: true);
     late final OverlayEntry entry;
     entry = OverlayEntry(
