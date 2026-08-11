@@ -21,6 +21,7 @@ import 'package:fluxer_app/features/dm/utils/group_dm_display_name.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/role_providers.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
+import 'package:fluxer_app/features/ui/tappable/fluxer_gesture_detector.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/guild_user_display_provider.dart';
 import 'package:fluxer_app/shared/utils/display_name.dart';
@@ -75,7 +76,7 @@ class ChannelMention extends ConsumerWidget {
             : ChannelType.fromWire(fallback!.type));
     final bool canNavigate =
         channel != null && isClickableChannelMention(channel);
-    return GestureDetector(
+    return FluxerGestureDetector(
       onTap: canNavigate
           ? () => navigateToGuildChannelContent(
               context: context,
@@ -268,7 +269,7 @@ class UserMention extends ConsumerWidget {
       color: colors.markupMentionText,
       fontWeight: FontWeight.w500,
     );
-    return GestureDetector(
+    return FluxerGestureDetector(
       onTap: () => unawaited(
         FluxerUserProfileSheet.show(
           context,
@@ -518,7 +519,7 @@ class _JumpLinkPillState extends State<_JumpLinkPill> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
+      child: FluxerGestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 50),

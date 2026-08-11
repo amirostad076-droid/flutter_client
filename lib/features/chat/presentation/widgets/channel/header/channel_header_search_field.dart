@@ -1409,7 +1409,7 @@ class _ChannelHeaderSearchFieldState
         return Stack(
           children: <Widget>[
             Positioned.fill(
-              child: GestureDetector(
+              child: FluxerGestureDetector(
                 onTap: _hideOverlay,
                 behavior: HitTestBehavior.opaque,
                 child: const ColoredBox(color: Colors.transparent),

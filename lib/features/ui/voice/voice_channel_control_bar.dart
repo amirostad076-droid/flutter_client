@@ -14,6 +14,7 @@ import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button_variant.dart';
+import 'package:fluxer_app/features/ui/tappable/fluxer_gesture_detector.dart';
 import 'package:fluxer_app/features/ui/voice/flip_camera_button.dart';
 import 'package:fluxer_app/features/voice/presentation/sheets/voice_channel_chat_sheet.dart';
 import 'package:fluxer_app/features/voice/presentation/widgets/voice_chat_unread_badge.dart';
@@ -481,7 +482,7 @@ class _VoiceControlCircleState extends State<_VoiceControlCircle> {
       enabled: enabled,
       child: Tooltip(
         message: widget.tooltip,
-        child: GestureDetector(
+        child: FluxerGestureDetector(
           behavior: HitTestBehavior.opaque,
           onTapDown: (_) => _setPressed(true),
           onTapUp: (_) => _setPressed(false),

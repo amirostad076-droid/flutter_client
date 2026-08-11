@@ -2269,7 +2269,7 @@ class _SearchFilterChip extends StatelessWidget {
               ],
               if (isActive && onRemove != null) ...[
                 const SizedBox(width: 6),
-                GestureDetector(
+                FluxerGestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: onRemove,
                   child: const PhosphorIcon(

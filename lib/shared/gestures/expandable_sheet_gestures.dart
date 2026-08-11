@@ -3,6 +3,7 @@ import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/ui/tappable/fluxer_gesture_detector.dart';
 
 const double kExpandableSheetSnapMidpointFraction = 0.42;
 const double kExpandableSheetFlingVelocityThreshold = 650;
@@ -196,7 +197,7 @@ class ExpandableSheetDragTarget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return FluxerGestureDetector(
       behavior: HitTestBehavior.opaque,
       onVerticalDragStart: onVerticalDragStart,
       onVerticalDragUpdate: onVerticalDragUpdate,

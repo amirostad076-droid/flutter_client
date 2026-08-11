@@ -12,6 +12,7 @@ import 'package:fluxer_app/features/settings/providers/advanced_preferences_prov
 import 'package:fluxer_app/features/settings/providers/voice_settings_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
+import 'package:fluxer_app/features/ui/tappable/fluxer_gesture_detector.dart';
 import 'package:fluxer_app/features/ui/voice/fluxer_live_badge.dart';
 import 'package:fluxer_app/features/ui/voice/voice_channel_participant_layouts.dart';
 import 'package:fluxer_app/features/ui/voice/voice_participant_media_tile.dart';
@@ -660,7 +661,7 @@ class _VoiceChannelParticipantGridState
     return SizedBox(
       width: maxWidth,
       height: maxHeight,
-      child: GestureDetector(
+      child: FluxerGestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: _onBackgroundTap,
         child: child,

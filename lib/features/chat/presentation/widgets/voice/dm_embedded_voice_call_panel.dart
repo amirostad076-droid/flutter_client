@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
+import 'package:fluxer_app/features/ui/tappable/fluxer_gesture_detector.dart';
 import 'package:fluxer_app/features/ui/voice/local_camera_orientation_sync.dart';
 import 'package:fluxer_app/features/ui/voice/voice_channel_control_bar.dart';
 import 'package:fluxer_app/features/ui/voice/voice_channel_participant_grid.dart';
@@ -63,7 +64,7 @@ class _DmEmbeddedVoiceCallPanelState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            GestureDetector(
+            FluxerGestureDetector(
               behavior: HitTestBehavior.opaque,
               onVerticalDragUpdate: (DragUpdateDetails d) {
                 setState(() {

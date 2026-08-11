@@ -1283,6 +1283,7 @@ class _MarkdownInlineRenderer {
       return TextSpan(
         text: span.text,
         style: span.style,
+        mouseCursor: SystemMouseCursors.click,
         recognizer: TapGestureRecognizer()
           ..onTap = () {
             unawaited(_handleLinkTap(href));

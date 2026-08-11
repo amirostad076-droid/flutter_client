@@ -23,13 +23,13 @@ import 'package:fluxer_app/features/settings/domain/user_settings_section.dart';
 import 'package:fluxer_app/features/settings/presentation/user_settings_nav.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/settings_sidebar.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_accessibility.dart';
-import 'package:fluxer_app/features/settings/presentation/widgets/user_default_apps.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_advanced_settings.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_appearance.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_audio_and_video.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_authorized_apps.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_blocked_users.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_connections.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/user_default_apps.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_language_and_time.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_linked_devices.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_look_and_feel.dart';
@@ -652,7 +652,7 @@ class _SettingsBuildInfoFooter extends ConsumerWidget {
         final Widget buildInfo = Semantics(
           button: true,
           label: 'Copy app info',
-          child: GestureDetector(
+          child: FluxerGestureDetector(
             onTap: () => _copyBuildInfoToClipboard(context, info),
             child: Text(
               text,

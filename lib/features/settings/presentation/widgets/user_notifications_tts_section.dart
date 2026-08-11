@@ -52,7 +52,7 @@ class UserNotificationsTtsSection extends ConsumerWidget {
                   WidgetSpan(
                     alignment: PlaceholderAlignment.baseline,
                     baseline: TextBaseline.alphabetic,
-                    child: GestureDetector(
+                    child: FluxerGestureDetector(
                       onTap: () => unawaited(
                         UserSettingsModal.show(
                           context,

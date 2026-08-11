@@ -19,6 +19,7 @@ import 'package:fluxer_app/features/shell/utils/splash_quotes.dart';
 import 'package:fluxer_app/features/ui/animation/animation_controller_visibility_extension.dart';
 import 'package:fluxer_app/features/ui/background/starfield_background.dart';
 import 'package:fluxer_app/features/ui/icons/fluxer_brand_logo.dart';
+import 'package:fluxer_app/features/ui/tappable/fluxer_gesture_detector.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
 
@@ -432,7 +433,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                                   children: [
                                     MouseRegion(
                                       cursor: SystemMouseCursors.click,
-                                      child: GestureDetector(
+                                      child: FluxerGestureDetector(
                                         onTap: () => handleExternalLinkTap(
                                           context,
                                           ExternalUrls.serviceStatus,
@@ -451,7 +452,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                                     ),
                                     MouseRegion(
                                       cursor: SystemMouseCursors.click,
-                                      child: GestureDetector(
+                                      child: FluxerGestureDetector(
                                         onTap: () => handleExternalLinkTap(
                                           context,
                                           secondLinkUrl,
@@ -510,7 +511,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         children: [
           MouseRegion(
             cursor: SystemMouseCursors.click,
-            child: GestureDetector(
+            child: FluxerGestureDetector(
               onTap: () => handleExternalLinkTap(context, visibleIncident.url),
               child: Text(
                 displayText,
@@ -524,7 +525,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           const SizedBox(height: 12),
           MouseRegion(
             cursor: SystemMouseCursors.click,
-            child: GestureDetector(
+            child: FluxerGestureDetector(
               onTap: () =>
                   handleExternalLinkTap(context, ExternalUrls.serviceStatus),
               child: Text(

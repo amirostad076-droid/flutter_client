@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
+import 'package:fluxer_app/features/ui/tappable/fluxer_gesture_detector.dart';
 import 'package:fluxer_app/features/ui/text/fluxer_field_label.dart';
 
 class FluxerRadioItem<T> {
@@ -81,7 +82,7 @@ class FluxerRadioGroup<T> extends StatelessWidget {
       label: item.label,
       onTap: () => _onChanged(item.value),
       child: ExcludeSemantics(
-        child: GestureDetector(
+        child: FluxerGestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () => _onChanged(item.value),
           child: Row(
