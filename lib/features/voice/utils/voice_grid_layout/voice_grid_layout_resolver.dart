@@ -77,29 +77,10 @@ double voiceGridGap({
   if (edgeToEdge) {
     return (sidePadding: 0, verticalPadding: 0);
   }
-  final double width = _sanitizeDimension(containerWidth);
-  final double height = _sanitizeDimension(containerHeight);
-  final double sidePadding;
-  if (compact) {
-    sidePadding = _clamp(height * 0.02, 6, 12);
-  } else if (width <= 419) {
-    sidePadding = 6;
-  } else if (width <= 759) {
-    sidePadding = 8;
-  } else {
-    sidePadding = voiceGridDefaultSidePaddingPx;
-  }
-  final double verticalPadding;
-  if (compact) {
-    verticalPadding = _clamp(height * 0.018, 5, 10);
-  } else if (height <= 359) {
-    verticalPadding = 8;
-  } else if (height <= 519) {
-    verticalPadding = 10;
-  } else {
-    verticalPadding = voiceGridDefaultVerticalPaddingPx;
-  }
-  return (sidePadding: sidePadding, verticalPadding: verticalPadding);
+  return (
+    sidePadding: voiceGridEdgePaddingPx,
+    verticalPadding: voiceGridEdgePaddingPx,
+  );
 }
 
 VoiceGridMinTileSize voiceGridMinTileSize({bool compact = false}) {

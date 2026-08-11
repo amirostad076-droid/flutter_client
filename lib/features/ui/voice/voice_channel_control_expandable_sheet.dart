@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/ui/voice/voice_call_system_ui_sync.dart';
 import 'package:fluxer_app/features/ui/voice/voice_channel_control_bar.dart';
 import 'package:fluxer_app/features/ui/voice/voice_channel_control_panel_settings.dart';
 import 'package:fluxer_app/features/voice/providers/screen_share_capability_provider.dart';
@@ -54,7 +55,7 @@ class VoiceCallMobilePageLayout extends ConsumerWidget {
       ),
     );
     if (!isInVoice) {
-      return child;
+      return VoiceCallSystemUiSync(child: child);
     }
     final bool showsOverlay = ref.watch(
       voiceCallOverlayProvider.select(
@@ -64,44 +65,46 @@ class VoiceCallMobilePageLayout extends ConsumerWidget {
     final double footprint = showsOverlay
         ? voiceChannelControlCollapsedFootprint(context)
         : 0;
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        return Stack(
-          fit: StackFit.expand,
-          children: <Widget>[
-            Padding(
-              padding: EdgeInsets.only(bottom: footprint),
-              child: child,
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: AnimatedSlide(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOutCubic,
-                offset: showsOverlay ? Offset.zero : const Offset(0, 1.2),
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 180),
-                  opacity: showsOverlay ? 1 : 0,
-                  child: IgnorePointer(
-                    ignoring: !showsOverlay,
-                    child: VoiceChannelControlExpandableSheet(
-                      channelId: this.channelId ?? channelId,
-                      guildId: this.guildId ?? guildId,
-                      isConnected: isConnected,
-                      connectionId: connectionId,
-                      parentHeight: constraints.maxHeight,
-                      parentWidth: constraints.maxWidth,
-                      positioned: false,
+    return VoiceCallSystemUiSync(
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          return Stack(
+            fit: StackFit.expand,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.only(bottom: footprint),
+                child: child,
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: AnimatedSlide(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutCubic,
+                  offset: showsOverlay ? Offset.zero : const Offset(0, 1.2),
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 180),
+                    opacity: showsOverlay ? 1 : 0,
+                    child: IgnorePointer(
+                      ignoring: !showsOverlay,
+                      child: VoiceChannelControlExpandableSheet(
+                        channelId: this.channelId ?? channelId,
+                        guildId: this.guildId ?? guildId,
+                        isConnected: isConnected,
+                        connectionId: connectionId,
+                        parentHeight: constraints.maxHeight,
+                        parentWidth: constraints.maxWidth,
+                        positioned: false,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
-        );
-      },
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -508,7 +511,6 @@ class _VoiceChannelControlExpandableSheetState
                                                           _canScreenShare,
                                                       useCompactControls:
                                                           useNarrowControls,
-                                                      showFlipCamera: true,
                                                     ),
                                                   ),
                                                 ],

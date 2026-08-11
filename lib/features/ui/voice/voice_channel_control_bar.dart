@@ -15,7 +15,6 @@ import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button_size.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button_variant.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_gesture_detector.dart';
-import 'package:fluxer_app/features/ui/voice/flip_camera_button.dart';
 import 'package:fluxer_app/features/voice/presentation/sheets/voice_channel_chat_sheet.dart';
 import 'package:fluxer_app/features/voice/presentation/widgets/voice_chat_unread_badge.dart';
 import 'package:fluxer_app/features/voice/providers/screen_share_capability_provider.dart';
@@ -189,7 +188,6 @@ class VoiceChannelControlBar extends ConsumerWidget {
         guildId: guildId,
         isConnected: isConnected,
         connectionId: connectionId,
-        showFlipCamera: true,
       ),
     );
   }
@@ -206,7 +204,6 @@ class VoiceChannelControlBarContent extends ConsumerWidget {
     this.expansion,
     this.canScreenShare,
     this.useCompactControls = false,
-    this.showFlipCamera = false,
     super.key,
   });
 
@@ -219,7 +216,6 @@ class VoiceChannelControlBarContent extends ConsumerWidget {
   final double? expansion;
   final bool? canScreenShare;
   final bool useCompactControls;
-  final bool showFlipCamera;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -357,27 +353,19 @@ class VoiceChannelControlBarContent extends ConsumerWidget {
             buttonCount: buttonCount,
             expansion: expansion!,
           );
-      final List<Widget> rowChildren = <Widget>[
-        if (showFlipCamera && isVideoOn) const FlipCameraButton(),
-        ...controlButtons,
-      ];
       controls = Padding(
         padding: EdgeInsets.symmetric(horizontal: rowLayout.sideInset),
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: Row(spacing: rowLayout.spacing, children: rowChildren),
+          child: Row(spacing: rowLayout.spacing, children: controlButtons),
         ),
       );
     } else {
-      final List<Widget> rowChildren = <Widget>[
-        if (showFlipCamera && isVideoOn) const FlipCameraButton(),
-        ...controlButtons,
-      ];
       controls = Row(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         spacing: kVoiceControlGap,
-        children: rowChildren,
+        children: controlButtons,
       );
     }
     if (isEmbedded) {
