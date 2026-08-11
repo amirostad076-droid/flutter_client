@@ -40,6 +40,7 @@ class VoiceParticipantMediaTile extends StatelessWidget {
     this.isTileFocused = true,
     this.pauseOwnScreenSharePreviewOnUnfocus = true,
     this.isFilmstrip = false,
+    this.fillContainer = false,
     this.user,
     this.mirrorCamera = false,
     super.key,
@@ -55,6 +56,7 @@ class VoiceParticipantMediaTile extends StatelessWidget {
   final VoiceParticipantTileSource tileSource;
   final bool isActiveScreenShare;
   final bool isFilmstrip;
+  final bool fillContainer;
   final bool isTileFocused;
   final bool pauseOwnScreenSharePreviewOnUnfocus;
   final String? streamPreviewUrl;
@@ -151,7 +153,17 @@ class VoiceParticipantMediaTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             child: ColoredBox(
               color: backgroundColor,
-              child: AspectRatio(aspectRatio: _kAreaAspect, child: videoChild),
+              child: fillContainer
+                  ? SizedBox.expand(
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: AspectRatio(
+                          aspectRatio: _kAreaAspect,
+                          child: videoChild,
+                        ),
+                      ),
+                    )
+                  : AspectRatio(aspectRatio: _kAreaAspect, child: videoChild),
             ),
           );
           if (isScreenShareTile && !isActiveScreenShare) {

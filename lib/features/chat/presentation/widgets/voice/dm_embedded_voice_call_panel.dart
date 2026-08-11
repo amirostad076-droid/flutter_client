@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
+import 'package:fluxer_app/features/ui/voice/local_camera_orientation_sync.dart';
 import 'package:fluxer_app/features/ui/voice/voice_channel_control_bar.dart';
 import 'package:fluxer_app/features/ui/voice/voice_channel_participant_grid.dart';
 import 'package:fluxer_app/features/voice/providers/voice_session_provider.dart';
@@ -114,7 +115,7 @@ class _DmEmbeddedVoiceCallPanelState
             ),
             Divider(height: 1, color: context.colors.borderColor),
             Expanded(
-              child: _LocalCameraOrientationSync(
+              child: LocalCameraOrientationSync(
                 child: VoiceChannelParticipantGrid(channelId: widget.channelId),
               ),
             ),
@@ -123,38 +124,5 @@ class _DmEmbeddedVoiceCallPanelState
         ),
       ),
     );
-  }
-}
-
-class _LocalCameraOrientationSync extends ConsumerStatefulWidget {
-  const _LocalCameraOrientationSync({required this.child});
-
-  final Widget child;
-
-  @override
-  ConsumerState<_LocalCameraOrientationSync> createState() =>
-      _LocalCameraOrientationSyncState();
-}
-
-class _LocalCameraOrientationSyncState
-    extends ConsumerState<_LocalCameraOrientationSync> {
-  Orientation? _lastOrientation;
-
-  @override
-  Widget build(BuildContext context) {
-    final Orientation orientation = MediaQuery.orientationOf(context);
-    if (_lastOrientation != null && _lastOrientation != orientation) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          unawaited(
-            ref
-                .read(voiceSessionProvider.notifier)
-                .refreshLocalCameraAfterOrientationChange(),
-          );
-        }
-      });
-    }
-    _lastOrientation = orientation;
-    return widget.child;
   }
 }

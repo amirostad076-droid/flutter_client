@@ -83,6 +83,12 @@ bool isDesktopLayout(BuildContext context) =>
 /// Non-mobile layout (tablet + desktop). Matches web `!MobileLayout.enabled`.
 bool isWideLayout(BuildContext context) => !isMobileLayout(context);
 
+/// Phone voice overlay (immersive hideable header/controls).
+bool isPhoneVoiceOverlay(BuildContext context) {
+  return layoutReferenceExtentOf(MediaQuery.sizeOf(context)) <
+      Breakpoints.mobile;
+}
+
 /// Mobile layout with enough width for a peek drawer beside chat.
 bool isCompactWideMobileLayout(BuildContext context) {
   final Size size = MediaQuery.sizeOf(context);
