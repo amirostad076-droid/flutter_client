@@ -90,9 +90,17 @@ bool isPhoneVoiceOverlay(BuildContext context) {
 }
 
 /// Mobile layout with enough width for a peek drawer beside chat.
+///
+/// True only when the shortest side is tablet but width cannot fit the
+/// full shell (foldables / small tablets). Phone landscape is wide enough for
+/// [Breakpoints.compactWide] but stays on the normal drawer.
 bool isCompactWideMobileLayout(BuildContext context) {
   final Size size = MediaQuery.sizeOf(context);
-  return isMobileLayout(context) && size.width >= Breakpoints.compactWide;
+  if (size.width < Breakpoints.compactWide || !isMobileLayout(context)) {
+    return false;
+  }
+  // Same gate as phone vs tablet classification; ignores orientation.
+  return layoutReferenceExtentOf(size) >= Breakpoints.mobile;
 }
 
 /// How far the chat slider moves to expose the guild rail and channel list.
