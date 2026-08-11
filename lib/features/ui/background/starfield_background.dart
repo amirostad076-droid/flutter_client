@@ -72,6 +72,7 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
   );
   Offset _parallaxTarget = Offset.zero;
   int? _parallaxRotation;
+  bool? _animationsEnabled;
 
   bool get _parallaxSupported =>
       !kIsWeb && (Platform.isAndroid || Platform.isIOS);
@@ -101,7 +102,9 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
     super.didChangeDependencies();
     final int rotation = _readParallaxRotation();
     if (_parallaxRotation != null && _parallaxRotation != rotation) {
-      _settleParallaxToCenter();
+      _settleParallaxToCenter(
+        immediate: MediaQuery.disableAnimationsOf(context),
+      );
     }
     _parallaxRotation = rotation;
     _syncMotion();
@@ -119,15 +122,23 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
     return 1;
   }
 
-  void _settleParallaxToCenter() {
+  void _settleParallaxToCenter({required bool immediate}) {
     _parallaxTarget = Offset.zero;
     if (_parallaxOffset.value == Offset.zero) {
+      return;
+    }
+    if (immediate) {
+      _parallaxTick.stop();
+      _parallaxOffset.value = Offset.zero;
       return;
     }
     _ensureParallaxTicking();
   }
 
   void _ensureParallaxTicking() {
+    if (MediaQuery.disableAnimationsOf(context)) {
+      return;
+    }
     if (_parallaxTick.isAnimating) {
       return;
     }
@@ -135,6 +146,11 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
   }
 
   void _updateParallaxOffset() {
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _parallaxTick.stop();
+      _parallaxOffset.value = Offset.zero;
+      return;
+    }
     final Offset current = _parallaxOffset.value;
     final Offset next = Offset(
       current.dx + (_parallaxTarget.dx - current.dx) * _parallaxSmoothing,
@@ -151,13 +167,14 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
     _parallaxOffset.value = next;
   }
 
-  void _syncMotion() {
+  void _syncMotion({bool? animationsEnabled}) {
+    final bool animations =
+        animationsEnabled ?? !MediaQuery.disableAnimationsOf(context);
     final AppLifecycleState? lifecycle =
         SchedulerBinding.instance.lifecycleState;
     final bool foreground =
         lifecycle == null || lifecycle == AppLifecycleState.resumed;
-    final bool shouldAnimate =
-        foreground && !MediaQuery.disableAnimationsOf(context);
+    final bool shouldAnimate = foreground && animations;
     if (shouldAnimate) {
       if (!_fineDrift.isAnimating) {
         unawaited(_fineDrift.repeat(reverse: true));
@@ -169,12 +186,19 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
     } else {
       _fineDrift.stop();
       _coarseDrift.stop();
-      _stopParallax(immediate: MediaQuery.disableAnimationsOf(context));
+      if (!animations) {
+        _fineDrift.value = 0;
+        _coarseDrift.value = 0;
+        _parallaxTick.stop();
+      }
+      _stopParallax(immediate: !animations);
     }
   }
 
   void _startParallax() {
-    if (!_parallaxSupported || _cancelParallax != null) {
+    if (!_parallaxSupported ||
+        _cancelParallax != null ||
+        MediaQuery.disableAnimationsOf(context)) {
       return;
     }
     final StreamSubscription<UserAccelerometerEvent> subscription =
@@ -183,7 +207,9 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
           onError: (_) {
             _cancelParallax = null;
             if (mounted) {
-              _settleParallaxToCenter();
+              _settleParallaxToCenter(
+                immediate: MediaQuery.disableAnimationsOf(context),
+              );
             }
           },
           cancelOnError: true,
@@ -194,7 +220,7 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
   }
 
   void _onUserAccelerometerEvent(UserAccelerometerEvent event) {
-    if (!mounted) {
+    if (!mounted || MediaQuery.disableAnimationsOf(context)) {
       return;
     }
     _parallaxTarget = _parallaxDeltaFromSensor(
@@ -217,7 +243,7 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
       _parallaxTarget = Offset.zero;
       return;
     }
-    _settleParallaxToCenter();
+    _settleParallaxToCenter(immediate: immediate);
   }
 
   @override
@@ -233,6 +259,13 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
 
   @override
   Widget build(BuildContext context) {
+    final bool animationsEnabled = !MediaQuery.disableAnimationsOf(context);
+    if (_animationsEnabled != animationsEnabled) {
+      _animationsEnabled = animationsEnabled;
+      _syncMotion(animationsEnabled: animationsEnabled);
+    }
+    final double motionIntensity = animationsEnabled ? 1 : 0;
+
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -279,11 +312,13 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
           builder: (BuildContext context, Widget? child) {
             return CustomPaint(
               painter: _StarfieldPainter(
-                fineProgress: Curves.easeInOut.transform(_fineDrift.value),
-                coarseProgress: Curves.easeInOut.transform(
-                  1 - _coarseDrift.value,
-                ),
-                parallaxOffset: _parallaxOffset.value,
+                fineProgress:
+                    Curves.easeInOut.transform(_fineDrift.value) *
+                    motionIntensity,
+                coarseProgress:
+                    Curves.easeInOut.transform(1 - _coarseDrift.value) *
+                    motionIntensity,
+                parallaxOffset: _parallaxOffset.value * motionIntensity,
               ),
             );
           },
