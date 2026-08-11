@@ -54,7 +54,7 @@ class _SplashShellSettleState extends ConsumerState<SplashShellSettle>
     }
     _started = true;
     final bool reducedMotion = MediaQuery.disableAnimationsOf(context);
-    if (reducedMotion) {
+    if (reducedMotion || !SplashRevealOverlay.useLogoZoomTransition) {
       _controller.value = 1;
       return;
     }

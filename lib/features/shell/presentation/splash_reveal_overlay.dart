@@ -12,12 +12,16 @@ import 'package:fluxer_app/features/ui/icons/fluxer_brand_logo.dart';
 class SplashRevealOverlay {
   SplashRevealOverlay._();
 
+  /// TEMP: Testing not using the logo zoom
+  static const bool useLogoZoomTransition = false;
+
   static const double logoSize = 85;
   static const double pulseScale = 0.8;
   static const double expandScale = 500;
   static const double pulseEndFraction = 0.08;
   static const double shellStartScale = 1.1;
   static const Duration totalDuration = Duration(milliseconds: 1200);
+  static const Duration fadeOnlyDuration = Duration(milliseconds: 250);
   static const Duration reducedMotionDuration = Duration(milliseconds: 300);
   static const int maxTickMicros = 32000;
 
@@ -99,9 +103,15 @@ class _SplashRevealOverlayWidgetState extends State<_SplashRevealOverlayWidget>
   Duration _lastElapsed = Duration.zero;
   double _progress = 0;
 
-  Duration get _duration => widget.reducedMotion
-      ? SplashRevealOverlay.reducedMotionDuration
-      : SplashRevealOverlay.totalDuration;
+  Duration get _duration {
+    if (widget.reducedMotion) {
+      return SplashRevealOverlay.reducedMotionDuration;
+    }
+    if (!SplashRevealOverlay.useLogoZoomTransition) {
+      return SplashRevealOverlay.fadeOnlyDuration;
+    }
+    return SplashRevealOverlay.totalDuration;
+  }
 
   @override
   void initState() {
@@ -141,7 +151,7 @@ class _SplashRevealOverlayWidgetState extends State<_SplashRevealOverlayWidget>
   }
 
   bool _isExpandPhase([double? progress]) {
-    if (widget.reducedMotion) {
+    if (widget.reducedMotion || !SplashRevealOverlay.useLogoZoomTransition) {
       return false;
     }
     return (progress ?? _progress) > SplashRevealOverlay.pulseEndFraction;
@@ -191,7 +201,7 @@ class _SplashRevealOverlayWidgetState extends State<_SplashRevealOverlayWidget>
     } else if (!expandPhase) {
       final (:Color fill, :Color symbol) = _logoColors(
         Curves.easeInCubic.transform(
-          _progress / SplashRevealOverlay.pulseEndFraction,
+          (_progress / SplashRevealOverlay.pulseEndFraction).clamp(0.0, 1.0),
         ),
       );
       logoFill = fill;
@@ -316,6 +326,9 @@ double splashRevealLogoScale(double progress, {required bool reducedMotion}) {
     );
     return lerpDouble(1, SplashRevealOverlay.pulseScale, t)!;
   }
+  if (!SplashRevealOverlay.useLogoZoomTransition) {
+    return SplashRevealOverlay.pulseScale;
+  }
   final double expandT = splashRevealExpandPhaseProgress(progress);
   return lerpDouble(
     SplashRevealOverlay.pulseScale,
@@ -332,6 +345,16 @@ double splashRevealLayerOpacity(
   if (reducedMotion) {
     return 1 - Curves.easeOut.transform(p);
   }
+  if (!SplashRevealOverlay.useLogoZoomTransition) {
+    if (p <= SplashRevealOverlay.pulseEndFraction) {
+      return 1;
+    }
+    final double fadeT =
+        ((p - SplashRevealOverlay.pulseEndFraction) /
+                (1 - SplashRevealOverlay.pulseEndFraction))
+            .clamp(0.0, 1.0);
+    return 1 - Curves.easeOut.transform(fadeT);
+  }
   final double eased = Curves.easeInCubic.transform(p);
   if (eased <= SplashRevealOverlay.layerFadeStart) {
     return 1;
@@ -346,7 +369,7 @@ double splashRevealLayerOpacity(
 }
 
 double splashRevealShellScale(double progress, {required bool reducedMotion}) {
-  if (reducedMotion) {
+  if (reducedMotion || !SplashRevealOverlay.useLogoZoomTransition) {
     return 1;
   }
   final double t = Curves.easeInOutCubic.transform(progress.clamp(0.0, 1.0));
