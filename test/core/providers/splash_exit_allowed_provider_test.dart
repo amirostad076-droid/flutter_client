@@ -42,4 +42,55 @@ void main() {
       );
     });
   });
+
+  group('splashRevealLogoScale', () {
+    test('keeps scale at 1 for reduced motion', () {
+      expect(splashRevealLogoScale(0.5, reducedMotion: true), 1);
+      expect(splashRevealLogoScale(1, reducedMotion: true), 1);
+    });
+
+    test('pulses then expands for full motion', () {
+      expect(splashRevealLogoScale(0, reducedMotion: false), 1);
+      expect(
+        splashRevealLogoScale(
+          SplashRevealOverlay.pulseEndFraction,
+          reducedMotion: false,
+        ),
+        closeTo(SplashRevealOverlay.pulseScale, 0.001),
+      );
+      expect(
+        splashRevealLogoScale(1, reducedMotion: false),
+        SplashRevealOverlay.expandScale,
+      );
+    });
+  });
+
+  group('splashRevealLayerOpacity', () {
+    test('fades out for reduced motion', () {
+      expect(splashRevealLayerOpacity(0, reducedMotion: true), 1);
+      expect(splashRevealLayerOpacity(1, reducedMotion: true), 0);
+      expect(splashRevealLayerOpacity(0.5, reducedMotion: true), lessThan(1));
+    });
+
+    test('holds then fades on outro keyframes', () {
+      expect(splashRevealLayerOpacity(0, reducedMotion: false), 1);
+      expect(splashRevealLayerOpacity(0.2, reducedMotion: false), 1);
+      expect(splashRevealLayerOpacity(1, reducedMotion: false), 0);
+    });
+  });
+
+  group('splashRevealShellScale', () {
+    test('stays at 1 for reduced motion', () {
+      expect(splashRevealShellScale(0, reducedMotion: true), 1);
+      expect(splashRevealShellScale(0.5, reducedMotion: true), 1);
+    });
+
+    test('settles from 1.1 to 1', () {
+      expect(
+        splashRevealShellScale(0, reducedMotion: false),
+        SplashRevealOverlay.shellStartScale,
+      );
+      expect(splashRevealShellScale(1, reducedMotion: false), 1);
+    });
+  });
 }

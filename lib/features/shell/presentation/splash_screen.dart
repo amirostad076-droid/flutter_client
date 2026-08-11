@@ -129,19 +129,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     _pulseController.stop();
 
     final bool animationsEnabled = !MediaQuery.disableAnimationsOf(context);
-    if (animationsEnabled) {
-      final Offset? logoCenter = _logoCenterGlobal();
-      final Color brand = context.colors.brandPrimary;
-      SplashRevealOverlay.show(
-        context: context,
-        coverColor: StarfieldBackground.cutoutColor,
-        logoBrandColor: brand,
-        logoBrandSymbolColor: ColorUtils.bestContrastColor(brand.toARGB32()),
-        logoCenterGlobal:
-            logoCenter ?? MediaQuery.sizeOf(context).center(Offset.zero),
-        animationsEnabled: animationsEnabled,
-      );
-    }
+    final Offset? logoCenter = _logoCenterGlobal();
+    final Color brand = context.colors.brandPrimary;
+    SplashRevealOverlay.show(
+      context: context,
+      coverColor: context.colors.backgroundPrimary,
+      logoBrandColor: brand,
+      logoBrandSymbolColor: ColorUtils.bestContrastColor(brand.toARGB32()),
+      logoCenterGlobal:
+          logoCenter ?? MediaQuery.sizeOf(context).center(Offset.zero),
+      animationsEnabled: animationsEnabled,
+    );
     _allowSplashExit();
     setState(() {});
   }
