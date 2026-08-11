@@ -7,8 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
-Offset _parallaxDeltaFromAccelerometer({
-  required AccelerometerEvent event,
+Offset _parallaxDeltaFromSensor({
+  required double x,
+  required double y,
   required int displayRotation,
   required double sensitivity,
   required double maxOffset,
@@ -17,17 +18,17 @@ Offset _parallaxDeltaFromAccelerometer({
   final double screenY;
   switch (displayRotation) {
     case 1:
-      screenX = event.y;
-      screenY = -event.x;
+      screenX = y;
+      screenY = -x;
     case 2:
-      screenX = -event.x;
-      screenY = -event.y;
+      screenX = -x;
+      screenY = -y;
     case 3:
-      screenX = -event.y;
-      screenY = event.x;
+      screenX = -y;
+      screenY = x;
     default:
-      screenX = event.x;
-      screenY = event.y;
+      screenX = x;
+      screenY = y;
   }
 
   double clampAxis(double value) =>
@@ -56,12 +57,14 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
     with TickerProviderStateMixin, WidgetsBindingObserver {
   static const Duration _fineDriftDuration = Duration(seconds: 90);
   static const Duration _coarseDriftDuration = Duration(seconds: 120);
-  static const double _parallaxSensitivity = 1.1;
+  static const double _parallaxSensitivity = 4;
   static const double _parallaxMaxOffset = 12;
   static const double _parallaxSmoothing = 0.15;
+  static const double _parallaxSettledDistance = 0.05;
 
   late final AnimationController _fineDrift;
   late final AnimationController _coarseDrift;
+  late final AnimationController _parallaxTick;
 
   VoidCallback? _cancelParallax;
   final ValueNotifier<Offset> _parallaxOffset = ValueNotifier<Offset>(
@@ -82,6 +85,10 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
       vsync: this,
       duration: _coarseDriftDuration,
     );
+    _parallaxTick = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..addListener(_updateParallaxOffset);
   }
 
   @override
@@ -94,7 +101,7 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
     super.didChangeDependencies();
     final int rotation = _readParallaxRotation();
     if (_parallaxRotation != null && _parallaxRotation != rotation) {
-      _resetParallax();
+      _settleParallaxToCenter();
     }
     _parallaxRotation = rotation;
     _syncMotion();
@@ -112,9 +119,36 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
     return 1;
   }
 
-  void _resetParallax() {
-    _parallaxOffset.value = Offset.zero;
+  void _settleParallaxToCenter() {
     _parallaxTarget = Offset.zero;
+    if (_parallaxOffset.value == Offset.zero) {
+      return;
+    }
+    _ensureParallaxTicking();
+  }
+
+  void _ensureParallaxTicking() {
+    if (_parallaxTick.isAnimating) {
+      return;
+    }
+    unawaited(_parallaxTick.repeat());
+  }
+
+  void _updateParallaxOffset() {
+    final Offset current = _parallaxOffset.value;
+    final Offset next = Offset(
+      current.dx + (_parallaxTarget.dx - current.dx) * _parallaxSmoothing,
+      current.dy + (_parallaxTarget.dy - current.dy) * _parallaxSmoothing,
+    );
+    final bool sensorInactive = _cancelParallax == null;
+    if (sensorInactive &&
+        _parallaxTarget == Offset.zero &&
+        next.distance <= _parallaxSettledDistance) {
+      _parallaxOffset.value = Offset.zero;
+      _parallaxTick.stop();
+      return;
+    }
+    _parallaxOffset.value = next;
   }
 
   void _syncMotion() {
@@ -135,7 +169,7 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
     } else {
       _fineDrift.stop();
       _coarseDrift.stop();
-      _stopParallax();
+      _stopParallax(immediate: MediaQuery.disableAnimationsOf(context));
     }
   }
 
@@ -143,13 +177,13 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
     if (!_parallaxSupported || _cancelParallax != null) {
       return;
     }
-    final StreamSubscription<AccelerometerEvent> subscription =
-        accelerometerEventStream().listen(
-          _onAccelerometerEvent,
+    final StreamSubscription<UserAccelerometerEvent> subscription =
+        userAccelerometerEventStream().listen(
+          _onUserAccelerometerEvent,
           onError: (_) {
             _cancelParallax = null;
             if (mounted) {
-              _resetParallax();
+              _settleParallaxToCenter();
             }
           },
           cancelOnError: true,
@@ -159,38 +193,38 @@ class _StarfieldBackgroundState extends State<StarfieldBackground>
     };
   }
 
-  void _onAccelerometerEvent(AccelerometerEvent event) {
+  void _onUserAccelerometerEvent(UserAccelerometerEvent event) {
     if (!mounted) {
       return;
     }
-    _parallaxTarget = _parallaxDeltaFromAccelerometer(
-      event: event,
+    _parallaxTarget = _parallaxDeltaFromSensor(
+      x: event.x,
+      y: event.y,
       displayRotation: _parallaxRotation ?? _readParallaxRotation(),
       sensitivity: _parallaxSensitivity,
       maxOffset: _parallaxMaxOffset,
     );
-    final Offset current = _parallaxOffset.value;
-    _parallaxOffset.value = Offset(
-      current.dx + (_parallaxTarget.dx - current.dx) * _parallaxSmoothing,
-      current.dy + (_parallaxTarget.dy - current.dy) * _parallaxSmoothing,
-    );
+    _ensureParallaxTicking();
   }
 
-  void _stopParallax() {
+  void _stopParallax({bool immediate = false}) {
     final VoidCallback? cancel = _cancelParallax;
     _cancelParallax = null;
     cancel?.call();
-    if (_parallaxOffset.value == Offset.zero &&
-        _parallaxTarget == Offset.zero) {
+    if (immediate) {
+      _parallaxTick.stop();
+      _parallaxOffset.value = Offset.zero;
+      _parallaxTarget = Offset.zero;
       return;
     }
-    _resetParallax();
+    _settleParallaxToCenter();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _stopParallax();
+    _stopParallax(immediate: true);
+    _parallaxTick.dispose();
     _parallaxOffset.dispose();
     _fineDrift.dispose();
     _coarseDrift.dispose();
