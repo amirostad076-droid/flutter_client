@@ -58,10 +58,10 @@ void main() {
         ),
         closeTo(SplashRevealOverlay.pulseScale, 0.001),
       );
-      expect(
-        splashRevealLogoScale(1, reducedMotion: false),
-        SplashRevealOverlay.expandScale,
-      );
+      final double endScale = SplashRevealOverlay.useLogoZoomTransition
+          ? SplashRevealOverlay.expandScale
+          : SplashRevealOverlay.pulseScale;
+      expect(splashRevealLogoScale(1, reducedMotion: false), endScale);
     });
   });
 
@@ -74,7 +74,14 @@ void main() {
 
     test('holds then fades on outro keyframes', () {
       expect(splashRevealLayerOpacity(0, reducedMotion: false), 1);
-      expect(splashRevealLayerOpacity(0.2, reducedMotion: false), 1);
+      if (SplashRevealOverlay.useLogoZoomTransition) {
+        expect(splashRevealLayerOpacity(0.2, reducedMotion: false), 1);
+      } else {
+        expect(
+          splashRevealLayerOpacity(0.2, reducedMotion: false),
+          lessThan(1),
+        );
+      }
       expect(splashRevealLayerOpacity(1, reducedMotion: false), 0);
     });
   });
@@ -86,10 +93,10 @@ void main() {
     });
 
     test('settles from 1.1 to 1', () {
-      expect(
-        splashRevealShellScale(0, reducedMotion: false),
-        SplashRevealOverlay.shellStartScale,
-      );
+      final double startScale = SplashRevealOverlay.useLogoZoomTransition
+          ? SplashRevealOverlay.shellStartScale
+          : 1;
+      expect(splashRevealShellScale(0, reducedMotion: false), startScale);
       expect(splashRevealShellScale(1, reducedMotion: false), 1);
     });
   });
