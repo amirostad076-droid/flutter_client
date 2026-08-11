@@ -146,6 +146,9 @@ dev_dependencies:
   test: ^1.31.0
 
 flutter:
+  # TEMP: Need to temp disable swift due to livekit_noise_filter
+  config:
+    enable-swift-package-manager: false
   generate: true
   uses-material-design: true
 
