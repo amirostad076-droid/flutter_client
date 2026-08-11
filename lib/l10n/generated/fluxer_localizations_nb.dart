@@ -1569,6 +1569,12 @@ class FluxerLocalizationsNb extends FluxerLocalizations {
   String get crop => 'Beskjær';
 
   @override
+  String get cropTouchHint => 'Pinch to zoom, drag to reposition';
+
+  @override
+  String get cropMouseHint => 'Drag corners to resize, drag inside to move';
+
+  @override
   String get changeYourFluxerTag => 'Endre din Brukernavn';
 
   @override

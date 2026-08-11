@@ -1572,6 +1572,12 @@ class FluxerLocalizationsCs extends FluxerLocalizations {
   String get crop => 'Oříznout';
 
   @override
+  String get cropTouchHint => 'Pinch to zoom, drag to reposition';
+
+  @override
+  String get cropMouseHint => 'Drag corners to resize, drag inside to move';
+
+  @override
   String get changeYourFluxerTag => 'Změnit váš Uživatelské jméno';
 
   @override

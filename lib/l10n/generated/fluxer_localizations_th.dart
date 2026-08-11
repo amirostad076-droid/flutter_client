@@ -1560,6 +1560,12 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
   String get crop => 'ครอบตัด';
 
   @override
+  String get cropTouchHint => 'Pinch to zoom, drag to reposition';
+
+  @override
+  String get cropMouseHint => 'Drag corners to resize, drag inside to move';
+
+  @override
   String get changeYourFluxerTag => 'เปลี่ยน ชื่อผู้ใช้ ของคุณ';
 
   @override

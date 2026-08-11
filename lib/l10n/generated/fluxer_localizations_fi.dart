@@ -1573,6 +1573,12 @@ class FluxerLocalizationsFi extends FluxerLocalizations {
   String get crop => 'Rajaa';
 
   @override
+  String get cropTouchHint => 'Pinch to zoom, drag to reposition';
+
+  @override
+  String get cropMouseHint => 'Drag corners to resize, drag inside to move';
+
+  @override
   String get changeYourFluxerTag => 'Vaihda Käyttäjänimi';
 
   @override

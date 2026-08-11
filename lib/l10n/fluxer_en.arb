@@ -2047,6 +2047,14 @@
     "@crop": {
         "description": "Button to confirm image crop."
     },
+    "cropTouchHint": "Pinch to zoom, drag to reposition",
+    "@cropTouchHint": {
+        "description": "Hint shown in the image crop sheet on touch devices."
+    },
+    "cropMouseHint": "Drag corners to resize, drag inside to move",
+    "@cropMouseHint": {
+        "description": "Hint shown in the image crop sheet on mouse devices."
+    },
     "changeYourFluxerTag": "Change Your Username",
     "@changeYourFluxerTag": {
         "description": "Title for the username change bottom sheet."

@@ -1563,6 +1563,12 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get crop => 'Crop';
 
   @override
+  String get cropTouchHint => 'Pinch to zoom, drag to reposition';
+
+  @override
+  String get cropMouseHint => 'Drag corners to resize, drag inside to move';
+
+  @override
   String get changeYourFluxerTag => 'Change Your Username';
 
   @override
@@ -13877,6 +13883,12 @@ class FluxerLocalizationsEnGb extends FluxerLocalizationsEn {
   String get crop => 'Crop';
 
   @override
+  String get cropTouchHint => 'Pinch to zoom, drag to reposition';
+
+  @override
+  String get cropMouseHint => 'Drag corners to resize, drag inside to move';
+
+  @override
   String get changeYourFluxerTag => 'Change Your Username';
 
   @override
@@ -20981,6 +20993,12 @@ class FluxerLocalizationsEnUs extends FluxerLocalizationsEn {
 
   @override
   String get crop => 'Crop';
+
+  @override
+  String get cropTouchHint => 'Pinch to zoom, drag to reposition';
+
+  @override
+  String get cropMouseHint => 'Drag corners to resize, drag inside to move';
 
   @override
   String get changeYourFluxerTag => 'Change Your Username';

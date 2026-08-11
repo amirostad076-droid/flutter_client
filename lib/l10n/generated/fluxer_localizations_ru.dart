@@ -1576,6 +1576,12 @@ class FluxerLocalizationsRu extends FluxerLocalizations {
   String get crop => 'Обрезать';
 
   @override
+  String get cropTouchHint => 'Pinch to zoom, drag to reposition';
+
+  @override
+  String get cropMouseHint => 'Drag corners to resize, drag inside to move';
+
+  @override
   String get changeYourFluxerTag => 'Изменить ваш Имя пользователя';
 
   @override

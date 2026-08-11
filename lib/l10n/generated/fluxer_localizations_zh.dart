@@ -1505,6 +1505,12 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get crop => '裁剪';
 
   @override
+  String get cropTouchHint => 'Pinch to zoom, drag to reposition';
+
+  @override
+  String get cropMouseHint => 'Drag corners to resize, drag inside to move';
+
+  @override
   String get changeYourFluxerTag => '更改您的 用户名';
 
   @override
@@ -13430,6 +13436,12 @@ class FluxerLocalizationsZhHant extends FluxerLocalizationsZh {
 
   @override
   String get crop => '裁切';
+
+  @override
+  String get cropTouchHint => 'Pinch to zoom, drag to reposition';
+
+  @override
+  String get cropMouseHint => 'Drag corners to resize, drag inside to move';
 
   @override
   String get changeYourFluxerTag => '變更您的 使用者名稱';

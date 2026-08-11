@@ -1582,6 +1582,12 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
   String get crop => 'Περικοπή';
 
   @override
+  String get cropTouchHint => 'Pinch to zoom, drag to reposition';
+
+  @override
+  String get cropMouseHint => 'Drag corners to resize, drag inside to move';
+
+  @override
   String get changeYourFluxerTag => 'Αλλαγή του Όνομα χρήστη σου';
 
   @override

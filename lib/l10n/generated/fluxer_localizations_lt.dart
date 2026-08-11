@@ -1575,6 +1575,12 @@ class FluxerLocalizationsLt extends FluxerLocalizations {
   String get crop => 'Apkarpyti';
 
   @override
+  String get cropTouchHint => 'Pinch to zoom, drag to reposition';
+
+  @override
+  String get cropMouseHint => 'Drag corners to resize, drag inside to move';
+
+  @override
   String get changeYourFluxerTag => 'Pakeisti jūsų Vartotojo vardas';
 
   @override

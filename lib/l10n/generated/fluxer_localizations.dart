@@ -2842,6 +2842,18 @@ abstract class FluxerLocalizations {
   /// **'Crop'**
   String get crop;
 
+  /// Hint shown in the image crop sheet on touch devices.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinch to zoom, drag to reposition'**
+  String get cropTouchHint;
+
+  /// Hint shown in the image crop sheet on mouse devices.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag corners to resize, drag inside to move'**
+  String get cropMouseHint;
+
   /// Title for the username change bottom sheet.
   ///
   /// In en, this message translates to:

@@ -1591,6 +1591,12 @@ class FluxerLocalizationsFr extends FluxerLocalizations {
   String get crop => 'Recadrer';
 
   @override
+  String get cropTouchHint => 'Pinch to zoom, drag to reposition';
+
+  @override
+  String get cropMouseHint => 'Drag corners to resize, drag inside to move';
+
+  @override
   String get changeYourFluxerTag => 'Modifier votre Nom d\'utilisateur';
 
   @override
