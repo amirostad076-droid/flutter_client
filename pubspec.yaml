@@ -61,7 +61,6 @@ dependencies:
   image_picker_platform_interface: ^2.11.1
   intl: ^0.20.2
   livekit_client: ^2.11.0
-  livekit_noise_filter: ^0.2.1
   lucid_validation: ^1.3.1
   media_kit: ^1.2.6
   media_kit_libs_video: ^1.0.7
@@ -146,9 +145,6 @@ dev_dependencies:
   test: ^1.31.0
 
 flutter:
-  # TEMP: Need to temp disable swift due to livekit_noise_filter
-  config:
-    enable-swift-package-manager: false
   generate: true
   uses-material-design: true
 

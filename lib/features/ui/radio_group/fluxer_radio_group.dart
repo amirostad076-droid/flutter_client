@@ -11,6 +11,7 @@ class FluxerRadioItem<T> {
     this.description,
     this.labelColor,
     this.leading,
+    this.enabled = true,
   });
 
   final T value;
@@ -18,6 +19,7 @@ class FluxerRadioItem<T> {
   final String? description;
   final Color? labelColor;
   final Widget? leading;
+  final bool enabled;
 }
 
 class FluxerRadioGroup<T> extends StatelessWidget {
@@ -76,15 +78,16 @@ class FluxerRadioGroup<T> extends StatelessWidget {
         ? CrossAxisAlignment.center
         : CrossAxisAlignment.start;
 
-    return Semantics(
+    final Widget option = Semantics(
+      enabled: item.enabled,
       checked: isSelected,
       inMutuallyExclusiveGroup: true,
       label: item.label,
-      onTap: () => _onChanged(item.value),
+      onTap: item.enabled ? () => _onChanged(item.value) : null,
       child: ExcludeSemantics(
         child: FluxerGestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () => _onChanged(item.value),
+          onTap: item.enabled ? () => _onChanged(item.value) : null,
           child: Row(
             crossAxisAlignment: crossAxisAlignment,
             children: [
@@ -108,6 +111,12 @@ class FluxerRadioGroup<T> extends StatelessWidget {
         ),
       ),
     );
+
+    if (item.enabled) {
+      return option;
+    }
+
+    return IgnorePointer(child: Opacity(opacity: 0.45, child: option));
   }
 
   Widget _buildLabel(
