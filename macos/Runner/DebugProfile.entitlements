@@ -17,6 +17,8 @@
 	<key>com.apple.security.network.server</key>
 	<true/>
 	<key>keychain-access-groups</key>
-	<array/>
+	<array>
+		<string>$(AppIdentifierPrefix)com.fluxer</string>
+	</array>
 </dict>
 </plist>

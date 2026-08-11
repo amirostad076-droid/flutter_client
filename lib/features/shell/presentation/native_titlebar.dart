@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,6 +22,9 @@ const kNativeTitlebarHeight = 32.0;
 ///
 /// Provides a [DragToMoveArea] for dragging and double-click to maximize,
 /// plus minimize, maximize/restore, and close buttons on the right.
+///
+/// On macOS the logo and custom window controls are hidden so they do not
+/// collide with the system traffic lights.
 class NativeTitlebar extends ConsumerWidget {
   const NativeTitlebar({super.key});
 
@@ -34,6 +38,7 @@ class NativeTitlebar extends ConsumerWidget {
     final location = config.isNotEmpty ? config.last.matchedLocation : '/';
     final activeGuildId = ref.watch(activeGuildIdProvider);
     final title = _resolveTitle(guilds, location, activeGuildId);
+    final bool showCustomWindowChrome = !Platform.isMacOS;
 
     return Material(
       color: context.colors.backgroundSecondaryAlt,
@@ -44,18 +49,19 @@ class NativeTitlebar extends ConsumerWidget {
           child: Stack(
             children: [
               const DragToMoveArea(child: SizedBox.expand()),
-              Positioned(
-                left: 12,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                  child: SvgPicture.asset(
-                    Assets.fluxerLogoText,
-                    height: 14,
-                    theme: SvgTheme(currentColor: context.colors.textPrimary),
+              if (showCustomWindowChrome)
+                Positioned(
+                  left: 12,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: SvgPicture.asset(
+                      Assets.fluxerLogoText,
+                      height: 14,
+                      theme: SvgTheme(currentColor: context.colors.textPrimary),
+                    ),
                   ),
                 ),
-              ),
               Center(
                 child: Text(title, style: context.textStyles.categoryName),
               ),
@@ -75,24 +81,26 @@ class NativeTitlebar extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    SizedBox(
-                      height: kNativeTitlebarHeight * 0.6,
-                      child: VerticalDivider(
-                        width: 1,
-                        color: context.colors.borderColor,
+                    if (showCustomWindowChrome) ...[
+                      SizedBox(
+                        height: kNativeTitlebarHeight * 0.6,
+                        child: VerticalDivider(
+                          width: 1,
+                          color: context.colors.borderColor,
+                        ),
                       ),
-                    ),
-                    _WindowButton(
-                      icon: PhosphorIconsBold.minus,
-                      onPressed: windowManager.minimize,
-                    ),
-                    const _MaximizeButton(),
-                    _WindowButton(
-                      icon: PhosphorIconsBold.x,
-                      hoverColor: context.colors.textDanger,
-                      hoverIconColor: context.colors.textOnBrandPrimary,
-                      onPressed: windowManager.close,
-                    ),
+                      _WindowButton(
+                        icon: PhosphorIconsBold.minus,
+                        onPressed: windowManager.minimize,
+                      ),
+                      const _MaximizeButton(),
+                      _WindowButton(
+                        icon: PhosphorIconsBold.x,
+                        hoverColor: context.colors.textDanger,
+                        hoverIconColor: context.colors.textOnBrandPrimary,
+                        onPressed: windowManager.close,
+                      ),
+                    ],
                   ],
                 ),
               ),
