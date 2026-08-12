@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -37,32 +36,6 @@ class FluxerChromeSafariBrowser extends ChromeSafariBrowser {}
 final FluxerChromeSafariBrowser _chromeSafariBrowser =
     FluxerChromeSafariBrowser();
 
-bool _inAppBrowserLifecycleObserverRegistered = false;
-
-bool shouldCloseInAppBrowserOnLifecycle(AppLifecycleState state) {
-  return state == AppLifecycleState.paused || state == AppLifecycleState.hidden;
-}
-
-class _InAppBrowserLifecycleObserver extends WidgetsBindingObserver {
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!shouldCloseInAppBrowserOnLifecycle(state)) {
-      return;
-    }
-    if (_chromeSafariBrowser.isOpened()) {
-      unawaited(_chromeSafariBrowser.close());
-    }
-  }
-}
-
-void _ensureInAppBrowserLifecycleObserver() {
-  if (_inAppBrowserLifecycleObserverRegistered) {
-    return;
-  }
-  _inAppBrowserLifecycleObserverRegistered = true;
-  WidgetsBinding.instance.addObserver(_InAppBrowserLifecycleObserver());
-}
-
 ChromeSafariBrowserSettings _buildBrowserSettings(
   ExternalUrlBrowserStyle style,
 ) {
@@ -92,7 +65,6 @@ Future<bool> _openInAppBrowser(
   Uri uri, {
   ExternalUrlBrowserStyle? style,
 }) async {
-  _ensureInAppBrowserLifecycleObserver();
   try {
     if (_chromeSafariBrowser.isOpened()) {
       await _chromeSafariBrowser.close();
