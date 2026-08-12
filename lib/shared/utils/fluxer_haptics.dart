@@ -64,7 +64,7 @@ abstract final class FluxerHaptics {
     Gaimon.medium();
   }
 
-  /// Commit tap + short fading whoosh for sending a message.
+  /// Soft flick for sending a message.
   static void send() {
     if (!supportsExpressive) {
       Gaimon.soft();

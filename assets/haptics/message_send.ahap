@@ -2,43 +2,28 @@
   "Version": 1.0,
   "Metadata": {
     "Project": "Fluxer",
-    "Description": "Message send: soft launch whoosh that fades away."
+    "Description": "Message send: a soft flick with a quiet tail."
   },
   "Pattern": [
     {
       "Event": {
         "Time": 0.0,
         "EventType": "HapticContinuous",
-        "EventDuration": 0.16,
+        "EventDuration": 0.065,
         "EventParameters": [
-          { "ParameterID": "HapticIntensity", "ParameterValue": 0.62 },
-          { "ParameterID": "HapticSharpness", "ParameterValue": 0.38 },
-          { "ParameterID": "AttackTime", "ParameterValue": 0.08 },
-          { "ParameterID": "ReleaseTime", "ParameterValue": 0.25 }
+          { "ParameterID": "HapticIntensity", "ParameterValue": 0.37 },
+          { "ParameterID": "HapticSharpness", "ParameterValue": 0.2 }
         ]
       }
     },
     {
       "Event": {
-        "Time": 0.14,
+        "Time": 0.065,
         "EventType": "HapticContinuous",
-        "EventDuration": 0.22,
-        "EventParameters": [
-          { "ParameterID": "HapticIntensity", "ParameterValue": 0.34 },
-          { "ParameterID": "HapticSharpness", "ParameterValue": 0.2 },
-          { "ParameterID": "ReleaseTime", "ParameterValue": 0.35 }
-        ]
-      }
-    },
-    {
-      "Event": {
-        "Time": 0.34,
-        "EventType": "HapticContinuous",
-        "EventDuration": 0.36,
+        "EventDuration": 0.07,
         "EventParameters": [
           { "ParameterID": "HapticIntensity", "ParameterValue": 0.12 },
-          { "ParameterID": "HapticSharpness", "ParameterValue": 0.08 },
-          { "ParameterID": "ReleaseTime", "ParameterValue": 0.55 }
+          { "ParameterID": "HapticSharpness", "ParameterValue": 0.08 }
         ]
       }
     }
