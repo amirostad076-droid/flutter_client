@@ -20,7 +20,7 @@ class SplashRevealOverlay {
   static const double expandScale = 500;
   static const double pulseEndFraction = 0.08;
   static const double shellStartScale = 1.1;
-  static const Duration totalDuration = Duration(milliseconds: 1200);
+  static const Duration totalDuration = Duration(milliseconds: 900);
   static const Duration fadeOnlyDuration = Duration(milliseconds: 350);
   static const Duration reducedMotionDuration = Duration(milliseconds: 300);
   static const int maxTickMicros = 32000;
@@ -30,7 +30,7 @@ class SplashRevealOverlay {
 
   static final Color silhouetteSymbolColor = ColorUtils.dim(
     StarfieldBackground.cutoutSymbolColor,
-    0.5,
+    0.3,
   );
 
   static Duration get pulseDuration {
