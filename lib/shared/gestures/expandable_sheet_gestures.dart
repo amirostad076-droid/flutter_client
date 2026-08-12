@@ -1,9 +1,7 @@
-import 'dart:async' show unawaited;
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_gesture_detector.dart';
+import 'package:fluxer_app/shared/utils/fluxer_haptics.dart';
 
 const double kExpandableSheetSnapMidpointFraction = 0.42;
 const double kExpandableSheetFlingVelocityThreshold = 650;
@@ -45,14 +43,14 @@ void playExpandableSheetSnapHaptic({
     return;
   }
   if (isExpanded) {
-    unawaited(HapticFeedback.mediumImpact());
+    FluxerHaptics.medium();
     return;
   }
-  unawaited(HapticFeedback.lightImpact());
+  FluxerHaptics.soft();
 }
 
 void playExpandableSheetDismissHaptic() {
-  unawaited(HapticFeedback.lightImpact());
+  FluxerHaptics.soft();
 }
 
 bool expandableSheetIsPastCollapsedHeight({
