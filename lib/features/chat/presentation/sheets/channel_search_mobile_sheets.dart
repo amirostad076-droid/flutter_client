@@ -189,7 +189,7 @@ class _ChannelSearchMoreFiltersSheetState
                     for (final String key in kChannelSearchDateFilterKeys)
                       DropdownMenuItem<String>(
                         value: key,
-                        child: Text(channelSearchDateFilterKeyLabel(key)),
+                        child: Text('$key:'),
                       ),
                   ],
                   onChanged: (String? value) =>
