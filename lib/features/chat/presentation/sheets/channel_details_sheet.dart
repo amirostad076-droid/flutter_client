@@ -3286,10 +3286,10 @@ class _HasFilterSheetState extends State<_HasFilterSheet> {
                 context,
                 padding: const EdgeInsets.symmetric(vertical: 4),
               ),
-              itemCount: kChannelSearchMobileHasContentFilters.length,
+              itemCount: kChannelSearchHasContentFilters.length,
               separatorBuilder: (_, _) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
-                final value = kChannelSearchMobileHasContentFilters[index];
+                final value = kChannelSearchHasContentFilters[index];
                 return ChannelSearchOptionCard(
                   icon: _contentIcon(value),
                   label: _contentLabel(l10n, value),

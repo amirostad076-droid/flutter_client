@@ -190,17 +190,6 @@ const List<MessageSearchContentFilter> kChannelSearchHasContentFilters =
       MessageSearchContentFilter.forward,
     ];
 
-const List<MessageSearchContentFilter> kChannelSearchMobileHasContentFilters =
-    <MessageSearchContentFilter>[
-      MessageSearchContentFilter.image,
-      MessageSearchContentFilter.video,
-      MessageSearchContentFilter.audio,
-      MessageSearchContentFilter.file,
-      MessageSearchContentFilter.link,
-      MessageSearchContentFilter.embed,
-      MessageSearchContentFilter.sticker,
-    ];
-
 const List<String> kChannelSearchAuthorTypeValues = <String>[
   'user',
   'bot',
@@ -218,6 +207,14 @@ String formatChannelSearchDate(DateTime date) {
   return '${date.year.toString().padLeft(4, '0')}-'
       '${date.month.toString().padLeft(2, '0')}-'
       '${date.day.toString().padLeft(2, '0')}';
+}
+
+String formatChannelSearchUserTag(String username, String? discriminator) {
+  final String disc = (discriminator ?? '').trim();
+  if (disc.isEmpty || disc == '0') {
+    return username;
+  }
+  return '$username#$disc';
 }
 
 String? resolveChannelIdByName(
@@ -249,8 +246,6 @@ String channelSearchAuthorTypeLabel(FluxerLocalizations l10n, String value) =>
       'webhook' => l10n.channelDetailsSearchAuthorTypeWebhook,
       _ => value,
     };
-
-String channelSearchDateFilterKeyLabel(String key) => '$key:';
 
 String channelSearchHasValueForContentFilter(
   MessageSearchContentFilter filter,

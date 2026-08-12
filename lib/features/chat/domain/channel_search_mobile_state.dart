@@ -177,8 +177,7 @@ bool channelSearchMobileCanSearch({
   required bool hasChipFilters,
   required Set<MessageSearchContentFilter> contentTypes,
 }) {
-  if (rawQuery.trim().isNotEmpty || hasChipFilters || contentTypes.isNotEmpty) {
-    return true;
-  }
-  return false;
+  return rawQuery.trim().isNotEmpty ||
+      hasChipFilters ||
+      contentTypes.isNotEmpty;
 }

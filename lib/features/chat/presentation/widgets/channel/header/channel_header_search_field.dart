@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_motion_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -80,6 +81,7 @@ class _ChannelHeaderSearchFieldState
   bool _suppressAutoOpen = false;
   Timer? _userSearchDebounce;
   List<Member> _userResults = const <Member>[];
+  Map<String, String> _userDiscriminators = const <String, String>{};
   final Map<String, String> _userIdsByTag = <String, String>{};
   final Map<String, String> _channelIdsByName = <String, String>{};
   String _listboxId = 'channel-search-listbox';
@@ -302,7 +304,10 @@ class _ChannelHeaderSearchFieldState
   void _scheduleUserSearch(String query) {
     _userSearchDebounce?.cancel();
     if (query.trim().isEmpty) {
-      setState(() => _userResults = const <Member>[]);
+      setState(() {
+        _userResults = const <Member>[];
+        _userDiscriminators = const <String, String>{};
+      });
       return;
     }
     _userSearchDebounce = Timer(_kUserSearchDebounce, () {
@@ -312,7 +317,9 @@ class _ChannelHeaderSearchFieldState
 
   Future<void> _fetchUsers(String query) async {
     final String? guildId = widget.guildId;
+    final String normalized = query.toLowerCase();
     List<Member> members = const <Member>[];
+    Map<String, String> discriminators = const <String, String>{};
     try {
       if (guildId != null) {
         final ParsedMentionQuery parsed = parseMentionQuery(query);
@@ -327,112 +334,117 @@ class _ChannelHeaderSearchFieldState
             parsed: parsed,
           )).members;
         }
+        discriminators = await search.discriminatorsFor(members);
       } else if (widget.dm != null) {
         final DmConversation dm = widget.dm!;
         if (dm.isGroup) {
           members = dm.groupMembers
               .where(
                 (GroupMemberInfo member) =>
-                    member.name.toLowerCase().contains(query.toLowerCase()),
+                    member.name.toLowerCase().contains(normalized),
               )
               .map(
-                (GroupMemberInfo member) =>
-                    Member(id: member.id, username: member.name),
+                (GroupMemberInfo member) => Member(
+                  id: member.id,
+                  username: member.name,
+                  avatar: member.avatar,
+                ),
               )
               .toList();
-        } else if (dm.recipientName.toLowerCase().contains(
-          query.toLowerCase(),
-        )) {
+        } else if (_dmRecipientMatches(dm, normalized)) {
           members = <Member>[
-            Member(id: dm.recipientId, username: dm.recipientName),
+            Member(
+              id: dm.recipientId,
+              username: dm.recipientUsername ?? dm.recipientName,
+              globalName: dm.recipientName,
+              avatar: dm.recipientAvatar,
+            ),
           ];
+          final String disc = (dm.recipientDiscriminator ?? '').trim();
+          if (disc.isNotEmpty && disc != '0') {
+            discriminators = <String, String>{dm.recipientId: disc};
+          }
         }
       }
     } on Object {
       members = const <Member>[];
+      discriminators = const <String, String>{};
     }
     if (!mounted) {
       return;
     }
-    setState(() => _userResults = members.take(12).toList());
+    setState(() {
+      _userResults = members.take(12).toList();
+      _userDiscriminators = discriminators;
+    });
+  }
+
+  bool _dmRecipientMatches(DmConversation dm, String normalizedQuery) {
+    if (dm.recipientName.toLowerCase().contains(normalizedQuery)) {
+      return true;
+    }
+    final String? username = dm.recipientUsername;
+    return username != null && username.toLowerCase().contains(normalizedQuery);
   }
 
   List<ChannelSearchAutocompleteEntry> _buildEntries() {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     switch (_autocompleteMode) {
       case _ChannelSearchAutocompleteMode.filters:
-        final List<ChannelSearchAutocompleteEntry> filters = _filterEntries(
-          l10n,
-          _currentWord(),
+        return _sectionedEntries(
+          section: ChannelSearchAutocompleteSection.filters,
+          title: l10n.channelHeaderSearchFiltersTitle,
+          icon: PhosphorIconsFill.funnel,
+          items: _filterEntries(l10n, _currentWord()),
         );
-        if (filters.isEmpty) {
-          return const <ChannelSearchAutocompleteEntry>[];
-        }
-        return <ChannelSearchAutocompleteEntry>[
-          _sectionHeader(
-            section: ChannelSearchAutocompleteSection.filters,
-            title: l10n.channelHeaderSearchFiltersTitle,
-            icon: PhosphorIconsFill.funnel,
-          ),
-          ...filters,
-        ];
       case _ChannelSearchAutocompleteMode.history:
         return _historyEntries(l10n);
       case _ChannelSearchAutocompleteMode.users:
-        final List<ChannelSearchAutocompleteEntry> users = _userEntries();
-        if (users.isEmpty) {
-          return const <ChannelSearchAutocompleteEntry>[];
-        }
-        return <ChannelSearchAutocompleteEntry>[
-          _sectionHeader(
-            section: ChannelSearchAutocompleteSection.users,
-            title: l10n.channelHeaderSearchUsersTitle,
-            icon: PhosphorIconsFill.user,
-          ),
-          ...users,
-        ];
+        return _sectionedEntries(
+          section: ChannelSearchAutocompleteSection.users,
+          title: l10n.channelHeaderSearchUsersTitle,
+          icon: PhosphorIconsBold.magnifyingGlass,
+          items: _userEntries(),
+        );
       case _ChannelSearchAutocompleteMode.channels:
-        final List<ChannelSearchAutocompleteEntry> channels = _channelEntries();
-        if (channels.isEmpty) {
-          return const <ChannelSearchAutocompleteEntry>[];
-        }
-        return <ChannelSearchAutocompleteEntry>[
-          _sectionHeader(
-            section: ChannelSearchAutocompleteSection.channels,
-            title: l10n.channelHeaderSearchChannelsTitle,
-            icon: PhosphorIconsBold.hash,
-          ),
-          ...channels,
-        ];
+        return _sectionedEntries(
+          section: ChannelSearchAutocompleteSection.channels,
+          title: l10n.channelHeaderSearchChannelsTitle,
+          icon: PhosphorIconsBold.hash,
+          items: _channelEntries(),
+        );
       case _ChannelSearchAutocompleteMode.filterValues:
-        final List<ChannelSearchAutocompleteEntry> values = _valueEntries(l10n);
-        if (values.isEmpty) {
-          return const <ChannelSearchAutocompleteEntry>[];
-        }
-        return <ChannelSearchAutocompleteEntry>[
-          _sectionHeader(
-            section: ChannelSearchAutocompleteSection.filterValues,
-            title: l10n.channelHeaderSearchValuesTitle,
-            icon: PhosphorIconsFill.funnel,
-          ),
-          ...values,
-        ];
+        return _sectionedEntries(
+          section: ChannelSearchAutocompleteSection.filterValues,
+          title: l10n.channelHeaderSearchValuesTitle,
+          icon: PhosphorIconsFill.funnel,
+          items: _valueEntries(l10n),
+        );
       case _ChannelSearchAutocompleteMode.dates:
-        final List<ChannelSearchAutocompleteEntry> dates = _dateEntries();
-        if (dates.isEmpty) {
-          return const <ChannelSearchAutocompleteEntry>[];
-        }
-        return <ChannelSearchAutocompleteEntry>[
-          _sectionHeader(
-            section: ChannelSearchAutocompleteSection.dates,
-            title: l10n.channelHeaderSearchDatesTitle,
-            icon: PhosphorIconsFill.calendar,
-          ),
-          ...dates,
-        ];
+        return _sectionedEntries(
+          section: ChannelSearchAutocompleteSection.dates,
+          title: l10n.channelHeaderSearchDatesTitle,
+          icon: PhosphorIconsFill.calendar,
+          items: _dateEntries(),
+        );
       case _ChannelSearchAutocompleteMode.none:
         return const <ChannelSearchAutocompleteEntry>[];
     }
+  }
+
+  List<ChannelSearchAutocompleteEntry> _sectionedEntries({
+    required ChannelSearchAutocompleteSection section,
+    required String title,
+    required IconData icon,
+    required List<ChannelSearchAutocompleteEntry> items,
+  }) {
+    if (items.isEmpty) {
+      return const <ChannelSearchAutocompleteEntry>[];
+    }
+    return <ChannelSearchAutocompleteEntry>[
+      _sectionHeader(section: section, title: title, icon: icon),
+      ...items,
+    ];
   }
 
   String _currentWord() {
@@ -522,15 +534,21 @@ class _ChannelHeaderSearchFieldState
 
   List<ChannelSearchAutocompleteEntry> _userEntries() {
     return _userResults.map((Member member) {
-      final String tag = member.username;
-      final String label = memberDisplayLabel(member);
+      final String tag = formatChannelSearchUserTag(
+        member.username,
+        _userDiscriminators[member.id],
+      );
       return ChannelSearchAutocompleteEntry(
         section: ChannelSearchAutocompleteSection.users,
-        label: label,
+        label: memberDisplayLabel(member),
         subtitle: tag,
-        icon: PhosphorIconsFill.user,
         userId: member.id,
-        value: tag,
+        avatarImageUrl: FluxerMediaUrl.userAvatar(
+          userId: member.id,
+          hash: member.avatar,
+        ),
+        avatarColor: member.avatarColor,
+        value: member.username,
       );
     }).toList();
   }
@@ -565,7 +583,7 @@ class _ChannelHeaderSearchFieldState
           (Channel channel) => ChannelSearchAutocompleteEntry(
             section: ChannelSearchAutocompleteSection.channels,
             label: channel.name,
-            icon: PhosphorIconsBold.hash,
+            channelType: channel.type,
             channelId: channel.id,
             value: channel.name,
           ),
@@ -882,6 +900,7 @@ class _ChannelHeaderSearchFieldState
           filterKey: _activeFilter?.key ?? 'from',
           value: entry.value ?? entry.label,
           userId: entry.userId,
+          userTagAlias: entry.subtitle,
         );
       case ChannelSearchAutocompleteSection.channels:
         _insertFilterValue(
@@ -951,12 +970,18 @@ class _ChannelHeaderSearchFieldState
     required String value,
     String? userId,
     String? channelId,
+    String? userTagAlias,
   }) {
     final bool needsQuotes = value.contains(' ');
     final String display = needsQuotes ? '"$value"' : value;
     _replaceCurrentWord('$filterKey:$display ');
     if (userId != null) {
       _userIdsByTag[value] = userId;
+      if (userTagAlias != null &&
+          userTagAlias.isNotEmpty &&
+          userTagAlias != value) {
+        _userIdsByTag[userTagAlias] = userId;
+      }
     }
     if (channelId != null) {
       _channelIdsByName[value] = channelId;
