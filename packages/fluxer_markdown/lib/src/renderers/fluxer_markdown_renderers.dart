@@ -1253,6 +1253,15 @@ class _MarkdownInlineRenderer {
             !isValidMaskedLinkUrl(href))) {
       return TextSpan(text: '[$text]($href)', style: style);
     }
+    if (isAutolinkDisplayText(text, href)) {
+      final widget = config.linkWidgetBuilder?.call(context, href, style);
+      if (widget != null) {
+        return WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: widget,
+        );
+      }
+    }
     final linkColor = config.linkColor ?? Theme.of(context).colorScheme.primary;
     final linkStyle = style.copyWith(
       color: linkColor,

@@ -28,6 +28,7 @@ class UserNotificationsTtsSection extends ConsumerWidget {
     );
 
     return FluxerSettingsSection(
+      sectionId: 'text-to-speech',
       title: l10n.notificationsTtsSectionTitle,
       children: [
         Column(
