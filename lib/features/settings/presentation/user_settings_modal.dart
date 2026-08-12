@@ -29,6 +29,7 @@ import 'package:fluxer_app/features/settings/presentation/widgets/user_authorize
 import 'package:fluxer_app/features/settings/presentation/widgets/user_blocked_users.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_connections.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_default_apps.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/user_developer_tools.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_language_and_time.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_linked_devices.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_look_and_feel.dart';
@@ -646,7 +647,6 @@ Widget _buildUserSettingsSectionContent({
           : UserNotificationsSettings(scrollController: scrollController);
     case UserSettingsSection.keybinds:
     case UserSettingsSection.applications:
-    case UserSettingsSection.developerTools:
     case UserSettingsSection.limitsConfig:
     case UserSettingsSection.featureFlags:
     case UserSettingsSection.whatsNew:
@@ -655,6 +655,10 @@ Widget _buildUserSettingsSectionContent({
         section,
         scrollController: scrollController,
       );
+    case UserSettingsSection.developerTools:
+      return scrollController == null
+          ? const UserDeveloperTools()
+          : UserDeveloperTools(scrollController: scrollController);
   }
 }
 

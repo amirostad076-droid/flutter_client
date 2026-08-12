@@ -13,7 +13,7 @@ abstract final class FluxerHaptics {
   static String? _sendAhap;
   static Future<String>? _sendAhapLoad;
 
-  static bool get _supportsExpressive =>
+  static bool get supportsExpressive =>
       !kIsWeb && (Platform.isIOS || Platform.isAndroid);
 
   static void selection() => Gaimon.selection();
@@ -25,7 +25,7 @@ abstract final class FluxerHaptics {
   static void heavy() => Gaimon.heavy();
 
   static void soft() {
-    if (_supportsExpressive) {
+    if (supportsExpressive) {
       Gaimon.soft();
       return;
     }
@@ -33,7 +33,7 @@ abstract final class FluxerHaptics {
   }
 
   static void rigid() {
-    if (_supportsExpressive) {
+    if (supportsExpressive) {
       Gaimon.rigid();
       return;
     }
@@ -41,7 +41,7 @@ abstract final class FluxerHaptics {
   }
 
   static void success() {
-    if (_supportsExpressive) {
+    if (supportsExpressive) {
       Gaimon.success();
       return;
     }
@@ -49,7 +49,7 @@ abstract final class FluxerHaptics {
   }
 
   static void error() {
-    if (_supportsExpressive) {
+    if (supportsExpressive) {
       Gaimon.error();
       return;
     }
@@ -57,7 +57,7 @@ abstract final class FluxerHaptics {
   }
 
   static void warning() {
-    if (_supportsExpressive) {
+    if (supportsExpressive) {
       Gaimon.warning();
       return;
     }
@@ -66,7 +66,7 @@ abstract final class FluxerHaptics {
 
   /// Commit tap + short fading whoosh for sending a message.
   static void send() {
-    if (!_supportsExpressive) {
+    if (!supportsExpressive) {
       Gaimon.soft();
       return;
     }
@@ -80,6 +80,21 @@ abstract final class FluxerHaptics {
     } on Object {
       Gaimon.soft();
     }
+  }
+
+  /// Play a custom AHAP JSON pattern
+  static void pattern(String ahapJson) {
+    if (!supportsExpressive) {
+      return;
+    }
+    Gaimon.patternFromData(ahapJson);
+  }
+
+  static void stop() {
+    if (!supportsExpressive) {
+      return;
+    }
+    Gaimon.stop();
   }
 
   static Future<String> _loadSendAhap() {
