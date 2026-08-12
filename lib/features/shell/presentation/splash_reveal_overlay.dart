@@ -13,7 +13,7 @@ class SplashRevealOverlay {
   SplashRevealOverlay._();
 
   /// TEMP: Testing not using the logo zoom
-  static const bool useLogoZoomTransition = false;
+  static const bool useLogoZoomTransition = true;
 
   static const double logoSize = 85;
   static const double pulseScale = 0.8;
@@ -21,7 +21,7 @@ class SplashRevealOverlay {
   static const double pulseEndFraction = 0.08;
   static const double shellStartScale = 1.1;
   static const Duration totalDuration = Duration(milliseconds: 1200);
-  static const Duration fadeOnlyDuration = Duration(milliseconds: 250);
+  static const Duration fadeOnlyDuration = Duration(milliseconds: 350);
   static const Duration reducedMotionDuration = Duration(milliseconds: 300);
   static const int maxTickMicros = 32000;
 
