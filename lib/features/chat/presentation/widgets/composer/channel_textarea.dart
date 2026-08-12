@@ -336,6 +336,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
     _controller = ComposerMentionController(ref: ref);
     _focusNode.onKeyEvent = _handleComposerFieldKeyEvent;
     _controller.addListener(_syncStateFromController);
+    unawaited(FluxerHaptics.warmSend());
   }
 
   @override
@@ -1636,12 +1637,12 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
           );
       return;
     }
+    FluxerHaptics.send();
     final bool proceed = await _confirmMentionsIfNeeded(channelId, baseContent);
     if (!proceed) {
       return;
     }
 
-    FluxerHaptics.send();
     unawaited(vm.sendMessage(text: baseContent.trim(), tts: tts));
   }
 
@@ -1708,6 +1709,13 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
     if (guild == null) {
       return true;
     }
+    final bool mentionsEveryone = content.contains('@everyone');
+    final bool mentionsHere = content.contains('@here');
+    if (!mentionsEveryone &&
+        !mentionsHere &&
+        !kRoleMentionWirePattern.hasMatch(content)) {
+      return true;
+    }
     final int bits = await readEffectiveGuildChannelPermissionBits(
       container: ref.container,
       channelId: channelId,
@@ -1716,8 +1724,6 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
       bits,
       Permission.mentionEveryone,
     );
-    final bool mentionsEveryone = content.contains('@everyone');
-    final bool mentionsHere = content.contains('@here');
     final db.FluxerDatabase database = ref.read(fluxerDatabaseProvider);
     final List<db.Member> members = await database.memberDao.getMembers(
       guildId,

@@ -70,7 +70,24 @@ abstract final class FluxerHaptics {
       Gaimon.soft();
       return;
     }
+    final String? cached = _sendAhap;
+    if (cached != null) {
+      try {
+        Gaimon.patternFromData(cached);
+      } on Object {
+        Gaimon.soft();
+      }
+      return;
+    }
     unawaited(_playSend());
+  }
+
+  /// Preload the send AHAP so the first send feels instant (instead of delayed)
+  static Future<void> warmSend() {
+    if (!supportsExpressive) {
+      return Future<void>.value();
+    }
+    return _loadSendAhap();
   }
 
   static Future<void> _playSend() async {
