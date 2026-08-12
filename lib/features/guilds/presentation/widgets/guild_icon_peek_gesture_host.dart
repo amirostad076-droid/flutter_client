@@ -160,12 +160,21 @@ class _GuildIconPeekGestureHostState
     if (_activePointer != event.pointer) {
       return;
     }
-    if (_peekVisible &&
-        shouldSuppressPeekForDrag(
-          pointerDownPosition: _pointerDownPosition,
-          currentPosition: event.position,
-        )) {
-      _dismissPeekOverlay(suppressSession: true);
+    if (_peekVisible) {
+      if (shouldSuppressPeekForDrag(
+        pointerDownPosition: _pointerDownPosition,
+        currentPosition: event.position,
+      )) {
+        _dismissPeekOverlay(suppressSession: true);
+      }
+      return;
+    }
+    if (shouldCancelGuildPeekHold(
+      pointerDownPosition: _pointerDownPosition,
+      currentPosition: event.position,
+    )) {
+      _suppressPeekForSession = true;
+      _holdTimer?.cancel();
     }
   }
 

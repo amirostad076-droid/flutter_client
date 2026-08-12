@@ -77,7 +77,7 @@ class _GuildFolderLongPressMenuHostState
     if (_menuTriggeredForSession) {
       return;
     }
-    if (shouldSuppressPeekForDrag(
+    if (shouldCancelGuildPeekHold(
       pointerDownPosition: _pointerDownPosition,
       currentPosition: event.position,
     )) {
