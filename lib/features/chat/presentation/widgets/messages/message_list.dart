@@ -693,7 +693,14 @@ class _MessageListState extends ConsumerState<MessageList> {
       return;
     }
     _lastChannelId = channelId;
-    ref.read(focusedMessageProvider.notifier).clear();
+    if (ref.read(focusedMessageProvider).hasFocus) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        ref.read(focusedMessageProvider.notifier).clear();
+      });
+    }
     _uiEpoch++;
     _anchorId = null;
     _anchorFraction = 1.0;

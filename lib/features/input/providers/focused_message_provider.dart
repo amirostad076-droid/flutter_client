@@ -19,6 +19,9 @@ class FocusedMessageNotifier extends Notifier<FocusedMessageState> {
   }
 
   void clear() {
+    if (!state.hasFocus) {
+      return;
+    }
     state = const FocusedMessageState();
   }
 
