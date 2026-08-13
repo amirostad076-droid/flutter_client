@@ -63,7 +63,6 @@ class PremiumPricingCard extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.all(layout.s6),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               if (isPopular)
                 Container(

@@ -283,7 +283,7 @@ class _UserPlutoniumSettingsState extends ConsumerState<UserPlutoniumSettings> {
               style: textStyles.heading.copyWith(fontWeight: FontWeight.w600),
             ),
             SizedBox(height: layout.s4),
-            PremiumPurchaseDisclaimer(),
+            const PremiumPurchaseDisclaimer(),
           ],
         ],
       ),

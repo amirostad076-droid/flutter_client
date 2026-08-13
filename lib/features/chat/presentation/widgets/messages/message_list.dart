@@ -20,12 +20,6 @@ import 'package:fluxer_app/features/chat/presentation/'
     'sheets/attachment_alt_text_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/channel_pins_sheet.dart';
-import 'package:fluxer_app/features/input/providers/chat_keybind_effects_provider.dart';
-import 'package:fluxer_app/features/ui/emoji_picker/fluxer_selected_emoji.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_reactions_bar.dart';
-import 'package:fluxer_app/features/input/providers/focused_message_provider.dart';
-import 'package:fluxer_app/features/input/providers/keyboard_mode_provider.dart';
-import 'package:fluxer_app/features/input/providers/message_keyboard_navigation_provider.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/delete_message_confirm_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
@@ -54,6 +48,7 @@ import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/message_list_unread_review.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/message_list_viewport.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_reactions_bar.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/message_tile_cache.dart';
 import 'package:fluxer_app/features/chat/presentation/'
@@ -76,6 +71,10 @@ import 'package:fluxer_app/features/dm/providers/dm_view_model.dart';
 import 'package:fluxer_app/features/friends/providers/blocked_user_ids_provider.dart';
 import 'package:fluxer_app/features/guilds/domain/guild.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_providers.dart';
+import 'package:fluxer_app/features/input/providers/chat_keybind_effects_provider.dart';
+import 'package:fluxer_app/features/input/providers/focused_message_provider.dart';
+import 'package:fluxer_app/features/input/providers/keyboard_mode_provider.dart';
+import 'package:fluxer_app/features/input/providers/message_keyboard_navigation_provider.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_flow.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_simple_report_sheet.dart';
 import 'package:fluxer_app/features/moderation/providers/local_user_spam_override_provider.dart';
@@ -86,6 +85,7 @@ import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/presentation/sidebar_drawer.dart';
 import 'package:fluxer_app/features/shell/providers/reveal_side_provider.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
+import 'package:fluxer_app/features/ui/emoji_picker/fluxer_selected_emoji.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/input_modality_provider.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
@@ -333,12 +333,10 @@ class _MessageListState extends ConsumerState<MessageList> {
           _scrollController.position.minScrollExtent,
           _scrollController.position.maxScrollExtent,
         );
-    unawaited(
-      _scrollController.animateTo(
-        target,
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-      ),
+    _scrollController.animateTo(
+      target,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
     );
   }
 
@@ -394,12 +392,9 @@ class _MessageListState extends ConsumerState<MessageList> {
         return;
       }
       final ScrollPosition position = _scrollController.position;
-      final RenderAbstractViewport? viewport = RenderAbstractViewport.of(
+      final RenderAbstractViewport viewport = RenderAbstractViewport.of(
         renderObject,
       );
-      if (viewport == null) {
-        return;
-      }
       final double itemTop = viewport.getOffsetToReveal(renderObject, 0).offset;
       final double itemBottom = viewport
           .getOffsetToReveal(renderObject, 1)

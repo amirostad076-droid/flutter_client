@@ -9,7 +9,7 @@ void main() {
 
   test('escape priority prefers decline call over mark channel read', () {
     final KeybindDispatcher dispatcher = KeybindDispatcher();
-    final KeyEvent event = KeyDownEvent(
+    const KeyEvent event = KeyDownEvent(
       physicalKey: PhysicalKeyboardKey.escape,
       logicalKey: LogicalKeyboardKey.escape,
       timeStamp: Duration.zero,
@@ -33,7 +33,7 @@ void main() {
 
   test('chat mark channel read requires unread', () {
     final KeybindDispatcher dispatcher = KeybindDispatcher();
-    final KeyEvent event = KeyDownEvent(
+    const KeyEvent event = KeyDownEvent(
       physicalKey: PhysicalKeyboardKey.escape,
       logicalKey: LogicalKeyboardKey.escape,
       timeStamp: Duration.zero,

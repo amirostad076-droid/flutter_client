@@ -677,7 +677,7 @@ class _ChannelHeaderSearchFieldState
     _updateAutocompletePlacement();
     if (!_overlayController.isShowing) {
       _overlayController.show();
-      unawaited(_animationController.forward(from: 0));
+      _animationController.forward(from: 0);
     }
     setState(() {});
   }

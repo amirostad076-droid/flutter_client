@@ -9,8 +9,8 @@ void main() {
 
   group('keyboardEventMatchesCombo', () {
     test('matches plain e key', () {
-      final KeybindCombo combo = const KeybindCombo(key: 'e');
-      final KeyEvent event = KeyDownEvent(
+      const KeybindCombo combo = KeybindCombo(key: 'e');
+      const KeyEvent event = KeyDownEvent(
         physicalKey: PhysicalKeyboardKey.keyE,
         logicalKey: LogicalKeyboardKey.keyE,
         character: 'e',
@@ -20,8 +20,8 @@ void main() {
     });
 
     test('ignores key repeat', () {
-      final KeybindCombo combo = const KeybindCombo(key: 'e');
-      final KeyEvent event = KeyRepeatEvent(
+      const KeybindCombo combo = KeybindCombo(key: 'e');
+      const KeyEvent event = KeyRepeatEvent(
         physicalKey: PhysicalKeyboardKey.keyE,
         logicalKey: LogicalKeyboardKey.keyE,
         character: 'e',

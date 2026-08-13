@@ -4,11 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
 import 'package:fluxer_app/core/premium/premium_billing_service.dart';
 import 'package:fluxer_app/features/settings/providers/premium_settings_state_provider.dart';
+import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/providers/current_user_private_provider.dart';
 import 'package:fluxer_app/features/ui/modal/fluxer_modal.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/external_links/external_link_handler.dart';
-import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_dart/export.dart';
 
 enum PremiumCheckoutPlan { monthly, yearly, gift1Month, gift1Year }
@@ -19,8 +19,8 @@ Future<void> startPremiumCheckout({
   required PremiumCheckoutPlan plan,
   required PriceIdsResponse priceIds,
   required PricingModeEnum pricingMode,
-  String? countryCode,
   required bool isGiftSubscription,
+  String? countryCode,
 }) async {
   final FluxerLocalizations l10n = FluxerLocalizations.of(context);
 

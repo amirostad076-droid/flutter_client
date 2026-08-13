@@ -1,4 +1,3 @@
-import 'dart:async' show unawaited;
 import 'dart:math' as math;
 import 'dart:ui' show lerpDouble;
 
@@ -119,7 +118,7 @@ class _SplashRevealOverlayWidgetState extends State<_SplashRevealOverlayWidget>
         return;
       }
       _ticker = createTicker(_onTick);
-      unawaited(_ticker!.start());
+      _ticker!.start();
     });
   }
 

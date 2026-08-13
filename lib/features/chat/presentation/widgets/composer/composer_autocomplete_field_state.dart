@@ -942,7 +942,7 @@ class ComposerAutocompleteFieldState
     if (!_overlayController.isShowing) {
       _overlayController.show();
     }
-    unawaited(_animationController.forward());
+    _animationController.forward();
   }
 
   void _hideOverlay() {
@@ -966,12 +966,10 @@ class ComposerAutocompleteFieldState
       }
       final double offset = (_selectedIndex * _kAutocompleteScrollRowStride)
           .clamp(0.0, controller.position.maxScrollExtent);
-      unawaited(
-        controller.animateTo(
-          offset,
-          duration: context.motion.normal,
-          curve: Curves.easeOutCubic,
-        ),
+      controller.animateTo(
+        offset,
+        duration: context.motion.normal,
+        curve: Curves.easeOutCubic,
       );
     });
   }

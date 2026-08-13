@@ -102,10 +102,7 @@ PremiumSubscriptionStatus computePremiumSubscriptionStatus({
   } else {
     final DateTime? explicitGraceEnd = premiumGraceEndsAt;
     final DateTime? graceEndDate =
-        explicitGraceEnd ??
-        (premiumUntil != null
-            ? premiumUntil.add(const Duration(days: 3))
-            : null);
+        explicitGraceEnd ?? premiumUntil?.add(const Duration(days: 3));
     if (graceEndDate == null) {
       gracePeriodInfo = const PremiumGracePeriodInfo(
         isInGracePeriod: false,

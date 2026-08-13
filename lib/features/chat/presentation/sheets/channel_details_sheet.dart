@@ -1620,7 +1620,6 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
               ),
               const SizedBox(height: 12),
               Wrap(
-                alignment: WrapAlignment.start,
                 spacing: 8,
                 runSpacing: 8,
                 children: <Widget>[
@@ -1722,7 +1721,6 @@ class _ChannelSearchSheetState extends ConsumerState<ChannelSearchSheet> {
                 ),
                 const SizedBox(height: 8),
                 Wrap(
-                  alignment: WrapAlignment.start,
                   spacing: 8,
                   runSpacing: 8,
                   children: <Widget>[

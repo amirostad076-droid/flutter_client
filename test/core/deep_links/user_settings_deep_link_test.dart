@@ -1,9 +1,9 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/deep_links/user_settings_deep_link.dart';
 import 'package:fluxer_app/features/settings/domain/user_settings_section.dart';
 import 'package:fluxer_app/features/settings/utils/open_user_settings_deep_link.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   Uri uri(String path) => Uri.parse('https://web.fluxer.app$path');
@@ -102,10 +102,7 @@ void main() {
             builder: (context) {
               final label = userSettingsDeepLinkTabLabel(
                 FluxerLocalizations.of(context),
-                const UserSettingsDeepLinkTarget(
-                  tab: 'desktop_settings',
-                  section: null,
-                ),
+                const UserSettingsDeepLinkTarget(tab: 'desktop_settings'),
               );
               expect(label, 'User settings');
               return const SizedBox.shrink();

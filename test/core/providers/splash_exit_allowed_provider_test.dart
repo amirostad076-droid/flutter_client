@@ -58,7 +58,7 @@ void main() {
         ),
         closeTo(SplashRevealOverlay.pulseScale, 0.001),
       );
-      final double endScale = SplashRevealOverlay.useLogoZoomTransition
+      const double endScale = SplashRevealOverlay.useLogoZoomTransition
           ? SplashRevealOverlay.expandScale
           : SplashRevealOverlay.fadeEndScale;
       expect(splashRevealLogoScale(1, reducedMotion: false), endScale);
@@ -97,7 +97,7 @@ void main() {
     });
 
     test('settles from 1.1 to 1', () {
-      final double startScale = SplashRevealOverlay.useLogoZoomTransition
+      const double startScale = SplashRevealOverlay.useLogoZoomTransition
           ? SplashRevealOverlay.shellStartScale
           : 1;
       expect(splashRevealShellScale(0, reducedMotion: false), startScale);
