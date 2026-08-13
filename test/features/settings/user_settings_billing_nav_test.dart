@@ -5,28 +5,28 @@ import 'package:fluxer_app/features/settings/utils/user_settings_billing_utils.d
 
 void main() {
   group('isUserSettingsBillingSectionAvailable', () {
-    test('allows non-billing sections regardless of commerce flag', () {
+    test('allows non-billing sections regardless of billing flag', () {
       expect(
         isUserSettingsBillingSectionAvailable(
           UserSettingsSection.profile,
-          showPremiumCommerce: false,
+          showBilling: false,
         ),
         isTrue,
       );
     });
 
-    test('hides billing sections when commerce is disabled', () {
+    test('hides billing sections when billing nav is disabled', () {
       expect(
         isUserSettingsBillingSectionAvailable(
           UserSettingsSection.fluxerPlutonium,
-          showPremiumCommerce: false,
+          showBilling: false,
         ),
         isFalse,
       );
       expect(
         isUserSettingsBillingSectionAvailable(
           UserSettingsSection.giftsAndCodes,
-          showPremiumCommerce: false,
+          showBilling: false,
         ),
         isFalse,
       );
@@ -62,12 +62,11 @@ void main() {
   });
 
   group('indexForUserSettingsSection', () {
-    test('returns null for billing sections when commerce is disabled', () {
+    test('returns null for billing sections when billing nav is disabled', () {
       expect(
         indexForUserSettingsSection(
           UserSettingsSection.giftsAndCodes,
-          showBilling: true,
-          showPremiumCommerce: false,
+          showBilling: false,
         ),
         isNull,
       );

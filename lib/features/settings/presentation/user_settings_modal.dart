@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/build/app_build_config.dart';
 import 'package:fluxer_app/core/build/app_diagnostic_clipboard_text.dart';
 import 'package:fluxer_app/core/platform/fluxer_platform.dart';
-import 'package:fluxer_app/core/premium/should_show_premium_commerce_provider.dart';
 import 'package:fluxer_app/core/providers/app_runtime_info_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_ready_provider.dart';
@@ -159,15 +158,11 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
   void initState() {
     super.initState();
     final bool showBilling = userSettingsShowBillingNav(ref);
-    final bool showPremiumCommerce = ref.read(
-      shouldShowPremiumCommerceProvider,
-    );
     final int? sectionIndex = widget.initialSection == null
         ? null
         : indexForUserSettingsSection(
             widget.initialSection!,
             showBilling: showBilling,
-            showPremiumCommerce: showPremiumCommerce,
           );
     if (sectionIndex != null) {
       _selectedIndex = sectionIndex;
@@ -359,13 +354,9 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
       section: section,
       onNavigateSection: (UserSettingsSection target) {
         final bool showBilling = userSettingsShowBillingNav(ref);
-        final bool showPremiumCommerce = ref.read(
-          shouldShowPremiumCommerceProvider,
-        );
         final int? index = indexForUserSettingsSection(
           target,
           showBilling: showBilling,
-          showPremiumCommerce: showPremiumCommerce,
         );
         if (index != null) {
           setState(() => _selectedIndex = index);
@@ -490,7 +481,7 @@ class _MobileSettingsNavBodyState
     }
     if (!isUserSettingsBillingSectionAvailable(
       section,
-      showPremiumCommerce: ref.read(shouldShowPremiumCommerceProvider),
+      showBilling: userSettingsShowBillingNav(ref),
     )) {
       return;
     }
@@ -626,7 +617,7 @@ Widget _buildUserSettingsSectionContent({
   }
   if (!isUserSettingsBillingSectionAvailable(
     section,
-    showPremiumCommerce: ref.read(shouldShowPremiumCommerceProvider),
+    showBilling: userSettingsShowBillingNav(ref),
   )) {
     return const SizedBox.shrink();
   }

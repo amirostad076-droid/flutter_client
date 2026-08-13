@@ -19,7 +19,7 @@ import 'package:fluxer_app/features/settings/presentation/widgets/profile_previe
 import 'package:fluxer_app/features/settings/presentation/widgets/wide_settings_content_layout.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/settings/utils/open_user_billing_settings.dart';
-import 'package:fluxer_app/features/settings/utils/user_settings_billing_utils.dart';
+import 'package:fluxer_app/features/settings/utils/user_settings_billing_nav.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/input/emoji_text_editing_controller.dart';
 import 'package:fluxer_app/features/ui/input/fluxer_input_clipboard_scope.dart';
@@ -215,7 +215,7 @@ class _UserProfileState extends ConsumerState<UserProfile> {
   }
 
   void _showPlutoniumSheet(BuildContext context) {
-    if (isOssWebCheckoutBuild && ref.read(shouldShowPremiumCommerceProvider)) {
+    if (userSettingsShowBillingNav(ref)) {
       unawaited(
         openUserBillingSettings(context, UserSettingsSection.fluxerPlutonium),
       );

@@ -198,14 +198,13 @@ List<UserSettingsDesktopNavEntry> buildUserSettingsDesktopNav({
 int? indexForUserSettingsSection(
   UserSettingsSection section, {
   required bool showBilling,
-  required bool showPremiumCommerce,
 }) {
   if (!isUserSettingsStaffOnlySectionAvailable(section)) {
     return null;
   }
   if (!isUserSettingsBillingSectionAvailable(
     section,
-    showPremiumCommerce: showPremiumCommerce,
+    showBilling: showBilling,
   )) {
     return null;
   }
