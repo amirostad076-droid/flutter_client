@@ -44,6 +44,11 @@ import 'package:fluxer_app/features/settings/presentation/widgets/wide_settings_
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/settings/utils/user_settings_nav_l10n.dart';
 import 'package:fluxer_app/features/settings/utils/user_settings_section_scroll.dart';
+import 'package:fluxer_app/core/premium/should_show_premium_commerce_provider.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/user_gift_inventory.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/user_plutonium_settings.dart';
+import 'package:fluxer_app/features/settings/utils/user_settings_billing_nav.dart';
+import 'package:fluxer_app/features/settings/utils/user_settings_billing_utils.dart';
 import 'package:fluxer_app/features/settings/utils/user_settings_staff_only_utils.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
@@ -153,9 +158,17 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
   @override
   void initState() {
     super.initState();
+    final bool showBilling = userSettingsShowBillingNav(ref);
+    final bool showPremiumCommerce = ref.read(
+      shouldShowPremiumCommerceProvider,
+    );
     final int? sectionIndex = widget.initialSection == null
         ? null
-        : indexForUserSettingsSection(widget.initialSection!);
+        : indexForUserSettingsSection(
+            widget.initialSection!,
+            showBilling: showBilling,
+            showPremiumCommerce: showPremiumCommerce,
+          );
     if (sectionIndex != null) {
       _selectedIndex = sectionIndex;
     } else if (widget.openSecuritySection) {
@@ -196,16 +209,22 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(userSettingsViewModelProvider);
+    final bool showBilling = userSettingsShowBillingNav(ref);
+    final List<UserSettingsDesktopNavEntry> desktopNav =
+        buildUserSettingsDesktopNav(showBilling: showBilling);
 
     return WideSettingsModalFrame(
       includeOuterPadding: false,
-      child: _buildDesktopLayout(state),
+      child: _buildDesktopLayout(state, desktopNav),
     );
   }
 
-  Widget _buildDesktopLayout(UserSettingsViewState state) {
+  Widget _buildDesktopLayout(
+    UserSettingsViewState state,
+    List<UserSettingsDesktopNavEntry> desktopNav,
+  ) {
     final l10n = FluxerLocalizations.of(context);
-    final selectedEntry = userSettingsDesktopNav[_selectedIndex];
+    final selectedEntry = desktopNav[_selectedIndex];
     final double contentGutter = wideSettingsContentEdgeGutter(context);
     return Column(
       children: [
@@ -217,11 +236,11 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
                 child: ColoredBox(
                   color: context.colors.backgroundPrimary,
                   child: SettingsSidebar(
-                    items: userSettingsDesktopNav
+                    items: desktopNav
                         .map((entry) => entry.toSidebarItem(l10n))
                         .toList(),
                     selectedIndex: _selectedIndex,
-                    onSelected: _onItemSelected,
+                    onSelected: (index) => _onItemSelected(index, desktopNav),
                     userId: state.userId,
                     username: state.displayName,
                     avatarUrl: state.avatarUrl,
@@ -256,7 +275,7 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
                       Expanded(
                         child: WideSettingsContentLayout(
                           includeHorizontalGutter: false,
-                          child: _buildContent(state),
+                          child: _buildContent(state, desktopNav),
                         ),
                       ),
                     ],
@@ -270,8 +289,11 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
     );
   }
 
-  void _onItemSelected(int index) {
-    final entry = userSettingsDesktopNav[index];
+  void _onItemSelected(
+    int index,
+    List<UserSettingsDesktopNavEntry> desktopNav,
+  ) {
+    final entry = desktopNav[index];
     if (entry.isLogout) {
       unawaited(_logout());
       return;
@@ -322,8 +344,11 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
     }
   }
 
-  Widget _buildContent(UserSettingsViewState state) {
-    final section = userSettingsDesktopNav[_selectedIndex].section;
+  Widget _buildContent(
+    UserSettingsViewState state,
+    List<UserSettingsDesktopNavEntry> desktopNav,
+  ) {
+    final section = desktopNav[_selectedIndex].section;
     if (section == null) {
       return const SizedBox.shrink();
     }
@@ -332,6 +357,20 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal> {
       ref: ref,
       state: state,
       section: section,
+      onNavigateSection: (UserSettingsSection target) {
+        final bool showBilling = userSettingsShowBillingNav(ref);
+        final bool showPremiumCommerce = ref.read(
+          shouldShowPremiumCommerceProvider,
+        );
+        final int? index = indexForUserSettingsSection(
+          target,
+          showBilling: showBilling,
+          showPremiumCommerce: showPremiumCommerce,
+        );
+        if (index != null) {
+          setState(() => _selectedIndex = index);
+        }
+      },
     );
   }
 
@@ -422,6 +461,7 @@ class _MobileSettingsNavBodyState
   Widget build(BuildContext context) {
     final l10n = FluxerLocalizations.of(context);
     final layout = context.layout;
+    final bool showBilling = userSettingsShowBillingNav(ref);
     return FluxerSettingsNavList(
       controller: widget.scrollController,
       padding: EdgeInsets.fromLTRB(
@@ -435,6 +475,7 @@ class _MobileSettingsNavBodyState
         onOpenSection: _openSettingsPage,
         onOpenAppLogs: _openAppLogs,
         onLogout: _logout,
+        showBilling: showBilling,
       ),
       footer: const _SettingsBuildInfoFooter(),
     );
@@ -445,6 +486,12 @@ class _MobileSettingsNavBodyState
     String? initialFieldId,
   }) {
     if (!isUserSettingsStaffOnlySectionAvailable(section)) {
+      return;
+    }
+    if (!isUserSettingsBillingSectionAvailable(
+      section,
+      showPremiumCommerce: ref.read(shouldShowPremiumCommerceProvider),
+    )) {
       return;
     }
     final l10n = FluxerLocalizations.of(context);
@@ -572,8 +619,15 @@ Widget _buildUserSettingsSectionContent({
   required UserSettingsViewState state,
   required UserSettingsSection section,
   ScrollController? scrollController,
+  void Function(UserSettingsSection section)? onNavigateSection,
 }) {
   if (!isUserSettingsStaffOnlySectionAvailable(section)) {
+    return const SizedBox.shrink();
+  }
+  if (!isUserSettingsBillingSectionAvailable(
+    section,
+    showPremiumCommerce: ref.read(shouldShowPremiumCommerceProvider),
+  )) {
     return const SizedBox.shrink();
   }
   switch (section) {
@@ -636,8 +690,20 @@ Widget _buildUserSettingsSectionContent({
       return scrollController == null
           ? const UserLanguageAndTime()
           : UserLanguageAndTime(scrollController: scrollController);
-    // case UserSettingsSection.fluxerPlutonium:
-    // case UserSettingsSection.giftsAndCodes:
+    case UserSettingsSection.fluxerPlutonium:
+      return UserPlutoniumSettings(
+        scrollController: scrollController,
+        onOpenGifts: onNavigateSection == null
+            ? null
+            : () => onNavigateSection(UserSettingsSection.giftsAndCodes),
+      );
+    case UserSettingsSection.giftsAndCodes:
+      return UserGiftInventory(
+        scrollController: scrollController,
+        onOpenPlutonium: onNavigateSection == null
+            ? null
+            : () => onNavigateSection(UserSettingsSection.fluxerPlutonium),
+      );
     case UserSettingsSection.audioAndVideo:
       return scrollController == null
           ? const UserAudioAndVideo()

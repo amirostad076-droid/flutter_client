@@ -117,12 +117,22 @@ void main() {
   });
 
   group('mapUserSettingsDeepLinkToSection', () {
+    test('maps plutonium and gift inventory tabs', () {
+      expect(
+        mapUserSettingsDeepLinkToSection('plutonium', null),
+        UserSettingsSection.fluxerPlutonium,
+      );
+      expect(
+        mapUserSettingsDeepLinkToSection('gift_inventory', null),
+        UserSettingsSection.giftsAndCodes,
+      );
+    });
+
     test('returns null for unsupported web-only tabs', () {
       expect(
         mapUserSettingsDeepLinkToSection('desktop_settings', null),
         isNull,
       );
-      expect(mapUserSettingsDeepLinkToSection('plutonium', null), isNull);
       expect(
         mapUserSettingsDeepLinkToSection('client_developer_settings', null),
         isNull,

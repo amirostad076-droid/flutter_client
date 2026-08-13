@@ -1,8 +1,8 @@
 enum UserSettingsSection {
   profile,
   securityLogin,
-  // fluxerPlutonium,
-  // giftsAndCodes,
+  fluxerPlutonium,
+  giftsAndCodes,
   privacyDashboard,
   authorizedApps,
   blockedUsers,

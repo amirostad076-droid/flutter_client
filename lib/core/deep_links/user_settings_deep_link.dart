@@ -208,6 +208,10 @@ UserSettingsSection? mapUserSettingsDeepLinkToSection(
       return UserSettingsSection.languageAndTime;
     case 'shortcuts':
       return UserSettingsSection.shortcuts;
+    case 'plutonium':
+      return UserSettingsSection.fluxerPlutonium;
+    case 'gift_inventory':
+      return UserSettingsSection.giftsAndCodes;
     case 'linked_accounts':
       return UserSettingsSection.connections;
     case 'applications':

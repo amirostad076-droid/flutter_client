@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/deep_links/user_settings_deep_link.dart';
 import 'package:fluxer_app/features/settings/presentation/user_settings_modal.dart';
 import 'package:fluxer_app/features/settings/presentation/user_settings_nav.dart';
+import 'package:fluxer_app/features/settings/utils/user_settings_billing_nav.dart';
 import 'package:fluxer_app/features/settings/utils/user_settings_field_registry.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/input_modality_provider.dart';
@@ -27,6 +28,7 @@ UserSettingsDeepLinkPresentation buildUserSettingsDeepLinkPresentation({
   required bool isTouchPrimary,
   required FluxerLocalizations l10n,
   required UserSettingsDeepLinkTarget target,
+  bool showBilling = false,
 }) {
   final String? scrollFieldId = target.tab == null
       ? null
@@ -43,7 +45,8 @@ UserSettingsDeepLinkPresentation buildUserSettingsDeepLinkPresentation({
       : userSettingsFieldLabel(l10n, target.tab!, target.fieldId!);
   final IconData tabIcon = target.section == null
       ? PhosphorIconsFill.gear
-      : iconForUserSettingsSection(target.section!) ?? PhosphorIconsFill.gear;
+      : iconForUserSettingsSection(target.section!, showBilling: showBilling) ??
+            PhosphorIconsFill.gear;
 
   return UserSettingsDeepLinkPresentation(
     tabLabel: userSettingsDeepLinkTabLabel(l10n, target),
