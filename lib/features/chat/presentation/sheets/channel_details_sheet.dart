@@ -2834,9 +2834,8 @@ class _GuildUserSearchFilterSheetState
         guildId: widget.guildId,
         parsed: rankingQuery,
       );
-      if (searchQuery.isNotEmpty &&
-          await search.shouldFetchFromGateway(widget.guildId, searchQuery)) {
-        members = (await search.fetchGatewayAndMerge(
+      if (searchQuery.isNotEmpty) {
+        members = (await search.searchCachedThenGateway(
           guildId: widget.guildId,
           query: searchQuery,
           parsed: rankingQuery,
