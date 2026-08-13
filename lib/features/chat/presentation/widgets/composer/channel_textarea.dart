@@ -46,6 +46,8 @@ import 'package:fluxer_app/features/chat/providers/pickers/bottom_input_slot_pro
 import 'package:fluxer_app/features/chat/providers/pickers/emoji_picker_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/mobile_keyboard_metrics_provider.dart';
+import 'package:fluxer_app/features/input/providers/chat_keybind_effects_provider.dart';
+import 'package:fluxer_app/features/input/providers/composer_focus_coordinator_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/sticker_picker_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_blocked_provider.dart';
 import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_indicator_shake_provider.dart';
@@ -324,9 +326,35 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
     return false;
   }
 
+  late final VoidCallback _requestComposerFocus;
+  late final ComposerFocusCoordinator _composerFocus;
+  ProviderSubscription<int>? _chatKeybindEffectsSubscription;
+
   @override
   void initState() {
     super.initState();
+    _composerFocus = ref.read(composerFocusCoordinatorProvider);
+    _requestComposerFocus = () {
+      if (_focusNode.canRequestFocus) {
+        _focusNode.requestFocus();
+      }
+    };
+    _composerFocus.register(
+      requestFocus: _requestComposerFocus,
+      readText: _sendableWireText,
+      hasFocus: () => _focusNode.hasFocus,
+    );
+    _chatKeybindEffectsSubscription = listenChatKeybindEffects(
+      ref,
+      (_) {
+        if (!mounted) {
+          return;
+        }
+        unawaited(_pickAttachments(context));
+      },
+      where: (ChatKeybindEffect effect) =>
+          effect == ChatKeybindEffect.triggerUpload,
+    );
     _keyboardRestore = KeyboardFocusRestoreHandle(
       focusNode: _focusNode,
       shouldTrackOnBackground: _shouldTrackKeyboardRestore,
@@ -498,6 +526,8 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
 
   @override
   void dispose() {
+    _chatKeybindEffectsSubscription?.close();
+    _composerFocus.unregister(_requestComposerFocus);
     WidgetsBinding.instance.removeObserver(this);
     _focusNode
       ..unfocus()

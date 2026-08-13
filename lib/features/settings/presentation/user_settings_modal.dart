@@ -38,6 +38,7 @@ import 'package:fluxer_app/features/settings/presentation/widgets/user_notificat
 import 'package:fluxer_app/features/settings/presentation/widgets/user_privacy_dashboard.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_profile.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/user_security_login.dart';
+import 'package:fluxer_app/features/settings/presentation/widgets/user_shortcuts.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/wide_settings_content_layout.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/wide_settings_modal_frame.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
@@ -645,7 +646,10 @@ Widget _buildUserSettingsSectionContent({
       return scrollController == null
           ? const UserNotificationsSettings()
           : UserNotificationsSettings(scrollController: scrollController);
-    case UserSettingsSection.keybinds:
+    case UserSettingsSection.shortcuts:
+      return scrollController == null
+          ? const UserShortcuts()
+          : UserShortcuts(scrollController: scrollController);
     case UserSettingsSection.applications:
     case UserSettingsSection.limitsConfig:
     case UserSettingsSection.featureFlags:

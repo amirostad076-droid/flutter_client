@@ -13906,6 +13906,12 @@ abstract class FluxerLocalizations {
   /// **'Audio & Video'**
   String get userSettingsNavAudioAndVideo;
 
+  /// User settings navigation item for keyboard shortcuts.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortcuts'**
+  String get userSettingsNavShortcuts;
+
   /// Settings section title for audio settings in the voice and video tab.
   ///
   /// In en, this message translates to:
@@ -21206,6 +21212,420 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Direct Messages'**
   String get dmListDirectMessagesTitle;
+
+  /// Placeholder for the shortcuts settings search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Search shortcuts'**
+  String get keybindsSearchShortcuts;
+
+  /// No description provided for @keybindSectionDefaults.
+  ///
+  /// In en, this message translates to:
+  /// **'Defaults'**
+  String get keybindSectionDefaults;
+
+  /// No description provided for @keybindSectionMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get keybindSectionMessages;
+
+  /// No description provided for @keybindSectionNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation'**
+  String get keybindSectionNavigation;
+
+  /// No description provided for @keybindSectionDragAndDrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag and drop'**
+  String get keybindSectionDragAndDrop;
+
+  /// No description provided for @keybindSectionChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get keybindSectionChat;
+
+  /// No description provided for @keybindSectionVoiceAndVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice and video'**
+  String get keybindSectionVoiceAndVideo;
+
+  /// No description provided for @keybindSectionMisc.
+  ///
+  /// In en, this message translates to:
+  /// **'Miscellaneous'**
+  String get keybindSectionMisc;
+
+  /// No description provided for @keybindActionShowShortcutsList.
+  ///
+  /// In en, this message translates to:
+  /// **'Show keyboard shortcuts list'**
+  String get keybindActionShowShortcutsList;
+
+  /// No description provided for @keybindActionCopyText.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy text'**
+  String get keybindActionCopyText;
+
+  /// No description provided for @keybindActionMarkUnread.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as unread'**
+  String get keybindActionMarkUnread;
+
+  /// No description provided for @keybindActionFocusTextarea.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus text area'**
+  String get keybindActionFocusTextarea;
+
+  /// No description provided for @keybindActionSwitchCommunities.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch between communities'**
+  String get keybindActionSwitchCommunities;
+
+  /// No description provided for @keybindActionSwitchChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch between channels'**
+  String get keybindActionSwitchChannels;
+
+  /// No description provided for @keybindActionHistoryBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Move back through viewed channel history'**
+  String get keybindActionHistoryBack;
+
+  /// No description provided for @keybindActionHistoryForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Move forward through viewed channel history'**
+  String get keybindActionHistoryForward;
+
+  /// No description provided for @keybindActionJumpUnreadChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump between unread channels'**
+  String get keybindActionJumpUnreadChannels;
+
+  /// No description provided for @keybindActionJumpMentionChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump between unread channels with mentions'**
+  String get keybindActionJumpMentionChannels;
+
+  /// No description provided for @keybindActionJumpCurrentCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump to the current call'**
+  String get keybindActionJumpCurrentCall;
+
+  /// No description provided for @keybindActionToggleLastGuildDms.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle between last community and DMs'**
+  String get keybindActionToggleLastGuildDms;
+
+  /// No description provided for @keybindActionPreviousCommunityOrDms.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to previous community or DMs'**
+  String get keybindActionPreviousCommunityOrDms;
+
+  /// No description provided for @keybindActionNextCommunityOrDms.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to next community or DMs'**
+  String get keybindActionNextCommunityOrDms;
+
+  /// No description provided for @keybindActionGoToDms.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Direct Messages'**
+  String get keybindActionGoToDms;
+
+  /// No description provided for @keybindActionGoToFirstCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to first community'**
+  String get keybindActionGoToFirstCommunity;
+
+  /// No description provided for @keybindActionGoToSecondCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to second community'**
+  String get keybindActionGoToSecondCommunity;
+
+  /// No description provided for @keybindActionGoToThirdCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to third community'**
+  String get keybindActionGoToThirdCommunity;
+
+  /// No description provided for @keybindActionGoToFourthCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to fourth community'**
+  String get keybindActionGoToFourthCommunity;
+
+  /// No description provided for @keybindActionGoToFifthCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to fifth community'**
+  String get keybindActionGoToFifthCommunity;
+
+  /// No description provided for @keybindActionGoToSixthCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to sixth community'**
+  String get keybindActionGoToSixthCommunity;
+
+  /// No description provided for @keybindActionGoToSeventhCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to seventh community'**
+  String get keybindActionGoToSeventhCommunity;
+
+  /// No description provided for @keybindActionGoToEighthCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to eighth community'**
+  String get keybindActionGoToEighthCommunity;
+
+  /// No description provided for @keybindActionToggleQuickSwitcher.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle quick switcher'**
+  String get keybindActionToggleQuickSwitcher;
+
+  /// No description provided for @keybindActionCreateOrJoinCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Create or join a community'**
+  String get keybindActionCreateOrJoinCommunity;
+
+  /// No description provided for @keybindActionStartDragAndDrop.
+  ///
+  /// In en, this message translates to:
+  /// **'Start drag and drop'**
+  String get keybindActionStartDragAndDrop;
+
+  /// No description provided for @keybindActionMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get keybindActionMove;
+
+  /// No description provided for @keybindActionDropItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop item'**
+  String get keybindActionDropItem;
+
+  /// No description provided for @keybindActionCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get keybindActionCancel;
+
+  /// No description provided for @keybindActionMarkCommunityRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark community as read'**
+  String get keybindActionMarkCommunityRead;
+
+  /// No description provided for @keybindActionMarkChannelRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark channel as read'**
+  String get keybindActionMarkChannelRead;
+
+  /// No description provided for @keybindActionStartGroupDm.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a group DM'**
+  String get keybindActionStartGroupDm;
+
+  /// No description provided for @keybindActionTogglePinnedMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle pinned messages'**
+  String get keybindActionTogglePinnedMessages;
+
+  /// No description provided for @keybindActionToggleInbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle the inbox'**
+  String get keybindActionToggleInbox;
+
+  /// No description provided for @keybindActionMarkTopInboxRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark top inbox channel as read'**
+  String get keybindActionMarkTopInboxRead;
+
+  /// No description provided for @keybindActionMarkAllInboxRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all inbox channels as read'**
+  String get keybindActionMarkAllInboxRead;
+
+  /// No description provided for @keybindActionToggleMemberList.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle the member list or voice chat'**
+  String get keybindActionToggleMemberList;
+
+  /// No description provided for @keybindActionToggleEmojiPicker.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle the emoji picker'**
+  String get keybindActionToggleEmojiPicker;
+
+  /// No description provided for @keybindActionToggleGifPicker.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle the GIF picker'**
+  String get keybindActionToggleGifPicker;
+
+  /// No description provided for @keybindActionToggleStickerPicker.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle the sticker picker'**
+  String get keybindActionToggleStickerPicker;
+
+  /// No description provided for @keybindActionScrollChatUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Scroll chat up'**
+  String get keybindActionScrollChatUp;
+
+  /// No description provided for @keybindActionScrollChatDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Scroll chat down'**
+  String get keybindActionScrollChatDown;
+
+  /// No description provided for @keybindActionJumpOldestUnread.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump to the oldest unread message'**
+  String get keybindActionJumpOldestUnread;
+
+  /// No description provided for @keybindActionFocusComposer.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus the text area'**
+  String get keybindActionFocusComposer;
+
+  /// No description provided for @keybindActionUploadFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload a file'**
+  String get keybindActionUploadFile;
+
+  /// No description provided for @keybindActionCopyChannelLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy channel link'**
+  String get keybindActionCopyChannelLink;
+
+  /// No description provided for @keybindActionToggleSavedMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle saved media'**
+  String get keybindActionToggleSavedMedia;
+
+  /// No description provided for @keybindActionSendVoiceMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Send voice message'**
+  String get keybindActionSendVoiceMessage;
+
+  /// No description provided for @keybindActionAnswerCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer the incoming call'**
+  String get keybindActionAnswerCall;
+
+  /// No description provided for @keybindActionDeclineCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline the incoming call'**
+  String get keybindActionDeclineCall;
+
+  /// No description provided for @keybindActionStartDmCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a call in a DM or group'**
+  String get keybindActionStartDmCall;
+
+  /// No description provided for @keybindActionToggleSoundboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle the soundboard'**
+  String get keybindActionToggleSoundboard;
+
+  /// No description provided for @keybindActionToggleCompactCallView.
+  ///
+  /// In en, this message translates to:
+  /// **'Expand or collapse compact call view'**
+  String get keybindActionToggleCompactCallView;
+
+  /// No description provided for @keybindActionOpenHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Open help'**
+  String get keybindActionOpenHelp;
+
+  /// No description provided for @keybindActionSearchMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Search messages'**
+  String get keybindActionSearchMessages;
+
+  /// No description provided for @keybindActionOpenContextMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the context menu'**
+  String get keybindActionOpenContextMenu;
+
+  /// No description provided for @keybindActionOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open your settings'**
+  String get keybindActionOpenSettings;
+
+  /// No description provided for @keybindActionOpenThemeStudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Open theme studio popout'**
+  String get keybindActionOpenThemeStudio;
+
+  /// No description provided for @keybindActionZoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in'**
+  String get keybindActionZoomIn;
+
+  /// No description provided for @keybindActionZoomOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom out'**
+  String get keybindActionZoomOut;
+
+  /// No description provided for @keybindActionZoomReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset zoom'**
+  String get keybindActionZoomReset;
 }
 
 class _FluxerLocalizationsDelegate

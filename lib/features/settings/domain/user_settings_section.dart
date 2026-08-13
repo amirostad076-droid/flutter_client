@@ -12,7 +12,7 @@ enum UserSettingsSection {
   accessibility,
   chat,
   audioAndVideo,
-  keybinds,
+  shortcuts,
   notifications,
   languageAndTime,
   defaultApps,

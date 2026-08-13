@@ -33,8 +33,8 @@ String userSettingsSectionLabel(
       return l10n.userSettingsNavChat;
     case UserSettingsSection.audioAndVideo:
       return l10n.userSettingsNavAudioAndVideo;
-    case UserSettingsSection.keybinds:
-      return 'Keybinds';
+    case UserSettingsSection.shortcuts:
+      return l10n.userSettingsNavShortcuts;
     case UserSettingsSection.notifications:
       return l10n.userSettingsNavNotifications;
     case UserSettingsSection.languageAndTime:

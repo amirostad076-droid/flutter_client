@@ -8308,6 +8308,9 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
   String get userSettingsNavAudioAndVideo => 'เสียงและวิดีโอ';
 
   @override
+  String get userSettingsNavShortcuts => 'Shortcuts';
+
+  @override
   String get audioAndVideoAudioSectionTitle => 'Audio';
 
   @override
@@ -12649,4 +12652,220 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
 
   @override
   String get dmListDirectMessagesTitle => 'Direct Messages';
+
+  @override
+  String get keybindsSearchShortcuts => 'Search shortcuts';
+
+  @override
+  String get keybindSectionDefaults => 'Defaults';
+
+  @override
+  String get keybindSectionMessages => 'Messages';
+
+  @override
+  String get keybindSectionNavigation => 'Navigation';
+
+  @override
+  String get keybindSectionDragAndDrop => 'Drag and drop';
+
+  @override
+  String get keybindSectionChat => 'Chat';
+
+  @override
+  String get keybindSectionVoiceAndVideo => 'Voice and video';
+
+  @override
+  String get keybindSectionMisc => 'Miscellaneous';
+
+  @override
+  String get keybindActionShowShortcutsList => 'Show keyboard shortcuts list';
+
+  @override
+  String get keybindActionCopyText => 'Copy text';
+
+  @override
+  String get keybindActionMarkUnread => 'Mark as unread';
+
+  @override
+  String get keybindActionFocusTextarea => 'Focus text area';
+
+  @override
+  String get keybindActionSwitchCommunities => 'Switch between communities';
+
+  @override
+  String get keybindActionSwitchChannels => 'Switch between channels';
+
+  @override
+  String get keybindActionHistoryBack =>
+      'Move back through viewed channel history';
+
+  @override
+  String get keybindActionHistoryForward =>
+      'Move forward through viewed channel history';
+
+  @override
+  String get keybindActionJumpUnreadChannels => 'Jump between unread channels';
+
+  @override
+  String get keybindActionJumpMentionChannels =>
+      'Jump between unread channels with mentions';
+
+  @override
+  String get keybindActionJumpCurrentCall => 'Jump to the current call';
+
+  @override
+  String get keybindActionToggleLastGuildDms =>
+      'Toggle between last community and DMs';
+
+  @override
+  String get keybindActionPreviousCommunityOrDms =>
+      'Switch to previous community or DMs';
+
+  @override
+  String get keybindActionNextCommunityOrDms =>
+      'Switch to next community or DMs';
+
+  @override
+  String get keybindActionGoToDms => 'Go to Direct Messages';
+
+  @override
+  String get keybindActionGoToFirstCommunity => 'Go to first community';
+
+  @override
+  String get keybindActionGoToSecondCommunity => 'Go to second community';
+
+  @override
+  String get keybindActionGoToThirdCommunity => 'Go to third community';
+
+  @override
+  String get keybindActionGoToFourthCommunity => 'Go to fourth community';
+
+  @override
+  String get keybindActionGoToFifthCommunity => 'Go to fifth community';
+
+  @override
+  String get keybindActionGoToSixthCommunity => 'Go to sixth community';
+
+  @override
+  String get keybindActionGoToSeventhCommunity => 'Go to seventh community';
+
+  @override
+  String get keybindActionGoToEighthCommunity => 'Go to eighth community';
+
+  @override
+  String get keybindActionToggleQuickSwitcher => 'Toggle quick switcher';
+
+  @override
+  String get keybindActionCreateOrJoinCommunity => 'Create or join a community';
+
+  @override
+  String get keybindActionStartDragAndDrop => 'Start drag and drop';
+
+  @override
+  String get keybindActionMove => 'Move';
+
+  @override
+  String get keybindActionDropItem => 'Drop item';
+
+  @override
+  String get keybindActionCancel => 'Cancel';
+
+  @override
+  String get keybindActionMarkCommunityRead => 'Mark community as read';
+
+  @override
+  String get keybindActionMarkChannelRead => 'Mark channel as read';
+
+  @override
+  String get keybindActionStartGroupDm => 'Start a group DM';
+
+  @override
+  String get keybindActionTogglePinnedMessages => 'Toggle pinned messages';
+
+  @override
+  String get keybindActionToggleInbox => 'Toggle the inbox';
+
+  @override
+  String get keybindActionMarkTopInboxRead => 'Mark top inbox channel as read';
+
+  @override
+  String get keybindActionMarkAllInboxRead => 'Mark all inbox channels as read';
+
+  @override
+  String get keybindActionToggleMemberList =>
+      'Toggle the member list or voice chat';
+
+  @override
+  String get keybindActionToggleEmojiPicker => 'Toggle the emoji picker';
+
+  @override
+  String get keybindActionToggleGifPicker => 'Toggle the GIF picker';
+
+  @override
+  String get keybindActionToggleStickerPicker => 'Toggle the sticker picker';
+
+  @override
+  String get keybindActionScrollChatUp => 'Scroll chat up';
+
+  @override
+  String get keybindActionScrollChatDown => 'Scroll chat down';
+
+  @override
+  String get keybindActionJumpOldestUnread =>
+      'Jump to the oldest unread message';
+
+  @override
+  String get keybindActionFocusComposer => 'Focus the text area';
+
+  @override
+  String get keybindActionUploadFile => 'Upload a file';
+
+  @override
+  String get keybindActionCopyChannelLink => 'Copy channel link';
+
+  @override
+  String get keybindActionToggleSavedMedia => 'Toggle saved media';
+
+  @override
+  String get keybindActionSendVoiceMessage => 'Send voice message';
+
+  @override
+  String get keybindActionAnswerCall => 'Answer the incoming call';
+
+  @override
+  String get keybindActionDeclineCall => 'Decline the incoming call';
+
+  @override
+  String get keybindActionStartDmCall => 'Start a call in a DM or group';
+
+  @override
+  String get keybindActionToggleSoundboard => 'Toggle the soundboard';
+
+  @override
+  String get keybindActionToggleCompactCallView =>
+      'Expand or collapse compact call view';
+
+  @override
+  String get keybindActionOpenHelp => 'Open help';
+
+  @override
+  String get keybindActionSearchMessages => 'Search messages';
+
+  @override
+  String get keybindActionOpenContextMenu => 'Open the context menu';
+
+  @override
+  String get keybindActionOpenSettings => 'Open your settings';
+
+  @override
+  String get keybindActionOpenThemeStudio => 'Open theme studio popout';
+
+  @override
+  String get keybindActionZoomIn => 'Zoom in';
+
+  @override
+  String get keybindActionZoomOut => 'Zoom out';
+
+  @override
+  String get keybindActionZoomReset => 'Reset zoom';
 }

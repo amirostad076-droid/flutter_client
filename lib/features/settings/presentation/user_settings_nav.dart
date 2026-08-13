@@ -125,10 +125,10 @@ const _userSettingsDesktopNavBeforeStaffOnly = [
     UserSettingsSection.audioAndVideo,
     icon: PhosphorIconsFill.microphone,
   ),
-  // UserSettingsDesktopNavEntry.link(
-  //   UserSettingsSection.keybinds,
-  //   icon: PhosphorIconsFill.keyboard,
-  // ),
+  UserSettingsDesktopNavEntry.link(
+    UserSettingsSection.shortcuts,
+    icon: PhosphorIconsFill.keyboard,
+  ),
   UserSettingsDesktopNavEntry.link(
     UserSettingsSection.languageAndTime,
     icon: PhosphorIconsBold.translate,
@@ -244,6 +244,7 @@ List<FluxerSettingsNavGroup> buildUserSettingsMobileNavGroups({
         ),
         link(UserSettingsSection.chat, PhosphorIconsFill.chatCircle),
         link(UserSettingsSection.audioAndVideo, PhosphorIconsFill.microphone),
+        link(UserSettingsSection.shortcuts, PhosphorIconsFill.keyboard),
         link(UserSettingsSection.languageAndTime, PhosphorIconsBold.translate),
         if (isFluxerNativeMobileOs)
           link(UserSettingsSection.defaultApps, PhosphorIconsFill.squaresFour),
