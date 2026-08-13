@@ -158,6 +158,26 @@ class ComposerAutocompleteFieldState
     );
   }
 
+  ParsedMentionQuery? _liveMentionParsedQuery() {
+    final int? caret = _autocompleteCaretIndex(widget.controller.value);
+    if (caret == null) {
+      return null;
+    }
+    final ComposerAutocompleteTrigger? trigger =
+        ComposerAutocompleteTrigger.detectIfAllowed(
+          fullText: widget.controller.text,
+          caretIndex: caret,
+        );
+    if (trigger == null ||
+        trigger.kind != ComposerAutocompleteTriggerKind.mention ||
+        !widget.allowedTriggers.contains(
+          ComposerAutocompleteTriggerKind.mention,
+        )) {
+      return null;
+    }
+    return parseMentionQuery(trigger.matchedText);
+  }
+
   int? _autocompleteCaretIndex(TextEditingValue editing) {
     final TextSelection selection = editing.selection;
     if (selection.isValid) {
@@ -542,6 +562,14 @@ class ComposerAutocompleteFieldState
     if (generation != _syncGeneration) {
       return;
     }
+    final ParsedMentionQuery? liveParsed = _liveMentionParsedQuery();
+    if (liveParsed == null) {
+      if (generation == _syncGeneration) {
+        _setRows(const <_ComposerRow>[]);
+      }
+      return;
+    }
+    final ParsedMentionQuery activeParsed = liveParsed;
     final Map<String, String> discs =
         discriminators ??
         await ref
@@ -550,7 +578,18 @@ class ComposerAutocompleteFieldState
     if (generation != _syncGeneration) {
       return;
     }
-    List<Member> ranked = members;
+    final MentionAutocompleteSession? stableSession =
+        guildId != null && guildId.isNotEmpty
+        ? _mentionSessionFor(guildId, activeParsed)
+        : null;
+    List<Member> ranked = filterGuildMembersForAutocomplete(
+      members: members,
+      parsed: activeParsed,
+      limit: kMentionMemberSearchLimit,
+      discriminatorByUserId: discs,
+      friendNicknameById: friendNicknameById,
+      stableSession: stableSession,
+    );
     if (guildId != null && guildId.isNotEmpty) {
       ranked = await filterMembersByViewChannel(
         database: ref.read(fluxerDatabaseProvider),
@@ -587,7 +626,7 @@ class ComposerAutocompleteFieldState
         guildId != null &&
         guildId.isNotEmpty &&
         hasPermission(bits, Permission.mentionEveryone);
-    final String q = parsed.usernameQuery.trim().toLowerCase();
+    final String q = activeParsed.usernameQuery.trim().toLowerCase();
     final List<_ComposerRow> specialRows = <_ComposerRow>[];
     if (canMentionEveryone) {
       if (q.isEmpty || 'everyone'.startsWith(q)) {
@@ -842,6 +881,9 @@ class ComposerAutocompleteFieldState
         ..addAll(next);
       _selectedIndex = next.isEmpty ? 0 : _firstSelectableRowIndex();
     });
+    if (next.isEmpty) {
+      _stopMentionAutocompleteWatches();
+    }
     if (_usesInStackPanel) {
       _publishPanel();
       if (next.isNotEmpty) {
@@ -850,7 +892,6 @@ class ComposerAutocompleteFieldState
       return;
     }
     if (next.isEmpty) {
-      _stopGuildRolesWatch();
       _hideOverlay();
       return;
     }
