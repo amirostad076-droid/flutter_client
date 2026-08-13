@@ -142,20 +142,18 @@ void main() {
     );
   });
 
-  testWidgets(
-    'renders language section on mobile',
-    (WidgetTester tester) async {
-      await tester.pumpWidget(_wrap(const UserLanguageAndTime()));
-      await tester.pumpAndSettle();
+  testWidgets('renders language section on mobile', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(_wrap(const UserLanguageAndTime()));
+    await tester.pumpAndSettle();
 
-      expect(find.text('Interface language'), findsOneWidget);
-      expect(
-        find.text('Choose the language used throughout the app'),
-        findsOneWidget,
-      );
-      expect(find.text('English (United States) (English)'), findsOneWidget);
-      expect(find.text('Open language settings'), findsOneWidget);
-    },
-    skip: !Platform.isIOS && !Platform.isAndroid,
-  );
+    expect(find.text('Interface language'), findsOneWidget);
+    expect(
+      find.text('Choose the language used throughout the app'),
+      findsOneWidget,
+    );
+    expect(find.text('English (United States) (English)'), findsOneWidget);
+    expect(find.text('Open language settings'), findsOneWidget);
+  }, skip: !Platform.isIOS && !Platform.isAndroid);
 }

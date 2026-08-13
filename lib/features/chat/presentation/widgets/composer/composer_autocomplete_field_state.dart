@@ -317,18 +317,16 @@ class ComposerAutocompleteFieldState
     }
     _stopGuildRolesWatch();
     _guildRolesWatchGuildId = guildId;
-    _guildRolesSubscription = ref.listenManual(
-      guildRolesByIdProvider(guildId),
-      (
-        AsyncValue<Map<String, db.Role>>? previous,
-        AsyncValue<Map<String, db.Role>> next,
-      ) {
-        if (!mounted || !next.hasValue) {
-          return;
-        }
-        _scheduleSync();
-      },
-    );
+    _guildRolesSubscription = ref
+        .listenManual(guildRolesByIdProvider(guildId), (
+          AsyncValue<Map<String, db.Role>>? previous,
+          AsyncValue<Map<String, db.Role>> next,
+        ) {
+          if (!mounted || !next.hasValue) {
+            return;
+          }
+          _scheduleSync();
+        });
   }
 
   void _stopGuildRolesWatch() {
