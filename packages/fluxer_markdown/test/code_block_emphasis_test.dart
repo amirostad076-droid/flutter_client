@@ -95,7 +95,7 @@ test one two three
 
       final InlineSpan? root = _findCodeBlockRichText(tester);
       expect(root, isNotNull);
-      final InlineSpan codeBlockText = root;
+      final InlineSpan codeBlockText = root!;
       expect(codeBlockText.toPlainText(), contains('*test four five six*'));
       expect(
         codeBlockText.toPlainText(),

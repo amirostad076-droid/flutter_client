@@ -21,9 +21,9 @@ dependencies:
 
   flutter_inappwebview: ^6.2.0-beta.2
   meta: any
+  material_ui: ^1.0.0
   web: ^1.1.1
 
-  material_ui: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

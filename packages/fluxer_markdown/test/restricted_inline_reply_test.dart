@@ -108,7 +108,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final RichText richText = tester.widget<RichText>(find.byType(RichText));
-      final TextStyle style = richText.text.style;
+      final TextStyle style = richText.text.style!;
       expect(style.fontSize, baseFontSize);
       expect(richText.text.toPlainText(), contains('preview note'));
     });

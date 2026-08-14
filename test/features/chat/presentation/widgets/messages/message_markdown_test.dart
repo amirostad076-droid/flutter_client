@@ -23,7 +23,10 @@ Widget _app({
     overrides: [use12HourTimeFormatProvider.overrideWithValue(use12Hour)],
     child: MaterialApp(
       locale: locale,
-      localizationsDelegates: FluxerLocalizations.localizationsDelegates,
+      localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
+        FluxerLocalizations.delegate,
+        ...GlobalMaterialLocalizations.delegates,
+      ],
       supportedLocales: FluxerLocalizations.supportedLocales,
       theme: buildFluxerTheme(
         colorTheme: colorTheme,

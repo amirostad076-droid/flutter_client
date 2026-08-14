@@ -143,7 +143,7 @@ class _FluxerMarkdownState extends State<FluxerMarkdown> {
             textScaler: textScaler,
           );
           if (_cachedBody != null && _cacheKey == cacheKey) {
-            return _cachedBody;
+            return _cachedBody!;
           }
           _beginBodyRebuild();
           _cacheKey = cacheKey;
@@ -153,7 +153,7 @@ class _FluxerMarkdownState extends State<FluxerMarkdown> {
             style: style,
             isDark: isDark,
           );
-          return _cachedBody;
+          return _cachedBody!;
         },
       ),
     );
@@ -260,7 +260,7 @@ class _FluxerMarkdownState extends State<FluxerMarkdown> {
         segments.last is! FluxerTextSegment) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [...segmentWidgets, widget.trailingInlineWidget],
+        children: [...segmentWidgets, widget.trailingInlineWidget!],
       );
     }
 
