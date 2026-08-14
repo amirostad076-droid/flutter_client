@@ -31,16 +31,16 @@ Future<void> showChatMobileFullscreenVideo(
     context,
   ).read(shellManualGestureBlockProvider.notifier)..setBlocked(value: true);
   try {
-    await Navigator.of(context).push<void>(
-      PageRouteBuilder<void>(
-        opaque: false,
-        fullscreenDialog: true,
-        pageBuilder: (_, _, _) =>
-            _ChatMobileFullscreenVideoPage(launchContext: launchContext),
-        transitionsBuilder: (_, animation, _, child) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-      ),
+    await showGeneralDialog<void>(
+      context: context,
+      barrierLabel: FluxerLocalizations.of(context).mediaViewerImagePreview,
+      barrierColor: Colors.transparent,
+      pageBuilder: (_, _, _) {
+        return _ChatMobileFullscreenVideoPage(launchContext: launchContext);
+      },
+      transitionBuilder: (_, animation, _, child) {
+        return FadeTransition(opacity: animation, child: child);
+      },
     );
   } finally {
     shellGestureBlock.setBlocked(value: false);
