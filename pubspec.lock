@@ -1431,10 +1431,10 @@ packages:
     dependency: "direct main"
     description:
       name: local_translation
-      sha256: "4bd1e59ad2e77b068917820e15e24d47739819734a421b7a885950e802e704f7"
+      sha256: ef1e5363876142b5ffbddcabc005c2b693f6250f5c495bb6abf77c02095563b5
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.1"
+    version: "0.0.3"
   logger:
     dependency: transitive
     description:
