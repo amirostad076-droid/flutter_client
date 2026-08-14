@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
@@ -105,9 +106,29 @@ bool _isValidLatexContent(String code) {
   return RegExp(r'\\[a-zA-Z]+').allMatches(code).length <= 64;
 }
 
-double _orderedListMarkerColumnWidth(int largestNumber, double fontSize) {
-  final digitCount = largestNumber.toString().length;
-  return fontSize * (0.65 + digitCount * 0.6);
+double _listMarkerColumnWidth({
+  required Iterable<String> markers,
+  required TextStyle style,
+  required TextScaler textScaler,
+  required ui.TextDirection textDirection,
+}) {
+  final TextPainter painter = TextPainter(
+    textDirection: textDirection,
+    maxLines: 1,
+    textScaler: textScaler,
+  );
+  var maxWidth = 0.0;
+  for (final String marker in markers) {
+    painter
+      ..text = TextSpan(text: marker, style: style)
+      ..layout();
+    if (painter.width > maxWidth) {
+      maxWidth = painter.width;
+    }
+  }
+  painter.dispose();
+  final double fontSize = style.fontSize ?? FluxerMarkupSpacing.rootFontSize;
+  return maxWidth + textScaler.scale(fontSize) * 0.25;
 }
 
 final RegExp _spoilerSyncUrlPattern = RegExp(
@@ -704,13 +725,26 @@ class _MarkdownBlockRenderer {
   Widget _buildList(md.Element node, {required bool ordered, int depth = 0}) {
     final items = node.children?.whereType<md.Element>().toList() ?? const [];
     final start = int.tryParse(node.attributes['start'] ?? '1') ?? 1;
-    final fontSize = baseStyle.fontSize ?? FluxerMarkupSpacing.rootFontSize;
-    final markerColumnWidth = ordered
-        ? _orderedListMarkerColumnWidth(
-            items.isEmpty ? start : start + items.length - 1,
-            fontSize,
-          )
-        : fontSize * 1.5;
+    String markerFor(int index) {
+      if (ordered) {
+        return _orderedListMarkerForDepth(start + index, depth);
+      }
+      return _unorderedListMarkerForDepth(depth);
+    }
+
+    final List<String> markers = <String>[
+      for (var i = 0; i < items.length; i++) markerFor(i),
+    ];
+    final TextScaler textScaler = MediaQuery.textScalerOf(context);
+    final List<String> widthMarkers = markers.isEmpty
+        ? <String>[markerFor(0)]
+        : markers;
+    final double markerColumnWidth = _listMarkerColumnWidth(
+      markers: widthMarkers,
+      style: baseStyle,
+      textScaler: textScaler,
+      textDirection: Directionality.of(context),
+    );
     final markerTextAlign = ordered ? TextAlign.right : TextAlign.start;
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -728,11 +762,10 @@ class _MarkdownBlockRenderer {
               ),
               child: _buildListItem(
                 items[i],
-                marker: ordered
-                    ? _orderedListMarkerForDepth(start + i, depth)
-                    : _unorderedListMarkerForDepth(depth),
+                marker: markers[i],
                 markerColumnWidth: markerColumnWidth,
                 markerTextAlign: markerTextAlign,
+                textScaler: textScaler,
                 depth: depth,
               ),
             ),
@@ -746,6 +779,7 @@ class _MarkdownBlockRenderer {
     required String marker,
     required double markerColumnWidth,
     required TextAlign markerTextAlign,
+    required TextScaler textScaler,
     required int depth,
   }) {
     final children = item.children ?? const <md.Node>[];
@@ -839,10 +873,10 @@ class _MarkdownBlockRenderer {
       children: [
         SizedBox(
           width: markerColumnWidth,
-          child: Text(
-            marker,
-            style: baseStyle,
+          child: RichText(
+            text: TextSpan(text: marker, style: baseStyle),
             textAlign: markerTextAlign,
+            textScaler: textScaler,
             maxLines: 1,
             softWrap: false,
           ),
