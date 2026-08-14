@@ -10,6 +10,8 @@ import 'package:fluxer_app/features/chat/presentation/widgets/media/chat_video_p
 import 'package:fluxer_app/features/chat/utils/attachment_display_utils.dart';
 import 'package:fluxer_app/features/chat/utils/chat_video_playback_utils.dart';
 import 'package:fluxer_app/features/shell/providers/shell_manual_gesture_block_provider.dart';
+import 'package:fluxer_app/features/ui/media_viewer/media_viewer_dismiss.dart';
+import 'package:fluxer_app/features/ui/media_viewer/media_viewer_dismissible.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_gesture_detector.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -30,10 +32,14 @@ Future<void> showChatMobileFullscreenVideo(
   ).read(shellManualGestureBlockProvider.notifier)..setBlocked(value: true);
   try {
     await Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
+      PageRouteBuilder<void>(
+        opaque: false,
         fullscreenDialog: true,
-        builder: (BuildContext context) =>
+        pageBuilder: (_, _, _) =>
             _ChatMobileFullscreenVideoPage(launchContext: launchContext),
+        transitionsBuilder: (_, animation, _, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
       ),
     );
   } finally {
@@ -73,6 +79,7 @@ class _ChatMobileFullscreenVideoPageState
   Duration _duration = Duration.zero;
   bool _isMuted = false;
   Timer? _hudHideTimer;
+  double _dismissProgress = 0;
 
   ChatVideoSource get _source => widget.launchContext.source;
 
@@ -328,6 +335,15 @@ class _ChatMobileFullscreenVideoPageState
     Navigator.of(context).pop();
   }
 
+  void _handleDismissProgress(double progress) {
+    if (_dismissProgress == progress) {
+      return;
+    }
+    setState(() {
+      _dismissProgress = progress;
+    });
+  }
+
   Future<void> _openOptions() async {
     _keepHudVisible();
     await showMobileMediaOptionsSheet(
@@ -348,67 +364,92 @@ class _ChatMobileFullscreenVideoPageState
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     final mkv.VideoController? controller = _controller;
     final bool showOptionsButton = widget.launchContext.hasOptionsMenu;
+    final double backdropOpacity = mediaViewerDismissBackdropOpacity(
+      baseOpacity: 1,
+      dismissProgress: _dismissProgress,
+    );
+    final double chromeOpacity = mediaViewerDismissChromeOpacity(
+      dismissProgress: _dismissProgress,
+    );
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.transparent,
       body: Stack(
         fit: StackFit.expand,
+        clipBehavior: Clip.none,
         children: <Widget>[
-          if (controller != null && !_playbackFailed && !_isOpening)
-            Positioned.fill(
-              child: mkv.Video(controller: controller, controls: null),
-            ),
-          if ((_isOpening || controller == null) && !_playbackFailed)
-            const IgnorePointer(
-              child: ColoredBox(
-                color: Colors.black,
-                child: Center(child: FluxerLoadingSpinner()),
-              ),
-            ),
-          if (_isBuffering && !_isOpening && !_playbackFailed)
-            IgnorePointer(
-              child: ColoredBox(
-                color: Colors.black.withValues(alpha: 0.22),
-                child: const Center(child: FluxerLoadingSpinner()),
-              ),
-            ),
-          if (controller != null && !_playbackFailed && !_isOpening)
-            Positioned.fill(
-              child: _hudVisible
-                  ? FluxerGestureDetector(
-                      behavior: HitTestBehavior.translucent,
-                      onTap: _toggleHudVisibility,
-                      child: const SizedBox.expand(),
-                    )
-                  : Semantics(
-                      label: l10n.chatAttachmentVideoToggleControls,
-                      button: true,
-                      child: FluxerGestureDetector(
-                        behavior: HitTestBehavior.translucent,
-                        onTap: _toggleHudVisibility,
-                        child: const SizedBox.expand(),
-                      ),
+          ColoredBox(color: Colors.black.withValues(alpha: backdropOpacity)),
+          MediaViewerDismissible(
+            onDismissProgress: _handleDismissProgress,
+            onClose: _executeClose,
+            child: Stack(
+              fit: StackFit.expand,
+              clipBehavior: Clip.none,
+              children: <Widget>[
+                if (controller != null && !_playbackFailed && !_isOpening)
+                  Positioned.fill(
+                    child: mkv.Video(controller: controller, controls: null),
+                  ),
+                if ((_isOpening || controller == null) && !_playbackFailed)
+                  const IgnorePointer(
+                    child: ColoredBox(
+                      color: Colors.black,
+                      child: Center(child: FluxerLoadingSpinner()),
                     ),
+                  ),
+                if (_isBuffering && !_isOpening && !_playbackFailed)
+                  IgnorePointer(
+                    child: ColoredBox(
+                      color: Colors.black.withValues(alpha: 0.22),
+                      child: const Center(child: FluxerLoadingSpinner()),
+                    ),
+                  ),
+                if (controller != null && !_playbackFailed && !_isOpening)
+                  Positioned.fill(
+                    child: _hudVisible
+                        ? FluxerGestureDetector(
+                            behavior: HitTestBehavior.translucent,
+                            onTap: _toggleHudVisibility,
+                            child: const SizedBox.expand(),
+                          )
+                        : Semantics(
+                            label: l10n.chatAttachmentVideoToggleControls,
+                            button: true,
+                            child: FluxerGestureDetector(
+                              behavior: HitTestBehavior.translucent,
+                              onTap: _toggleHudVisibility,
+                              child: const SizedBox.expand(),
+                            ),
+                          ),
+                  ),
+                if (_hudVisible && !_playbackFailed)
+                  Opacity(
+                    opacity: chromeOpacity,
+                    child: _MobileVideoHud(
+                      l10n: l10n,
+                      onClose: _executeClose,
+                      onOpenOptions: showOptionsButton ? _openOptions : null,
+                      isMuted: _isMuted,
+                      onMute: _toggleMute,
+                      isPlaying: _isPlaying,
+                      onPlayPause: _togglePlayPause,
+                      position: _position,
+                      duration: _duration,
+                      onSeekFromGlobalDx: _seekFromGlobalDx,
+                    ),
+                  ),
+                if (_playbackFailed)
+                  Opacity(
+                    opacity: chromeOpacity,
+                    child: ChatVideoPlaybackFailureOverlay(
+                      fallbackUrl: _source.fallbackUrl,
+                      useRootNavigator: true,
+                      onClose: _executeClose,
+                      onOpenOptions: showOptionsButton ? _openOptions : null,
+                    ),
+                  ),
+              ],
             ),
-          if (_hudVisible && !_playbackFailed)
-            _MobileVideoHud(
-              l10n: l10n,
-              onClose: _executeClose,
-              onOpenOptions: showOptionsButton ? _openOptions : null,
-              isMuted: _isMuted,
-              onMute: _toggleMute,
-              isPlaying: _isPlaying,
-              onPlayPause: _togglePlayPause,
-              position: _position,
-              duration: _duration,
-              onSeekFromGlobalDx: _seekFromGlobalDx,
-            ),
-          if (_playbackFailed)
-            ChatVideoPlaybackFailureOverlay(
-              fallbackUrl: _source.fallbackUrl,
-              useRootNavigator: true,
-              onClose: _executeClose,
-              onOpenOptions: showOptionsButton ? _openOptions : null,
-            ),
+          ),
         ],
       ),
     );
