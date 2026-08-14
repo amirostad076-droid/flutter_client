@@ -101,5 +101,16 @@ void main() {
         );
       },
     );
+
+    testWidgets('animated custom emoji skips decode cache resize', (
+      tester,
+    ) async {
+      await _pumpMarkdown(tester, 'hello <a:smile:111111111111111111> world');
+
+      final CachedNetworkImage image = _customEmojiImage(tester);
+      expect(image.fit, BoxFit.contain);
+      expect(image.memCacheWidth, isNull);
+      expect(image.memCacheHeight, isNull);
+    });
   });
 }

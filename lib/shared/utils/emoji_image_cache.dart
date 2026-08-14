@@ -82,11 +82,13 @@ class _CachedEmojiImageState extends ConsumerState<CachedEmojiImage> {
       animated: animated,
       size: widget.requestSize,
     );
-    final cache = containDecodeCacheSize(
-      cellWidth: widget.size,
-      cellHeight: widget.size,
-      devicePixelRatio: MediaQuery.devicePixelRatioOf(context),
-    );
+    final ({int? width, int? height}) cache = animated
+        ? (width: null, height: null)
+        : containDecodeCacheSize(
+            cellWidth: widget.size,
+            cellHeight: widget.size,
+            devicePixelRatio: MediaQuery.devicePixelRatioOf(context),
+          );
     return CachedNetworkImage(
       imageUrl: url,
       cacheKey:

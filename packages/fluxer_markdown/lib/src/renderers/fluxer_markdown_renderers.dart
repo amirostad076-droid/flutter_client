@@ -2003,7 +2003,10 @@ class FluxerEmojiWidget extends StatelessWidget {
         height: size,
         // Cap one decode axis only. Capping both forces ResizeImagePolicy.exact,
         // which stretches non-square emoji into a square (issue #445).
-        memCacheWidth: px,
+        // Skip resize on animated frames; ResizeImage lags multi-frame decode.
+        memCacheWidth: animated ? null : px,
+        fadeInDuration: Duration.zero,
+        fadeOutDuration: Duration.zero,
         fit: BoxFit.contain,
         errorBuilder: (_, _, _) => Text(':$name:'),
       ),

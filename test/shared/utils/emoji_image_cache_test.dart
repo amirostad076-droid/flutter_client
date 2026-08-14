@@ -74,6 +74,11 @@ void main() {
       await tester.pump();
 
       expect(imageUrl(tester), contains('animated=true'));
+      final CachedNetworkImage image = tester.widget(
+        find.byType(CachedNetworkImage),
+      );
+      expect(image.memCacheWidth, isNull);
+      expect(image.memCacheHeight, isNull);
     },
   );
 

@@ -45,6 +45,7 @@ void main() {
       expect(image.imageUrl, isNot(contains('animated=true')));
       expect(image.cacheKey, contains('_s_'));
       expect(image.cacheKey, isNot(contains('_a_')));
+      expect(image.memCacheWidth, isNotNull);
     },
   );
 
@@ -82,5 +83,9 @@ void main() {
     );
     expect(image.imageUrl, contains('animated=true'));
     expect(image.cacheKey, contains('_a_'));
+    expect(image.memCacheWidth, isNull);
+    expect(image.memCacheHeight, isNull);
+    expect(image.fadeInDuration, Duration.zero);
+    expect(image.fadeOutDuration, Duration.zero);
   });
 }
