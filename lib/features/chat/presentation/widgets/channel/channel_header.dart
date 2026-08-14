@@ -375,13 +375,11 @@ class ChannelHeader extends ConsumerWidget {
                   size: FluxerButtonSize.small,
                   iconSize: 20,
                   onPressed: () => unawaited(
-                    showChannelSearchSheetAndJump(
+                    showChannelSearchPageAndJump(
                       context,
                       container: ref.container,
                       channelId: channel.id,
                       guildId: channel.guildId,
-                      title: channel.name,
-                      channel: channel,
                     ),
                   ),
                 ),
