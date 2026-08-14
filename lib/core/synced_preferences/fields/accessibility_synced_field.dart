@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/synced_preferences/generated/fluxer/user/prefere
 import 'package:fluxer_app/core/theme/custom_theme_css.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/accessibility/motion_preferences.dart';
+import 'package:fluxer_app/features/accessibility/text_scale.dart';
 import 'package:fluxer_app/features/settings/providers/advanced_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/voice/tts/tts_rate_utils.dart';
@@ -28,6 +29,7 @@ class AccessibilityLocalState {
     required this.saturationFactor,
     required this.customThemeCss,
     required this.advanced,
+    this.showUserAvatarsInCompactMode = false,
     this.screenReaderAnnounceNewMessages = false,
     this.showMediaDeleteButton = true,
     this.showMediaDownloadButton = true,
@@ -51,6 +53,10 @@ class AccessibilityLocalState {
     this.mobileGifAutoplayValue = kDefaultMobileGifAutoPlay,
     this.mobileAnimateEmojiValue = true,
     this.mobileStickerAnimationValue = kDefaultMobileStickerAnimation,
+    this.chatFontSize = kDefaultChatFontSize,
+    this.scaleFactor = kDefaultLayoutZoomLevel,
+    this.hasFontSizeInProto = false,
+    this.hasZoomLevelInProto = false,
   });
 
   final bool hideKeyboardHints;
@@ -62,6 +68,7 @@ class AccessibilityLocalState {
   final bool useSystemLocaleForTimeFormat;
   final double messageGroupSpacing;
   final double compactMessageGroupSpacing;
+  final bool showUserAvatarsInCompactMode;
   final double saturationFactor;
   final String? customThemeCss;
   final AdvancedAccessibilityLocalState advanced;
@@ -88,6 +95,10 @@ class AccessibilityLocalState {
   final bool mobileGifAutoplayValue;
   final bool mobileAnimateEmojiValue;
   final StickerAnimationOptions mobileStickerAnimationValue;
+  final int chatFontSize;
+  final double scaleFactor;
+  final bool hasFontSizeInProto;
+  final bool hasZoomLevelInProto;
 }
 
 class AccessibilitySyncedField
@@ -115,6 +126,7 @@ class AccessibilitySyncedField
       useSystemLocaleForTimeFormat: appearance.useSystemLocaleForTimeFormat,
       messageGroupSpacing: appearance.messageGroupSpacing,
       compactMessageGroupSpacing: appearance.compactMessageGroupSpacing,
+      showUserAvatarsInCompactMode: appearance.showUserAvatarsInCompactMode,
       saturationFactor: theme.saturationFactor,
       customThemeCss: theme.customThemeCss,
       screenReaderAnnounceNewMessages:
@@ -140,6 +152,8 @@ class AccessibilitySyncedField
       mobileGifAutoplayValue: appearance.mobileGifAutoplayValue,
       mobileAnimateEmojiValue: appearance.mobileAnimateEmojiValue,
       mobileStickerAnimationValue: appearance.mobileStickerAnimationValue,
+      chatFontSize: theme.chatFontSize,
+      scaleFactor: theme.scaleFactor,
       advanced: AdvancedAccessibilityLocalState(
         enableTextSelection: advanced.enableTextSelection,
         voiceChannelJoinRequiresDoubleClick:
@@ -177,9 +191,13 @@ class AccessibilitySyncedField
     await themeNotifier.applySyncedThemeCustomization(
       saturationFactor: value.saturationFactor,
       customThemeCss: value.customThemeCss,
+      chatFontSize: value.chatFontSize,
+      scaleFactor: value.scaleFactor,
       updateSaturationFactor: value.hasSaturationFactorInProto,
       updateCustomThemeCss:
           value.hasCustomThemeCssInProto && value.customThemeCss != null,
+      updateChatFontSize: value.hasFontSizeInProto,
+      updateScaleFactor: value.hasZoomLevelInProto,
     );
   }
 
@@ -224,6 +242,7 @@ class AccessibilitySyncedField
         a.useSystemLocaleForTimeFormat == b.useSystemLocaleForTimeFormat &&
         a.messageGroupSpacing == b.messageGroupSpacing &&
         a.compactMessageGroupSpacing == b.compactMessageGroupSpacing &&
+        a.showUserAvatarsInCompactMode == b.showUserAvatarsInCompactMode &&
         a.saturationFactor == b.saturationFactor &&
         a.showMediaDeleteButton == b.showMediaDeleteButton &&
         a.showMediaDownloadButton == b.showMediaDownloadButton &&
@@ -248,6 +267,8 @@ class AccessibilitySyncedField
         a.mobileGifAutoplayValue == b.mobileGifAutoplayValue &&
         a.mobileAnimateEmojiValue == b.mobileAnimateEmojiValue &&
         a.mobileStickerAnimationValue == b.mobileStickerAnimationValue &&
+        a.chatFontSize == b.chatFontSize &&
+        a.scaleFactor == b.scaleFactor &&
         normalizeCustomThemeCss(a.customThemeCss) ==
             normalizeCustomThemeCss(b.customThemeCss) &&
         _advancedStatesEqual(a.advanced, b.advanced);
@@ -295,6 +316,7 @@ class AccessibilitySyncedField
       useSystemLocaleForTimeFormat: remote.useSystemLocaleForTimeFormat,
       messageGroupSpacing: remote.messageGroupSpacing,
       compactMessageGroupSpacing: remote.compactMessageGroupSpacing,
+      showUserAvatarsInCompactMode: remote.showUserAvatarsInCompactMode,
       saturationFactor: remote.hasSaturationFactorInProto
           ? remote.saturationFactor
           : local.saturationFactor,
@@ -323,11 +345,20 @@ class AccessibilitySyncedField
       mobileGifAutoplayValue: remote.mobileGifAutoplayValue,
       mobileAnimateEmojiValue: remote.mobileAnimateEmojiValue,
       mobileStickerAnimationValue: remote.mobileStickerAnimationValue,
+      chatFontSize: remote.hasFontSizeInProto
+          ? remote.chatFontSize
+          : local.chatFontSize,
+      scaleFactor: remote.hasZoomLevelInProto
+          ? remote.scaleFactor
+          : local.scaleFactor,
       advanced: remote.advanced,
       hasSaturationFactorInProto:
           remote.hasSaturationFactorInProto || local.hasSaturationFactorInProto,
       hasCustomThemeCssInProto:
           remote.hasCustomThemeCssInProto || local.hasCustomThemeCssInProto,
+      hasFontSizeInProto: remote.hasFontSizeInProto || local.hasFontSizeInProto,
+      hasZoomLevelInProto:
+          remote.hasZoomLevelInProto || local.hasZoomLevelInProto,
     );
   }
 
@@ -370,6 +401,9 @@ class AccessibilitySyncedField
       compactMessageGroupSpacing: proto.hasCompactMessageGroupSpacing()
           ? proto.compactMessageGroupSpacing
           : 0,
+      showUserAvatarsInCompactMode:
+          proto.hasShowUserAvatarsInCompactMode() &&
+          proto.showUserAvatarsInCompactMode,
       saturationFactor: proto.hasSaturationFactor()
           ? clampSaturationFactor(proto.saturationFactor)
           : 1,
@@ -460,6 +494,14 @@ class AccessibilitySyncedField
             ? proto.mobileStickerAnimationValue
             : null,
       ),
+      chatFontSize: proto.hasFontSize()
+          ? snapChatFontSize(proto.fontSize)
+          : kDefaultChatFontSize,
+      scaleFactor: proto.hasZoomLevel()
+          ? clampLayoutZoomLevel(protoZoomLevelToFactor(proto.zoomLevel))
+          : kDefaultLayoutZoomLevel,
+      hasFontSizeInProto: proto.hasFontSize(),
+      hasZoomLevelInProto: proto.hasZoomLevel(),
     );
   }
 
@@ -487,6 +529,7 @@ class AccessibilitySyncedField
           ..useBrowserLocaleForTimeFormat = local.useSystemLocaleForTimeFormat
           ..messageGroupSpacing = local.messageGroupSpacing
           ..compactMessageGroupSpacing = local.compactMessageGroupSpacing
+          ..showUserAvatarsInCompactMode = local.showUserAvatarsInCompactMode
           ..saturationFactor = local.saturationFactor
           ..showMediaDeleteButton = local.showMediaDeleteButton
           ..showMediaDownloadButton = local.showMediaDownloadButton
@@ -511,7 +554,9 @@ class AccessibilitySyncedField
           ..mobileGifAutoplayValue = local.mobileGifAutoplayValue
           ..mobileAnimateEmojiValue = local.mobileAnimateEmojiValue
           ..mobileStickerAnimationValue =
-              local.mobileStickerAnimationValue.json ?? 1;
+              local.mobileStickerAnimationValue.json ?? 1
+          ..fontSize = local.chatFontSize.toDouble()
+          ..zoomLevel = local.scaleFactor;
     _applyAdvancedToProto(settings, local.advanced, wireBase: wireBase);
     if (effectiveCss != null) {
       return settings..customThemeCss = effectiveCss;
@@ -534,6 +579,7 @@ class AccessibilitySyncedField
       useBrowserLocaleForTimeFormat: local.useSystemLocaleForTimeFormat,
       messageGroupSpacing: local.messageGroupSpacing,
       compactMessageGroupSpacing: local.compactMessageGroupSpacing,
+      showUserAvatarsInCompactMode: local.showUserAvatarsInCompactMode,
       saturationFactor: local.saturationFactor,
       showMediaDeleteButton: local.showMediaDeleteButton,
       showMediaDownloadButton: local.showMediaDownloadButton,
@@ -556,6 +602,8 @@ class AccessibilitySyncedField
       mobileGifAutoplayValue: local.mobileGifAutoplayValue,
       mobileAnimateEmojiValue: local.mobileAnimateEmojiValue,
       mobileStickerAnimationValue: local.mobileStickerAnimationValue.json ?? 1,
+      fontSize: local.chatFontSize.toDouble(),
+      zoomLevel: local.scaleFactor,
     );
     _applyAdvancedToProto(settings, local.advanced);
     if (effectiveCss != null) {

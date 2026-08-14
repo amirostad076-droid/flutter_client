@@ -6916,17 +6916,95 @@ abstract class FluxerLocalizations {
   /// **'Couldn\'t sync theme to your account. Please try again.'**
   String get lookAndFeelThemeSyncFailed;
 
-  /// Section title for the chat font size slider.
+  /// Search label for chat font size within the Messages section.
   ///
   /// In en, this message translates to:
-  /// **'Chat Font Scaling'**
+  /// **'Chat font scaling'**
   String get lookAndFeelChatFontScalingTitle;
 
-  /// Section description for the chat font size slider.
+  /// Search description for chat font size.
   ///
   /// In en, this message translates to:
   /// **'Adjust the font size in the chat area.'**
   String get lookAndFeelChatFontScalingDescription;
+
+  /// Label for the chat font size select in Look & Feel.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat font size'**
+  String get lookAndFeelChatFontSizeLabel;
+
+  /// Section title for the app zoom slider.
+  ///
+  /// In en, this message translates to:
+  /// **'App zoom level'**
+  String get lookAndFeelAppZoomTitle;
+
+  /// Section description for the app zoom slider.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust the application\'s zoom level.'**
+  String get lookAndFeelAppZoomDescription;
+
+  /// Section title for message layout settings in Look & Feel.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get lookAndFeelMessagesSectionTitle;
+
+  /// Section description for message layout settings in Look & Feel.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how messages are displayed in chat channels.'**
+  String get lookAndFeelMessagesSectionDescription;
+
+  /// Label for message group spacing select in Look & Feel.
+  ///
+  /// In en, this message translates to:
+  /// **'Space between message groups'**
+  String get lookAndFeelMessageGroupSpacingLabel;
+
+  /// Message group spacing option label.
+  ///
+  /// In en, this message translates to:
+  /// **'{spacing}px'**
+  String lookAndFeelMessageGroupSpacingValue(int spacing);
+
+  /// Accessibility label for message display mode radio group.
+  ///
+  /// In en, this message translates to:
+  /// **'Message display mode'**
+  String get lookAndFeelMessageDisplayModeLabel;
+
+  /// Comfy message display mode option name.
+  ///
+  /// In en, this message translates to:
+  /// **'Comfy'**
+  String get lookAndFeelMessageDisplayComfyName;
+
+  /// Comfy message display mode option description.
+  ///
+  /// In en, this message translates to:
+  /// **'Spacious layout with clear visual separation between messages.'**
+  String get lookAndFeelMessageDisplayComfyDescription;
+
+  /// Dense message display mode option name.
+  ///
+  /// In en, this message translates to:
+  /// **'Dense'**
+  String get lookAndFeelMessageDisplayDenseName;
+
+  /// Dense message display mode option description.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximizes visible messages with minimal spacing.'**
+  String get lookAndFeelMessageDisplayDenseDescription;
+
+  /// Toggle to hide user avatars in dense message display mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide user avatars'**
+  String get lookAndFeelHideUserAvatarsLabel;
 
   /// Section title for interface customization.
   ///

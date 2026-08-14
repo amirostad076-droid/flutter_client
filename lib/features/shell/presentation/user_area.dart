@@ -76,8 +76,10 @@ class UserArea extends ConsumerWidget {
                       onTap: () => unawaited(UserAreaPopout.show(context)),
                       child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: layout.s2),
-                        child: SizedBox(
-                          height: kUserAreaContentHeight,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            minHeight: kUserAreaContentHeight,
+                          ),
                           child: Row(
                             children: <Widget>[
                               FluxerAvatar.userPresence(

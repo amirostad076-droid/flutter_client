@@ -187,7 +187,8 @@ void main() {
     await tester.pump();
 
     expect(find.text('Theme'), findsOneWidget);
-    expect(find.text('Chat Font Scaling'), findsOneWidget);
+    expect(find.text('App zoom level'), findsOneWidget);
+    expect(find.text('Messages'), findsOneWidget);
     expect(find.text('Interface'), findsOneWidget);
     expect(find.text('Channel List'), findsOneWidget);
     expect(find.text('Active Now'), findsOneWidget);

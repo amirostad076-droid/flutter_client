@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/accessibility/text_scale.dart';
 import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
 import 'package:fluxer_app/features/ui/avatar/avatar_status_layout.dart';
 import 'package:fluxer_app/features/ui/status_indicator/fluxer_mobile_online_status_indicator.dart';
@@ -308,6 +309,7 @@ class FluxerAvatar extends StatelessWidget {
     return Center(
       child: Text(
         initial,
+        textScaler: kIconInitialsTextScaler,
         style: context.textStyles.smallText.copyWith(
           color: context.colors.textPrimary,
           fontSize: size * 0.4,

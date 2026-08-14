@@ -47,6 +47,7 @@ import 'package:fluxer_app/features/input/providers/focused_message_provider.dar
 import 'package:fluxer_app/features/input/providers/keyboard_mode_provider.dart';
 import 'package:fluxer_app/features/profile/presentation/user_profile_sheet.dart';
 import 'package:fluxer_app/features/settings/providers/advanced_preferences_provider.dart';
+import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/use_12_hour_time_format_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
@@ -113,6 +114,7 @@ class MessageRenderSettings {
     required this.chatPreferences,
     required this.messageGroupSpacing,
     this.messageDisplayCompact = false,
+    this.showUserAvatarsInCompactMode = false,
     this.markdown = MessageMarkdownSettings.defaults,
   });
 
@@ -125,6 +127,7 @@ class MessageRenderSettings {
   final ChatPreferencesState chatPreferences;
   final double messageGroupSpacing;
   final bool messageDisplayCompact;
+  final bool showUserAvatarsInCompactMode;
   final MessageMarkdownSettings markdown;
 
   @override
@@ -141,6 +144,7 @@ class MessageRenderSettings {
           chatPreferences == other.chatPreferences &&
           messageGroupSpacing == other.messageGroupSpacing &&
           messageDisplayCompact == other.messageDisplayCompact &&
+          showUserAvatarsInCompactMode == other.showUserAvatarsInCompactMode &&
           markdown == other.markdown;
 
   @override
@@ -154,6 +158,7 @@ class MessageRenderSettings {
     chatPreferences,
     messageGroupSpacing,
     messageDisplayCompact,
+    showUserAvatarsInCompactMode,
     markdown,
   );
 }
@@ -518,6 +523,18 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         };
     final ChatPreferencesState chatPreferences =
         settings?.chatPreferences ?? ref.watch(chatPreferencesProvider);
+    final bool messageDisplayCompact =
+        settings?.messageDisplayCompact ??
+        ref.watch(
+          userSettingsViewModelProvider.select((s) => s.messageDisplayCompact),
+        );
+    final bool showUserAvatarsInCompactMode =
+        settings?.showUserAvatarsInCompactMode ??
+        ref.watch(
+          appearancePreferencesProvider.select(
+            (s) => s.showUserAvatarsInCompactMode,
+          ),
+        );
     final bool prefersPersistedAuthor = messagePrefersPersistedAuthorDisplay(
       msg,
     );
@@ -613,25 +630,72 @@ class _MessageItemState extends ConsumerState<MessageItem> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (!isGrouped && msg.isReply)
+                  if ((!isGrouped || messageDisplayCompact) && msg.isReply)
                     _wrapMessageSendingDim(
                       dim: dimMessagePartsExceptAttachments,
                       child: _buildReplyRow(msg, guildId: guildId),
                     ),
-                  if (!isGrouped &&
+                  if ((!isGrouped || messageDisplayCompact) &&
                       msg.isForwarded &&
                       !msg.hasForwardSnapshots &&
                       msg.forwardedFrom != null)
                     _wrapMessageSendingDim(
                       dim: dimMessagePartsExceptAttachments,
                       child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: kMessageAvatarColumnWidth,
+                        padding: EdgeInsets.only(
+                          left: messageDisplayCompact
+                              ? 0
+                              : kMessageAvatarColumnWidth,
                         ),
                         child: ForwardIndicator(source: msg.forwardedFrom!),
                       ),
                     ),
-                  if (isGrouped)
+                  if (messageDisplayCompact)
+                    if (isGrouped && isMobile)
+                      _buildCompactMessageRow(
+                        context,
+                        msg,
+                        isMobile,
+                        isGrouped: isGrouped,
+                        showUserAvatarsInCompactMode:
+                            showUserAvatarsInCompactMode,
+                        dimMessagePartsExceptAttachments:
+                            dimMessagePartsExceptAttachments,
+                        renderEmbeds: renderEmbeds,
+                        renderReactions: renderReactions,
+                        inlineAttachmentMedia: inlineAttachmentMedia,
+                        revealSpoilers: revealSpoilers,
+                        chatPreferences: chatPreferences,
+                      )
+                    else
+                      _MessageAuthorScope(
+                        message: msg,
+                        guildId: guildId,
+                        currentUserId: widget.currentUserId,
+                        prefersPersistedAuthor: prefersPersistedAuthor,
+                        builder:
+                            (
+                              GuildUserDisplay authorDisplay,
+                              Color? authorRoleColor,
+                            ) => _buildCompactMessageRow(
+                              context,
+                              msg,
+                              isMobile,
+                              isGrouped: isGrouped,
+                              authorDisplay: authorDisplay,
+                              authorRoleColor: authorRoleColor,
+                              showUserAvatarsInCompactMode:
+                                  showUserAvatarsInCompactMode,
+                              dimMessagePartsExceptAttachments:
+                                  dimMessagePartsExceptAttachments,
+                              renderEmbeds: renderEmbeds,
+                              renderReactions: renderReactions,
+                              inlineAttachmentMedia: inlineAttachmentMedia,
+                              revealSpoilers: revealSpoilers,
+                              chatPreferences: chatPreferences,
+                            ),
+                      )
+                  else if (isGrouped)
                     _buildGroupedRow(
                       context,
                       msg,
@@ -1156,6 +1220,160 @@ class _MessageItemState extends ConsumerState<MessageItem> {
 
   /// Grouped message row: hover-reveal short timestamp
   /// in the left column, content on the right.
+  bool _shouldShowCompactMetadata({
+    required bool isGrouped,
+    required bool isMobile,
+  }) => !(isGrouped && isMobile);
+
+  Widget _buildCompactTimestamp(
+    BuildContext context,
+    Message msg, {
+    required bool isGrouped,
+  }) {
+    final String time = _formatShortTimestamp(msg.timestamp.toLocal());
+    final TextStyle style = context.textStyles.timestamp.copyWith(
+      color: context.colors.textTertiaryMuted,
+      fontSize: 10,
+    );
+    final Widget timestamp = Text('[$time]', style: style);
+    if (!isGrouped) {
+      return timestamp;
+    }
+    return ValueListenableBuilder<bool>(
+      valueListenable: _hovered,
+      builder: (context, hovered, child) => AnimatedOpacity(
+        opacity: hovered ? 1.0 : 0.0,
+        duration: context.motion.fast,
+        child: child,
+      ),
+      child: timestamp,
+    );
+  }
+
+  Widget _buildCompactAuthorPrefix(
+    BuildContext context,
+    Message msg,
+    GuildUserDisplay authorDisplay,
+    Color? roleColor, {
+    required bool showAvatar,
+  }) {
+    final TextStyle nameStyle = context.textStyles.username.copyWith(
+      color: roleColor ?? context.colors.textChat,
+      fontWeight: FontWeight.w600,
+    );
+    return Wrap(
+      spacing: kCompactAuthorGap,
+      runSpacing: 2,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        if (messageAuthorShowsUserTag(
+          authorIsBot: msg.authorIsBot,
+          authorIsSystem: msg.authorIsSystem,
+        ))
+          FluxerUserTag(
+            isSystem: messageAuthorUserTagIsSystem(
+              authorIsSystem: msg.authorIsSystem,
+            ),
+          ),
+        if (showAvatar)
+          FluxerGestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: _canOpenAuthorProfile(msg)
+                ? () => _openAuthorProfile(context, msg)
+                : null,
+            child: FluxerAvatar.user(
+              key: ValueKey<String>(
+                'compact-msg-avatar-${msg.authorId}-${authorDisplay.avatarUrl ?? ''}',
+              ),
+              fallbackText: authorDisplay.displayName,
+              userId: msg.authorId,
+              imageUrl: authorDisplay.avatarUrl,
+              avatarColor: authorDisplay.avatarColor,
+              size: kCompactAvatarSize,
+            ),
+          ),
+        FluxerGestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _canOpenAuthorProfile(msg)
+              ? () => _openAuthorProfile(context, msg)
+              : null,
+          child: Text(
+            authorDisplay.displayName,
+            style: nameStyle,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+        Text(':', style: nameStyle),
+      ],
+    );
+  }
+
+  Widget _buildCompactMessageRow(
+    BuildContext context,
+    Message msg,
+    bool isMobile, {
+    required bool isGrouped,
+    required bool showUserAvatarsInCompactMode,
+    required bool dimMessagePartsExceptAttachments,
+    required bool renderEmbeds,
+    required bool renderReactions,
+    required bool inlineAttachmentMedia,
+    required bool revealSpoilers,
+    required ChatPreferencesState chatPreferences,
+    GuildUserDisplay? authorDisplay,
+    Color? authorRoleColor,
+  }) {
+    final bool showMetadata = _shouldShowCompactMetadata(
+      isGrouped: isGrouped,
+      isMobile: isMobile,
+    );
+    final List<Widget> content = _buildMessageContent(
+      context,
+      msg,
+      isMobile,
+      dimMessagePartsExceptAttachments: dimMessagePartsExceptAttachments,
+      renderEmbeds: renderEmbeds,
+      renderReactions: renderReactions,
+      inlineAttachmentMedia: inlineAttachmentMedia,
+      revealSpoilers: revealSpoilers,
+      chatPreferences: chatPreferences,
+    );
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (showMetadata)
+          SizedBox(
+            width: isGrouped ? kMessageAvatarColumnWidth : null,
+            child: _buildCompactTimestamp(context, msg, isGrouped: isGrouped),
+          ),
+        if (showMetadata) const SizedBox(width: kCompactTimestampGap),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (showMetadata && authorDisplay != null)
+                _wrapMessageSendingDim(
+                  dim: dimMessagePartsExceptAttachments,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 2),
+                    child: _buildCompactAuthorPrefix(
+                      context,
+                      msg,
+                      authorDisplay,
+                      authorRoleColor,
+                      showAvatar: showUserAvatarsInCompactMode,
+                    ),
+                  ),
+                ),
+              ...content,
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildGroupedRow(
     BuildContext context,
     Message msg,
@@ -1307,37 +1525,35 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           children: [
             _wrapMessageSendingDim(
               dim: dimMessagePartsExceptAttachments,
-              child: Row(
+              child: Wrap(
+                spacing: 6,
+                runSpacing: 2,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  Flexible(
-                    child: FluxerGestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: _canOpenAuthorProfile(msg)
-                          ? () => _openAuthorProfile(context, msg)
-                          : null,
-                      child: Text(
-                        authorDisplay.displayName,
-                        style: context.textStyles.username.copyWith(
-                          color: roleColor ?? context.colors.textChat,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
+                  FluxerGestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _canOpenAuthorProfile(msg)
+                        ? () => _openAuthorProfile(context, msg)
+                        : null,
+                    child: Text(
+                      authorDisplay.displayName,
+                      style: context.textStyles.username.copyWith(
+                        color: roleColor ?? context.colors.textChat,
+                        fontWeight: FontWeight.w600,
                       ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ),
                   if (messageAuthorShowsUserTag(
                     authorIsBot: msg.authorIsBot,
                     authorIsSystem: msg.authorIsSystem,
-                  )) ...[
-                    const SizedBox(width: 6),
+                  ))
                     FluxerUserTag(
                       isSystem: messageAuthorUserTagIsSystem(
                         authorIsSystem: msg.authorIsSystem,
                       ),
                     ),
-                  ],
-                  const SizedBox(width: 8),
                   Text(
                     formatMessageTimestamp(
                       msg.timestamp.toLocal(),
@@ -1347,10 +1563,8 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                     ),
                     style: context.textStyles.timestamp,
                   ),
-                  if ((msg.flags & messageFlagSuppressNotifications) != 0) ...[
-                    const SizedBox(width: 6),
+                  if ((msg.flags & messageFlagSuppressNotifications) != 0)
                     _buildSilentIndicator(context),
-                  ],
                 ],
               ),
             ),

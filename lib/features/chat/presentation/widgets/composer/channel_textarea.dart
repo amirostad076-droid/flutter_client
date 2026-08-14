@@ -18,6 +18,7 @@ import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/accessibility/text_scale.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/providers/channel_list_view_model.dart';
 import 'package:fluxer_app/features/channels/providers/channel_providers.dart';
@@ -1100,75 +1101,68 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
             contentPadding: const EdgeInsets.symmetric(vertical: 2),
             isDense: true,
           );
-    return Row(
-      children: [
-        if (perms.canShowAttachControls) ...[
-          _buildComposerActionButton(
-            context: context,
-            icon: touchActions
-                ? PhosphorIconsBold.plus
-                : PhosphorIconsFill.plusCircle,
-            iconSize: touchActions ? 20 : _kDesktopComposerAttachIconSize,
-            tooltip: l10n.chatAttachmentSourceBrowse,
-            onPressed: perms.isAttachEnabled
-                ? () => unawaited(_pickAttachments(context))
-                : null,
+    return FluxerConstrainedUiTextScale(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (perms.canShowAttachControls) ...[
+            _buildComposerActionButton(
+              context: context,
+              icon: touchActions
+                  ? PhosphorIconsBold.plus
+                  : PhosphorIconsFill.plusCircle,
+              iconSize: touchActions ? 20 : _kDesktopComposerAttachIconSize,
+              tooltip: l10n.chatAttachmentSourceBrowse,
+              onPressed: perms.isAttachEnabled
+                  ? () => unawaited(_pickAttachments(context))
+                  : null,
+            ),
+            SizedBox(width: touchActions ? _kTouchComposerActionSpacing : 8),
+          ],
+          Expanded(
+            child: _buildComposerField(
+              context: context,
+              channelId: channelId,
+              perms: perms,
+              maxMessageLength: maxMessageLength,
+              premiumMaxLength: premiumMaxLength,
+              minLines: 1,
+              maxLines: 5,
+              decoration: inputDecoration,
+            ),
           ),
-          SizedBox(width: touchActions ? _kTouchComposerActionSpacing : 8),
-        ],
-        Expanded(
-          child: _buildComposerField(
-            context: context,
-            channelId: channelId,
-            perms: perms,
-            maxMessageLength: maxMessageLength,
-            premiumMaxLength: premiumMaxLength,
-            minLines: 1,
-            maxLines: 5,
-            decoration: inputDecoration,
-          ),
-        ),
-        SizedBox(width: touchActions ? _kTouchComposerActionSpacing : 4),
-        ListenableBuilder(
-          listenable: _controller,
-          builder: (BuildContext context, Widget? child) {
-            final String sendableWire = _sendableWireText();
-            final bool hasSendable = composerHasSendableContent(
-              ref,
-              channelId,
-              sendableWire,
-            );
-            final bool isOverCharacterLimit =
-                _composerContentLength(sendableWire) > maxMessageLength;
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (!hasSendable)
-                  _buildLargeExpressionPickerActions(
-                    context: context,
-                    channelId: channelId,
-                    perms: perms,
-                    composerButtonTabs: composerButtonTabs,
-                    popoutTabs: popoutTabs,
-                  ),
-                if (!touchActions)
-                  SizedBox(
-                    height: _kWideComposerActionExtent,
-                    child: VerticalDivider(
+          SizedBox(width: touchActions ? _kTouchComposerActionSpacing : 4),
+          ListenableBuilder(
+            listenable: _controller,
+            builder: (BuildContext context, Widget? child) {
+              final String sendableWire = _sendableWireText();
+              final bool hasSendable = composerHasSendableContent(
+                ref,
+                channelId,
+                sendableWire,
+              );
+              final bool isOverCharacterLimit =
+                  _composerContentLength(sendableWire) > maxMessageLength;
+              return Wrap(
+                alignment: WrapAlignment.end,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: touchActions ? _kTouchComposerActionSpacing : 4,
+                children: [
+                  if (!hasSendable)
+                    _buildLargeExpressionPickerActions(
+                      context: context,
+                      channelId: channelId,
+                      perms: perms,
+                      composerButtonTabs: composerButtonTabs,
+                      popoutTabs: popoutTabs,
+                    ),
+                  if (!touchActions)
+                    VerticalDivider(
                       color: context.colors.borderColor,
                       width: 16,
                       thickness: 1,
                     ),
-                  )
-                else
-                  const SizedBox(width: _kTouchComposerActionSpacing),
-                Padding(
-                  padding: EdgeInsets.only(
-                    left: touchActions && hasSendable
-                        ? _kTouchComposerActionSpacing
-                        : 0,
-                  ),
-                  child: _sendAndVoiceButton(
+                  _sendAndVoiceButton(
                     context,
                     chatNotifier,
                     perms: perms,
@@ -1176,12 +1170,12 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
                     isOverCharacterLimit: isOverCharacterLimit,
                     useHoldToRecord: false,
                   ),
-                ),
-              ],
-            );
-          },
-        ),
-      ],
+                ],
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -1391,62 +1385,65 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
         maxHeight: _kMobileComposerSuffixHeight,
       ),
     );
-    return Row(
-      children: [
-        if (perms.canShowAttachControls) ...[
-          _composerOpacity(
-            enabled: perms.isAttachEnabled,
-            child: FluxerButton.circleAlt(
-              icon: PhosphorIconsBold.plus,
-              semanticLabel: FluxerLocalizations.of(
-                context,
-              ).chatAttachmentSourceBrowse,
-              onPressed: perms.isAttachEnabled
-                  ? () => unawaited(_pickAttachments(context))
-                  : null,
+    return FluxerConstrainedUiTextScale(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (perms.canShowAttachControls) ...[
+            _composerOpacity(
+              enabled: perms.isAttachEnabled,
+              child: FluxerButton.circleAlt(
+                icon: PhosphorIconsBold.plus,
+                semanticLabel: FluxerLocalizations.of(
+                  context,
+                ).chatAttachmentSourceBrowse,
+                onPressed: perms.isAttachEnabled
+                    ? () => unawaited(_pickAttachments(context))
+                    : null,
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Expanded(
+            child: _buildComposerField(
+              context: context,
+              channelId: channelId,
+              perms: perms,
+              maxMessageLength: maxMessageLength,
+              premiumMaxLength: premiumMaxLength,
+              minLines: 1,
+              maxLines: 6,
+              decoration: mobileDecoration,
             ),
           ),
           const SizedBox(width: 8),
-        ],
-        Expanded(
-          child: _buildComposerField(
-            context: context,
-            channelId: channelId,
-            perms: perms,
-            maxMessageLength: maxMessageLength,
-            premiumMaxLength: premiumMaxLength,
-            minLines: 1,
-            maxLines: 6,
-            decoration: mobileDecoration,
+          ListenableBuilder(
+            listenable: _controller,
+            builder: (BuildContext context, Widget? child) {
+              final String sendableWire = _sendableWireText();
+              final bool hasSendable = composerHasSendableContent(
+                ref,
+                channelId,
+                sendableWire,
+              );
+              final bool isOverCharacterLimit =
+                  _composerContentLength(sendableWire) > maxMessageLength;
+              return Padding(
+                padding: const EdgeInsetsGeometry.only(bottom: 1),
+                child: _sendAndVoiceButton(
+                  context,
+                  chatNotifier,
+                  perms: perms,
+                  hasSendable: hasSendable,
+                  isOverCharacterLimit: isOverCharacterLimit,
+                  size: FluxerButtonSize.small,
+                  useHoldToRecord: true,
+                ),
+              );
+            },
           ),
-        ),
-        const SizedBox(width: 8),
-        ListenableBuilder(
-          listenable: _controller,
-          builder: (BuildContext context, Widget? child) {
-            final String sendableWire = _sendableWireText();
-            final bool hasSendable = composerHasSendableContent(
-              ref,
-              channelId,
-              sendableWire,
-            );
-            final bool isOverCharacterLimit =
-                _composerContentLength(sendableWire) > maxMessageLength;
-            return Padding(
-              padding: const EdgeInsetsGeometry.only(bottom: 1),
-              child: _sendAndVoiceButton(
-                context,
-                chatNotifier,
-                perms: perms,
-                hasSendable: hasSendable,
-                isOverCharacterLimit: isOverCharacterLimit,
-                size: FluxerButtonSize.small,
-                useHoldToRecord: true,
-              ),
-            );
-          },
-        ),
-      ],
+        ],
+      ),
     );
   }
 

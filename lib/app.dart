@@ -6,6 +6,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_mode.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/accessibility/resolve_reduced_motion.dart';
+import 'package:fluxer_app/features/accessibility/text_scale.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/native_titlebar.dart';
 import 'package:fluxer_app/features/shell/presentation/widgets/required_action_gate.dart';
@@ -115,13 +116,14 @@ class FluxerApp extends ConsumerWidget {
           reducedMotionOverride: reducedMotionPrefs.override,
           platformReducedMotion: platformReducedMotion,
         );
-        if (!disableAnimations) {
-          return content;
+        Widget scaled = FluxerAppTextScale(child: content);
+        if (disableAnimations) {
+          scaled = MediaQuery(
+            data: MediaQuery.of(context).copyWith(disableAnimations: true),
+            child: scaled,
+          );
         }
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(disableAnimations: true),
-          child: content,
-        );
+        return scaled;
       },
     );
   }

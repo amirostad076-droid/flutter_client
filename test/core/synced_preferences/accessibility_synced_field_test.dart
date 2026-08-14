@@ -67,6 +67,10 @@ void main() {
       expect(restored.compactMessageGroupSpacing, 0);
       expect(restored.saturationFactor, 1);
       expect(restored.customThemeCss, isNull);
+      expect(restored.chatFontSize, 16);
+      expect(restored.scaleFactor, 1);
+      expect(restored.hasFontSizeInProto, isFalse);
+      expect(restored.hasZoomLevelInProto, isFalse);
     });
 
     test('normalizes empty custom theme css to null on read', () {
@@ -74,6 +78,39 @@ void main() {
         accessibility_pb.AccessibilitySettings(customThemeCss: '   '),
       );
       expect(restored.customThemeCss, isNull);
+    });
+
+    test('roundtrips chat font size and zoom level', () {
+      const local = AccessibilityLocalState(
+        hideKeyboardHints: false,
+        channelTypingIndicatorMode: ChannelTypingIndicatorMode.avatars,
+        showSelectedChannelTypingIndicator: false,
+        showFadedUnreadOnMutedChannels: false,
+        dmMessagePreviewMode: DmMessagePreviewMode.all,
+        showFavorites: true,
+        useSystemLocaleForTimeFormat: false,
+        messageGroupSpacing: 16,
+        compactMessageGroupSpacing: 0,
+        saturationFactor: 1,
+        customThemeCss: null,
+        chatFontSize: 20,
+        scaleFactor: 1.2,
+        advanced: kDefaultAdvancedAccessibility,
+      );
+      final proto = AccessibilitySyncedField.toProto(local);
+      final restored = AccessibilitySyncedField.fromProto(proto);
+      expect(restored.chatFontSize, 20);
+      expect(restored.scaleFactor, 1.2);
+      expect(restored.hasFontSizeInProto, isTrue);
+      expect(restored.hasZoomLevelInProto, isTrue);
+    });
+
+    test('reads percent zoom level from proto', () {
+      final restored = AccessibilitySyncedField.fromProto(
+        accessibility_pb.AccessibilitySettings(zoomLevel: 120),
+      );
+      expect(restored.scaleFactor, 1.2);
+      expect(restored.hasZoomLevelInProto, isTrue);
     });
 
     test('roundtrips screen reader announce preference', () {

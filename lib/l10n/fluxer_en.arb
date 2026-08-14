@@ -5298,13 +5298,70 @@
     "@lookAndFeelThemeSyncFailed": {
         "description": "Toast message shown when the server PATCH for a theme change or sync toggle fails."
     },
-    "lookAndFeelChatFontScalingTitle": "Chat Font Scaling",
+    "lookAndFeelChatFontScalingTitle": "Chat font scaling",
     "@lookAndFeelChatFontScalingTitle": {
-        "description": "Section title for the chat font size slider."
+        "description": "Search label for chat font size within the Messages section."
     },
     "lookAndFeelChatFontScalingDescription": "Adjust the font size in the chat area.",
     "@lookAndFeelChatFontScalingDescription": {
-        "description": "Section description for the chat font size slider."
+        "description": "Search description for chat font size."
+    },
+    "lookAndFeelChatFontSizeLabel": "Chat font size",
+    "@lookAndFeelChatFontSizeLabel": {
+        "description": "Label for the chat font size select in Look & Feel."
+    },
+    "lookAndFeelAppZoomTitle": "App zoom level",
+    "@lookAndFeelAppZoomTitle": {
+        "description": "Section title for the app zoom slider."
+    },
+    "lookAndFeelAppZoomDescription": "Adjust the application's zoom level.",
+    "@lookAndFeelAppZoomDescription": {
+        "description": "Section description for the app zoom slider."
+    },
+    "lookAndFeelMessagesSectionTitle": "Messages",
+    "@lookAndFeelMessagesSectionTitle": {
+        "description": "Section title for message layout settings in Look & Feel."
+    },
+    "lookAndFeelMessagesSectionDescription": "Choose how messages are displayed in chat channels.",
+    "@lookAndFeelMessagesSectionDescription": {
+        "description": "Section description for message layout settings in Look & Feel."
+    },
+    "lookAndFeelMessageGroupSpacingLabel": "Space between message groups",
+    "@lookAndFeelMessageGroupSpacingLabel": {
+        "description": "Label for message group spacing select in Look & Feel."
+    },
+    "lookAndFeelMessageGroupSpacingValue": "{spacing}px",
+    "@lookAndFeelMessageGroupSpacingValue": {
+        "description": "Message group spacing option label.",
+        "placeholders": {
+            "spacing": {
+                "type": "int"
+            }
+        }
+    },
+    "lookAndFeelMessageDisplayModeLabel": "Message display mode",
+    "@lookAndFeelMessageDisplayModeLabel": {
+        "description": "Accessibility label for message display mode radio group."
+    },
+    "lookAndFeelMessageDisplayComfyName": "Comfy",
+    "@lookAndFeelMessageDisplayComfyName": {
+        "description": "Comfy message display mode option name."
+    },
+    "lookAndFeelMessageDisplayComfyDescription": "Spacious layout with clear visual separation between messages.",
+    "@lookAndFeelMessageDisplayComfyDescription": {
+        "description": "Comfy message display mode option description."
+    },
+    "lookAndFeelMessageDisplayDenseName": "Dense",
+    "@lookAndFeelMessageDisplayDenseName": {
+        "description": "Dense message display mode option name."
+    },
+    "lookAndFeelMessageDisplayDenseDescription": "Maximizes visible messages with minimal spacing.",
+    "@lookAndFeelMessageDisplayDenseDescription": {
+        "description": "Dense message display mode option description."
+    },
+    "lookAndFeelHideUserAvatarsLabel": "Hide user avatars",
+    "@lookAndFeelHideUserAvatarsLabel": {
+        "description": "Toggle to hide user avatars in dense message display mode."
     },
     "lookAndFeelInterfaceTitle": "Interface",
     "@lookAndFeelInterfaceTitle": {

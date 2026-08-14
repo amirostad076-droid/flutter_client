@@ -11,6 +11,7 @@ import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/accessibility/effective_motion_preferences_provider.dart';
+import 'package:fluxer_app/features/accessibility/message_group_spacing.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
 import 'package:fluxer_app/features/chat/data/chat_unread_summary.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
@@ -1503,7 +1504,6 @@ class _MessageListState extends ConsumerState<MessageList> {
     final bool isGrouped = computeMessageRowGrouped(
       message: message,
       previousMessage: previousMessage,
-      messageDisplayCompact: renderSettings.messageDisplayCompact,
       isNewDay: isNewDay,
     );
     final bool isJumpHighlighted = message.id == highlightedMessageId;
@@ -2781,6 +2781,9 @@ class _MessageListSettingsLayer extends ConsumerWidget {
     final SearchEnginesState searchEngines = ref.watch(
       advancedPreferencesProvider.select((s) => s.searchEngines),
     );
+    final bool messageDisplayCompact = ref.watch(
+      userSettingsViewModelProvider.select((s) => s.messageDisplayCompact),
+    );
     final MessageRenderSettings settings = MessageRenderSettings(
       activeGuildId: guildId,
       renderEmbeds: ref.watch(
@@ -2803,10 +2806,19 @@ class _MessageListSettingsLayer extends ConsumerWidget {
       // Rebuild only when media sizes change.
       chatPreferences: _watchChatMediaPreferences(ref),
       messageGroupSpacing: ref.watch(
-        appearancePreferencesProvider.select((s) => s.messageGroupSpacing),
+        appearancePreferencesProvider.select(
+          (AppearancePreferencesState s) => messageGroupSpacingForDisplayMode(
+            messageGroupSpacing: s.messageGroupSpacing,
+            compactMessageGroupSpacing: s.compactMessageGroupSpacing,
+            messageDisplayCompact: messageDisplayCompact,
+          ),
+        ),
       ),
-      messageDisplayCompact: ref.watch(
-        userSettingsViewModelProvider.select((s) => s.messageDisplayCompact),
+      messageDisplayCompact: messageDisplayCompact,
+      showUserAvatarsInCompactMode: ref.watch(
+        appearancePreferencesProvider.select(
+          (s) => s.showUserAvatarsInCompactMode,
+        ),
       ),
       markdown: MessageMarkdownSettings(
         use12Hour: ref.watch(use12HourTimeFormatProvider),

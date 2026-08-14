@@ -19,6 +19,7 @@ import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/theme/fluxer_motion_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
+import 'package:fluxer_app/features/accessibility/text_scale.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/channels/presentation/sheets/create_category_sheet.dart';
 import 'package:fluxer_app/features/channels/presentation/sheets/create_channel_sheet.dart';
@@ -2290,6 +2291,7 @@ class _GuildListItemState extends State<_GuildListItem>
           ? PhosphorIcon(widget.icon!, color: iconColor, size: 32)
           : Text(
               initials,
+              textScaler: kIconInitialsTextScaler,
               style: context.textStyles.smallText.copyWith(
                 color: iconColor,
                 fontSize: _guildNavbarInitialsFontSize(initialsLength),

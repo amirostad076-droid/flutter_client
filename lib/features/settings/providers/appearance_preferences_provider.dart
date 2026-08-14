@@ -61,6 +61,7 @@ class AppearancePreferencesState {
     this.useSystemLocaleForTimeFormat = false,
     this.messageGroupSpacing = 16,
     this.compactMessageGroupSpacing = 0,
+    this.showUserAvatarsInCompactMode = false,
     this.showMediaDeleteButton = true,
     this.showMediaDownloadButton = true,
     this.showMediaFavoriteButton = true,
@@ -99,6 +100,7 @@ class AppearancePreferencesState {
   final bool useSystemLocaleForTimeFormat;
   final double messageGroupSpacing;
   final double compactMessageGroupSpacing;
+  final bool showUserAvatarsInCompactMode;
   final bool showMediaDeleteButton;
   final bool showMediaDownloadButton;
   final bool showMediaFavoriteButton;
@@ -137,6 +139,7 @@ class AppearancePreferencesState {
     bool? useSystemLocaleForTimeFormat,
     double? messageGroupSpacing,
     double? compactMessageGroupSpacing,
+    bool? showUserAvatarsInCompactMode,
     bool? showMediaDeleteButton,
     bool? showMediaDownloadButton,
     bool? showMediaFavoriteButton,
@@ -181,6 +184,8 @@ class AppearancePreferencesState {
       messageGroupSpacing: messageGroupSpacing ?? this.messageGroupSpacing,
       compactMessageGroupSpacing:
           compactMessageGroupSpacing ?? this.compactMessageGroupSpacing,
+      showUserAvatarsInCompactMode:
+          showUserAvatarsInCompactMode ?? this.showUserAvatarsInCompactMode,
       showMediaDeleteButton:
           showMediaDeleteButton ?? this.showMediaDeleteButton,
       showMediaDownloadButton:
@@ -316,6 +321,7 @@ class AppearancePreferences extends _$AppearancePreferences {
         useSystemLocaleForTimeFormat: value.useSystemLocaleForTimeFormat,
         messageGroupSpacing: value.messageGroupSpacing,
         compactMessageGroupSpacing: value.compactMessageGroupSpacing,
+        showUserAvatarsInCompactMode: value.showUserAvatarsInCompactMode,
         showMediaDeleteButton: value.showMediaDeleteButton,
         showMediaDownloadButton: value.showMediaDownloadButton,
         showMediaFavoriteButton: value.showMediaFavoriteButton,
@@ -439,6 +445,27 @@ class AppearancePreferences extends _$AppearancePreferences {
   Future<void> setHideKeyboardHints({required bool value}) async {
     state = state.copyWith(hideKeyboardHints: value);
     await _persist();
+    _markAccessibilityDirty();
+  }
+
+  Future<void> setMessageGroupSpacing({
+    required bool messageDisplayCompact,
+    required double spacing,
+  }) async {
+    state = state.copyWith(
+      messageGroupSpacing: messageDisplayCompact
+          ? state.messageGroupSpacing
+          : spacing,
+      compactMessageGroupSpacing: messageDisplayCompact
+          ? spacing
+          : state.compactMessageGroupSpacing,
+    );
+    await _persist();
+    _markAccessibilityDirty();
+  }
+
+  Future<void> setShowUserAvatarsInCompactMode({required bool value}) async {
+    state = state.copyWith(showUserAvatarsInCompactMode: value);
     _markAccessibilityDirty();
   }
 

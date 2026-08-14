@@ -6,7 +6,6 @@ import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_item.dart';
 import 'package:fluxer_app/features/chat/utils/message_grouping_utils.dart';
-import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:material_ui/material_ui.dart';
@@ -77,9 +76,6 @@ class UnreadInboxCardPreview extends ConsumerWidget {
     if (items == null || items.isEmpty) {
       return const SizedBox(height: 4);
     }
-    final bool messageDisplayCompact = ref.watch(
-      userSettingsViewModelProvider.select((s) => s.messageDisplayCompact),
-    );
     final String? currentUserId = ref.watch(currentUserIdProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -90,7 +86,6 @@ class UnreadInboxCardPreview extends ConsumerWidget {
             isGrouped: computeMessageRowGrouped(
               message: items[i],
               previousMessage: i > 0 ? items[i - 1] : null,
-              messageDisplayCompact: messageDisplayCompact,
               isNewDay: false,
             ),
             currentUserId: currentUserId,

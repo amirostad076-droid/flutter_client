@@ -3975,6 +3975,52 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get lookAndFeelChatFontScalingDescription => '调整聊天区域的字体大小。';
 
   @override
+  String get lookAndFeelChatFontSizeLabel => 'Chat font size';
+
+  @override
+  String get lookAndFeelAppZoomTitle => 'App zoom level';
+
+  @override
+  String get lookAndFeelAppZoomDescription =>
+      'Adjust the application\'s zoom level.';
+
+  @override
+  String get lookAndFeelMessagesSectionTitle => 'Messages';
+
+  @override
+  String get lookAndFeelMessagesSectionDescription =>
+      'Choose how messages are displayed in chat channels.';
+
+  @override
+  String get lookAndFeelMessageGroupSpacingLabel =>
+      'Space between message groups';
+
+  @override
+  String lookAndFeelMessageGroupSpacingValue(int spacing) {
+    return '${spacing}px';
+  }
+
+  @override
+  String get lookAndFeelMessageDisplayModeLabel => 'Message display mode';
+
+  @override
+  String get lookAndFeelMessageDisplayComfyName => 'Comfy';
+
+  @override
+  String get lookAndFeelMessageDisplayComfyDescription =>
+      'Spacious layout with clear visual separation between messages.';
+
+  @override
+  String get lookAndFeelMessageDisplayDenseName => 'Dense';
+
+  @override
+  String get lookAndFeelMessageDisplayDenseDescription =>
+      'Maximizes visible messages with minimal spacing.';
+
+  @override
+  String get lookAndFeelHideUserAvatarsLabel => 'Hide user avatars';
+
+  @override
   String get lookAndFeelInterfaceTitle => '界面';
 
   @override

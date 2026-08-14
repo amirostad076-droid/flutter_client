@@ -10,6 +10,7 @@ void main() {
     MessageRenderSettings makeSettings({
       bool renderEmbeds = true,
       bool messageDisplayCompact = false,
+      bool showUserAvatarsInCompactMode = false,
       ChatPreferencesState chatPreferences = const ChatPreferencesState(),
       double messageGroupSpacing = 16,
     }) {
@@ -23,6 +24,7 @@ void main() {
         chatPreferences: chatPreferences,
         messageGroupSpacing: messageGroupSpacing,
         messageDisplayCompact: messageDisplayCompact,
+        showUserAvatarsInCompactMode: showUserAvatarsInCompactMode,
       );
     }
 
@@ -58,6 +60,17 @@ void main() {
       );
       final MessageRenderSettings comfy = makeSettings();
       expect(compact, isNot(equals(comfy)));
+    });
+
+    test('showUserAvatarsInCompactMode participates in equality', () {
+      final MessageRenderSettings withAvatars = makeSettings(
+        messageDisplayCompact: true,
+        showUserAvatarsInCompactMode: true,
+      );
+      final MessageRenderSettings withoutAvatars = makeSettings(
+        messageDisplayCompact: true,
+      );
+      expect(withAvatars, isNot(equals(withoutAvatars)));
     });
 
     test('markdown participates in equality', () {

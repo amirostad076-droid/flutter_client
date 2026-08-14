@@ -94,7 +94,7 @@ class FriendsList extends ConsumerWidget {
     FriendsTab activeTab, {
     required bool showActiveNow,
   }) => Container(
-    height: 56,
+    constraints: const BoxConstraints(minHeight: 56),
     padding: EdgeInsets.symmetric(horizontal: context.layout.s4),
     child: Row(
       children: [

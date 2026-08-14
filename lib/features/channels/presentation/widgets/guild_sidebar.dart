@@ -262,7 +262,7 @@ class _GuildSidebarState extends ConsumerState<GuildSidebar> {
       );
     }
     return Container(
-      height: headerHeight,
+      constraints: const BoxConstraints(minHeight: headerHeight),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: context.colors.channelSidebarBackground,
