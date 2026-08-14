@@ -364,6 +364,12 @@ List<Widget> buildMessageActionMenuGroups({
         label: l10n.chatMessageViewReactions,
         onTap: () => onAction(MessageAction.viewReactions),
       ),
+    if (watchCanOfferMessageTranslate(ref, message))
+      FluxerBottomSheetMenuItem(
+        icon: PhosphorIconsBold.translate,
+        label: l10n.chatMessageTranslate,
+        onTap: () => onAction(MessageAction.translate),
+      ),
     if (canShowRemoveAllReactions)
       FluxerBottomSheetMenuItem(
         icon: PhosphorIconsBold.x,
@@ -500,13 +506,6 @@ List<Widget> buildMessageActionMenuGroups({
         icon: PhosphorIconsFill.copy,
         label: l10n.chatMessageCopyText,
         onTap: () => onAction(MessageAction.copyText),
-      ),
-    if (message.content.isNotEmpty &&
-        (ref.watch(messageTranslationAvailableProvider).value ?? false))
-      FluxerBottomSheetMenuItem(
-        icon: PhosphorIconsBold.translate,
-        label: l10n.chatMessageTranslate,
-        onTap: () => onAction(MessageAction.translate),
       ),
     FluxerBottomSheetMenuItem(
       icon: PhosphorIconsBold.snowflake,

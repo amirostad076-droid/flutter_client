@@ -7872,6 +7872,10 @@
     "@chatMessageSeeTranslation": {
         "description": "Toggles a message back to the stored translation."
     },
+    "chatMessageTranslating": "Translating…",
+    "@chatMessageTranslating": {
+        "description": "Shown under a message while on-device translation is in progress."
+    },
     "chatMessageTranslateFailed": "Couldn't translate this message.",
     "@chatMessageTranslateFailed": {
         "description": "Toast shown when on-device translation fails."

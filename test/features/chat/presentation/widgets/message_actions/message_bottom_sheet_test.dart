@@ -10,6 +10,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/message_actions/me
 import 'package:fluxer_app/features/chat/providers/messages/message_translation_provider.dart';
 import 'package:fluxer_app/features/chat/providers/messages/saved_message_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
+import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../../../helpers/test_l10n.dart';
@@ -159,7 +160,61 @@ void main() {
     });
   });
 
-  testWidgets('shows Translate when a source is available', (tester) async {
+  testWidgets('shows Translate under view reactions for other-script text', (
+    tester,
+  ) async {
+    final Message foreignMessage = message.copyWith(
+      content: 'こんにちは',
+      reactions: const [Reaction(emoji: '👍', count: 1)],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appearancePreferencesProvider.overrideWithValue(
+            const AppearancePreferencesState(),
+          ),
+          isMessageSavedProvider(
+            foreignMessage.id,
+          ).overrideWith((ref) => Stream<bool>.value(false)),
+          messageTranslationAvailableProvider.overrideWith((ref) => true),
+        ],
+        child: buildTestApp(
+          onOpen: (context) => showMessageBottomSheet(
+            context,
+            message: foreignMessage,
+            isOwnMessage: true,
+            isDmChannel: false,
+            canDelete: false,
+            canReport: false,
+            canAddReactions: true,
+            canPinMessage: false,
+            canManageMessages: false,
+            canSendMessages: true,
+            developerMode: false,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(testL10n.chatMessageTranslate), findsOneWidget);
+    final List<String> labels = tester
+        .widgetList<FluxerBottomSheetMenuItem>(
+          find.byType(FluxerBottomSheetMenuItem),
+        )
+        .map((FluxerBottomSheetMenuItem item) => item.label)
+        .toList();
+    expect(
+      labels.indexOf(testL10n.chatMessageViewReactions),
+      lessThan(labels.indexOf(testL10n.chatMessageTranslate)),
+    );
+  });
+
+  testWidgets('hides Translate when the message is in the app language', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -170,6 +225,9 @@ void main() {
             message.id,
           ).overrideWith((ref) => Stream<bool>.value(false)),
           messageTranslationAvailableProvider.overrideWith((ref) => true),
+          detectedMessageLanguageProvider(
+            'hello',
+          ).overrideWith((ref) async => 'en'),
         ],
         child: buildTestApp(
           onOpen: (context) => showMessageBottomSheet(
@@ -192,7 +250,7 @@ void main() {
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
 
-    expect(find.text(testL10n.chatMessageTranslate), findsOneWidget);
+    expect(find.text(testL10n.chatMessageTranslate), findsNothing);
   });
 
   testWidgets('hides Translate when no source is available', (tester) async {

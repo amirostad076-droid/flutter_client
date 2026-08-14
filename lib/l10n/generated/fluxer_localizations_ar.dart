@@ -6208,6 +6208,9 @@ class FluxerLocalizationsAr extends FluxerLocalizations {
   String get chatMessageSeeTranslation => 'See translation';
 
   @override
+  String get chatMessageTranslating => 'Translating…';
+
+  @override
   String get chatMessageTranslateFailed => 'Couldn\'t translate this message.';
 
   @override

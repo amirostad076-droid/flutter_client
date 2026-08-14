@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/domain/chat_fullscreen_video_launch_context.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
+import 'package:fluxer_app/features/chat/domain/message_translation.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_list_renderer.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_gift.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/embeds/embed_image.dart';
@@ -1070,17 +1071,26 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         child: markdown,
       );
     }
-    if (!msg.hasValidTranslation) {
+    final bool isTranslating = ref.watch(
+      translatingMessageIdsProvider.select(
+        (Set<String> ids) => ids.contains(msg.id),
+      ),
+    );
+    final MessageTranslation? translation = msg.translation;
+    if (!msg.hasValidTranslation && !isTranslating) {
       return markdown;
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         markdown,
-        MessageTranslationIndicator(
-          translation: msg.translation!,
-          onToggleOriginal: () => _toggleTranslationOriginal(msg),
-        ),
+        if (isTranslating)
+          const MessageTranslatingIndicator()
+        else if (translation != null)
+          MessageTranslationIndicator(
+            translation: translation,
+            onToggleOriginal: () => _toggleTranslationOriginal(msg),
+          ),
       ],
     );
   }

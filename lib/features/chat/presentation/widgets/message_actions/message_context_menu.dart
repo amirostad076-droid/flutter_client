@@ -214,6 +214,12 @@ class _ContextMenuPage extends ConsumerWidget {
         shortcut: shortcut('+'),
         onTap: () => pop(MessageAction.addReaction),
       ),
+      if (watchCanOfferMessageTranslate(ref, message))
+        _MenuItem(
+          label: l10n.chatMessageTranslate,
+          icon: PhosphorIconsBold.translate,
+          onTap: () => pop(MessageAction.translate),
+        ),
       if (message.hasFailed)
         _MenuItem(
           label: l10n.retry,
@@ -245,13 +251,6 @@ class _ContextMenuPage extends ConsumerWidget {
           label: l10n.chatMessageCopyText,
           icon: PhosphorIconsBold.copy,
           onTap: () => pop(MessageAction.copyText),
-        ),
-      if (message.content.isNotEmpty &&
-          (ref.watch(messageTranslationAvailableProvider).value ?? false))
-        _MenuItem(
-          label: l10n.chatMessageTranslate,
-          icon: PhosphorIconsBold.translate,
-          onTap: () => pop(MessageAction.translate),
         ),
       _MenuItem(
         label: message.isPinned ? l10n.chatMessageUnpin : l10n.chatMessagePin,

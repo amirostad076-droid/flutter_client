@@ -15,6 +15,16 @@ class LocalDeviceTranslationSource implements MessageTranslationSource {
   Future<bool> isAvailable() => _plugin.isSupported();
 
   @override
+  Future<String?> detectLanguage(String text) async {
+    final LanguageDetection detection = await _plugin.detectLanguage(text);
+    final String? code = detection.languageCode?.trim();
+    if (code == null || code.isEmpty || code.toLowerCase() == 'und') {
+      return null;
+    }
+    return code;
+  }
+
+  @override
   Future<TranslatedText> translate({
     required String text,
     required String targetLanguage,

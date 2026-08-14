@@ -7,17 +7,26 @@ import 'package:fluxer_app/features/chat/domain/message_translation.dart';
 import '../../../helpers/open_test_database.dart';
 
 class _FakeSource implements MessageTranslationSource {
-  _FakeSource({this.available = true, this.throwOnTranslate = false});
+  _FakeSource({this.available = true, this.throwOnTranslate = false})
+    : detectedLanguage = 'de';
 
   final bool available;
   final bool throwOnTranslate;
+  final String? detectedLanguage;
   int translateCalls = 0;
+  int detectCalls = 0;
 
   @override
   String get id => 'fake';
 
   @override
   Future<bool> isAvailable() async => available;
+
+  @override
+  Future<String?> detectLanguage(String text) async {
+    detectCalls += 1;
+    return detectedLanguage;
+  }
 
   @override
   Future<TranslatedText> translate({
@@ -119,6 +128,19 @@ void main() {
         (await db.messageDao.getMessage('1'))!,
       );
       expect(stored.translation?.translatedContent, 'Hello world');
+    });
+
+    test('caches language detection', () async {
+      final db = openTestDatabase();
+      final _FakeSource source = _FakeSource();
+      final MessageTranslationService service = MessageTranslationService(
+        messageDao: db.messageDao,
+        sources: <MessageTranslationSource>[source],
+      );
+
+      expect(await service.detectLanguage('Hallo Welt'), 'de');
+      expect(await service.detectLanguage('Hallo Welt'), 'de');
+      expect(source.detectCalls, 1);
     });
 
     test('setShowOriginal persists the toggle', () async {

@@ -10278,6 +10278,12 @@ abstract class FluxerLocalizations {
   /// **'See translation'**
   String get chatMessageSeeTranslation;
 
+  /// Shown under a message while on-device translation is in progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Translating…'**
+  String get chatMessageTranslating;
+
   /// Toast shown when on-device translation fails.
   ///
   /// In en, this message translates to:

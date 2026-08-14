@@ -293,3 +293,44 @@ String? _countryCodeFromLocaleTag(String tag) {
   }
   return parts[1].toUpperCase();
 }
+
+const Map<String, String> _languageCodeAliases = <String, String>{
+  'nb': 'no',
+  'nn': 'no',
+  'iw': 'he',
+  'in': 'id',
+};
+
+final Map<String, AppLocaleDisplayInfo> _appLocaleDisplayInfoByLanguageCode =
+    <String, AppLocaleDisplayInfo>{
+      for (final AppLocaleDisplayInfo info in _appLocaleDisplayInfoByTag.values)
+        info.languageCode: info,
+    };
+
+String appLanguageDisplayName(String languageTag) {
+  final String normalized = languageTag.trim().replaceAll('_', '-');
+  if (normalized.isEmpty) {
+    return languageTag;
+  }
+  final AppLocaleDisplayInfo? exact = _appLocaleDisplayInfoByTag[normalized];
+  if (exact != null) {
+    return _languageOnlyDisplayName(exact);
+  }
+  final String language = normalized.split('-').first.toLowerCase();
+  final String lookup = _languageCodeAliases[language] ?? language;
+  final AppLocaleDisplayInfo? info =
+      _appLocaleDisplayInfoByTag[lookup] ??
+      _appLocaleDisplayInfoByLanguageCode[lookup];
+  if (info != null) {
+    return _languageOnlyDisplayName(info);
+  }
+  return language;
+}
+
+String _languageOnlyDisplayName(AppLocaleDisplayInfo info) {
+  final int paren = info.name.indexOf(' (');
+  if (paren > 0) {
+    return info.name.substring(0, paren);
+  }
+  return info.name;
+}

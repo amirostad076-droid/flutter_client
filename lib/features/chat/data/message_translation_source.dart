@@ -9,4 +9,6 @@ abstract interface class MessageTranslationSource {
     required String text,
     required String targetLanguage,
   });
+
+  Future<String?> detectLanguage(String text);
 }
