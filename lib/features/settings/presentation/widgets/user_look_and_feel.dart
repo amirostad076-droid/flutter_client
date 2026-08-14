@@ -343,22 +343,6 @@ class UserLookAndFeel extends ConsumerWidget {
               ),
             ],
           ),
-          FluxerSettingsSection(
-            title: l10n.lookAndFeelNekoTitle,
-            description: l10n.lookAndFeelNekoDescription,
-            children: [
-              FluxerSwitchGroupItem(
-                label: l10n.lookAndFeelShowNekoLabel,
-                description: l10n.lookAndFeelShowNekoDescription,
-                value: appearance.showNeko,
-                onChanged: (value) => unawaited(
-                  ref
-                      .read(appearancePreferencesProvider.notifier)
-                      .setShowNeko(value: value),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
