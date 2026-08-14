@@ -1,5 +1,4 @@
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
 import 'package:fluxer_markdown/src/config/fluxer_markdown_config.dart';
 import 'package:fluxer_markdown/src/contexts/fluxer_markdown_context.dart';
 import 'package:fluxer_markdown/src/contexts/fluxer_markdown_features.dart';
@@ -12,6 +11,7 @@ import 'package:fluxer_markdown/src/renderers/fluxer_markdown_renderers.dart';
 import 'package:fluxer_markdown/src/utils/highlight_languages.dart';
 import 'package:fluxer_markdown/src/widgets/fluxer_markdown_link_registry.dart';
 import 'package:markdown/markdown.dart' as md;
+import 'package:material_ui/material_ui.dart';
 
 final MarkdownParseCache<(String, FluxerMarkdownFeatures), List<md.Node>>
 _blockNodeCache =
@@ -143,7 +143,7 @@ class _FluxerMarkdownState extends State<FluxerMarkdown> {
             textScaler: textScaler,
           );
           if (_cachedBody != null && _cacheKey == cacheKey) {
-            return _cachedBody!;
+            return _cachedBody;
           }
           _beginBodyRebuild();
           _cacheKey = cacheKey;
@@ -153,7 +153,7 @@ class _FluxerMarkdownState extends State<FluxerMarkdown> {
             style: style,
             isDark: isDark,
           );
-          return _cachedBody!;
+          return _cachedBody;
         },
       ),
     );
@@ -260,7 +260,7 @@ class _FluxerMarkdownState extends State<FluxerMarkdown> {
         segments.last is! FluxerTextSegment) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [...segmentWidgets, widget.trailingInlineWidget!],
+        children: [...segmentWidgets, widget.trailingInlineWidget],
       );
     }
 

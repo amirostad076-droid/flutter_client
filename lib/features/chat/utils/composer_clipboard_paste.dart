@@ -1,5 +1,4 @@
 import 'package:cross_file/cross_file.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/features/chat/providers/upload/cloud_upload_controller.dart';
 import 'package:fluxer_app/features/chat/service/composer_mention_controller.dart';
@@ -7,6 +6,7 @@ import 'package:fluxer_app/features/chat/utils/clipboard_attachment_reader.dart'
 import 'package:fluxer_app/features/chat/utils/composer_upload_file.dart';
 import 'package:fluxer_app/features/chat/utils/file_upload_validator.dart';
 import 'package:fluxer_app/features/ui/input/inline_token_clipboard.dart';
+import 'package:material_ui/material_ui.dart';
 
 export 'package:fluxer_app/features/ui/input/inline_token_clipboard.dart'
     show readClipboardPlainText;

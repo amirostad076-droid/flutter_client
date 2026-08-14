@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_text_theme.dart';
@@ -6,6 +5,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/ui/color_picker/fluxer_color_picker_field.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 
 Widget _wrap(Widget child, {Size size = const Size(1200, 800)}) {
   final colorTheme = buildDarkColorTheme();

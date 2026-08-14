@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:ui' show BoxWidthStyle;
 
 import 'package:cross_file/cross_file.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
@@ -27,6 +26,7 @@ import 'package:fluxer_app/features/chat/utils/slowmode_utils.dart';
 import 'package:fluxer_app/features/ui/input/fluxer_input_clipboard_scope.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const int kShareMediaSelectionLimit = 5;

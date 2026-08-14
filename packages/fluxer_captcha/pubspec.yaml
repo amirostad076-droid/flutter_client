@@ -23,6 +23,7 @@ dependencies:
   meta: any
   web: ^1.1.1
 
+  material_ui: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

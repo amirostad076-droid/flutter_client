@@ -1,11 +1,11 @@
 import 'dart:math' as math;
 import 'dart:ui' show lerpDouble;
 
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:fluxer_app/core/theme/color_utils.dart';
 import 'package:fluxer_app/features/ui/background/starfield_background.dart';
 import 'package:fluxer_app/features/ui/icons/fluxer_brand_logo.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Expands the brand circle over the live splash, then fades to the shell
 class SplashRevealOverlay {

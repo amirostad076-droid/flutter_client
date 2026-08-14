@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
@@ -19,6 +18,7 @@ import 'package:fluxer_app/features/quick_switcher/providers/quick_switcher_prov
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/voice/providers/pending_incoming_voice_calls_provider.dart';
 import 'package:fluxer_app/shared/providers/input_modality_provider.dart';
+import 'package:material_ui/material_ui.dart';
 
 class KeybindScope extends ConsumerStatefulWidget {
   const KeybindScope({required this.child, super.key});

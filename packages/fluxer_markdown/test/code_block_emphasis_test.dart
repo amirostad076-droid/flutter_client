@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_markdown/src/config/fluxer_markdown_config.dart';
 import 'package:fluxer_markdown/src/utils/code_block_highlight.dart';
 import 'package:fluxer_markdown/src/widgets/fluxer_markdown.dart';
+import 'package:material_ui/material_ui.dart';
 
 const FluxerMarkdownConfig _testMarkdownConfig = FluxerMarkdownConfig(
   resolveEmojiShortcode: _noopEmojiShortcode,
@@ -95,7 +95,7 @@ test one two three
 
       final InlineSpan? root = _findCodeBlockRichText(tester);
       expect(root, isNotNull);
-      final InlineSpan codeBlockText = root!;
+      final InlineSpan codeBlockText = root;
       expect(codeBlockText.toPlainText(), contains('*test four five six*'));
       expect(
         codeBlockText.toPlainText(),

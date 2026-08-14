@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/theme/fluxer_color_theme.dart';
@@ -11,6 +10,7 @@ import 'package:fluxer_app/features/settings/providers/use_12_hour_time_format_p
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
 
 Widget _app({
   required Locale locale,

@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluxer_app/shared/utils/emoji_utils.dart';
+import 'package:material_ui/material_ui.dart';
 
 const _kSpriteSize = 32;
 const _kNonDiversitySpritesPerRow = 42;

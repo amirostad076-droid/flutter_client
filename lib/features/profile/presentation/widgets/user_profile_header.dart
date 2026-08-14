@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/profile/domain/custom_status_utils.dart';
 import 'package:fluxer_app/features/profile/presentation/widgets/user_profile_badges.dart';
 import 'package:fluxer_app/features/profile/presentation/widgets/user_profile_custom_status.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
+import 'package:material_ui/material_ui.dart';
 
 class UserProfileHeader extends StatelessWidget {
   const UserProfileHeader({

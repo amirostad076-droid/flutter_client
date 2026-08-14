@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/deep_links/user_settings_deep_link.dart';
 import 'package:fluxer_app/features/settings/presentation/user_settings_modal.dart';
@@ -6,6 +5,7 @@ import 'package:fluxer_app/features/settings/presentation/user_settings_nav.dart
 import 'package:fluxer_app/features/settings/utils/user_settings_field_registry.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/providers/input_modality_provider.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class UserSettingsDeepLinkPresentation {

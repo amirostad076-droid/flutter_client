@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_markdown/src/utils/code_block_highlight.dart';
 import 'package:fluxer_markdown/src/utils/highlight_languages.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   setUp(ensureFluxerMarkdownLanguagesRegistered);

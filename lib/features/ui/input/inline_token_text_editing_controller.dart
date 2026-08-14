@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluxer_app/features/ui/input/emoji_inline_token.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A token rendered inline inside an [InlineTokenTextEditingController].
 ///
