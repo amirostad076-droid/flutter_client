@@ -1427,6 +1427,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.11.0"
+  local_translation:
+    dependency: "direct main"
+    description:
+      name: local_translation
+      sha256: "4bd1e59ad2e77b068917820e15e24d47739819734a421b7a885950e802e704f7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
   logger:
     dependency: transitive
     description:
@@ -2994,5 +3002,5 @@ packages:
     source: hosted
     version: "1.1.0"
 sdks:
-  dart: ">=3.12.0 <4.0.0"
+  dart: ">=3.13.0 <4.0.0"
   flutter: ">=3.44.0"
