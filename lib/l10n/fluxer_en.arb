@@ -7851,6 +7851,35 @@
     "@chatMessageCopyText": {
         "description": "Action label for copying message text."
     },
+    "chatMessageTranslate": "Translate",
+    "@chatMessageTranslate": {
+        "description": "Action label for translating a message on-device."
+    },
+    "chatMessageTranslatedFrom": "Translated from {language}",
+    "@chatMessageTranslatedFrom": {
+        "description": "Footer shown under a translated message.",
+        "placeholders": {
+            "language": {
+                "type": "String"
+            }
+        }
+    },
+    "chatMessageSeeOriginal": "See original",
+    "@chatMessageSeeOriginal": {
+        "description": "Toggles a translated message back to the original text."
+    },
+    "chatMessageSeeTranslation": "See translation",
+    "@chatMessageSeeTranslation": {
+        "description": "Toggles a message back to the stored translation."
+    },
+    "chatMessageTranslateFailed": "Couldn't translate this message.",
+    "@chatMessageTranslateFailed": {
+        "description": "Toast shown when on-device translation fails."
+    },
+    "chatMessageTranslateUnavailable": "Translation isn't available on this device.",
+    "@chatMessageTranslateUnavailable": {
+        "description": "Toast shown when no translation source is available."
+    },
     "chatMessageSpeak": "Speak message",
     "@chatMessageSpeak": {
         "description": "Action label for reading a message aloud."

@@ -125,6 +125,7 @@ Future<void> showSystemMessageActionsSheet(
     case MessageAction.debugMessage:
       unawaited(showMessageDebugSheet(context, message: message));
     case MessageAction.speak:
+    case MessageAction.translate:
       unawaited(
         dispatchMessageAction(
           ref: ref,

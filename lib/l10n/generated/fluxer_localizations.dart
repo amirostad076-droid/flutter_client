@@ -10254,6 +10254,42 @@ abstract class FluxerLocalizations {
   /// **'Copy Message'**
   String get chatMessageCopyText;
 
+  /// Action label for translating a message on-device.
+  ///
+  /// In en, this message translates to:
+  /// **'Translate'**
+  String get chatMessageTranslate;
+
+  /// Footer shown under a translated message.
+  ///
+  /// In en, this message translates to:
+  /// **'Translated from {language}'**
+  String chatMessageTranslatedFrom(String language);
+
+  /// Toggles a translated message back to the original text.
+  ///
+  /// In en, this message translates to:
+  /// **'See original'**
+  String get chatMessageSeeOriginal;
+
+  /// Toggles a message back to the stored translation.
+  ///
+  /// In en, this message translates to:
+  /// **'See translation'**
+  String get chatMessageSeeTranslation;
+
+  /// Toast shown when on-device translation fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t translate this message.'**
+  String get chatMessageTranslateFailed;
+
+  /// Toast shown when no translation source is available.
+  ///
+  /// In en, this message translates to:
+  /// **'Translation isn\'t available on this device.'**
+  String get chatMessageTranslateUnavailable;
+
   /// Action label for reading a message aloud.
   ///
   /// In en, this message translates to:

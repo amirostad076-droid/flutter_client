@@ -6272,6 +6272,27 @@ class FluxerLocalizationsEs extends FluxerLocalizations {
   String get chatMessageCopyText => 'Copiar mensaje';
 
   @override
+  String get chatMessageTranslate => 'Translate';
+
+  @override
+  String chatMessageTranslatedFrom(String language) {
+    return 'Translated from $language';
+  }
+
+  @override
+  String get chatMessageSeeOriginal => 'See original';
+
+  @override
+  String get chatMessageSeeTranslation => 'See translation';
+
+  @override
+  String get chatMessageTranslateFailed => 'Couldn\'t translate this message.';
+
+  @override
+  String get chatMessageTranslateUnavailable =>
+      'Translation isn\'t available on this device.';
+
+  @override
   String get chatMessageSpeak => 'Speak message';
 
   @override

@@ -6,6 +6,7 @@ import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/message_actions/message_bottom_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_actions/quick_reaction_row.dart';
+import 'package:fluxer_app/features/chat/providers/messages/message_translation_provider.dart';
 import 'package:fluxer_app/features/chat/utils/message_action_permissions.dart';
 import 'package:fluxer_app/features/settings/providers/advanced_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
@@ -244,6 +245,13 @@ class _ContextMenuPage extends ConsumerWidget {
           label: l10n.chatMessageCopyText,
           icon: PhosphorIconsBold.copy,
           onTap: () => pop(MessageAction.copyText),
+        ),
+      if (message.content.isNotEmpty &&
+          (ref.watch(messageTranslationAvailableProvider).value ?? false))
+        _MenuItem(
+          label: l10n.chatMessageTranslate,
+          icon: PhosphorIconsBold.translate,
+          onTap: () => pop(MessageAction.translate),
         ),
       _MenuItem(
         label: message.isPinned ? l10n.chatMessageUnpin : l10n.chatMessagePin,

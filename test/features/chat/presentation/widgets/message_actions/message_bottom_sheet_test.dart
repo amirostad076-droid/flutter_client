@@ -7,6 +7,7 @@ import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/chat/domain/chat_fullscreen_video_launch_context.dart';
 import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_actions/message_bottom_sheet.dart';
+import 'package:fluxer_app/features/chat/providers/messages/message_translation_provider.dart';
 import 'package:fluxer_app/features/chat/providers/messages/saved_message_provider.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:material_ui/material_ui.dart';
@@ -156,5 +157,77 @@ void main() {
 
       expect(find.text('Delete Attachment'), findsNothing);
     });
+  });
+
+  testWidgets('shows Translate when a source is available', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appearancePreferencesProvider.overrideWithValue(
+            const AppearancePreferencesState(),
+          ),
+          isMessageSavedProvider(
+            message.id,
+          ).overrideWith((ref) => Stream<bool>.value(false)),
+          messageTranslationAvailableProvider.overrideWith((ref) => true),
+        ],
+        child: buildTestApp(
+          onOpen: (context) => showMessageBottomSheet(
+            context,
+            message: message,
+            isOwnMessage: true,
+            isDmChannel: false,
+            canDelete: false,
+            canReport: false,
+            canAddReactions: false,
+            canPinMessage: false,
+            canManageMessages: false,
+            canSendMessages: true,
+            developerMode: false,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(testL10n.chatMessageTranslate), findsOneWidget);
+  });
+
+  testWidgets('hides Translate when no source is available', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appearancePreferencesProvider.overrideWithValue(
+            const AppearancePreferencesState(),
+          ),
+          isMessageSavedProvider(
+            message.id,
+          ).overrideWith((ref) => Stream<bool>.value(false)),
+          messageTranslationAvailableProvider.overrideWith((ref) => false),
+        ],
+        child: buildTestApp(
+          onOpen: (context) => showMessageBottomSheet(
+            context,
+            message: message,
+            isOwnMessage: true,
+            isDmChannel: false,
+            canDelete: false,
+            canReport: false,
+            canAddReactions: false,
+            canPinMessage: false,
+            canManageMessages: false,
+            canSendMessages: true,
+            developerMode: false,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    expect(find.text(testL10n.chatMessageTranslate), findsNothing);
   });
 }

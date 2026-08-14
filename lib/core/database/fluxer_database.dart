@@ -141,7 +141,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 82;
+  int get schemaVersion => 83;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -1244,6 +1244,43 @@ class FluxerDatabase extends _$FluxerDatabase {
             userPreferencesTable,
             userPreferencesTable.defaultWebBrowser,
           );
+        }
+      }
+      if (from < 83) {
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'messages',
+          columnName: 'translated_content',
+        )) {
+          await m.addColumn(messages, messages.translatedContent);
+        }
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'messages',
+          columnName: 'translation_source_language',
+        )) {
+          await m.addColumn(messages, messages.translationSourceLanguage);
+        }
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'messages',
+          columnName: 'translated_source_content',
+        )) {
+          await m.addColumn(messages, messages.translatedSourceContent);
+        }
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'messages',
+          columnName: 'translation_target_language',
+        )) {
+          await m.addColumn(messages, messages.translationTargetLanguage);
+        }
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'messages',
+          columnName: 'translation_show_original',
+        )) {
+          await m.addColumn(messages, messages.translationShowOriginal);
         }
       }
     },

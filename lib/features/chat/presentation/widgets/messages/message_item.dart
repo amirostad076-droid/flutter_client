@@ -30,8 +30,11 @@ import 'package:fluxer_app/features/chat/presentation/widgets/messages/forwarded
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_markdown.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_reactions_bar.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_row_layout.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_translation_indicator.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/spoiler_overlay.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/expression_picker.dart';
+import 'package:fluxer_app/features/chat/providers/core/chat_view_model.dart';
+import 'package:fluxer_app/features/chat/providers/messages/message_translation_provider.dart';
 import 'package:fluxer_app/features/chat/providers/messages/spoiler_reveal_provider.dart';
 import 'package:fluxer_app/features/chat/utils/embed_gallery_utils.dart';
 import 'package:fluxer_app/features/chat/utils/message_accessibility_summary.dart';
@@ -1041,7 +1044,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
     required bool revealSpoilers,
   }) {
     Widget markdown = MessageMarkdown(
-      data: msg.content,
+      data: msg.displayedContent,
       messageId: msg.id,
       selectable:
           (widget.renderSettings?.markdown.enableTextSelection ??
@@ -1067,7 +1070,36 @@ class _MessageItemState extends ConsumerState<MessageItem> {
         child: markdown,
       );
     }
-    return markdown;
+    if (!msg.hasValidTranslation) {
+      return markdown;
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        markdown,
+        MessageTranslationIndicator(
+          translation: msg.translation!,
+          onToggleOriginal: () => _toggleTranslationOriginal(msg),
+        ),
+      ],
+    );
+  }
+
+  void _toggleTranslationOriginal(Message msg) {
+    unawaited(() async {
+      final Message updated = await ref
+          .read(messageTranslationServiceProvider)
+          .setShowOriginal(
+            message: msg,
+            showOriginal: !(msg.translation?.showOriginal ?? false),
+          );
+      ref
+          .read(chatViewModelProvider.notifier)
+          .applyMessageTranslation(
+            messageId: updated.id,
+            translation: updated.translation,
+          );
+    }());
   }
 
   Widget _buildEditedLabel(BuildContext context, Message msg) {
@@ -1416,7 +1448,7 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                     ),
                   if (!isGrouped) const SizedBox(height: 2),
                   MessageMarkdown(
-                    data: msg.content,
+                    data: msg.displayedContent,
                     messageId: msg.id,
                     selectable: !isMobileLayout(context),
                     channelId: msg.channelId,
