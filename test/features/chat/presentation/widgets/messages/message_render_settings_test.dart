@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/messages/message_item.dart';
+import 'package:fluxer_app/features/settings/domain/search_provider_engine.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
+import 'package:fluxer_app/shared/markdown/message_markdown_settings.dart';
 import 'package:fluxer_dart/export.dart';
 
 void main() {
@@ -56,6 +58,38 @@ void main() {
       );
       final MessageRenderSettings comfy = makeSettings();
       expect(compact, isNot(equals(comfy)));
+    });
+
+    test('markdown participates in equality', () {
+      const MessageRenderSettings a = MessageRenderSettings(
+        activeGuildId: 'g1',
+        renderEmbeds: true,
+        renderReactions: true,
+        inlineAttachmentMedia: true,
+        renderSpoilers: RenderSpoilers.onClick,
+        revealSpoilers: false,
+        chatPreferences: ChatPreferencesState(),
+        messageGroupSpacing: 16,
+      );
+      const MessageRenderSettings b = MessageRenderSettings(
+        activeGuildId: 'g1',
+        renderEmbeds: true,
+        renderReactions: true,
+        inlineAttachmentMedia: true,
+        renderSpoilers: RenderSpoilers.onClick,
+        revealSpoilers: false,
+        chatPreferences: ChatPreferencesState(),
+        messageGroupSpacing: 16,
+        markdown: MessageMarkdownSettings(
+          use12Hour: true,
+          alwaysUnderlineLinks: false,
+          dimStrikethroughText: true,
+          animateCustomEmoji: true,
+          enableTextSelection: false,
+          searchEngines: SearchEnginesState(),
+        ),
+      );
+      expect(a, isNot(equals(b)));
     });
   });
 }

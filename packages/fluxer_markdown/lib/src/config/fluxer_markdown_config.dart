@@ -198,5 +198,6 @@ class FluxerMarkdownConfig {
     spoilerSyncController,
     unicodeEmojiPattern,
     internalLinkPattern,
+    selectionContextMenuBuilder,
   );
 }

@@ -88,6 +88,7 @@ class ForwardedMessageContent extends ConsumerWidget {
                     padding: const EdgeInsets.only(top: 4),
                     child: MessageMarkdown(
                       data: snapshot.content,
+                      messageId: '${message.id}-forward',
                       channelId: message.channelId,
                       mentionChannels: snapshot.mentionChannels,
                       baseStyle: context.textStyles.messageText.copyWith(

@@ -50,6 +50,7 @@ import 'package:fluxer_app/features/settings/providers/user_settings_view_model.
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/shared/markdown/message_markdown_settings.dart';
 import 'package:fluxer_app/shared/providers/guild_user_display_provider.dart';
 import 'package:fluxer_app/shared/providers/input_modality_provider.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
@@ -108,6 +109,7 @@ class MessageRenderSettings {
     required this.chatPreferences,
     required this.messageGroupSpacing,
     this.messageDisplayCompact = false,
+    this.markdown = MessageMarkdownSettings.defaults,
   });
 
   final String? activeGuildId;
@@ -119,6 +121,7 @@ class MessageRenderSettings {
   final ChatPreferencesState chatPreferences;
   final double messageGroupSpacing;
   final bool messageDisplayCompact;
+  final MessageMarkdownSettings markdown;
 
   @override
   bool operator ==(Object other) =>
@@ -133,7 +136,8 @@ class MessageRenderSettings {
           revealSpoilers == other.revealSpoilers &&
           chatPreferences == other.chatPreferences &&
           messageGroupSpacing == other.messageGroupSpacing &&
-          messageDisplayCompact == other.messageDisplayCompact;
+          messageDisplayCompact == other.messageDisplayCompact &&
+          markdown == other.markdown;
 
   @override
   int get hashCode => Object.hash(
@@ -146,6 +150,7 @@ class MessageRenderSettings {
     chatPreferences,
     messageGroupSpacing,
     messageDisplayCompact,
+    markdown,
   );
 }
 
@@ -1039,11 +1044,12 @@ class _MessageItemState extends ConsumerState<MessageItem> {
       data: msg.content,
       messageId: msg.id,
       selectable:
-          ref.watch(
-            advancedPreferencesProvider.select(
-              (AdvancedPreferencesState s) => s.enableTextSelection,
-            ),
-          ) &&
+          (widget.renderSettings?.markdown.enableTextSelection ??
+              ref.watch(
+                advancedPreferencesProvider.select(
+                  (AdvancedPreferencesState s) => s.enableTextSelection,
+                ),
+              )) &&
           !isMobile,
       channelId: msg.channelId,
       mentionChannels: msg.mentionChannels,

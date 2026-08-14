@@ -47,14 +47,15 @@ class ChannelMention extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(channelByIdProvider(channelId));
+    final Channel? channel = ref.watch(
+      channelByIdProvider(channelId).select((async) => async.value),
+    );
     final colors = context.colors;
     final style = (baseStyle ?? context.textStyles.messageText).copyWith(
       color: colors.markupMentionText,
       fontWeight: FontWeight.w500,
     );
     final l10n = FluxerLocalizations.of(context);
-    final channel = async.value;
     if (channel != null && channel.type == ChannelType.guildCategory) {
       return Text(
         '#${channel.name}',
@@ -303,10 +304,16 @@ class RoleMention extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(roleByIdProvider(roleId));
+    final role = ref.watch(
+      roleByIdProvider(roleId).select((async) {
+        final value = async.value;
+        if (value == null) {
+          return null;
+        }
+        return (name: value.name, color: value.color);
+      }),
+    );
     final colors = context.colors;
-    final role = async.value;
-
     final hasColor = (role?.color ?? 0) != 0;
     final roleColor = hasColor ? Color(role!.color | 0xFF000000) : null;
     // 0.1 opacity fill matching web app
@@ -455,16 +462,35 @@ class ChannelJumpLinkMention extends ConsumerWidget {
 
     final channelAsync = link.isDm
         ? null
-        : ref.watch(channelByIdProvider(link.channelId));
-    final channel = channelAsync?.value;
+        : ref.watch(
+            channelByIdProvider(link.channelId).select((async) {
+              final Channel? channel = async.value;
+              return (
+                isLoading: async.isLoading,
+                hasChannel: channel != null,
+                name: channel?.name,
+                type: channel?.type,
+                guildId: channel?.guildId,
+              );
+            }),
+          );
+    final bool hasChannel = channelAsync?.hasChannel ?? false;
     final guildAsync = link.isDm
         ? null
-        : ref.watch(_guildByIdProvider(channel?.guildId ?? link.scope));
+        : ref.watch(
+            _guildByIdProvider(
+              channelAsync?.guildId ?? link.scope,
+            ).select((async) => async.value),
+          );
     final dmNameAsync = link.isDm
-        ? ref.watch(_dmNameByChannelIdProvider(link.channelId))
+        ? ref.watch(
+            _dmNameByChannelIdProvider(
+              link.channelId,
+            ).select((async) => async.value),
+          )
         : null;
-    final guild = guildAsync?.value;
-    final dmName = dmNameAsync?.value ?? link.channelId;
+    final guild = guildAsync;
+    final dmName = dmNameAsync ?? link.channelId;
 
     final colors = context.colors;
     final style = (baseStyle ?? context.textStyles.messageText).copyWith(
@@ -483,7 +509,7 @@ class ChannelJumpLinkMention extends ConsumerWidget {
       );
     }
 
-    if (!link.isDm && channel == null && channelAsync?.isLoading == false) {
+    if (!link.isDm && !hasChannel && channelAsync?.isLoading == false) {
       final l10n = FluxerLocalizations.of(context);
       void onInaccessibleTap() {
         unawaited(showChannelAccessDeniedSheet(context));
@@ -555,12 +581,12 @@ class ChannelJumpLinkMention extends ConsumerWidget {
               )
             else ...[
               ChannelIcon(
-                type: channel?.type ?? ChannelType.guildText,
+                type: channelAsync?.type ?? ChannelType.guildText,
                 size: iconSize,
                 color: colors.markupMentionText,
               ),
               SizedBox(width: iconSize * 0.2),
-              _MentionLabel(channel?.name ?? link.channelId, style: style),
+              _MentionLabel(channelAsync?.name ?? link.channelId, style: style),
             ],
           ],
         ],
