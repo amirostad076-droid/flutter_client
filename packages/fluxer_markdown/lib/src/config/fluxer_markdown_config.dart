@@ -176,4 +176,27 @@ class FluxerMarkdownConfig {
   final FluxerSelectionContextMenuBuilder? selectionContextMenuBuilder;
   final bool alwaysUnderlineLinks;
   final bool dimStrikethroughText;
+
+  Object get layoutCacheKey => (
+    animateCustomEmoji,
+    linkColor,
+    blockquoteBorderColor,
+    blockquoteTextColor,
+    inlineCodeBackgroundColor,
+    inlineCodeTextColor,
+    codeTextStyle,
+    tableBorderColor,
+    tableHeaderBackgroundColor,
+    tableHeaderTextColor,
+    tableRowOddBackgroundColor,
+    tableRowEvenBackgroundColor,
+    tableBorderRadius,
+    spoilerBackgroundColor,
+    spoilersInitiallyRevealed,
+    alwaysUnderlineLinks,
+    dimStrikethroughText,
+    spoilerSyncController,
+    unicodeEmojiPattern,
+    internalLinkPattern,
+  );
 }

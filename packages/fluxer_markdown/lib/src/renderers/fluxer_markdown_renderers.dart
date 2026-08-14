@@ -1,12 +1,10 @@
 import 'dart:async';
-import 'dart:ui' show ImageFilter;
 
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_highlight/flutter_highlight.dart';
 import 'package:flutter_highlight/themes/github.dart';
 import 'package:flutter_highlight/themes/vs2015.dart';
 import 'package:fluxer_markdown/src/config/fluxer_markdown_config.dart';
@@ -16,12 +14,13 @@ import 'package:fluxer_markdown/src/parsing/inline_parse_chunks.dart';
 import 'package:fluxer_markdown/src/parsing/markdown_parse_cache.dart';
 import 'package:fluxer_markdown/src/syntaxes/fluxer_markdown_syntaxes.dart';
 import 'package:fluxer_markdown/src/utils/ansi_text_parser.dart';
-import 'package:fluxer_markdown/src/utils/code_block_highlight_theme.dart';
+import 'package:fluxer_markdown/src/utils/code_block_highlight.dart';
 import 'package:fluxer_markdown/src/utils/highlight_languages.dart';
 import 'package:fluxer_markdown/src/utils/jumbo_emoji.dart';
 import 'package:fluxer_markdown/src/utils/markup_spacing.dart';
 import 'package:fluxer_markdown/src/utils/monospace_text_style.dart';
 import 'package:fluxer_markdown/src/widgets/emoji_asset_image.dart';
+import 'package:fluxer_markdown/src/widgets/fluxer_markdown_link_registry.dart';
 import 'package:fluxer_markdown/src/widgets/system_emoji_fallback.dart';
 import 'package:intl/intl.dart';
 import 'package:latext/latext.dart';
@@ -1113,25 +1112,13 @@ class _MarkdownInlineRenderer {
           children: build(node.children ?? const [], style: underlineStyle),
         );
       case 'code':
-        if (features.allowPlainInlineCode) {
-          return TextSpan(
-            text: node.textContent,
-            style: codeTextStyleFrom(
-              effectiveStyle,
-              codeTextStyle: config.codeTextStyle,
-              color: config.inlineCodeTextColor,
-              backgroundColor: config.inlineCodeBackgroundColor,
-            ),
-          );
-        }
-        return WidgetSpan(
-          alignment: PlaceholderAlignment.middle,
-          child: FluxerInlineCodeWidget(
-            text: node.textContent,
-            baseStyle: effectiveStyle,
+        return TextSpan(
+          text: node.textContent,
+          style: codeTextStyleFrom(
+            effectiveStyle,
             codeTextStyle: config.codeTextStyle,
+            color: config.inlineCodeTextColor,
             backgroundColor: config.inlineCodeBackgroundColor,
-            textColor: config.inlineCodeTextColor,
           ),
         );
       case 'br':
@@ -1220,6 +1207,28 @@ class _MarkdownInlineRenderer {
           ),
         );
       case FluxerUnicodeEmojiToneSyntax.tag:
+        final String surrogate =
+            node.attributes['surrogate'] ?? node.textContent;
+        if (!jumbo) {
+          final double fontSize =
+              (effectiveStyle.fontSize ?? 16) *
+              kFluxerMarkdownEmojiSizeMultiplier;
+          return TextSpan(
+            text: surrogate,
+            style: effectiveStyle.copyWith(fontSize: fontSize, height: 1),
+          );
+        }
+        return WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: FluxerEmojiWidget(
+            element: node,
+            baseStyle: effectiveStyle,
+            unicodeEmojiUrlBuilder: config.unicodeEmojiUrlBuilder,
+            customEmojiUrlBuilder: config.customEmojiUrlBuilder,
+            animateCustomEmoji: config.animateCustomEmoji,
+            jumbo: jumbo,
+          ),
+        );
       case FluxerCustomEmojiSyntax.tag:
         return WidgetSpan(
           alignment: PlaceholderAlignment.middle,
@@ -1289,14 +1298,25 @@ class _MarkdownInlineRenderer {
     }
     final List<InlineSpan>? children = span.children;
     if (children == null || children.isEmpty) {
+      void onTap() {
+        unawaited(_handleLinkTap(href));
+      }
+
+      final FluxerMarkdownLinkRegistry? registry =
+          FluxerMarkdownLinkRegistry.maybeOf(context);
+      if (registry != null) {
+        return TextSpan(
+          text: span.text,
+          style: span.style,
+          mouseCursor: SystemMouseCursors.click,
+          recognizer: registry.obtainRecognizer(onTap),
+        );
+      }
       return TextSpan(
         text: span.text,
         style: span.style,
         mouseCursor: SystemMouseCursors.click,
-        recognizer: TapGestureRecognizer()
-          ..onTap = () {
-            unawaited(_handleLinkTap(href));
-          },
+        recognizer: TapGestureRecognizer()..onTap = onTap,
       );
     }
     return TextSpan(
@@ -1634,7 +1654,9 @@ class _FluxerSpoilerSpanState extends State<_FluxerSpoilerSpan>
 
   @override
   Widget build(BuildContext context) {
-    final Color? hiddenBackground = widget.spoilerBackgroundColor;
+    final Color hiddenBackground =
+        widget.spoilerBackgroundColor ??
+        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2);
     return GestureDetector(
       onTap: _reveal,
       behavior: HitTestBehavior.opaque,
@@ -1642,19 +1664,11 @@ class _FluxerSpoilerSpanState extends State<_FluxerSpoilerSpan>
         borderRadius: BorderRadius.circular(4),
         child: Stack(
           children: [
-            ImageFiltered(
-              imageFilter: _isRevealed
-                  ? ImageFilter.blur()
-                  : ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-              child: IgnorePointer(
-                ignoring: !_isRevealed,
-                child: Opacity(
-                  opacity: _isRevealed ? 1 : 0,
-                  child: FadeTransition(opacity: _opacity, child: widget.child),
-                ),
-              ),
+            IgnorePointer(
+              ignoring: !_isRevealed,
+              child: FadeTransition(opacity: _opacity, child: widget.child),
             ),
-            if (!_isRevealed && hiddenBackground != null)
+            if (!_isRevealed)
               Positioned.fill(child: ColoredBox(color: hiddenBackground)),
           ],
         ),
@@ -1775,20 +1789,13 @@ class FluxerCodeBlockWidget extends StatelessWidget {
         child: Text(code, style: monoStyle),
       );
     } else {
-      codeBody = HighlightView(
-        code,
+      codeBody = FluxerHighlightedCode(
+        code: code,
         language: knownLang,
-        theme: isDark
-            ? codeBlockHighlightThemeFor(
-                vs2015Theme,
-                codeTextStyle: codeTextStyle,
-              )
-            : codeBlockHighlightThemeFor(
-                githubTheme,
-                codeTextStyle: codeTextStyle,
-              ),
-        padding: _kPadding,
+        isDark: isDark,
         textStyle: monoStyle,
+        backgroundColor: bgColor,
+        padding: _kPadding,
       );
     }
 
@@ -1891,48 +1898,6 @@ class _FluxerCodeBlockWithCopy extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class FluxerInlineCodeWidget extends StatelessWidget {
-  const FluxerInlineCodeWidget({
-    required this.text,
-    required this.baseStyle,
-    this.codeTextStyle,
-    this.backgroundColor,
-    this.textColor,
-    super.key,
-  });
-
-  final String text;
-  final TextStyle baseStyle;
-  final TextStyle? codeTextStyle;
-  final Color? backgroundColor;
-  final Color? textColor;
-
-  @override
-  Widget build(BuildContext context) {
-    final fontSize = baseStyle.fontSize ?? 16;
-    return Container(
-      decoration: BoxDecoration(
-        color:
-            backgroundColor ??
-            Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(fontSize * 0.25),
-      ),
-      padding: EdgeInsets.symmetric(
-        horizontal: fontSize * 0.25,
-        vertical: fontSize * 0.0625,
-      ),
-      child: Text(
-        text,
-        style: codeTextStyleFrom(
-          baseStyle,
-          codeTextStyle: codeTextStyle,
-          color: textColor,
-        ),
       ),
     );
   }

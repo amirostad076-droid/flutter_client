@@ -204,6 +204,20 @@ void main() {
       expect(contentBlocker().ignoring, isFalse);
     });
 
+    testWidgets('does not blur hidden spoiler content', (tester) async {
+      await pumpMarkdown(tester, _customEmojiInput);
+      expect(find.byType(ImageFiltered), findsNothing);
+      expect(find.byType(ColoredBox), findsWidgets);
+    });
+
+    testWidgets('covers hidden spoilers when no spoiler color is set', (
+      tester,
+    ) async {
+      await pumpMarkdown(tester, '||secret||');
+      expect(find.byType(ColoredBox), findsWidgets);
+      expect(find.textContaining('secret', findRichText: true), findsOneWidget);
+    });
+
     testWidgets('flattens revealed spoiler for single-line ellipsis', (
       tester,
     ) async {
