@@ -59,13 +59,9 @@ class MessageTranslatingIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
-    final TextStyle style = _translationFooterStyle(context);
     return Semantics(
       label: l10n.chatMessageTranslating,
-      child: _TranslationFooter(
-        style: style,
-        child: _ShimmeringText(text: l10n.chatMessageTranslating, style: style),
-      ),
+      child: _ShimmeringTranslationStatus(text: l10n.chatMessageTranslating),
     );
   }
 }
@@ -102,17 +98,18 @@ class _TranslationFooter extends StatelessWidget {
   }
 }
 
-class _ShimmeringText extends StatefulWidget {
-  const _ShimmeringText({required this.text, required this.style});
+class _ShimmeringTranslationStatus extends StatefulWidget {
+  const _ShimmeringTranslationStatus({required this.text});
 
   final String text;
-  final TextStyle style;
 
   @override
-  State<_ShimmeringText> createState() => _ShimmeringTextState();
+  State<_ShimmeringTranslationStatus> createState() =>
+      _ShimmeringTranslationStatusState();
 }
 
-class _ShimmeringTextState extends State<_ShimmeringText>
+class _ShimmeringTranslationStatusState
+    extends State<_ShimmeringTranslationStatus>
     with SingleTickerProviderStateMixin {
   static const Duration _kDuration = Duration(milliseconds: 1400);
 
@@ -132,14 +129,20 @@ class _ShimmeringTextState extends State<_ShimmeringText>
 
   @override
   Widget build(BuildContext context) {
-    final Color base = widget.style.color ?? context.colors.textTertiaryMuted;
+    final TextStyle style = _translationFooterStyle(context);
+    final Color base = style.color ?? context.colors.textTertiaryMuted;
     final bool animationsEnabled = !MediaQuery.disableAnimationsOf(context);
     _controller.syncWithVisibility(
       isVisible: true,
       animationsEnabled: animationsEnabled,
     );
+    final Color maskColor = animationsEnabled ? Colors.white : base;
+    final Widget status = _TranslationFooter(
+      style: style.copyWith(color: maskColor),
+      child: Text(widget.text, style: style.copyWith(color: maskColor)),
+    );
     if (!animationsEnabled) {
-      return Text(widget.text, style: widget.style);
+      return status;
     }
     return AnimatedBuilder(
       animation: _controller,
@@ -161,10 +164,7 @@ class _ShimmeringTextState extends State<_ShimmeringText>
           child: child,
         );
       },
-      child: Text(
-        widget.text,
-        style: widget.style.copyWith(color: Colors.white),
-      ),
+      child: status,
     );
   }
 }
