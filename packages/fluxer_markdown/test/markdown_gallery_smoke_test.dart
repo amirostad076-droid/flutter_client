@@ -86,8 +86,8 @@ void main() {
         tester,
         '- unordered\n  - nested\n1. ordered\n2. second',
       );
-      expect(find.text('1.'), findsOneWidget);
-      expect(find.text('\u2022'), findsWidgets);
+      expect(find.text('1.', findRichText: true), findsOneWidget);
+      expect(find.text('\u2022', findRichText: true), findsWidgets);
     });
 
     testWidgets('blockquotes section renders', (tester) async {
