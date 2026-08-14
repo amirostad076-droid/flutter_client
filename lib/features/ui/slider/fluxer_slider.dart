@@ -387,11 +387,15 @@ class _FluxerSliderState extends State<FluxerSlider> {
                         textAlign: TextAlign.center,
                       );
 
+                final dashColor = isFactoryDefault
+                    ? colors.textPositive
+                    : colors.interactiveMuted;
+
                 final dash = Container(
                   width: _kMarkerDashWidth,
                   height: _kMarkerDashHeight / 4,
                   decoration: BoxDecoration(
-                    color: colors.interactiveMuted,
+                    color: dashColor,
                     borderRadius: BorderRadius.circular(1),
                   ),
                 );
@@ -512,17 +516,39 @@ class _FluxerSliderState extends State<FluxerSlider> {
                         height: _barHeight,
                         child: DecoratedBox(
                           decoration: BoxDecoration(
-                            color: colors.interactiveMuted,
+                            color: Color.lerp(
+                              colors.interactiveMuted,
+                              colors.backgroundTertiary,
+                              0.18,
+                            ),
                             borderRadius: layout.radiusSm,
+                            boxShadow: [
+                              BoxShadow(
+                                color: colors.backgroundPrimary.withValues(
+                                  alpha: 0.2,
+                                ),
+                                spreadRadius: 0.5,
+                              ),
+                            ],
                           ),
                           child: FractionallySizedBox(
                             alignment: Alignment.centerLeft,
                             widthFactor: valuePct / 100.0,
                             child: DecoratedBox(
                               decoration: BoxDecoration(
-                                color: colors.brandPrimary,
+                                gradient: LinearGradient(
+                                  colors: <Color>[
+                                    colors.brandPrimary,
+                                    Color.lerp(
+                                          colors.brandPrimaryLight,
+                                          Colors.white,
+                                          0.16,
+                                        ) ??
+                                        colors.brandPrimaryLight,
+                                  ],
+                                ),
                                 border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.1),
+                                  color: Colors.white.withValues(alpha: 0.12),
                                 ),
                               ),
                             ),
