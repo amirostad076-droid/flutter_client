@@ -148,8 +148,25 @@ class UserLookAndFeel extends ConsumerWidget {
                 maxValue: kMaxLayoutZoomLevel * 100,
                 markers: _appZoomMarkerPercents,
                 step: 1,
+                markerLabelWidth: 36,
                 semanticLabel: l10n.lookAndFeelAppZoomTitle,
-                onMarkerRender: (value) => Text('${value.round()}'),
+                onMarkerRender: (double value) {
+                  final bool isDefault =
+                      value.round() == kDefaultLayoutZoomLevel * 100;
+                  return FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      '${value.round()}%',
+                      style: context.textStyles.smallText.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: isDefault
+                            ? context.colors.textPositive
+                            : context.colors.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  );
+                },
                 onValueRender: (value) => Text('${value.round()}%'),
                 onValueChange: (value) => unawaited(
                   ref

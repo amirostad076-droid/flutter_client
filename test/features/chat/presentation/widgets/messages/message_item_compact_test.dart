@@ -66,12 +66,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        _app(
-          MessageItem(
-            message: _message(),
-            renderSettings: _settings(),
-          ),
-        ),
+        _app(MessageItem(message: _message(), renderSettings: _settings())),
       );
       await tester.pump();
 

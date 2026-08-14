@@ -16,10 +16,7 @@ const MediaQueryData _maxTextScaleMediaQuery = MediaQueryData(
 );
 
 Widget _wrapLargeText(Widget child) {
-  return MediaQuery(
-    data: _maxTextScaleMediaQuery,
-    child: child,
-  );
+  return MediaQuery(data: _maxTextScaleMediaQuery, child: child);
 }
 
 void main() {
@@ -55,9 +52,9 @@ void main() {
                 trustedDomains: <String>[],
               ),
             ),
-            userPresenceProvider('u1').overrideWith(
-              (Ref ref) => Stream<User?>.value(null),
-            ),
+            userPresenceProvider(
+              'u1',
+            ).overrideWith((Ref ref) => Stream<User?>.value(null)),
           ],
         ),
       );
