@@ -12,6 +12,7 @@ import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.da
 import 'package:fluxer_app/features/profile/providers/user_presence_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
 import 'package:fluxer_app/features/settings/providers/voice_settings_provider.dart';
+import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/presentation/user_area.dart';
 import 'package:fluxer_app/features/shell/presentation/widgets/user_panel_widgets.dart';
 import 'package:fluxer_app/features/voice/domain/local_voice_state_data.dart';
@@ -203,6 +204,79 @@ void main() {
       ),
     );
     expect(divider.color, colorTheme.userAreaDividerColor);
+  });
+
+  testWidgets('UserArea reserves bottom safe area on wide layout', (
+    WidgetTester tester,
+  ) async {
+    const double homeIndicatorInset = 34;
+    final colorTheme = buildDarkColorTheme();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: _userAreaOverrides(
+          voiceSession: _IdleVoiceSession.new,
+          localVoice: _FakeLocalVoiceState.new,
+        ),
+        child: MaterialApp(
+          locale: kTestLocale,
+          localizationsDelegates: FluxerLocalizations.localizationsDelegates,
+          supportedLocales: FluxerLocalizations.supportedLocales,
+          theme: buildFluxerTheme(
+            colorTheme: colorTheme,
+            textTheme: FluxerTextTheme.fromColors(colorTheme),
+            layoutTheme: FluxerLayoutTheme.scaled(),
+          ),
+          home: MediaQuery(
+            data: const MediaQueryData(
+              size: Size(Breakpoints.shellMinWidth, 900),
+              padding: EdgeInsets.only(bottom: homeIndicatorInset),
+              viewPadding: EdgeInsets.only(bottom: homeIndicatorInset),
+            ),
+            child: const Scaffold(body: UserArea()),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final SafeArea safeArea = tester.widget<SafeArea>(find.byType(SafeArea));
+    expect(safeArea.bottom, isTrue);
+  });
+
+  testWidgets('UserArea skips bottom safe area on mobile layout', (
+    WidgetTester tester,
+  ) async {
+    final colorTheme = buildDarkColorTheme();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: _userAreaOverrides(
+          voiceSession: _IdleVoiceSession.new,
+          localVoice: _FakeLocalVoiceState.new,
+        ),
+        child: MaterialApp(
+          locale: kTestLocale,
+          localizationsDelegates: FluxerLocalizations.localizationsDelegates,
+          supportedLocales: FluxerLocalizations.supportedLocales,
+          theme: buildFluxerTheme(
+            colorTheme: colorTheme,
+            textTheme: FluxerTextTheme.fromColors(colorTheme),
+            layoutTheme: FluxerLayoutTheme.scaled(),
+          ),
+          home: MediaQuery(
+            data: const MediaQueryData(
+              size: Size(390, 844),
+              padding: EdgeInsets.only(bottom: 34),
+              viewPadding: EdgeInsets.only(bottom: 34),
+            ),
+            child: const Scaffold(body: UserArea()),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final SafeArea safeArea = tester.widget<SafeArea>(find.byType(SafeArea));
+    expect(safeArea.bottom, isFalse);
   });
 }
 
