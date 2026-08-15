@@ -191,6 +191,8 @@ class _GuildIconPeekGestureHostState
       );
       if (action != null && mounted) {
         await _handleItemTap(action);
+      } else {
+        _dismissPeekOverlay();
       }
     }
     _activePointer = null;

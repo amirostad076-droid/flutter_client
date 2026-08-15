@@ -2165,6 +2165,7 @@ class _GuildListItem extends StatefulWidget {
   final void Function(String channelId)? onRemoveChannelOverride;
   final VoidCallback? onMounted;
   final bool enableLongPressMenu;
+  final bool opaqueHitTarget;
   final Future<int> Function()? resolveMenuPermissions;
 
   const _GuildListItem({
@@ -2211,6 +2212,7 @@ class _GuildListItem extends StatefulWidget {
     this.onRemoveChannelOverride,
     this.onMounted,
     this.enableLongPressMenu = true,
+    this.opaqueHitTarget = false,
     this.resolveMenuPermissions,
   });
 
@@ -2380,6 +2382,9 @@ class _GuildListItemState extends State<_GuildListItem>
                     selected: widget.isSelected,
                     label: _guildSemanticLabel(l10n),
                     child: FluxerGestureDetector(
+                      behavior: widget.opaqueHitTarget
+                          ? HitTestBehavior.opaque
+                          : null,
                       onTap: widget.onTap,
                       onSecondaryTapUp: widget.guild != null
                           ? (details) => unawaited(
@@ -2391,7 +2396,7 @@ class _GuildListItemState extends State<_GuildListItem>
                           ? () => unawaited(_showActionSheet(context))
                           : null,
                       child: SizedBox(
-                        width: 48,
+                        width: widget.opaqueHitTarget ? 72 : 48,
                         height: 48,
                         child: Center(
                           child: AnimatedContainer(
@@ -3813,6 +3818,7 @@ class _HomeDmButton extends ConsumerWidget {
       svgAsset: Assets.fluxerSymbol,
       mentionCount: pendingFriendCount + dmMentionCount,
       hasUnread: hasCollapsedDmUnread,
+      opaqueHitTarget: true,
       onTap: () {
         if (collapseDMs && isDm) {
           ref.read(dmFolderProvider.notifier).toggleExpanded();
