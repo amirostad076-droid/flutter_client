@@ -141,7 +141,7 @@ class FluxerDatabase extends _$FluxerDatabase {
   FluxerDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 84;
+  int get schemaVersion => 85;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -1292,6 +1292,18 @@ class FluxerDatabase extends _$FluxerDatabase {
           await m.addColumn(
             userPreferencesTable,
             userPreferencesTable.mobileSplashZoomAnimation,
+          );
+        }
+      }
+      if (from < 85) {
+        if (!await _tableHasColumn(
+          m.database,
+          tableName: 'user_preferences',
+          columnName: 'hdr_display_mode',
+        )) {
+          await m.addColumn(
+            userPreferencesTable,
+            userPreferencesTable.hdrDisplayMode,
           );
         }
       }

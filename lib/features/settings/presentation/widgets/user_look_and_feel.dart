@@ -137,6 +137,37 @@ class UserLookAndFeel extends ConsumerWidget {
             ],
           ),
           FluxerSettingsSection(
+            sectionId: 'hdr',
+            title: l10n.lookAndFeelHdrSectionTitle,
+            description: l10n.lookAndFeelHdrSectionDescription,
+            children: [
+              Semantics(
+                container: true,
+                label: l10n.lookAndFeelHdrDisplayModeLabel,
+                child: FluxerRadioGroup<HdrDisplayMode>(
+                  value: appearance.hdrDisplayMode,
+                  onChanged: (HdrDisplayMode value) => unawaited(
+                    ref
+                        .read(appearancePreferencesProvider.notifier)
+                        .setHdrDisplayMode(value),
+                  ),
+                  items: [
+                    FluxerRadioItem(
+                      value: HdrDisplayMode.full,
+                      label: l10n.lookAndFeelHdrFullName,
+                      description: l10n.lookAndFeelHdrFullDescription,
+                    ),
+                    FluxerRadioItem(
+                      value: HdrDisplayMode.standard,
+                      label: l10n.lookAndFeelHdrStandardName,
+                      description: l10n.lookAndFeelHdrStandardDescription,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          FluxerSettingsSection(
             sectionId: 'app-zoom-level',
             title: l10n.lookAndFeelAppZoomTitle,
             description: l10n.lookAndFeelAppZoomDescription,

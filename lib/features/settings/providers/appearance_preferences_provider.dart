@@ -20,6 +20,15 @@ enum ChannelTypingIndicatorMode { avatars, indicatorOnly, hidden }
 
 enum DmMessagePreviewMode { all, unreadOnly, none }
 
+enum HdrDisplayMode { full, standard }
+
+HdrDisplayMode hdrDisplayModeFromName(String? name) {
+  return HdrDisplayMode.values.firstWhere(
+    (HdrDisplayMode mode) => mode.name == name,
+    orElse: () => HdrDisplayMode.full,
+  );
+}
+
 DmMessagePreviewMode defaultDmMessagePreviewMode() {
   if (kIsWeb) {
     return DmMessagePreviewMode.none;
@@ -87,6 +96,7 @@ class AppearancePreferencesState {
     this.keepGifAutoPlayUnderReducedMotion = false,
     this.keepStickerAnimationUnderReducedMotion = false,
     this.mobileSplashZoomAnimation = true,
+    this.hdrDisplayMode = HdrDisplayMode.full,
   });
 
   final ChannelTypingIndicatorMode channelTypingIndicatorMode;
@@ -127,6 +137,7 @@ class AppearancePreferencesState {
   final bool keepGifAutoPlayUnderReducedMotion;
   final bool keepStickerAnimationUnderReducedMotion;
   final bool mobileSplashZoomAnimation;
+  final HdrDisplayMode hdrDisplayMode;
 
   AppearancePreferencesState copyWith({
     ChannelTypingIndicatorMode? channelTypingIndicatorMode,
@@ -167,6 +178,7 @@ class AppearancePreferencesState {
     bool? keepGifAutoPlayUnderReducedMotion,
     bool? keepStickerAnimationUnderReducedMotion,
     bool? mobileSplashZoomAnimation,
+    HdrDisplayMode? hdrDisplayMode,
   }) {
     return AppearancePreferencesState(
       channelTypingIndicatorMode:
@@ -240,6 +252,7 @@ class AppearancePreferencesState {
           this.keepStickerAnimationUnderReducedMotion,
       mobileSplashZoomAnimation:
           mobileSplashZoomAnimation ?? this.mobileSplashZoomAnimation,
+      hdrDisplayMode: hdrDisplayMode ?? this.hdrDisplayMode,
     );
   }
 }
@@ -309,6 +322,7 @@ class AppearancePreferences extends _$AppearancePreferences {
         keepStickerAnimationUnderReducedMotion:
             prefs.keepStickerAnimationUnderReducedMotion,
         mobileSplashZoomAnimation: prefs.mobileSplashZoomAnimation,
+        hdrDisplayMode: hdrDisplayModeFromName(prefs.hdrDisplayMode),
       );
     }
   }
@@ -351,6 +365,7 @@ class AppearancePreferences extends _$AppearancePreferences {
         mobileAnimateEmojiValue: value.mobileAnimateEmojiValue,
         mobileStickerAnimationValue: value.mobileStickerAnimationValue,
         mobileSplashZoomAnimation: value.mobileSplashZoomAnimation,
+        hdrDisplayMode: value.hdrDisplayMode,
       );
       await _persist();
     } finally {
@@ -433,6 +448,12 @@ class AppearancePreferences extends _$AppearancePreferences {
 
   Future<void> setDmMessagePreviewMode(DmMessagePreviewMode mode) async {
     state = state.copyWith(dmMessagePreviewMode: mode);
+    await _persist();
+    _markAccessibilityDirty();
+  }
+
+  Future<void> setHdrDisplayMode(HdrDisplayMode mode) async {
+    state = state.copyWith(hdrDisplayMode: mode);
     await _persist();
     _markAccessibilityDirty();
   }
@@ -721,6 +742,7 @@ class AppearancePreferences extends _$AppearancePreferences {
           state.keepStickerAnimationUnderReducedMotion,
         ),
         mobileSplashZoomAnimation: Value(state.mobileSplashZoomAnimation),
+        hdrDisplayMode: Value(state.hdrDisplayMode.name),
       ),
     );
   }

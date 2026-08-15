@@ -187,6 +187,7 @@ void main() {
     await tester.pump();
 
     expect(find.text('Theme'), findsOneWidget);
+    expect(find.text('High dynamic range'), findsOneWidget);
     expect(find.text('App zoom level'), findsOneWidget);
     expect(find.text('Messages'), findsOneWidget);
     expect(find.text('Interface'), findsOneWidget);

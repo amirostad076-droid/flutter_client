@@ -71,6 +71,8 @@ AttachmentMediaViewerItem buildEmbedMediaViewerItem({
     width: media.width,
     height: media.height,
     embedIndex: embedIndex,
+    proxyUrl: media.proxyUrl,
+    contentType: media.contentType,
   );
 }
 

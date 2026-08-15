@@ -6898,6 +6898,48 @@ abstract class FluxerLocalizations {
   /// **'Choose between dark, coal, or light appearance.'**
   String get lookAndFeelThemeSectionDescription;
 
+  /// Appearance section title for HDR image and video display.
+  ///
+  /// In en, this message translates to:
+  /// **'High dynamic range'**
+  String get lookAndFeelHdrSectionTitle;
+
+  /// Appearance section description for HDR display mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Control how HDR images are displayed on HDR-capable monitors.'**
+  String get lookAndFeelHdrSectionDescription;
+
+  /// HDR radio option that keeps full HDR brightness and color.
+  ///
+  /// In en, this message translates to:
+  /// **'Full dynamic range'**
+  String get lookAndFeelHdrFullName;
+
+  /// Description for the full dynamic range HDR option.
+  ///
+  /// In en, this message translates to:
+  /// **'Display HDR images at full brightness and color range.'**
+  String get lookAndFeelHdrFullDescription;
+
+  /// HDR radio option that tone-maps HDR content to SDR.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard range'**
+  String get lookAndFeelHdrStandardName;
+
+  /// Description for the standard-range HDR option.
+  ///
+  /// In en, this message translates to:
+  /// **'Tone-map HDR images to standard range, reducing peak brightness.'**
+  String get lookAndFeelHdrStandardDescription;
+
+  /// Accessibility label for the HDR display mode radio group.
+  ///
+  /// In en, this message translates to:
+  /// **'High dynamic range display mode'**
+  String get lookAndFeelHdrDisplayModeLabel;
+
   /// Label on the dark theme swatch button.
   ///
   /// In en, this message translates to:

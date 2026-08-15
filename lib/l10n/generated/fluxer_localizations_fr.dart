@@ -4194,6 +4194,31 @@ class FluxerLocalizationsFr extends FluxerLocalizations {
       'Choisissez entre une apparence sombre, anthracite ou claire.';
 
   @override
+  String get lookAndFeelHdrSectionTitle => 'High dynamic range';
+
+  @override
+  String get lookAndFeelHdrSectionDescription =>
+      'Control how HDR images are displayed on HDR-capable monitors.';
+
+  @override
+  String get lookAndFeelHdrFullName => 'Full dynamic range';
+
+  @override
+  String get lookAndFeelHdrFullDescription =>
+      'Display HDR images at full brightness and color range.';
+
+  @override
+  String get lookAndFeelHdrStandardName => 'Standard range';
+
+  @override
+  String get lookAndFeelHdrStandardDescription =>
+      'Tone-map HDR images to standard range, reducing peak brightness.';
+
+  @override
+  String get lookAndFeelHdrDisplayModeLabel =>
+      'High dynamic range display mode';
+
+  @override
   String get lookAndFeelThemeDark => 'Thème sombre';
 
   @override

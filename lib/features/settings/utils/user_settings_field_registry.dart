@@ -146,6 +146,8 @@ String? _scrollFieldLabel(FluxerLocalizations l10n, String scrollId) {
   switch (scrollId) {
     case 'theme':
       return l10n.lookAndFeelThemeSectionTitle;
+    case 'hdr':
+      return l10n.lookAndFeelHdrSectionTitle;
     case 'chat-font-scaling':
       return l10n.lookAndFeelChatFontSizeLabel;
     case 'messages':
@@ -237,7 +239,6 @@ bool isUserSettingsScrollFieldVisible({
     return false;
   }
   switch (scrollFieldId) {
-    case 'hdr':
     case 'streamer-mode':
       return false;
     case 'keyboard':

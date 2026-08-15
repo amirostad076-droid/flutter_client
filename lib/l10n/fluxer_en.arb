@@ -5310,6 +5310,34 @@
     "@lookAndFeelThemeSectionDescription": {
         "description": "Section description for theme selection."
     },
+    "lookAndFeelHdrSectionTitle": "High dynamic range",
+    "@lookAndFeelHdrSectionTitle": {
+        "description": "Appearance section title for HDR image and video display."
+    },
+    "lookAndFeelHdrSectionDescription": "Control how HDR images are displayed on HDR-capable monitors.",
+    "@lookAndFeelHdrSectionDescription": {
+        "description": "Appearance section description for HDR display mode."
+    },
+    "lookAndFeelHdrFullName": "Full dynamic range",
+    "@lookAndFeelHdrFullName": {
+        "description": "HDR radio option that keeps full HDR brightness and color."
+    },
+    "lookAndFeelHdrFullDescription": "Display HDR images at full brightness and color range.",
+    "@lookAndFeelHdrFullDescription": {
+        "description": "Description for the full dynamic range HDR option."
+    },
+    "lookAndFeelHdrStandardName": "Standard range",
+    "@lookAndFeelHdrStandardName": {
+        "description": "HDR radio option that tone-maps HDR content to SDR."
+    },
+    "lookAndFeelHdrStandardDescription": "Tone-map HDR images to standard range, reducing peak brightness.",
+    "@lookAndFeelHdrStandardDescription": {
+        "description": "Description for the standard-range HDR option."
+    },
+    "lookAndFeelHdrDisplayModeLabel": "High dynamic range display mode",
+    "@lookAndFeelHdrDisplayModeLabel": {
+        "description": "Accessibility label for the HDR display mode radio group."
+    },
     "lookAndFeelThemeDark": "Dark Theme",
     "@lookAndFeelThemeDark": {
         "description": "Label on the dark theme swatch button."

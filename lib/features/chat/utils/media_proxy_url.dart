@@ -39,6 +39,26 @@ String buildMediaProxyUrl(
   return parsed.replace(queryParameters: query).toString();
 }
 
+String stripMediaProxyFormat(String originalUrl) {
+  if (originalUrl.isEmpty) {
+    return originalUrl;
+  }
+  final Uri? parsed = Uri.tryParse(originalUrl);
+  if (parsed == null ||
+      !parsed.hasScheme ||
+      (parsed.scheme != 'http' && parsed.scheme != 'https')) {
+    return originalUrl;
+  }
+  final Map<String, String> query = Map<String, String>.from(
+    parsed.queryParameters,
+  );
+  if (!query.containsKey('format')) {
+    return originalUrl;
+  }
+  query.remove('format');
+  return parsed.replace(queryParameters: query).toString();
+}
+
 /// CDN still frame for inline video posters (WebP over thumbhash).
 String? buildAttachmentVideoPosterUrl({
   required String proxyOrUrl,

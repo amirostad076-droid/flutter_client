@@ -67,6 +67,7 @@ void main() {
       expect(restored.compactMessageGroupSpacing, 0);
       expect(restored.saturationFactor, 1);
       expect(restored.customThemeCss, isNull);
+      expect(restored.hdrDisplayMode, HdrDisplayMode.full);
       expect(restored.chatFontSize, 16);
       expect(restored.scaleFactor, 1);
       expect(restored.hasFontSizeInProto, isFalse);
@@ -103,6 +104,38 @@ void main() {
       expect(restored.scaleFactor, 1.2);
       expect(restored.hasFontSizeInProto, isTrue);
       expect(restored.hasZoomLevelInProto, isTrue);
+    });
+
+    test('maps unspecified HDR proto to full', () {
+      final restored = AccessibilitySyncedField.fromProto(
+        accessibility_pb.AccessibilitySettings(),
+      );
+      expect(restored.hdrDisplayMode, HdrDisplayMode.full);
+    });
+
+    test('roundtrips HDR display mode', () {
+      const local = AccessibilityLocalState(
+        hideKeyboardHints: false,
+        channelTypingIndicatorMode: ChannelTypingIndicatorMode.avatars,
+        showSelectedChannelTypingIndicator: false,
+        showFadedUnreadOnMutedChannels: false,
+        dmMessagePreviewMode: DmMessagePreviewMode.all,
+        showFavorites: true,
+        useSystemLocaleForTimeFormat: false,
+        messageGroupSpacing: 16,
+        compactMessageGroupSpacing: 0,
+        saturationFactor: 1,
+        customThemeCss: null,
+        hdrDisplayMode: HdrDisplayMode.standard,
+        advanced: kDefaultAdvancedAccessibility,
+      );
+      final proto = AccessibilitySyncedField.toProto(local);
+      expect(
+        proto.hdrDisplayMode,
+        accessibility_pb.HdrDisplayMode.HDR_DISPLAY_MODE_STANDARD,
+      );
+      final restored = AccessibilitySyncedField.fromProto(proto);
+      expect(restored.hdrDisplayMode, HdrDisplayMode.standard);
     });
 
     test('reads percent zoom level from proto', () {

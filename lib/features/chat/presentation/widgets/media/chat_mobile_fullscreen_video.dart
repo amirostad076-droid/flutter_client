@@ -8,7 +8,9 @@ import 'package:fluxer_app/features/chat/domain/media_options_launch_context.dar
 import 'package:fluxer_app/features/chat/presentation/sheets/mobile_media_options_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/media/chat_video_playback_failure_overlay.dart';
 import 'package:fluxer_app/features/chat/utils/attachment_display_utils.dart';
+import 'package:fluxer_app/features/chat/utils/chat_video_hdr_player_config.dart';
 import 'package:fluxer_app/features/chat/utils/chat_video_playback_utils.dart';
+import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/providers/shell_manual_gesture_block_provider.dart';
 import 'package:fluxer_app/features/ui/media_viewer/media_viewer_dismiss.dart';
 import 'package:fluxer_app/features/ui/media_viewer/media_viewer_dismissible.dart';
@@ -98,6 +100,12 @@ class _ChatMobileFullscreenVideoPageState
       _player = player;
       unawaited(player.setVolume(_kUnmutedVolume));
       _controller = mkv.VideoController(player);
+      unawaited(
+        applyChatVideoHdrProperties(
+          player,
+          ref.read(appearancePreferencesProvider).hdrDisplayMode,
+        ),
+      );
       _playingSubscription = player.stream.playing.listen((bool playing) {
         if (!mounted || _playbackFailed) {
           return;
@@ -361,6 +369,18 @@ class _ChatMobileFullscreenVideoPageState
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<HdrDisplayMode>(
+      appearancePreferencesProvider.select(
+        (AppearancePreferencesState state) => state.hdrDisplayMode,
+      ),
+      (HdrDisplayMode? previous, HdrDisplayMode next) {
+        final Player? player = _player;
+        if (player == null || previous == next) {
+          return;
+        }
+        unawaited(applyChatVideoHdrProperties(player, next));
+      },
+    );
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     final mkv.VideoController? controller = _controller;
     final bool showOptionsButton = widget.launchContext.hasOptionsMenu;

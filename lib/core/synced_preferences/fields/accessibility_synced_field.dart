@@ -58,6 +58,7 @@ class AccessibilityLocalState {
     this.scaleFactor = kDefaultLayoutZoomLevel,
     this.hasFontSizeInProto = false,
     this.hasZoomLevelInProto = false,
+    this.hdrDisplayMode = HdrDisplayMode.full,
   });
 
   final bool hideKeyboardHints;
@@ -101,6 +102,7 @@ class AccessibilityLocalState {
   final double scaleFactor;
   final bool hasFontSizeInProto;
   final bool hasZoomLevelInProto;
+  final HdrDisplayMode hdrDisplayMode;
 }
 
 class AccessibilitySyncedField
@@ -155,6 +157,7 @@ class AccessibilitySyncedField
       mobileAnimateEmojiValue: appearance.mobileAnimateEmojiValue,
       mobileStickerAnimationValue: appearance.mobileStickerAnimationValue,
       mobileSplashZoomAnimation: appearance.mobileSplashZoomAnimation,
+      hdrDisplayMode: appearance.hdrDisplayMode,
       chatFontSize: theme.chatFontSize,
       scaleFactor: theme.scaleFactor,
       advanced: AdvancedAccessibilityLocalState(
@@ -271,6 +274,7 @@ class AccessibilitySyncedField
         a.mobileAnimateEmojiValue == b.mobileAnimateEmojiValue &&
         a.mobileStickerAnimationValue == b.mobileStickerAnimationValue &&
         a.mobileSplashZoomAnimation == b.mobileSplashZoomAnimation &&
+        a.hdrDisplayMode == b.hdrDisplayMode &&
         a.chatFontSize == b.chatFontSize &&
         a.scaleFactor == b.scaleFactor &&
         normalizeCustomThemeCss(a.customThemeCss) ==
@@ -350,6 +354,7 @@ class AccessibilitySyncedField
       mobileAnimateEmojiValue: remote.mobileAnimateEmojiValue,
       mobileStickerAnimationValue: remote.mobileStickerAnimationValue,
       mobileSplashZoomAnimation: remote.mobileSplashZoomAnimation,
+      hdrDisplayMode: remote.hdrDisplayMode,
       chatFontSize: remote.hasFontSizeInProto
           ? remote.chatFontSize
           : local.chatFontSize,
@@ -502,6 +507,7 @@ class AccessibilitySyncedField
       mobileSplashZoomAnimation:
           !proto.hasMobileSplashZoomAnimation() ||
           proto.mobileSplashZoomAnimation,
+      hdrDisplayMode: _fromProtoHdrDisplayMode(proto.hdrDisplayMode),
       chatFontSize: proto.hasFontSize()
           ? snapChatFontSize(proto.fontSize)
           : kDefaultChatFontSize,
@@ -564,6 +570,7 @@ class AccessibilitySyncedField
           ..mobileStickerAnimationValue =
               local.mobileStickerAnimationValue.json ?? 1
           ..mobileSplashZoomAnimation = local.mobileSplashZoomAnimation
+          ..hdrDisplayMode = _toProtoHdrDisplayMode(local.hdrDisplayMode)
           ..fontSize = local.chatFontSize.toDouble()
           ..zoomLevel = local.scaleFactor;
     _applyAdvancedToProto(settings, local.advanced, wireBase: wireBase);
@@ -612,6 +619,7 @@ class AccessibilitySyncedField
       mobileAnimateEmojiValue: local.mobileAnimateEmojiValue,
       mobileStickerAnimationValue: local.mobileStickerAnimationValue.json ?? 1,
       mobileSplashZoomAnimation: local.mobileSplashZoomAnimation,
+      hdrDisplayMode: _toProtoHdrDisplayMode(local.hdrDisplayMode),
       fontSize: local.chatFontSize.toDouble(),
       zoomLevel: local.scaleFactor,
     );
@@ -709,6 +717,20 @@ class AccessibilitySyncedField
         pb.DmMessagePreviewMode.DM_MESSAGE_PREVIEW_MODE_UNREAD_ONLY,
       DmMessagePreviewMode.none =>
         pb.DmMessagePreviewMode.DM_MESSAGE_PREVIEW_MODE_NONE,
+    };
+  }
+
+  static HdrDisplayMode _fromProtoHdrDisplayMode(pb.HdrDisplayMode mode) {
+    return switch (mode) {
+      pb.HdrDisplayMode.HDR_DISPLAY_MODE_STANDARD => HdrDisplayMode.standard,
+      _ => HdrDisplayMode.full,
+    };
+  }
+
+  static pb.HdrDisplayMode _toProtoHdrDisplayMode(HdrDisplayMode mode) {
+    return switch (mode) {
+      HdrDisplayMode.standard => pb.HdrDisplayMode.HDR_DISPLAY_MODE_STANDARD,
+      HdrDisplayMode.full => pb.HdrDisplayMode.HDR_DISPLAY_MODE_FULL,
     };
   }
 }
