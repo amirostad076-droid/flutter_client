@@ -122,7 +122,7 @@ void main() {
     expect(imageUrl(tester), isNot(contains('animated=true')));
   });
 
-  testWidgets('picker visibility overlays animated image when in view', (
+  testWidgets('picker visibility shows animated image when in view', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -139,7 +139,8 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.byType(CachedNetworkImage), findsNWidgets(2));
+    expect(find.byType(CachedNetworkImage), findsOneWidget);
+    expect(imageUrl(tester), contains('animated=true'));
   });
 
   testWidgets('animated emoji plays when scrolled on-screen', (tester) async {

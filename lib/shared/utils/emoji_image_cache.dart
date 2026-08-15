@@ -76,7 +76,11 @@ class _CachedEmojiImageState extends ConsumerState<CachedEmojiImage> {
 
   bool get _usesPickerVisibility => widget.animated && widget.isInView != null;
 
-  Widget _buildImage(BuildContext context, {required bool animated}) {
+  Widget _buildImage(
+    BuildContext context, {
+    required bool animated,
+    Widget Function(BuildContext context, String url)? loadingPlaceholder,
+  }) {
     final String url = FluxerMediaUrl.customEmoji(
       id: widget.emojiId,
       animated: animated,
@@ -100,7 +104,9 @@ class _CachedEmojiImageState extends ConsumerState<CachedEmojiImage> {
       fadeInDuration: Duration.zero,
       fadeOutDuration: Duration.zero,
       fit: BoxFit.contain,
-      placeholder: (_, _) => SizedBox(width: widget.size, height: widget.size),
+      placeholder:
+          loadingPlaceholder ??
+          (_, _) => SizedBox(width: widget.size, height: widget.size),
       errorBuilder: widget.errorBuilder != null
           ? (ctx, _, _) => widget.errorBuilder!(ctx)
           : (_, _, _) => SizedBox(width: widget.size, height: widget.size),
@@ -115,14 +121,16 @@ class _CachedEmojiImageState extends ConsumerState<CachedEmojiImage> {
     ).effectiveAnimateEmoji;
 
     if (_usesPickerVisibility) {
-      return Stack(
-        alignment: Alignment.center,
-        children: [
-          _buildImage(context, animated: false),
-          if (widget.isInView! && animateEmoji)
-            _buildImage(context, animated: true),
-        ],
-      );
+      final bool showAnimated = widget.isInView! && animateEmoji;
+      if (showAnimated) {
+        return _buildImage(
+          context,
+          animated: true,
+          loadingPlaceholder: (BuildContext context, String _) =>
+              _buildImage(context, animated: false),
+        );
+      }
+      return _buildImage(context, animated: false);
     }
     if (!widget.animated || !widget.pauseWhenOffscreen) {
       return _buildImage(context, animated: widget.animated && animateEmoji);
