@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 import 'package:fluxer_app/features/settings/domain/user_settings_section.dart';
 import 'package:fluxer_app/features/settings/utils/user_settings_nav_l10n.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -230,7 +229,6 @@ String? _scrollFieldLabel(FluxerLocalizations l10n, String scrollId) {
 }
 
 bool isUserSettingsScrollFieldVisible({
-  required BuildContext context,
   required bool isTouchPrimary,
   required UserSettingsSection? section,
   required String scrollFieldId,
@@ -240,22 +238,18 @@ bool isUserSettingsScrollFieldVisible({
   }
   switch (scrollFieldId) {
     case 'streamer-mode':
-      return false;
-    case 'keyboard':
-      return !isTouchPrimary;
     case 'advanced-settings-desktop':
-      return false;
     case 'advanced-settings-notifications':
     case 'advanced-settings-account':
       return false;
+    case 'keyboard':
+      return !isTouchPrimary;
     default:
-      break;
+      return true;
   }
-  return true;
 }
 
 String? resolveUserSettingsScrollFieldId({
-  required BuildContext context,
   required bool isTouchPrimary,
   required String tab,
   required String? fieldId,
@@ -269,7 +263,6 @@ String? resolveUserSettingsScrollFieldId({
     return null;
   }
   if (!isUserSettingsScrollFieldVisible(
-    context: context,
     isTouchPrimary: isTouchPrimary,
     section: section,
     scrollFieldId: scrollId,

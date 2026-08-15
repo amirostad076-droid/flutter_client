@@ -10677,6 +10677,22 @@
     "@userSettingsGroupStaffOnly": {
         "description": "Section heading for staff-only items in user settings navigation."
     },
+    "userSettingsSearchPlaceholder": "Search settings...",
+    "@userSettingsSearchPlaceholder": {
+        "description": "Placeholder for the user settings search field."
+    },
+    "userSettingsSearchFieldLabel": "Search settings",
+    "@userSettingsSearchFieldLabel": {
+        "description": "Accessibility label for the user settings search field."
+    },
+    "userSettingsSearchClear": "Clear search",
+    "@userSettingsSearchClear": {
+        "description": "Accessibility label for clearing the user settings search field."
+    },
+    "userSettingsSearchNoResults": "No settings found",
+    "@userSettingsSearchNoResults": {
+        "description": "Empty state shown when user settings search has no matches."
+    },
     "userSettingsNavProfile": "Profile",
     "@userSettingsNavProfile": {
         "description": "User settings navigation item for profile settings."

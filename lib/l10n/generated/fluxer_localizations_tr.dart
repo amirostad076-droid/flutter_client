@@ -8442,6 +8442,18 @@ class FluxerLocalizationsTr extends FluxerLocalizations {
   String get userSettingsGroupStaffOnly => 'STAFF-ONLY';
 
   @override
+  String get userSettingsSearchPlaceholder => 'Search settings...';
+
+  @override
+  String get userSettingsSearchFieldLabel => 'Search settings';
+
+  @override
+  String get userSettingsSearchClear => 'Clear search';
+
+  @override
+  String get userSettingsSearchNoResults => 'No settings found';
+
+  @override
   String get userSettingsNavProfile => 'Profil';
 
   @override

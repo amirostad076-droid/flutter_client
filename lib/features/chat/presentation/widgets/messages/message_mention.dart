@@ -396,7 +396,6 @@ class SettingsJumpLinkMention extends ConsumerWidget {
 
     final UserSettingsDeepLinkPresentation presentation =
         buildUserSettingsDeepLinkPresentation(
-          context: context,
           isTouchPrimary: isTouchPrimaryInput(ref),
           l10n: l10n,
           target: target,

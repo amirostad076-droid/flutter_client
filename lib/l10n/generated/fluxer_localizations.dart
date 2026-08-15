@@ -14026,6 +14026,30 @@ abstract class FluxerLocalizations {
   /// **'STAFF-ONLY'**
   String get userSettingsGroupStaffOnly;
 
+  /// Placeholder for the user settings search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Search settings...'**
+  String get userSettingsSearchPlaceholder;
+
+  /// Accessibility label for the user settings search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Search settings'**
+  String get userSettingsSearchFieldLabel;
+
+  /// Accessibility label for clearing the user settings search field.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get userSettingsSearchClear;
+
+  /// Empty state shown when user settings search has no matches.
+  ///
+  /// In en, this message translates to:
+  /// **'No settings found'**
+  String get userSettingsSearchNoResults;
+
   /// User settings navigation item for profile settings.
   ///
   /// In en, this message translates to:

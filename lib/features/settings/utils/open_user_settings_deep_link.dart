@@ -23,7 +23,6 @@ class UserSettingsDeepLinkPresentation {
 }
 
 UserSettingsDeepLinkPresentation buildUserSettingsDeepLinkPresentation({
-  required BuildContext context,
   required bool isTouchPrimary,
   required FluxerLocalizations l10n,
   required UserSettingsDeepLinkTarget target,
@@ -32,7 +31,6 @@ UserSettingsDeepLinkPresentation buildUserSettingsDeepLinkPresentation({
   final String? scrollFieldId = target.tab == null
       ? null
       : resolveUserSettingsScrollFieldId(
-          context: context,
           isTouchPrimary: isTouchPrimary,
           tab: target.tab!,
           fieldId: target.fieldId,
@@ -97,7 +95,6 @@ Future<void> _openUserSettingsDeepLink(
       (target.tab == null
           ? null
           : resolveUserSettingsScrollFieldId(
-              context: context,
               isTouchPrimary: isTouchPrimary,
               tab: target.tab!,
               fieldId: target.fieldId,
