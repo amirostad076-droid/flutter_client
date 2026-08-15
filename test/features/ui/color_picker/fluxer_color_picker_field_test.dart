@@ -66,6 +66,32 @@ void main() {
       expect(values, isEmpty);
     });
 
+    testWidgets('unset value shows #000000 and text-chat swatch', (
+      tester,
+    ) async {
+      final colorTheme = buildDarkColorTheme();
+      await tester.pumpWidget(
+        _wrap(
+          FluxerColorPickerField(
+            value: 0,
+            onChanged: (_) {},
+            label: 'Folder color',
+          ),
+        ),
+      );
+
+      final editable = tester.widget<EditableText>(find.byType(EditableText));
+      expect(editable.controller.text, '#000000');
+
+      final swatch = tester.widget<ColoredBox>(
+        find.descendant(
+          of: find.bySemanticsLabel('Open color picker'),
+          matching: find.byType(ColoredBox),
+        ),
+      );
+      expect(swatch.color, colorTheme.textChat);
+    });
+
     testWidgets('opening color swatch dismisses hex keyboard focus', (
       tester,
     ) async {

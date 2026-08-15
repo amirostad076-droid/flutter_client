@@ -33,6 +33,35 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 const int _kMaxDisplayNameLength = 32;
 const int _kMaxPronounsLength = 40;
 const int _kMaxBioLength = 320;
+const int _kDefaultProfileAccentColor = 0x4641D9;
+
+int _accentColorPickerValue(UserSettingsViewState state) {
+  if (state.isPerGuildProfile) {
+    if (state.isEditedGuildAccentColorSet) {
+      return state.editedGuildAccentColor ?? _kDefaultProfileAccentColor;
+    }
+    return state.guildAccentColor ??
+        state.accentColor ??
+        _kDefaultProfileAccentColor;
+  }
+  if (state.isEditedAccentColorSet) {
+    return state.editedAccentColor ?? _kDefaultProfileAccentColor;
+  }
+  return state.accentColor ?? _kDefaultProfileAccentColor;
+}
+
+bool _accentColorIsDefault(UserSettingsViewState state) {
+  if (state.isPerGuildProfile) {
+    if (state.isEditedGuildAccentColorSet) {
+      return state.editedGuildAccentColor == null;
+    }
+    return state.guildAccentColor == null && state.accentColor == null;
+  }
+  if (state.isEditedAccentColorSet) {
+    return state.editedAccentColor == null;
+  }
+  return state.accentColor == null;
+}
 
 class UserProfile extends ConsumerStatefulWidget {
   const UserProfile({super.key, this.scrollController});
@@ -581,19 +610,15 @@ class _UserProfileState extends ConsumerState<UserProfile> {
                             child: FluxerColorPickerField(
                               label: l10n.accentColorLabel,
                               description: l10n.accentColorDescription,
-                              value: state.isPerGuildProfile
-                                  ? (state.isEditedGuildAccentColorSet
-                                        ? (state.editedGuildAccentColor ?? 0)
-                                        : (state.guildAccentColor ??
-                                              state.accentColor ??
-                                              0))
-                                  : (state.isEditedAccentColorSet
-                                        ? (state.editedAccentColor ?? 0)
-                                        : (state.accentColor ?? 0)),
+                              value: _accentColorPickerValue(state),
+                              defaultValue: _kDefaultProfileAccentColor,
+                              isDefaultValue: _accentColorIsDefault(state),
+                              onReset: state.isPerGuildProfile
+                                  ? vm.resetGuildAccentColor
+                                  : vm.resetAccentColor,
                               onChanged: state.isPerGuildProfile
                                   ? vm.updateGuildAccentColor
                                   : vm.updateAccentColor,
-                              defaultValue: 0x4641D9,
                             ),
                           ),
                         ),

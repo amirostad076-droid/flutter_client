@@ -1004,6 +1004,10 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
     state = state.copyWith(editedAccentColor: value);
   }
 
+  void resetAccentColor() {
+    state = state.copyWith(editedAccentColor: null);
+  }
+
   void setPremiumBadgeHidden({required bool value}) {
     state = state.copyWith(editedPremiumBadgeHidden: value);
   }
@@ -1139,6 +1143,10 @@ class UserSettingsViewModel extends _$UserSettingsViewModel {
 
   void updateGuildAccentColor(int value) {
     state = state.copyWith(editedGuildAccentColor: value);
+  }
+
+  void resetGuildAccentColor() {
+    state = state.copyWith(editedGuildAccentColor: null);
   }
 
   void setGuildAvatar(String base64) {
