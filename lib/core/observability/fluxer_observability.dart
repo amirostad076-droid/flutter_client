@@ -5,6 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:fluxer_app/core/api/fluxer_client_properties.dart';
 import 'package:fluxer_app/core/build/app_build_config.dart';
+import 'package:fluxer_app/core/observability/error_log_rate_limiter.dart';
 import 'package:fluxer_app/core/providers/app_runtime_info.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:opentelemetry/api.dart' as otel;
@@ -25,6 +26,7 @@ class FluxerObservability {
   bool _runtimeObserversStarted = false;
   bool _sessionStarted = false;
   bool _enabled = false;
+  final ErrorLogRateLimiter _errorLogRateLimiter = ErrorLogRateLimiter();
 
   bool get isEnabled => _enabled && _tracer != null;
 
@@ -128,6 +130,13 @@ class FluxerObservability {
     StackTrace? stackTrace,
     String? context,
   }) {
+    if (!_errorLogRateLimiter.shouldLog(
+      error: error,
+      stackTrace: stackTrace,
+      source: source,
+    )) {
+      return;
+    }
     final String trimmedContext = context?.trim() ?? '';
     talker.handle(
       error,
