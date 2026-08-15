@@ -212,6 +212,34 @@ void main() {
       expect(restored.mobileAnimateEmojiValue, isFalse);
     });
 
+    test('defaults mobile splash zoom animation to enabled when unset', () {
+      final restored = AccessibilitySyncedField.fromProto(
+        accessibility_pb.AccessibilitySettings(),
+      );
+      expect(restored.mobileSplashZoomAnimation, isTrue);
+    });
+
+    test('roundtrips mobile splash zoom animation', () {
+      const local = AccessibilityLocalState(
+        hideKeyboardHints: false,
+        channelTypingIndicatorMode: ChannelTypingIndicatorMode.avatars,
+        showSelectedChannelTypingIndicator: false,
+        showFadedUnreadOnMutedChannels: false,
+        dmMessagePreviewMode: DmMessagePreviewMode.all,
+        showFavorites: true,
+        useSystemLocaleForTimeFormat: false,
+        messageGroupSpacing: 16,
+        compactMessageGroupSpacing: 0,
+        saturationFactor: 1,
+        customThemeCss: null,
+        mobileSplashZoomAnimation: false,
+        advanced: kDefaultAdvancedAccessibility,
+      );
+      final proto = AccessibilitySyncedField.toProto(local);
+      final restored = AccessibilitySyncedField.fromProto(proto);
+      expect(restored.mobileSplashZoomAnimation, isFalse);
+    });
+
     test('toProtoForPush keeps wire custom theme css when local has none', () {
       const local = AccessibilityLocalState(
         hideKeyboardHints: false,

@@ -9415,6 +9415,14 @@ class FluxerLocalizationsNb extends FluxerLocalizations {
       'Show Neko on your chat input';
 
   @override
+  String get advancedSettingMobileSplashZoomAnimationLabel =>
+      'Splash zoom animation';
+
+  @override
+  String get advancedSettingMobileSplashZoomAnimationDescription =>
+      'Zoom the logo out when leaving the splash screen';
+
+  @override
   String get advancedSettingKeyboardHintsLabel => 'Keyboard hints';
 
   @override

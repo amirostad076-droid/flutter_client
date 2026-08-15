@@ -86,6 +86,7 @@ class AppearancePreferencesState {
     this.keepAnimatedEmojiUnderReducedMotion = false,
     this.keepGifAutoPlayUnderReducedMotion = false,
     this.keepStickerAnimationUnderReducedMotion = false,
+    this.mobileSplashZoomAnimation = true,
   });
 
   final ChannelTypingIndicatorMode channelTypingIndicatorMode;
@@ -125,6 +126,7 @@ class AppearancePreferencesState {
   final bool keepAnimatedEmojiUnderReducedMotion;
   final bool keepGifAutoPlayUnderReducedMotion;
   final bool keepStickerAnimationUnderReducedMotion;
+  final bool mobileSplashZoomAnimation;
 
   AppearancePreferencesState copyWith({
     ChannelTypingIndicatorMode? channelTypingIndicatorMode,
@@ -164,6 +166,7 @@ class AppearancePreferencesState {
     bool? keepAnimatedEmojiUnderReducedMotion,
     bool? keepGifAutoPlayUnderReducedMotion,
     bool? keepStickerAnimationUnderReducedMotion,
+    bool? mobileSplashZoomAnimation,
   }) {
     return AppearancePreferencesState(
       channelTypingIndicatorMode:
@@ -235,6 +238,8 @@ class AppearancePreferencesState {
       keepStickerAnimationUnderReducedMotion:
           keepStickerAnimationUnderReducedMotion ??
           this.keepStickerAnimationUnderReducedMotion,
+      mobileSplashZoomAnimation:
+          mobileSplashZoomAnimation ?? this.mobileSplashZoomAnimation,
     );
   }
 }
@@ -303,6 +308,7 @@ class AppearancePreferences extends _$AppearancePreferences {
             prefs.keepGifAutoPlayUnderReducedMotion,
         keepStickerAnimationUnderReducedMotion:
             prefs.keepStickerAnimationUnderReducedMotion,
+        mobileSplashZoomAnimation: prefs.mobileSplashZoomAnimation,
       );
     }
   }
@@ -344,6 +350,7 @@ class AppearancePreferences extends _$AppearancePreferences {
         mobileGifAutoplayValue: value.mobileGifAutoplayValue,
         mobileAnimateEmojiValue: value.mobileAnimateEmojiValue,
         mobileStickerAnimationValue: value.mobileStickerAnimationValue,
+        mobileSplashZoomAnimation: value.mobileSplashZoomAnimation,
       );
       await _persist();
     } finally {
@@ -416,6 +423,12 @@ class AppearancePreferences extends _$AppearancePreferences {
   Future<void> setShowNeko({required bool value}) async {
     state = state.copyWith(showNeko: value);
     await _persist();
+  }
+
+  Future<void> setMobileSplashZoomAnimation({required bool value}) async {
+    state = state.copyWith(mobileSplashZoomAnimation: value);
+    await _persist();
+    _markAccessibilityDirty();
   }
 
   Future<void> setDmMessagePreviewMode(DmMessagePreviewMode mode) async {
@@ -707,6 +720,7 @@ class AppearancePreferences extends _$AppearancePreferences {
         keepStickerAnimationUnderReducedMotion: Value(
           state.keepStickerAnimationUnderReducedMotion,
         ),
+        mobileSplashZoomAnimation: Value(state.mobileSplashZoomAnimation),
       ),
     );
   }

@@ -110,6 +110,19 @@ class UserAdvancedSettings extends ConsumerWidget {
                     .read(appearancePreferencesProvider.notifier)
                     .setShowNeko(value: value),
               ),
+              FluxerSettingsSwitchItem(
+                label: l10n.advancedSettingMobileSplashZoomAnimationLabel,
+                description:
+                    l10n.advancedSettingMobileSplashZoomAnimationDescription,
+                value: ref.watch(
+                  appearancePreferencesProvider.select(
+                    (state) => state.mobileSplashZoomAnimation,
+                  ),
+                ),
+                onChanged: (value) => ref
+                    .read(appearancePreferencesProvider.notifier)
+                    .setMobileSplashZoomAnimation(value: value),
+              ),
               if (showKeyboardShortcutAdvancedSettings(context))
                 FluxerSettingsSwitchItem(
                   label: l10n.advancedSettingKeyboardHintsLabel,

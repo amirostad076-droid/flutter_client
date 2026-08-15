@@ -53,6 +53,7 @@ class AccessibilityLocalState {
     this.mobileGifAutoplayValue = kDefaultMobileGifAutoPlay,
     this.mobileAnimateEmojiValue = true,
     this.mobileStickerAnimationValue = kDefaultMobileStickerAnimation,
+    this.mobileSplashZoomAnimation = true,
     this.chatFontSize = kDefaultChatFontSize,
     this.scaleFactor = kDefaultLayoutZoomLevel,
     this.hasFontSizeInProto = false,
@@ -95,6 +96,7 @@ class AccessibilityLocalState {
   final bool mobileGifAutoplayValue;
   final bool mobileAnimateEmojiValue;
   final StickerAnimationOptions mobileStickerAnimationValue;
+  final bool mobileSplashZoomAnimation;
   final int chatFontSize;
   final double scaleFactor;
   final bool hasFontSizeInProto;
@@ -152,6 +154,7 @@ class AccessibilitySyncedField
       mobileGifAutoplayValue: appearance.mobileGifAutoplayValue,
       mobileAnimateEmojiValue: appearance.mobileAnimateEmojiValue,
       mobileStickerAnimationValue: appearance.mobileStickerAnimationValue,
+      mobileSplashZoomAnimation: appearance.mobileSplashZoomAnimation,
       chatFontSize: theme.chatFontSize,
       scaleFactor: theme.scaleFactor,
       advanced: AdvancedAccessibilityLocalState(
@@ -267,6 +270,7 @@ class AccessibilitySyncedField
         a.mobileGifAutoplayValue == b.mobileGifAutoplayValue &&
         a.mobileAnimateEmojiValue == b.mobileAnimateEmojiValue &&
         a.mobileStickerAnimationValue == b.mobileStickerAnimationValue &&
+        a.mobileSplashZoomAnimation == b.mobileSplashZoomAnimation &&
         a.chatFontSize == b.chatFontSize &&
         a.scaleFactor == b.scaleFactor &&
         normalizeCustomThemeCss(a.customThemeCss) ==
@@ -345,6 +349,7 @@ class AccessibilitySyncedField
       mobileGifAutoplayValue: remote.mobileGifAutoplayValue,
       mobileAnimateEmojiValue: remote.mobileAnimateEmojiValue,
       mobileStickerAnimationValue: remote.mobileStickerAnimationValue,
+      mobileSplashZoomAnimation: remote.mobileSplashZoomAnimation,
       chatFontSize: remote.hasFontSizeInProto
           ? remote.chatFontSize
           : local.chatFontSize,
@@ -494,6 +499,9 @@ class AccessibilitySyncedField
             ? proto.mobileStickerAnimationValue
             : null,
       ),
+      mobileSplashZoomAnimation:
+          !proto.hasMobileSplashZoomAnimation() ||
+          proto.mobileSplashZoomAnimation,
       chatFontSize: proto.hasFontSize()
           ? snapChatFontSize(proto.fontSize)
           : kDefaultChatFontSize,
@@ -555,6 +563,7 @@ class AccessibilitySyncedField
           ..mobileAnimateEmojiValue = local.mobileAnimateEmojiValue
           ..mobileStickerAnimationValue =
               local.mobileStickerAnimationValue.json ?? 1
+          ..mobileSplashZoomAnimation = local.mobileSplashZoomAnimation
           ..fontSize = local.chatFontSize.toDouble()
           ..zoomLevel = local.scaleFactor;
     _applyAdvancedToProto(settings, local.advanced, wireBase: wireBase);
@@ -602,6 +611,7 @@ class AccessibilitySyncedField
       mobileGifAutoplayValue: local.mobileGifAutoplayValue,
       mobileAnimateEmojiValue: local.mobileAnimateEmojiValue,
       mobileStickerAnimationValue: local.mobileStickerAnimationValue.json ?? 1,
+      mobileSplashZoomAnimation: local.mobileSplashZoomAnimation,
       fontSize: local.chatFontSize.toDouble(),
       zoomLevel: local.scaleFactor,
     );

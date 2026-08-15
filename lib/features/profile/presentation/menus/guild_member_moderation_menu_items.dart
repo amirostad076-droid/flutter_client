@@ -137,10 +137,7 @@ void appendGuildMemberModerationMenuItems({
                 .updateGuildMember(
                   guildId: guildId,
                   userId: userId,
-                  body: GuildMemberUpdateRequest(
-                    nick: currentNick,
-                    communicationDisabledUntil: null,
-                  ),
+                  body: GuildMemberUpdateRequest(nick: currentNick),
                 ),
           );
         },

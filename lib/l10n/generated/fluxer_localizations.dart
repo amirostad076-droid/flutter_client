@@ -15748,6 +15748,18 @@ abstract class FluxerLocalizations {
   /// **'Show Neko on your chat input'**
   String get advancedSettingShowNekoDescriptionTouch;
 
+  /// No description provided for @advancedSettingMobileSplashZoomAnimationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Splash zoom animation'**
+  String get advancedSettingMobileSplashZoomAnimationLabel;
+
+  /// No description provided for @advancedSettingMobileSplashZoomAnimationDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom the logo out when leaving the splash screen'**
+  String get advancedSettingMobileSplashZoomAnimationDescription;
+
   /// No description provided for @advancedSettingKeyboardHintsLabel.
   ///
   /// In en, this message translates to:

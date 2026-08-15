@@ -11575,6 +11575,8 @@
     "advancedSettingShowNekoLabel": "Show Neko",
     "advancedSettingShowNekoDescription": "Neko cat that chases your cursor",
     "advancedSettingShowNekoDescriptionTouch": "Show Neko on your chat input",
+    "advancedSettingMobileSplashZoomAnimationLabel": "Splash zoom animation",
+    "advancedSettingMobileSplashZoomAnimationDescription": "Zoom the logo out when leaving the splash screen",
     "advancedSettingKeyboardHintsLabel": "Keyboard hints",
     "advancedSettingKeyboardHintsDescription": "Keyboard shortcut hints in tooltips",
     "advancedSettingEnableFavoritesLabel": "Enable favorites",
