@@ -3,9 +3,7 @@ import 'package:fluxer_app/core/observability/error_log_rate_limiter.dart';
 
 void main() {
   test('suppresses duplicate errors within cooldown', () {
-    final ErrorLogRateLimiter limiter = ErrorLogRateLimiter(
-      
-    );
+    final ErrorLogRateLimiter limiter = ErrorLogRateLimiter();
     final Object error = StateError('boom');
     final StackTrace stack = StackTrace.fromString('#0 main');
 
@@ -18,7 +16,11 @@ void main() {
       isFalse,
     );
     expect(
-      limiter.suppressedCount(error: error, stackTrace: stack, source: 'widgets'),
+      limiter.suppressedCount(
+        error: error,
+        stackTrace: stack,
+        source: 'widgets',
+      ),
       1,
     );
   });

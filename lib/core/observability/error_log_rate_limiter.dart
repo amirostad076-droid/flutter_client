@@ -44,8 +44,8 @@ class ErrorLogRateLimiter {
   }
 
   void _maybePrune(DateTime now) {
-    final bool intervalElapsed = _lastPrune == null ||
-        now.difference(_lastPrune!) >= pruneInterval;
+    final bool intervalElapsed =
+        _lastPrune == null || now.difference(_lastPrune!) >= pruneInterval;
     if (!intervalElapsed && _entries.length < pruneThreshold) {
       return;
     }
