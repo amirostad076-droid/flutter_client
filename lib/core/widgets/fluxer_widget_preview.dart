@@ -44,7 +44,10 @@ class _PreviewAppWrapper extends StatelessWidget {
     return MaterialApp(
       title: 'Fluxer',
       debugShowCheckedModeBanner: false,
-      localizationsDelegates: FluxerLocalizations.localizationsDelegates,
+      localizationsDelegates: const [
+        FluxerLocalizations.delegate,
+        ...GlobalMaterialLocalizations.delegates,
+      ],
       supportedLocales: FluxerLocalizations.supportedLocales,
       theme: _theme,
       home: Scaffold(body: Center(child: child)),

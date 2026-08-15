@@ -76,7 +76,10 @@ class FluxerApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Fluxer',
       debugShowCheckedModeBanner: false,
-      localizationsDelegates: FluxerLocalizations.localizationsDelegates,
+      localizationsDelegates: const [
+        FluxerLocalizations.delegate,
+        ...GlobalMaterialLocalizations.delegates,
+      ],
       supportedLocales: FluxerLocalizations.supportedLocales,
       locale: appLocale,
       theme: theme,
