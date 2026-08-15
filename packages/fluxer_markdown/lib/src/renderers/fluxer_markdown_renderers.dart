@@ -277,6 +277,20 @@ Widget buildFluxerMarkdownTextFlow({
   if (text.isEmpty) {
     return const SizedBox.shrink();
   }
+  if (text.replaceAll('\n', '').isEmpty) {
+    final RichText richText = RichText(
+      text: TextSpan(text: text, style: baseStyle),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: maxLines,
+      overflow: overflow ?? TextOverflow.clip,
+      textWidthBasis: TextWidthBasis.longestLine,
+    );
+    return wrapFluxerMarkdownSelectable(
+      body: richText,
+      selectable: selectable,
+      config: config,
+    );
+  }
   final chunks = splitIntoInlineParseChunks(text);
   final chunkNodesList = <List<md.Node>>[];
   for (final chunk in chunks) {
@@ -747,9 +761,7 @@ class _MarkdownBlockRenderer {
     );
     final markerTextAlign = ordered ? TextAlign.right : TextAlign.start;
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        vertical: FluxerMarkupSpacing.listBlockMargin,
-      ),
+      padding: const EdgeInsets.only(top: FluxerMarkupSpacing.listBlockMargin),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
