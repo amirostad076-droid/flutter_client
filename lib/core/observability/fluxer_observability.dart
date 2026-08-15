@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:fluxer_app/core/api/fluxer_client_properties.dart';
 import 'package:fluxer_app/core/build/app_build_config.dart';
 import 'package:fluxer_app/core/providers/app_runtime_info.dart';
+import 'package:fluxer_app/core/talker.dart';
 import 'package:opentelemetry/api.dart' as otel;
 import 'package:opentelemetry/sdk.dart' as otel_sdk;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -127,12 +128,18 @@ class FluxerObservability {
     StackTrace? stackTrace,
     String? context,
   }) {
+    final String trimmedContext = context?.trim() ?? '';
+    talker.handle(
+      error,
+      stackTrace,
+      trimmedContext.isEmpty ? source : '$source: $trimmedContext',
+    );
     final otel.Span? span = startSpan(
       'flutter.error',
       attributes: <otel.Attribute>[
         otel.Attribute.fromString('exception.source', source),
-        if (context != null && context.trim().isNotEmpty)
-          otel.Attribute.fromString('exception.context', context.trim()),
+        if (trimmedContext.isNotEmpty)
+          otel.Attribute.fromString('exception.context', trimmedContext),
       ],
     );
     if (span == null) {
