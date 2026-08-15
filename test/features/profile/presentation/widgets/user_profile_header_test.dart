@@ -5,6 +5,7 @@ import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/profile/presentation/widgets/user_profile_header.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../helpers/test_l10n.dart';
 
@@ -62,5 +63,29 @@ void main() {
         }
       },
     );
+
+    testWidgets('shows caret and calls onDisplayNameTap when provided', (
+      tester,
+    ) async {
+      var tapped = false;
+      await tester.pumpWidget(
+        _buildApp(
+          UserProfileHeader(
+            username: 'sampleuser',
+            discriminator: '0000',
+            displayName: 'Sample User',
+            flags: 0,
+            hasPlutonium: false,
+            customStatus: null,
+            onDisplayNameTap: () => tapped = true,
+          ),
+        ),
+      );
+
+      expect(find.byIcon(PhosphorIconsBold.caretDown), findsOneWidget);
+      await tester.tap(find.text('Sample User'));
+      await tester.pumpAndSettle();
+      expect(tapped, isTrue);
+    });
   });
 }
