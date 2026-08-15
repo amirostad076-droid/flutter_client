@@ -31,11 +31,11 @@ import 'package:fluxer_app/features/chat/presentation/widgets/composer/blocked_u
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/channel_composer_barrier.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_field.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_clipboard_scope.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_status_row.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/message_character_counter.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/system_dm_composer_barrier.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/voice_message_composer_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/voice_message_recorder.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/wide_composer_layout.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/message_actions/reply_preview.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/expression_picker.dart';
 import 'package:fluxer_app/features/chat/providers/channel/channel_message_permissions_provider.dart';
@@ -102,10 +102,9 @@ const double _kMobileComposerSuffixWidth =
 const double _kMobileComposerSuffixHeight =
     _kMobileComposerSuffixVerticalPadding * 2 +
     _kMobileComposerSuffixButtonExtent;
-const double _kComposerTopPadding = 8;
 const double _kMobileComposerTopPadding = 3;
 const double _kDesktopComposerAttachIconSize = 26;
-const double _kWideComposerActionExtent = 36;
+const double _kWideComposerActionExtent = WideComposerLayout.actionButtonExtent;
 const double _kWideComposerIconSize = 24;
 const double _kTouchComposerActionSpacing = 6;
 
@@ -244,6 +243,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
 
   bool _enterToSendEnabled = false;
   bool _isApplyingWireText = false;
+  bool _composerFocused = false;
   String? _lastWireTextPushedToState;
 
   bool get _isDesktop => isFluxerDesktopOs;
@@ -364,6 +364,8 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
     WidgetsBinding.instance.addObserver(this);
     _controller = ComposerMentionController(ref: ref);
     _focusNode.onKeyEvent = _handleComposerFieldKeyEvent;
+    _composerFocused = _focusNode.hasFocus;
+    _focusNode.addListener(_handleComposerFocusChange);
     _controller.addListener(_syncStateFromController);
     unawaited(FluxerHaptics.warmSend());
   }
@@ -525,12 +527,20 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
     }
   }
 
+  void _handleComposerFocusChange() {
+    final bool focused = _focusNode.hasFocus;
+    if (_composerFocused != focused) {
+      setState(() => _composerFocused = focused);
+    }
+  }
+
   @override
   void dispose() {
     _chatKeybindEffectsSubscription?.close();
     _composerFocus.unregister(_requestComposerFocus);
     WidgetsBinding.instance.removeObserver(this);
     _focusNode
+      ..removeListener(_handleComposerFocusChange)
       ..unfocus()
       ..dispose();
     _composerScrollController.dispose();
@@ -930,60 +940,156 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
     final Color composerBackgroundColor = mobileComposer
         ? context.colors.chatInputBackground
         : context.colors.backgroundSecondaryLighter;
+    final bool hasAttachments = ref.watch(
+      cloudUploadControllerProvider(channelId).select(
+        (CloudComposerAttachments attachments) => attachments.items.isNotEmpty,
+      ),
+    );
+    final bool hasWideActionStack =
+        !mobileComposer &&
+        (replyTo != null || editingMessage != null || hasAttachments);
+    final Widget composerInput = _buildComposerInput(
+      context: context,
+      chatNotifier: chatNotifier,
+      perms: perms,
+      channelId: channelId,
+      isPanelOpen: isPanelOpen,
+    );
+    final Widget? composerSafeBar = showComposerSafeBar
+        ? Container(
+            height: MediaQuery.paddingOf(context).bottom,
+            decoration: BoxDecoration(color: composerBackgroundColor),
+          )
+        : null;
+
+    if (mobileComposer) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (replyTo != null)
+            ReplyInputBar(
+              replyTo: replyTo,
+              guildId: guildId,
+              shouldReplyMention: replyMentioning,
+              onToggleMention: (bool mentioning) =>
+                  chatNotifier.setReplyMentioning(mentioning: mentioning),
+              onCancel: chatNotifier.cancelReply,
+            ),
+          if (editingMessage != null)
+            EditingInputBar(onCancel: chatNotifier.cancelEdit),
+          ChannelAttachmentArea(channelId: channelId),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: composerBackgroundColor,
+              border: Border(
+                top: BorderSide(color: context.colors.userAreaDividerColor),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                8,
+                _kMobileComposerTopPadding,
+                8,
+                8,
+              ),
+              child: composerInput,
+            ),
+          ),
+          ?composerSafeBar,
+        ],
+      );
+    }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (replyTo != null)
-          ReplyInputBar(
-            replyTo: replyTo,
-            guildId: guildId,
-            shouldReplyMention: replyMentioning,
-            onToggleMention: (bool mentioning) =>
-                chatNotifier.setReplyMentioning(mentioning: mentioning),
-            onCancel: chatNotifier.cancelReply,
-          ),
-        if (editingMessage != null)
-          EditingInputBar(onCancel: chatNotifier.cancelEdit),
-        ChannelAttachmentArea(channelId: channelId),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: composerBackgroundColor,
-            border: Border(
-              top: BorderSide(color: context.colors.userAreaDividerColor),
-            ),
-          ),
+        ColoredBox(
+          color: composerBackgroundColor,
           child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              mobileComposer ? 8 : 12,
-              mobileComposer
-                  ? _kMobileComposerTopPadding
-                  : _kComposerTopPadding,
-              mobileComposer ? 8 : 12,
-              mobileComposer ? 8 : 10,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                if (mobileComposer) const ComposerStatusRow(),
-                _buildComposerInput(
-                  context: context,
-                  chatNotifier: chatNotifier,
-                  perms: perms,
-                  channelId: channelId,
-                  isPanelOpen: isPanelOpen,
-                ),
-              ],
+            padding: const EdgeInsets.all(WideComposerLayout.boxInset),
+            child: WideComposerFloatingBox(
+              focused: _composerFocused,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  if (hasWideActionStack)
+                    _buildWideComposerActionStack(
+                      context: context,
+                      channelId: channelId,
+                      guildId: guildId,
+                      replyTo: replyTo,
+                      editingMessage: editingMessage,
+                      replyMentioning: replyMentioning,
+                      chatNotifier: chatNotifier,
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: WideComposerLayout.densePaddingY,
+                    ),
+                    child: composerInput,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-        Container(
-          height: showComposerSafeBar
-              ? MediaQuery.paddingOf(context).bottom
-              : 0,
-          decoration: BoxDecoration(color: composerBackgroundColor),
-        ),
+        ?composerSafeBar,
       ],
+    );
+  }
+
+  Widget _buildWideComposerActionStack({
+    required BuildContext context,
+    required String channelId,
+    required String guildId,
+    required Message? replyTo,
+    required Message? editingMessage,
+    required bool replyMentioning,
+    required ChatViewModel chatNotifier,
+  }) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: wideComposerActionStackColor(context),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(WideComposerLayout.boxRadius),
+        ),
+        border: Border(
+          bottom: BorderSide(
+            color: wideComposerRingColor(context, focused: _composerFocused),
+          ),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          if (replyTo != null)
+            ConstrainedBox(
+              constraints: const BoxConstraints(
+                minHeight: WideComposerLayout.actionRowMinHeight,
+              ),
+              child: ReplyInputBar(
+                replyTo: replyTo,
+                guildId: guildId,
+                shouldReplyMention: replyMentioning,
+                onToggleMention: (bool mentioning) =>
+                    chatNotifier.setReplyMentioning(mentioning: mentioning),
+                onCancel: chatNotifier.cancelReply,
+                wideComposerAction: true,
+              ),
+            ),
+          if (editingMessage != null)
+            ConstrainedBox(
+              constraints: const BoxConstraints(
+                minHeight: WideComposerLayout.actionRowMinHeight,
+              ),
+              child: EditingInputBar(
+                onCancel: chatNotifier.cancelEdit,
+                wideComposerAction: true,
+              ),
+            ),
+          ChannelAttachmentArea(channelId: channelId, wideComposerAction: true),
+        ],
+      ),
     );
   }
 
@@ -1064,9 +1170,6 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
           showStickersButton: showStickersButton,
           showEmojiButton: showEmojiButton,
         );
-    final bool showTextareaFocusRing = ref.watch(
-      appearancePreferencesProvider.select((s) => s.showTextareaFocusRing),
-    );
     final List<ExpressionPickerTab> composerButtonTabs =
         composerInputButtonVisibleTabs(
           perms: perms,
@@ -1098,14 +1201,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
             filled: false,
             border: InputBorder.none,
             enabledBorder: InputBorder.none,
-            focusedBorder: showTextareaFocusRing
-                ? OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(
-                      color: context.colors.backgroundModifierAccentFocus,
-                    ),
-                  )
-                : InputBorder.none,
+            focusedBorder: InputBorder.none,
             disabledBorder: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(vertical: 2),
             isDense: true,
@@ -1126,7 +1222,11 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
                   ? () => unawaited(_pickAttachments(context))
                   : null,
             ),
-            SizedBox(width: touchActions ? _kTouchComposerActionSpacing : 8),
+            SizedBox(
+              width: touchActions
+                  ? _kTouchComposerActionSpacing
+                  : WideComposerLayout.denseColumnGap,
+            ),
           ],
           Expanded(
             child: _buildComposerField(

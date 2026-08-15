@@ -12,9 +12,14 @@ import 'package:material_ui/material_ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class ChannelAttachmentArea extends ConsumerWidget {
-  const ChannelAttachmentArea({required this.channelId, super.key});
+  const ChannelAttachmentArea({
+    required this.channelId,
+    this.wideComposerAction = false,
+    super.key,
+  });
 
   final String channelId;
+  final bool wideComposerAction;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,9 +33,11 @@ class ChannelAttachmentArea extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Divider(),
+        if (!wideComposerAction) const Divider(),
         Container(
-          margin: const EdgeInsets.only(bottom: 6, top: 8),
+          margin: wideComposerAction
+              ? const EdgeInsets.only(bottom: 6, top: 6)
+              : const EdgeInsets.only(bottom: 6, top: 8),
           height: 150,
           child: ReorderableListView.builder(
             scrollDirection: Axis.horizontal,

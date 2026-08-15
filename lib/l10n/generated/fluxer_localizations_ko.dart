@@ -3385,6 +3385,29 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
   String get slowmodeTooltipImmune => '느린 모드가 활성화되었지만 면역 대상입니다.';
 
   @override
+  String get slowmodeStatusEnabled => 'Slowmode is enabled';
+
+  @override
+  String slowmodeStatusActive(String remaining) {
+    return 'Slowmode is active ($remaining)';
+  }
+
+  @override
+  String slowmodeTooltipSetImmune(String durationLabel) {
+    return 'Slowmode is set to $durationLabel, but you are immune.';
+  }
+
+  @override
+  String slowmodeTooltipSetWait(String durationLabel) {
+    return 'Slowmode is set to $durationLabel. Wait before sending another message.';
+  }
+
+  @override
+  String slowmodeTooltipSetChannel(String durationLabel) {
+    return 'Slowmode is set to $durationLabel for this channel.';
+  }
+
+  @override
   String get channelNoSendPermissionHint => '이 채널에서는 메시지를 보낼 수 없습니다.';
 
   @override

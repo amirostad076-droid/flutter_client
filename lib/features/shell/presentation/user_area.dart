@@ -103,9 +103,8 @@ class UserArea extends ConsumerWidget {
                                     children: <Widget>[
                                       Text(
                                         user.displayName,
-                                        style: context.textStyles.label.copyWith(
-                                          height: 18 / 14,
-                                        ),
+                                        style: context.textStyles.label
+                                            .copyWith(height: 18 / 14),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       const SizedBox(height: 1),
@@ -144,7 +143,9 @@ class UserArea extends ConsumerWidget {
                         : l10n.userAreaMuteMicrophone,
                     onPressed: () {
                       unawaited(
-                        ref.read(voiceSessionProvider.notifier).toggleSelfMute(),
+                        ref
+                            .read(voiceSessionProvider.notifier)
+                            .toggleSelfMute(),
                       );
                     },
                   ),

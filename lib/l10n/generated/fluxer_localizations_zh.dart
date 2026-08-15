@@ -3351,6 +3351,29 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get slowmodeTooltipImmune => '慢速模式已启用，但您不受影响。';
 
   @override
+  String get slowmodeStatusEnabled => 'Slowmode is enabled';
+
+  @override
+  String slowmodeStatusActive(String remaining) {
+    return 'Slowmode is active ($remaining)';
+  }
+
+  @override
+  String slowmodeTooltipSetImmune(String durationLabel) {
+    return 'Slowmode is set to $durationLabel, but you are immune.';
+  }
+
+  @override
+  String slowmodeTooltipSetWait(String durationLabel) {
+    return 'Slowmode is set to $durationLabel. Wait before sending another message.';
+  }
+
+  @override
+  String slowmodeTooltipSetChannel(String durationLabel) {
+    return 'Slowmode is set to $durationLabel for this channel.';
+  }
+
+  @override
   String get channelNoSendPermissionHint => '你无法在此频道发送消息。';
 
   @override

@@ -226,13 +226,13 @@ void main() {
             textTheme: FluxerTextTheme.fromColors(colorTheme),
             layoutTheme: FluxerLayoutTheme.scaled(),
           ),
-          home: MediaQuery(
-            data: const MediaQueryData(
+          home: const MediaQuery(
+            data: MediaQueryData(
               size: Size(Breakpoints.shellMinWidth, 900),
               padding: EdgeInsets.only(bottom: homeIndicatorInset),
               viewPadding: EdgeInsets.only(bottom: homeIndicatorInset),
             ),
-            child: const Scaffold(body: UserArea()),
+            child: Scaffold(body: UserArea()),
           ),
         ),
       ),
@@ -262,13 +262,13 @@ void main() {
             textTheme: FluxerTextTheme.fromColors(colorTheme),
             layoutTheme: FluxerLayoutTheme.scaled(),
           ),
-          home: MediaQuery(
-            data: const MediaQueryData(
+          home: const MediaQuery(
+            data: MediaQueryData(
               size: Size(390, 844),
               padding: EdgeInsets.only(bottom: 34),
               viewPadding: EdgeInsets.only(bottom: 34),
             ),
-            child: const Scaffold(body: UserArea()),
+            child: Scaffold(body: UserArea()),
           ),
         ),
       ),

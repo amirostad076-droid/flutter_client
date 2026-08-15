@@ -4511,6 +4511,50 @@
     "@slowmodeTooltipImmune": {
         "description": "Tooltip shown on the slowmode indicator when slowmode is on but the current user bypasses it."
     },
+    "slowmodeStatusEnabled": "Slowmode is enabled",
+    "@slowmodeStatusEnabled": {
+        "description": "Short label in the wide composer slowmode indicator when the reader is free to send."
+    },
+    "slowmodeStatusActive": "Slowmode is active ({remaining})",
+    "@slowmodeStatusActive": {
+        "description": "Short label in the wide composer slowmode indicator while the countdown runs.",
+        "placeholders": {
+            "remaining": {
+                "type": "String",
+                "example": "00:30"
+            }
+        }
+    },
+    "slowmodeTooltipSetImmune": "Slowmode is set to {durationLabel}, but you are immune.",
+    "@slowmodeTooltipSetImmune": {
+        "description": "Tooltip on the wide composer slowmode indicator when the reader can bypass slowmode.",
+        "placeholders": {
+            "durationLabel": {
+                "type": "String",
+                "example": "30 seconds"
+            }
+        }
+    },
+    "slowmodeTooltipSetWait": "Slowmode is set to {durationLabel}. Wait before sending another message.",
+    "@slowmodeTooltipSetWait": {
+        "description": "Tooltip on the wide composer slowmode indicator while the reader is counting down.",
+        "placeholders": {
+            "durationLabel": {
+                "type": "String",
+                "example": "30 seconds"
+            }
+        }
+    },
+    "slowmodeTooltipSetChannel": "Slowmode is set to {durationLabel} for this channel.",
+    "@slowmodeTooltipSetChannel": {
+        "description": "Tooltip on the wide composer slowmode indicator when the reader is free to send.",
+        "placeholders": {
+            "durationLabel": {
+                "type": "String",
+                "example": "30 seconds"
+            }
+        }
+    },
     "channelNoSendPermissionHint": "You can't send messages in this channel.",
     "@channelNoSendPermissionHint": {
         "description": "Placeholder text in the channel message input when the user lacks Send Messages permission."

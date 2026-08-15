@@ -5848,6 +5848,36 @@ abstract class FluxerLocalizations {
   /// **'Slowmode is enabled, but you are immune.'**
   String get slowmodeTooltipImmune;
 
+  /// Short label in the wide composer slowmode indicator when the reader is free to send.
+  ///
+  /// In en, this message translates to:
+  /// **'Slowmode is enabled'**
+  String get slowmodeStatusEnabled;
+
+  /// Short label in the wide composer slowmode indicator while the countdown runs.
+  ///
+  /// In en, this message translates to:
+  /// **'Slowmode is active ({remaining})'**
+  String slowmodeStatusActive(String remaining);
+
+  /// Tooltip on the wide composer slowmode indicator when the reader can bypass slowmode.
+  ///
+  /// In en, this message translates to:
+  /// **'Slowmode is set to {durationLabel}, but you are immune.'**
+  String slowmodeTooltipSetImmune(String durationLabel);
+
+  /// Tooltip on the wide composer slowmode indicator while the reader is counting down.
+  ///
+  /// In en, this message translates to:
+  /// **'Slowmode is set to {durationLabel}. Wait before sending another message.'**
+  String slowmodeTooltipSetWait(String durationLabel);
+
+  /// Tooltip on the wide composer slowmode indicator when the reader is free to send.
+  ///
+  /// In en, this message translates to:
+  /// **'Slowmode is set to {durationLabel} for this channel.'**
+  String slowmodeTooltipSetChannel(String durationLabel);
+
   /// Placeholder text in the channel message input when the user lacks Send Messages permission.
   ///
   /// In en, this message translates to:

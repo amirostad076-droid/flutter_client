@@ -29,6 +29,7 @@ import 'package:fluxer_app/features/chat/presentation/'
     'sheets/remove_all_reactions_confirm_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'sheets/system_message_actions_sheet.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/wide_composer_layout.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/media/animated_image_playback_controller.dart';
 import 'package:fluxer_app/features/chat/presentation/'
     'widgets/messages/blocked_message_groups.dart';
@@ -103,7 +104,10 @@ const _kUnreadDateDividerHeight = 20.0;
 const _kMessageListScrollCacheExtent = 1200.0;
 const _kMessageListCompactScrollCacheExtent = 400.0;
 
-const _kMessageListStatusOverlayInset = 16.0;
+const double _kMessageListStatusOverlayInsetMobile =
+    WideComposerLayout.mobileMessageListTrailingInset;
+const double _kMessageListStatusOverlayInsetWide =
+    WideComposerLayout.messageListTrailingInset;
 
 /// Trailing-run length at which a pinned reader is re-anchored to the tail.
 const int _kPinnedRecenterTrailingThreshold = 60;
@@ -669,10 +673,14 @@ class _MessageListState extends ConsumerState<MessageList> {
   double _centerLeadingDistance(ScrollPosition position) =>
       position.pixels - position.minScrollExtent;
 
+  double _statusOverlayInset(BuildContext context) => isMobileLayout(context)
+      ? _kMessageListStatusOverlayInsetMobile
+      : _kMessageListStatusOverlayInsetWide;
+
   double _centerTrailingDistance(ScrollPosition position) =>
       (position.maxScrollExtent -
               position.pixels -
-              _kMessageListStatusOverlayInset)
+              _statusOverlayInset(context))
           .clamp(0, double.infinity);
 
   /// Sign adapter for scroll deltas: positive = toward the OLDER edge.
@@ -2530,7 +2538,7 @@ class _MessageListState extends ConsumerState<MessageList> {
                   onScrollMetricsNotification: _onScrollMetricsNotification,
                   isLoadingMore: isLoadingMore,
                   isLoadingNewer: isLoadingNewer,
-                  trailingInset: _kMessageListStatusOverlayInset,
+                  trailingInset: _statusOverlayInset(context),
                   startOfChannelHeader: startOfChannelHeader,
                 ),
               );
