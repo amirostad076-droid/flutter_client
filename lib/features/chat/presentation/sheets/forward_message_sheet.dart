@@ -22,7 +22,7 @@ import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_tracker.dar
 import 'package:fluxer_app/features/chat/service/composer_mention_controller.dart';
 import 'package:fluxer_app/features/chat/utils/slowmode_format.dart';
 import 'package:fluxer_app/features/chat/utils/slowmode_utils.dart';
-import 'package:fluxer_app/features/ui/input/fluxer_input_clipboard_scope.dart';
+import 'package:fluxer_app/features/ui/input/fluxer_clipboard_scope.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:material_ui/material_ui.dart';
@@ -148,8 +148,6 @@ class _ForwardMessageSheetBodyState
   final FocusNode _commentFocus = FocusNode();
   final GlobalKey<ComposerAutocompleteFieldState> _commentFieldKey =
       GlobalKey<ComposerAutocompleteFieldState>();
-  final GlobalKey<FluxerInputClipboardScopeState> _commentClipboardKey =
-      GlobalKey<FluxerInputClipboardScopeState>();
   Timer? _slowmodeTicker;
 
   @override
@@ -157,12 +155,6 @@ class _ForwardMessageSheetBodyState
     super.initState();
     _commentController = ComposerMentionController(ref: ref);
     _commentFocus.onKeyEvent = (FocusNode node, KeyEvent event) {
-      final KeyEventResult clipboardResult =
-          _commentClipboardKey.currentState?.handleKeyboardShortcut(event) ??
-          KeyEventResult.ignored;
-      if (clipboardResult == KeyEventResult.handled) {
-        return clipboardResult;
-      }
       return handleComposerAutocompleteKey(
         _commentFieldKey.currentState,
         event,
@@ -586,23 +578,24 @@ class _ForwardMessageSheetBodyState
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: colors.backgroundHeaderSecondary),
       ),
-      child: FluxerInputClipboardScope(
-        key: _commentClipboardKey,
+      child: FluxerClipboardScope(
         controller: _commentController,
+        focusNode: _commentFocus,
         builder:
             (
               BuildContext context,
-              FluxerInputClipboardScopeState clipboardScope,
+              FluxerClipboardScopeState clipboardScope,
+              FocusNode focusNode,
             ) {
               return ComposerAutocompleteField(
                 key: _commentFieldKey,
                 controller: _commentController,
-                focusNode: _commentFocus,
+                focusNode: focusNode,
                 channelId: widget.sourceChannelId,
                 enabled: !commentDisabled,
                 child: TextField(
                   controller: _commentController,
-                  focusNode: _commentFocus,
+                  focusNode: focusNode,
                   enabled: !commentDisabled,
                   style: context.textStyles.inputText,
                   minLines: 1,

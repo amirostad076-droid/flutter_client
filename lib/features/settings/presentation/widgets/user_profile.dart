@@ -21,7 +21,6 @@ import 'package:fluxer_app/features/settings/utils/open_user_billing_settings.da
 import 'package:fluxer_app/features/settings/utils/user_settings_billing_nav.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/input/emoji_text_editing_controller.dart';
-import 'package:fluxer_app/features/ui/input/fluxer_input_clipboard_scope.dart';
 import 'package:fluxer_app/features/ui/input/inline_token_text_editing_controller.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -85,8 +84,6 @@ class _UserProfileState extends ConsumerState<UserProfile> {
   final FocusNode _bioFocusNode = FocusNode();
   final GlobalKey<ComposerAutocompleteFieldState> _bioFieldKey =
       GlobalKey<ComposerAutocompleteFieldState>();
-  final GlobalKey<FluxerInputClipboardScopeState> _bioClipboardKey =
-      GlobalKey<FluxerInputClipboardScopeState>();
 
   @override
   void initState() {
@@ -98,12 +95,6 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     _guildPronounsController = TextEditingController();
     _guildBioController = EmojiTextEditingController();
     _bioFocusNode.onKeyEvent = (FocusNode node, KeyEvent event) {
-      final KeyEventResult clipboardResult =
-          _bioClipboardKey.currentState?.handleKeyboardShortcut(event) ??
-          KeyEventResult.ignored;
-      if (clipboardResult == KeyEventResult.handled) {
-        return clipboardResult;
-      }
       return handleComposerAutocompleteKey(_bioFieldKey.currentState, event);
     };
   }
@@ -884,63 +875,52 @@ class _UserProfileState extends ConsumerState<UserProfile> {
         : () => vm.updateBio(controller.actualText);
 
     return TextFieldTapRegion(
-      child: FluxerInputClipboardScope(
-        key: _bioClipboardKey,
+      child: ComposerAutocompleteField(
+        key: _bioFieldKey,
         controller: controller,
-        builder:
-            (
-              BuildContext context,
-              FluxerInputClipboardScopeState clipboardScope,
-            ) {
-              return ComposerAutocompleteField(
-                key: _bioFieldKey,
-                controller: controller,
-                focusNode: _bioFocusNode,
-                allowedTriggers: const <ComposerAutocompleteTriggerKind>{
-                  ComposerAutocompleteTriggerKind.emoji,
-                },
+        focusNode: _bioFocusNode,
+        allowedTriggers: const <ComposerAutocompleteTriggerKind>{
+          ComposerAutocompleteTriggerKind.emoji,
+        },
+        maxActualLength: _kMaxBioLength,
+        onApplied: onChanged,
+        child: FluxerInput.multiline(
+          controller: controller,
+          textCapitalization: TextCapitalization.sentences,
+          focusNode: _bioFocusNode,
+          label: l10n.aboutMeLabel,
+          maxLines: 8,
+          showCounter: true,
+          counterLength: () => controller.actualTextLength,
+          counterMax: _kMaxBioLength,
+          helperText: l10n.aboutMeHelperText,
+          inputFormatters: [
+            InlineTokenWireLengthFormatter(
+              controller,
+              maxWireLength: _kMaxBioLength,
+            ),
+          ],
+          onChanged: (_) => onChanged(),
+          onTapOutside: (_) => _bioFocusNode.unfocus(),
+          suffixIcon: FluxerEmojiPickerPopout(
+            key: _expressionPickerKey,
+            visibleTabs: const [ExpressionPickerTab.emojis],
+            onEmojiSelected: (emoji) {
+              controller.insertEmoji(
+                emoji.name,
+                emoji.surrogates,
                 maxActualLength: _kMaxBioLength,
-                onApplied: onChanged,
-                child: FluxerInput.multiline(
-                  controller: controller,
-                  contextMenuBuilder: clipboardScope.buildContextMenu,
-                  textCapitalization: TextCapitalization.sentences,
-                  focusNode: _bioFocusNode,
-                  label: l10n.aboutMeLabel,
-                  maxLines: 8,
-                  showCounter: true,
-                  counterLength: () => controller.actualTextLength,
-                  counterMax: _kMaxBioLength,
-                  helperText: l10n.aboutMeHelperText,
-                  inputFormatters: [
-                    InlineTokenWireLengthFormatter(
-                      controller,
-                      maxWireLength: _kMaxBioLength,
-                    ),
-                  ],
-                  onChanged: (_) => onChanged(),
-                  onTapOutside: (_) => _bioFocusNode.unfocus(),
-                  suffixIcon: FluxerEmojiPickerPopout(
-                    key: _expressionPickerKey,
-                    visibleTabs: const [ExpressionPickerTab.emojis],
-                    onEmojiSelected: (emoji) {
-                      controller.insertEmoji(
-                        emoji.name,
-                        emoji.surrogates,
-                        maxActualLength: _kMaxBioLength,
-                      );
-                      onChanged();
-                    },
-                    child: PhosphorIcon(
-                      PhosphorIconsFill.smiley,
-                      size: 20,
-                      color: colors.textTertiary,
-                    ),
-                  ),
-                  onSuffixTap: _onSmileyTap,
-                ),
               );
+              onChanged();
             },
+            child: PhosphorIcon(
+              PhosphorIconsFill.smiley,
+              size: 20,
+              color: colors.textTertiary,
+            ),
+          ),
+          onSuffixTap: _onSmileyTap,
+        ),
       ),
     );
   }

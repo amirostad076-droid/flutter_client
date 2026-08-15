@@ -23,7 +23,7 @@ import 'package:fluxer_app/features/chat/service/composer_mention_controller.dar
 import 'package:fluxer_app/features/chat/service/share_media_sender.dart';
 import 'package:fluxer_app/features/chat/utils/slowmode_format.dart';
 import 'package:fluxer_app/features/chat/utils/slowmode_utils.dart';
-import 'package:fluxer_app/features/ui/input/fluxer_input_clipboard_scope.dart';
+import 'package:fluxer_app/features/ui/input/fluxer_clipboard_scope.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:material_ui/material_ui.dart';
@@ -78,8 +78,6 @@ class _ShareMediaSheetBodyState extends ConsumerState<_ShareMediaSheetBody> {
   final FocusNode _messageFocus = FocusNode();
   final GlobalKey<ComposerAutocompleteFieldState> _messageFieldKey =
       GlobalKey<ComposerAutocompleteFieldState>();
-  final GlobalKey<FluxerInputClipboardScopeState> _messageClipboardKey =
-      GlobalKey<FluxerInputClipboardScopeState>();
   Timer? _slowmodeTicker;
   bool _isSending = false;
 
@@ -92,12 +90,6 @@ class _ShareMediaSheetBodyState extends ConsumerState<_ShareMediaSheetBody> {
       _messageController.text = initialMessage;
     }
     _messageFocus.onKeyEvent = (FocusNode node, KeyEvent event) {
-      final KeyEventResult clipboardResult =
-          _messageClipboardKey.currentState?.handleKeyboardShortcut(event) ??
-          KeyEventResult.ignored;
-      if (clipboardResult == KeyEventResult.handled) {
-        return clipboardResult;
-      }
       return handleComposerAutocompleteKey(
         _messageFieldKey.currentState,
         event,
@@ -579,22 +571,23 @@ class _ShareMediaSheetBodyState extends ConsumerState<_ShareMediaSheetBody> {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: colors.backgroundHeaderSecondary),
       ),
-      child: FluxerInputClipboardScope(
-        key: _messageClipboardKey,
+      child: FluxerClipboardScope(
         controller: _messageController,
+        focusNode: _messageFocus,
         builder:
             (
               BuildContext context,
-              FluxerInputClipboardScopeState clipboardScope,
+              FluxerClipboardScopeState clipboardScope,
+              FocusNode focusNode,
             ) {
               return ComposerAutocompleteField(
                 key: _messageFieldKey,
                 controller: _messageController,
-                focusNode: _messageFocus,
+                focusNode: focusNode,
                 enabled: !messageDisabled && !_isSending,
                 child: TextField(
                   controller: _messageController,
-                  focusNode: _messageFocus,
+                  focusNode: focusNode,
                   enabled: !messageDisabled && !_isSending,
                   style: context.textStyles.inputText,
                   minLines: 1,

@@ -274,18 +274,15 @@ class FriendsList extends ConsumerWidget {
       right: context.layout.s4,
       top: context.layout.s3,
     ),
-    child: TextField(
+    child: FluxerInput(
+      hint: _searchHint(activeTab),
       onChanged: ref.read(dmViewModelProvider.notifier).updateSearch,
-      style: context.textStyles.inputText.copyWith(fontSize: 14),
-      decoration: InputDecoration(
-        hintText: _searchHint(activeTab),
-        hintStyle: context.textStyles.bodySmall,
-        prefixIcon: PhosphorIcon(
-          PhosphorIconsBold.magnifyingGlass,
-          size: 20,
-          color: context.colors.textSecondary,
-        ),
+      prefixIcon: PhosphorIcon(
+        PhosphorIconsBold.magnifyingGlass,
+        size: 20,
+        color: context.colors.textSecondary,
       ),
+      style: context.textStyles.inputText.copyWith(fontSize: 14),
     ),
   );
 

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
+import 'package:fluxer_app/features/ui/input/fluxer_clipboard_scope.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/features/voice/tts/fluxer_tts_provider.dart';
 import 'package:fluxer_app/features/voice/tts/tts_locale_utils.dart';
@@ -358,36 +359,52 @@ class _TtsRateComboboxState extends State<_TtsRateCombobox> {
                       contentPadding: EdgeInsets.symmetric(vertical: 10),
                     ),
                   ),
-                  child: TextField(
+                  child: FluxerClipboardScope(
                     controller: _controller,
                     focusNode: _focusNode,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    textInputAction: TextInputAction.done,
-                    style: textStyles.bodySmall.copyWith(
-                      color: colors.textPrimary,
-                    ),
-                    cursorColor: colors.textPrimary,
-                    inputFormatters: <TextInputFormatter>[
-                      FilteringTextInputFormatter.allow(RegExp('[0-9.xX]')),
-                    ],
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      filled: false,
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      disabledBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      focusedErrorBorder: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(vertical: 10),
-                    ),
-                    onTapOutside: (_) => _focusNode.unfocus(),
-                    onSubmitted: (_) {
-                      _commitInput();
-                      _focusNode.unfocus();
-                    },
+                    builder:
+                        (
+                          BuildContext context,
+                          FluxerClipboardScopeState clipboardScope,
+                          FocusNode focusNode,
+                        ) {
+                          return TextField(
+                            controller: _controller,
+                            focusNode: focusNode,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            textInputAction: TextInputAction.done,
+                            style: textStyles.bodySmall.copyWith(
+                              color: colors.textPrimary,
+                            ),
+                            cursorColor: colors.textPrimary,
+                            contextMenuBuilder: clipboardScope.buildContextMenu,
+                            inputFormatters: <TextInputFormatter>[
+                              FilteringTextInputFormatter.allow(
+                                RegExp('[0-9.xX]'),
+                              ),
+                            ],
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              filled: false,
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              disabledBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                              focusedErrorBorder: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(
+                                vertical: 10,
+                              ),
+                            ),
+                            onTapOutside: (_) => _focusNode.unfocus(),
+                            onSubmitted: (_) {
+                              _commitInput();
+                              _focusNode.unfocus();
+                            },
+                          );
+                        },
                   ),
                 ),
               ),

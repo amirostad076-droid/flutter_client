@@ -109,7 +109,8 @@ class _SudoVerificationSheetContentState
     super.initState();
     _keyboardRestore = KeyboardFocusRestoreHandle(
       focusNode: _inputFocusNode,
-      shouldTrackOnBackground: () => _canShowTextInput,
+      shouldTrackOnBackground: () =>
+          _inputFocusNode.hasFocus && _canShowTextInput,
       canRestoreFocus: () => mounted && _canShowTextInput,
     );
     WidgetsBinding.instance.addObserver(this);

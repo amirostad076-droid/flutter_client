@@ -40,36 +40,14 @@ class SettingsSidebar extends StatelessWidget {
         if (showSearch)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
-            child: TextField(
-              style: context.textStyles.inputText.copyWith(fontSize: 14),
-              decoration: InputDecoration(
-                hintText: 'Search settings...',
-                hintStyle: context.textStyles.bodySmall,
-                prefixIcon: Padding(
-                  padding: const EdgeInsets.only(left: 8, right: 4),
-                  child: PhosphorIcon(
-                    PhosphorIconsBold.magnifyingGlass,
-                    size: 18,
-                    color: context.colors.textPrimaryMuted,
-                  ),
-                ),
-                prefixIconConstraints: const BoxConstraints(minWidth: 20),
-                filled: true,
-                fillColor: context.colors.backgroundTertiary,
-                contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: context.colors.borderColor),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: context.colors.borderColor),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: context.colors.borderColor),
-                ),
+            child: FluxerInput(
+              hint: 'Search settings...',
+              prefixIcon: PhosphorIcon(
+                PhosphorIconsBold.magnifyingGlass,
+                size: 18,
+                color: context.colors.textPrimaryMuted,
               ),
+              style: context.textStyles.inputText.copyWith(fontSize: 14),
             ),
           ),
         if (username != null)

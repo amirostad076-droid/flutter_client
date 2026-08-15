@@ -141,5 +141,59 @@ void main() {
       expect(controller.selection, const TextSelection.collapsed(offset: 11));
       controller.dispose();
     });
+
+    test('inserts clipboard text at end when selection is invalid', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      final TextEditingController controller = TextEditingController(text: 'hi')
+        ..selection = const TextSelection.collapsed(offset: -1);
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, (
+            MethodCall methodCall,
+          ) async {
+            if (methodCall.method == 'Clipboard.getData') {
+              return <String, String>{'text': ' there'};
+            }
+            return null;
+          });
+      addTearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(SystemChannels.platform, null);
+      });
+
+      await pasteIntoTextController(controller);
+
+      expect(controller.text, 'hi there');
+      expect(controller.selection, const TextSelection.collapsed(offset: 8));
+      controller.dispose();
+    });
+  });
+
+  group('InlineTokenTextEditingController IME sanitize', () {
+    test('drops orphan private-use sentinels on value assignment', () {
+      final EmojiTextEditingController controller = EmojiTextEditingController()
+        ..value = TextEditingValue(
+          text: 'a${String.fromCharCode(0xE000)}b',
+          selection: const TextSelection.collapsed(offset: 2),
+        );
+
+      expect(controller.text, 'ab');
+      expect(controller.selection, const TextSelection.collapsed(offset: 1));
+      controller.dispose();
+    });
+
+    test('keeps live token sentinels', () {
+      final EmojiTextEditingController controller = EmojiTextEditingController()
+        ..loadWithTokens(':wave:');
+      final String sentinel = controller.text;
+
+      controller.value = TextEditingValue(
+        text: '${sentinel}x',
+        selection: TextSelection.collapsed(offset: sentinel.length + 1),
+      );
+
+      expect(controller.text, '${sentinel}x');
+      expect(controller.actualText, ':wave:x');
+      controller.dispose();
+    });
   });
 }

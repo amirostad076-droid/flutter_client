@@ -179,17 +179,18 @@ Future<void> pasteIntoTextController(TextEditingController controller) async {
   }
   final TextEditingValue oldValue = controller.value;
   final TextSelection selection = oldValue.selection;
-  if (!selection.isValid) {
-    return;
-  }
+  final int insertStart = selection.isValid
+      ? selection.start
+      : oldValue.text.length;
+  final int insertEnd = selection.isValid ? selection.end : insertStart;
   final String newText = oldValue.text.replaceRange(
-    selection.start,
-    selection.end,
+    insertStart,
+    insertEnd,
     text,
   );
   controller.value = oldValue.copyWith(
     text: newText,
-    selection: TextSelection.collapsed(offset: selection.start + text.length),
+    selection: TextSelection.collapsed(offset: insertStart + text.length),
     composing: TextRange.empty,
   );
 }

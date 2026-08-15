@@ -198,7 +198,8 @@ class _CodeEntryState extends ConsumerState<_CodeEntry>
     _codeController = TextEditingController();
     _keyboardRestore = KeyboardFocusRestoreHandle(
       focusNode: _codeFocusNode,
-      shouldTrackOnBackground: _canShowTextInput,
+      shouldTrackOnBackground: () =>
+          _codeFocusNode.hasFocus && _canShowTextInput(),
       canRestoreFocus: () => mounted && _canShowTextInput(),
     );
     WidgetsBinding.instance.addObserver(this);

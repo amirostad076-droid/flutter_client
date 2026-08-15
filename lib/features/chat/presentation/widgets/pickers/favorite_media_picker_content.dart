@@ -17,6 +17,7 @@ import 'package:fluxer_app/features/chat/utils/media_dimension_utils.dart';
 import 'package:fluxer_app/features/chat/utils/media_proxy_url.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
 import 'package:fluxer_app/features/ui/button/fluxer_button.dart';
+import 'package:fluxer_app/features/ui/input/fluxer_input.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_gesture_detector.dart';
 import 'package:fluxer_app/shared/gestures/expandable_sheet_gestures.dart';
@@ -522,21 +523,14 @@ class _SavedMediaTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
-    return TextField(
+    return FluxerInput(
       controller: controller,
+      label: label,
+      hint: hintText,
       maxLines: maxLines,
       textInputAction: textInputAction,
-      style: context.textStyles.inputText.copyWith(color: colors.textPrimary),
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hintText,
-        filled: true,
-        fillColor: colors.backgroundTertiary,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: colors.backgroundModifierAccent),
-        ),
+      style: context.textStyles.inputText.copyWith(
+        color: context.colors.textPrimary,
       ),
     );
   }

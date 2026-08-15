@@ -62,6 +62,10 @@ class _KeybindScopeState extends ConsumerState<KeybindScope> {
       return false;
     }
 
+    if (_isClipboardShortcut(event)) {
+      return false;
+    }
+
     if (event.logicalKey == LogicalKeyboardKey.tab &&
         !HardwareKeyboard.instance.isShiftPressed) {
       return _handleTabKey();
@@ -118,6 +122,19 @@ class _KeybindScopeState extends ConsumerState<KeybindScope> {
     return nav.hasHandlers;
   }
 
+  bool _isClipboardShortcut(KeyEvent event) {
+    final HardwareKeyboard keyboard = HardwareKeyboard.instance;
+    if (!keyboard.isControlPressed && !keyboard.isMetaPressed) {
+      return false;
+    }
+    if (keyboard.isAltPressed) {
+      return false;
+    }
+    return event.logicalKey == LogicalKeyboardKey.keyC ||
+        event.logicalKey == LogicalKeyboardKey.keyX ||
+        event.logicalKey == LogicalKeyboardKey.keyV;
+  }
+
   bool _hasShortcutModifier() {
     final HardwareKeyboard keyboard = HardwareKeyboard.instance;
     return keyboard.isAltPressed ||
@@ -138,10 +155,24 @@ class _KeybindScopeState extends ConsumerState<KeybindScope> {
     return focusContext.findAncestorWidgetOfExactType<EditableText>() != null;
   }
 
-  KeybindDispatchContext _buildContext() {
+  String _readEditableText() {
     final ComposerFocusCoordinator composer = ref.read(
       composerFocusCoordinatorProvider,
     );
+    if (composer.composerHasFocus()) {
+      return composer.readComposerText();
+    }
+    final FocusNode? focus = FocusManager.instance.primaryFocus;
+    final BuildContext? focusContext = focus?.context;
+    if (focusContext == null) {
+      return '';
+    }
+    final EditableTextState? editableState = focusContext
+        .findAncestorStateOfType<EditableTextState>();
+    return editableState?.textEditingValue.text ?? '';
+  }
+
+  KeybindDispatchContext _buildContext() {
     final String? channelId = ref.read(activeChannelIdProvider);
     final bool channelHasUnread =
         channelId != null &&
@@ -150,8 +181,8 @@ class _KeybindScopeState extends ConsumerState<KeybindScope> {
     return KeybindDispatchContext(
       keyboardModeEnabled: ref.read(keyboardModeProvider),
       hasMessageFocus: ref.read(focusedMessageProvider).hasFocus,
-      editableHasFocus: composer.composerHasFocus(),
-      editableText: composer.readComposerText(),
+      editableHasFocus: _isTextInputFocused(),
+      editableText: _readEditableText(),
       modalOpen: _isModalOpen(),
       fullscreenMediaOpen: false,
       hasIncomingCall: ref

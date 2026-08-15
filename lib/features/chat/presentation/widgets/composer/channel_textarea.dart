@@ -30,7 +30,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/channel/channel_at
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/blocked_user_composer_barrier.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/channel_composer_barrier.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_field.dart';
-import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_paste_scope.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_clipboard_scope.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_status_row.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/message_character_counter.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/system_dm_composer_barrier.dart';
@@ -54,6 +54,7 @@ import 'package:fluxer_app/features/chat/providers/slowmode/slowmode_tracker.dar
 import 'package:fluxer_app/features/chat/providers/upload/cloud_upload_controller.dart';
 import 'package:fluxer_app/features/chat/service/composer_mention_controller.dart';
 import 'package:fluxer_app/features/chat/utils/bottom_input_slot_layout.dart';
+import 'package:fluxer_app/features/chat/utils/composer_clipboard_paste.dart';
 import 'package:fluxer_app/features/chat/utils/composer_command.dart';
 import 'package:fluxer_app/features/chat/utils/composer_emoji_resolution.dart';
 import 'package:fluxer_app/features/chat/utils/composer_expression_tabs.dart';
@@ -78,6 +79,7 @@ import 'package:fluxer_app/features/settings/providers/advanced_preferences_prov
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_confirm_sheet.dart';
+import 'package:fluxer_app/features/ui/input/fluxer_clipboard_scope.dart';
 import 'package:fluxer_app/features/ui/input/inline_token_clipboard.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
@@ -235,8 +237,6 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
   final ScrollController _composerScrollController = ScrollController();
   final GlobalKey<ComposerAutocompleteFieldState> _composerFieldKey =
       GlobalKey<ComposerAutocompleteFieldState>();
-  final GlobalKey<ComposerPasteScopeState> _pasteScopeKey =
-      GlobalKey<ComposerPasteScopeState>();
   final _expressionPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
   final _gifPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
   final _mediaPickerKey = GlobalKey<FluxerEmojiPickerPopoutState>();
@@ -553,24 +553,6 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
       }
       return KeyEventResult.ignored;
     }
-    if (event.logicalKey == LogicalKeyboardKey.keyV &&
-        (HardwareKeyboard.instance.isMetaPressed ||
-            HardwareKeyboard.instance.isControlPressed)) {
-      unawaited(_pasteScopeKey.currentState?.handlePaste());
-      return KeyEventResult.handled;
-    }
-    if (event.logicalKey == LogicalKeyboardKey.keyC &&
-        (HardwareKeyboard.instance.isMetaPressed ||
-            HardwareKeyboard.instance.isControlPressed)) {
-      unawaited(_pasteScopeKey.currentState?.handleCopy());
-      return KeyEventResult.handled;
-    }
-    if (event.logicalKey == LogicalKeyboardKey.keyX &&
-        (HardwareKeyboard.instance.isMetaPressed ||
-            HardwareKeyboard.instance.isControlPressed)) {
-      unawaited(_pasteScopeKey.currentState?.handleCut());
-      return KeyEventResult.handled;
-    }
     if (!_enterToSendEnabled) {
       return KeyEventResult.ignored;
     }
@@ -665,10 +647,10 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
     final bool canUpgrade =
         maxMessageLength < premiumMaxLength &&
         ref.watch(shouldShowPremiumCommerceProvider);
-    return ComposerPasteScope(
-      key: _pasteScopeKey,
+    return ComposerClipboardScope(
       channelId: channelId,
       controller: _controller,
+      focusNode: _focusNode,
       isAttachEnabled: perms.isAttachEnabled,
       maxMessageLength: maxMessageLength,
       canAttachOnExceed: () =>
@@ -676,65 +658,92 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
       onPasteExceedsLimit: (String pastedText) =>
           unawaited(_handlePasteExceedsLimit(pastedText, channelId)),
       onValidationResult: _toastUploadValidation,
-      builder: (BuildContext context, ComposerPasteScopeState pasteScope) {
-        return ListenableBuilder(
-          listenable: _controller,
-          builder: (BuildContext context, Widget? child) {
-            final int contentLength = _composerContentLength(
-              _sendableWireText(),
-            );
-            final bool showCounter =
-                contentLength > (maxMessageLength * 0.8).floor();
-            final InputDecoration effectiveDecoration = decoration.copyWith(
-              contentPadding: showCounter
-                  ? basePadding + const EdgeInsets.only(right: 28, bottom: 18)
-                  : basePadding,
-            );
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                _composerOpacity(
-                  enabled: perms.isComposerEnabled,
-                  child: Semantics(
-                    label: _resolveHintText(),
-                    textField: true,
-                    child: TextField(
-                      controller: _controller,
-                      focusNode: _focusNode,
-                      scrollController: _composerScrollController,
+      builder:
+          (
+            BuildContext context,
+            FluxerClipboardScopeState clipboardScope,
+            FocusNode focusNode,
+          ) {
+            return ListenableBuilder(
+              listenable: _controller,
+              builder: (BuildContext context, Widget? child) {
+                final int contentLength = _composerContentLength(
+                  _sendableWireText(),
+                );
+                final bool showCounter =
+                    contentLength > (maxMessageLength * 0.8).floor();
+                final InputDecoration effectiveDecoration = decoration.copyWith(
+                  contentPadding: showCounter
+                      ? basePadding +
+                            const EdgeInsets.only(right: 28, bottom: 18)
+                      : basePadding,
+                );
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    _composerOpacity(
                       enabled: perms.isComposerEnabled,
-                      style: context.textStyles.inputText,
-                      minLines: minLines,
-                      maxLines: maxLines,
-                      selectionWidthStyle: BoxWidthStyle.tight,
-                      decoration: effectiveDecoration,
-                      textAlignVertical: textAlignVertical,
-                      textCapitalization: TextCapitalization.sentences,
-                      contextMenuBuilder: pasteScope.buildContextMenu,
-                      onTap: () {
-                        if (ref.read(expressionPanelProvider)) {
-                          _closeExpressionPanelAndFocusComposer();
-                        }
-                      },
+                      child: Semantics(
+                        label: _resolveHintText(),
+                        textField: true,
+                        child: TextField(
+                          controller: _controller,
+                          focusNode: focusNode,
+                          scrollController: _composerScrollController,
+                          enabled: perms.isComposerEnabled,
+                          style: context.textStyles.inputText,
+                          minLines: minLines,
+                          maxLines: maxLines,
+                          selectionWidthStyle: BoxWidthStyle.tight,
+                          decoration: effectiveDecoration,
+                          textAlignVertical: textAlignVertical,
+                          textCapitalization: TextCapitalization.sentences,
+                          contextMenuBuilder: clipboardScope.buildContextMenu,
+                          contentInsertionConfiguration: perms.isAttachEnabled
+                              ? ContentInsertionConfiguration(
+                                  onContentInserted:
+                                      (KeyboardInsertedContent content) {
+                                        unawaited(() async {
+                                          final FileUploadValidationResult?
+                                          result =
+                                              await handleComposerContentInserted(
+                                                ref: ref,
+                                                channelId: channelId,
+                                                content: content,
+                                                isAttachEnabled:
+                                                    perms.isAttachEnabled,
+                                              );
+                                          if (result != null) {
+                                            _toastUploadValidation(result);
+                                          }
+                                        }());
+                                      },
+                                )
+                              : null,
+                          onTap: () {
+                            if (ref.read(expressionPanelProvider)) {
+                              _closeExpressionPanelAndFocusComposer();
+                            }
+                          },
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                Positioned(
-                  right: 8,
-                  bottom: 8,
-                  child: MessageCharacterCounter(
-                    currentLength: contentLength,
-                    maxLength: maxMessageLength,
-                    canUpgrade: canUpgrade,
-                    premiumMaxLength: premiumMaxLength,
-                    onUpgradePressed: () => _showPlutoniumSheet(context),
-                  ),
-                ),
-              ],
+                    Positioned(
+                      right: 8,
+                      bottom: 8,
+                      child: MessageCharacterCounter(
+                        currentLength: contentLength,
+                        maxLength: maxMessageLength,
+                        canUpgrade: canUpgrade,
+                        premiumMaxLength: premiumMaxLength,
+                        onUpgradePressed: () => _showPlutoniumSheet(context),
+                      ),
+                    ),
+                  ],
+                );
+              },
             );
           },
-        );
-      },
     );
   }
 

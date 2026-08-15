@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/core/widgets/fluxer_widget_preview.dart';
 import 'package:fluxer_app/features/ui/character_counter/fluxer_character_counter.dart';
+import 'package:fluxer_app/features/ui/input/fluxer_clipboard_scope.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_gesture_detector.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -36,7 +37,6 @@ class FluxerInput extends StatelessWidget {
     this.textInputAction,
     this.autofillHints,
     this.inputFormatters,
-    this.contextMenuBuilder = _defaultContextMenuBuilder,
     this.style,
     this.maxLines = 1,
     this.minLines,
@@ -74,7 +74,6 @@ class FluxerInput extends StatelessWidget {
     this.textInputAction,
     this.autofillHints,
     this.inputFormatters,
-    this.contextMenuBuilder = _defaultContextMenuBuilder,
     this.style,
     this.maxLines,
     this.minLines = 3,
@@ -122,7 +121,6 @@ class FluxerInput extends StatelessWidget {
   final TextInputAction? textInputAction;
   final Iterable<String>? autofillHints;
   final List<TextInputFormatter>? inputFormatters;
-  final EditableTextContextMenuBuilder contextMenuBuilder;
   final TextStyle? style;
   final int? maxLines;
   final int? minLines;
@@ -131,6 +129,8 @@ class FluxerInput extends StatelessWidget {
   final bool enableSuggestions;
 
   bool get _isMultiline => minLines != null && minLines! > 1;
+
+  bool get _usesClipboardScope => controller != null && !readOnly;
 
   bool get _usesTightSelectionWidth {
     if (maxLines == null) {
@@ -143,6 +143,33 @@ class FluxerInput extends StatelessWidget {
       return true;
     }
     return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_usesClipboardScope) {
+      return _buildField(
+        context,
+        focusNode: focusNode,
+        contextMenuBuilder: _defaultContextMenuBuilder,
+      );
+    }
+    return FluxerClipboardScope(
+      controller: controller!,
+      focusNode: focusNode,
+      builder:
+          (
+            BuildContext context,
+            FluxerClipboardScopeState clipboardScope,
+            FocusNode effectiveFocusNode,
+          ) {
+            return _buildField(
+              context,
+              focusNode: effectiveFocusNode,
+              contextMenuBuilder: clipboardScope.buildContextMenu,
+            );
+          },
+    );
   }
 
   static Widget _defaultContextMenuBuilder(
@@ -159,8 +186,11 @@ class FluxerInput extends StatelessWidget {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildField(
+    BuildContext context, {
+    required FocusNode? focusNode,
+    required EditableTextContextMenuBuilder contextMenuBuilder,
+  }) {
     final colors = context.colors;
     final textStyles = context.textStyles;
     final layout = context.layout;
@@ -174,11 +204,21 @@ class FluxerInput extends StatelessWidget {
         : suffixIcon;
 
     if (_isMultiline) {
-      return _buildMultiline(context, suffix: effectiveSuffix);
+      return _buildMultiline(
+        context,
+        suffix: effectiveSuffix,
+        focusNode: focusNode,
+        contextMenuBuilder: contextMenuBuilder,
+      );
     }
 
     if (trailing != null) {
-      return _buildWithTrailing(context, suffix: effectiveSuffix);
+      return _buildWithTrailing(
+        context,
+        suffix: effectiveSuffix,
+        focusNode: focusNode,
+        contextMenuBuilder: contextMenuBuilder,
+      );
     }
 
     return Column(
@@ -242,7 +282,12 @@ class FluxerInput extends StatelessWidget {
     );
   }
 
-  Widget _buildWithTrailing(BuildContext context, {required Widget? suffix}) {
+  Widget _buildWithTrailing(
+    BuildContext context, {
+    required Widget? suffix,
+    required FocusNode? focusNode,
+    required EditableTextContextMenuBuilder contextMenuBuilder,
+  }) {
     final colors = context.colors;
     final textStyles = context.textStyles;
     final layout = context.layout;
@@ -339,7 +384,12 @@ class FluxerInput extends StatelessWidget {
     );
   }
 
-  Widget _buildMultiline(BuildContext context, {required Widget? suffix}) {
+  Widget _buildMultiline(
+    BuildContext context, {
+    required Widget? suffix,
+    required FocusNode? focusNode,
+    required EditableTextContextMenuBuilder contextMenuBuilder,
+  }) {
     final colors = context.colors;
     final textStyles = context.textStyles;
     final layout = context.layout;
