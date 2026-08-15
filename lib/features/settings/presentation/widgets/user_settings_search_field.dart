@@ -34,8 +34,8 @@ class UserSettingsSearchField extends StatelessWidget {
         controller: controller,
         focusNode: focusNode,
         hint: l10n.userSettingsSearchPlaceholder,
-        onTapOutside: (_) => (focusNode ?? FocusManager.instance.primaryFocus)
-            ?.unfocus(),
+        onTapOutside: (_) =>
+            (focusNode ?? FocusManager.instance.primaryFocus)?.unfocus(),
         prefixIcon: PhosphorIcon(
           PhosphorIconsBold.magnifyingGlass,
           size: iconSize,

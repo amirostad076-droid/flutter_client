@@ -119,10 +119,7 @@ void main() {
         visibleSections: {UserSettingsSection.lookAndFeel},
         isTouchPrimary: true,
       );
-      expect(
-        hits.any((hit) => hit.id == 'look-and-feel:sync-theme'),
-        isTrue,
-      );
+      expect(hits.any((hit) => hit.id == 'look-and-feel:sync-theme'), isTrue);
     });
 
     test('hides keyboard field on touch-primary', () {

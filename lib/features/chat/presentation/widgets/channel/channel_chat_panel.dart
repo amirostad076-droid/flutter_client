@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_autocomplete_field.dart';
+import 'package:fluxer_app/features/chat/presentation/widgets/composer/composer_status_row.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/slowmode_indicator.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/typing_indicator_bar.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/composer/wide_composer_layout.dart';
@@ -25,7 +26,9 @@ import 'package:fluxer_app/features/shell/utils/mobile_scaffold_resize_policy.da
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:material_ui/material_ui.dart';
 
-const double _kChannelChatNekoVerticalOffset = -4;
+const double _kChannelChatNekoBottom = 0;
+const double _kChannelChatNekoBottomAboveSlowmode =
+    WideComposerLayout.statusLineHeight;
 
 void listenChatViewModelErrors(WidgetRef ref) {
   ref.listen<String?>(
@@ -75,17 +78,17 @@ class _ChannelChatPanelState extends ConsumerState<ChannelChatPanel> {
     super.dispose();
   }
 
-  Widget _buildStatusOverlay({required bool showNeko}) {
+  Widget _buildStatusOverlay({
+    required bool showNeko,
+    required bool showSlowmode,
+  }) {
     return ChannelChatComposerBoundary(
       leadingStatus: const TypingIndicatorBar(),
-      trailingStatuses: <Widget>[
-        if (showNeko)
-          Transform.translate(
-            offset: const Offset(0, _kChannelChatNekoVerticalOffset),
-            child: const NekoSprite(),
-          ),
-        SlowmodeIndicator(leadingSpacing: showNeko ? 8 : 0),
-      ],
+      trailingStatuses: const <Widget>[SlowmodeIndicator()],
+      neko: showNeko ? const NekoSprite() : null,
+      nekoBottom: showSlowmode
+          ? _kChannelChatNekoBottomAboveSlowmode
+          : _kChannelChatNekoBottom,
     );
   }
 
@@ -94,6 +97,10 @@ class _ChannelChatPanelState extends ConsumerState<ChannelChatPanel> {
     final String listChannelId = widget.displayChannelId;
     final bool showNeko = ref.watch(
       appearancePreferencesProvider.select((state) => state.showNeko),
+    );
+    final bool showSlowmode = composerSlowmodeIndicatorVisible(
+      ref,
+      listChannelId,
     );
     final VoidCallback? onClose = widget.onClose;
     final bool stripKeyboardInsets =
@@ -188,7 +195,10 @@ class _ChannelChatPanelState extends ConsumerState<ChannelChatPanel> {
                           height: WideComposerLayout.fadeHeightFor(
                             isMobile: isMobile,
                           ),
-                          child: _buildStatusOverlay(showNeko: showNeko),
+                          child: _buildStatusOverlay(
+                            showNeko: showNeko,
+                            showSlowmode: showSlowmode,
+                          ),
                         ),
                         _ChannelChatScrollOverlay(
                           channelId: listChannelId,
@@ -333,11 +343,15 @@ class ChannelChatComposerBoundary extends StatelessWidget {
   const ChannelChatComposerBoundary({
     required this.leadingStatus,
     required this.trailingStatuses,
+    this.neko,
+    this.nekoBottom = _kChannelChatNekoBottom,
     super.key,
   });
 
   final Widget leadingStatus;
   final List<Widget> trailingStatuses;
+  final Widget? neko;
+  final double nekoBottom;
 
   @override
   Widget build(BuildContext context) {
@@ -363,15 +377,16 @@ class ChannelChatComposerBoundary extends StatelessWidget {
                   child: leadingStatus,
                 ),
               ),
-              Flexible(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: trailingStatuses,
-                ),
-              ),
+              Row(mainAxisSize: MainAxisSize.min, children: trailingStatuses),
             ],
           ),
         ),
+        if (neko != null)
+          Positioned(
+            right: statusRailPadding,
+            bottom: nekoBottom,
+            child: neko!,
+          ),
       ],
     );
   }

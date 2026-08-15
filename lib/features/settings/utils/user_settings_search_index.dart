@@ -106,8 +106,9 @@ const List<String> _searchableTabs = [
 UserSettingsSection _sectionForScrollField(String tab, String scrollId) {
   return switch (tab) {
     'account_security' => switch (scrollId) {
-      'account' || 'security' || 'danger_zone' =>
-        UserSettingsSection.securityLogin,
+      'account' ||
+      'security' ||
+      'danger_zone' => UserSettingsSection.securityLogin,
       _ => UserSettingsSection.securityLogin,
     },
     'appearance' => UserSettingsSection.lookAndFeel,
@@ -198,7 +199,9 @@ final List<_UserSettingsSearchOption> _userSettingsSearchOptions = [
     id: 'look-and-feel:selected-channel-typing',
     section: UserSettingsSection.lookAndFeel,
     fieldId: 'interface',
-    label: _l((l10n) => l10n.lookAndFeelShowSelectedChannelTypingIndicatorLabel),
+    label: _l(
+      (l10n) => l10n.lookAndFeelShowSelectedChannelTypingIndicatorLabel,
+    ),
   ),
   _UserSettingsSearchOption(
     id: 'look-and-feel:keyboard-hints',
@@ -239,9 +242,7 @@ final List<_UserSettingsSearchOption> _userSettingsSearchOptions = [
     section: UserSettingsSection.notifications,
     fieldId: 'notifications',
     label: _l((l10n) => l10n.notificationsEnableNotificationsLabel),
-    keywords: [
-      _l((l10n) => l10n.notificationsEnableDesktopNotificationsLabel),
-    ],
+    keywords: [_l((l10n) => l10n.notificationsEnableDesktopNotificationsLabel)],
   ),
   _UserSettingsSearchOption(
     id: 'notifications:push-timeout',
@@ -396,9 +397,7 @@ final List<_UserSettingsSearchOption> _userSettingsSearchOptions = [
     id: 'accessibility:screen-reader',
     section: UserSettingsSection.accessibility,
     fieldId: 'screen-reader',
-    label: _l(
-      (l10n) => l10n.accessibilityScreenReaderAnnounceNewMessagesLabel,
-    ),
+    label: _l((l10n) => l10n.accessibilityScreenReaderAnnounceNewMessagesLabel),
   ),
   _UserSettingsSearchOption(
     id: 'accessibility:focus-ring',
