@@ -63,17 +63,14 @@ Future<void> _pumpTypingIndicatorBar(
         ),
         home: MediaQuery(
           data: const MediaQueryData(disableAnimations: true),
-          child: Scaffold(
-            body: TypingIndicatorBar(compact: compact),
-          ),
+          child: Scaffold(body: TypingIndicatorBar(compact: compact)),
         ),
       ),
     ),
   );
-  container.read(typingIndicatorsProvider.notifier).addTyping(
-    'channel-1',
-    _kTyperUserId,
-  );
+  container
+      .read(typingIndicatorsProvider.notifier)
+      .addTyping('channel-1', _kTyperUserId);
   await tester.pump();
 }
 

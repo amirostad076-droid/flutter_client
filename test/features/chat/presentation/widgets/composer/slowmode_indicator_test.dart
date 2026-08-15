@@ -56,9 +56,9 @@ ProviderContainer _makeSlowmodeContainer() {
           ),
         ),
       ),
-      isSlowmodeImmuneProvider('channel-1').overrideWith(
-        (ref) => Future<bool>.value(false),
-      ),
+      isSlowmodeImmuneProvider(
+        'channel-1',
+      ).overrideWith((ref) => Future<bool>.value(false)),
     ],
   );
   addTearDown(container.dispose);
@@ -90,10 +90,7 @@ void main() {
   ) async {
     final ProviderContainer container = _makeSlowmodeContainer();
     await tester.pumpWidget(
-      _slowmodeTestApp(
-        container: container,
-        child: const SlowmodeIndicator(),
-      ),
+      _slowmodeTestApp(container: container, child: const SlowmodeIndicator()),
     );
     await tester.pumpAndSettle();
 
@@ -128,10 +125,7 @@ void main() {
         .read(slowmodeTrackerProvider.notifier)
         .updateCooldownRemaining('channel-1', 30_000);
     await tester.pumpWidget(
-      _slowmodeTestApp(
-        container: container,
-        child: const SlowmodeIndicator(),
-      ),
+      _slowmodeTestApp(container: container, child: const SlowmodeIndicator()),
     );
     await tester.pumpAndSettle();
 
