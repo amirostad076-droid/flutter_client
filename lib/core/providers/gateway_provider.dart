@@ -164,6 +164,7 @@ Raw<StreamSubscription<GatewayEvent>?> gatewayEventListener(Ref ref) {
       ref.read(memberListUpdateBatcherProvider).clearAll();
       scheduleReadyHeavyWork(activeGuildId);
       ref.read(gatewaySessionRecoveryProvider.notifier).bump();
+      ref.read(gatewayFullRecoveryProvider.notifier).bump();
       ref.read(pendingPushNotificationPathProvider.notifier).flushIfReady();
     },
     onResumed: () {

@@ -18,7 +18,7 @@ class _RecordingGuildRepository implements GuildRepository {
 }
 
 void main() {
-  test('syncs guilds when gateway session recovers', () async {
+  test('syncs guilds after a full gateway recovery', () async {
     final repo = _RecordingGuildRepository();
     final container = ProviderContainer(
       overrides: [guildRepositoryProvider.overrideWithValue(repo)],
@@ -28,10 +28,24 @@ void main() {
     container.read(guildListSyncProvider);
     expect(repo.syncCallCount, 0);
 
-    container.read(gatewaySessionRecoveryProvider.notifier).bump();
+    container.read(gatewayFullRecoveryProvider.notifier).bump();
     await Future<void>.delayed(Duration.zero);
 
     expect(repo.syncCallCount, 1);
+  });
+
+  test('does not sync on a light resume recovery', () async {
+    final repo = _RecordingGuildRepository();
+    final container = ProviderContainer(
+      overrides: [guildRepositoryProvider.overrideWithValue(repo)],
+    );
+    addTearDown(container.dispose);
+
+    container.read(guildListSyncProvider);
+    container.read(gatewaySessionRecoveryProvider.notifier).bump();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(repo.syncCallCount, 0);
   });
 
   test('syncs immediately when session already recovered', () async {
@@ -41,7 +55,7 @@ void main() {
     );
     addTearDown(container.dispose);
 
-    container.read(gatewaySessionRecoveryProvider.notifier).bump();
+    container.read(gatewayFullRecoveryProvider.notifier).bump();
     container.read(guildListSyncProvider);
     await Future<void>.delayed(Duration.zero);
 

@@ -15,12 +15,12 @@ part 'friend_relationships_sync_provider.g.dart';
 class FriendRelationshipsSync extends _$FriendRelationshipsSync {
   @override
   void build() {
-    ref.listen<int>(gatewaySessionRecoveryProvider, (int? previous, int next) {
+    ref.listen<int>(gatewayFullRecoveryProvider, (int? previous, int next) {
       if (next > 0 && previous != next) {
         unawaited(_sync());
       }
     });
-    if (ref.read(gatewaySessionRecoveryProvider) > 0) {
+    if (ref.read(gatewayFullRecoveryProvider) > 0) {
       unawaited(_sync());
     }
   }
