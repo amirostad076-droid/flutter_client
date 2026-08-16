@@ -30,9 +30,15 @@ const List<String> kEmojiPickerSymbolHeartNames = [
   'heart_decoration',
 ];
 
-String? _pickerSymbolHeartName(EmojiEntry emoji, Set<String> heartNames) {
+final Set<String> _kSymbolHeartNames = kEmojiPickerSymbolHeartNames.toSet();
+
+// One-entry memo; the registry map is identity-stable after preload.
+Map<String, List<EmojiEntry>>? _memoInput;
+late Map<String, List<EmojiEntry>> _memoOutput;
+
+String? _pickerSymbolHeartName(EmojiEntry emoji) {
   for (final String name in emoji.names) {
-    if (heartNames.contains(name)) {
+    if (_kSymbolHeartNames.contains(name)) {
       return name;
     }
   }
@@ -45,7 +51,16 @@ String? _pickerSymbolHeartName(EmojiEntry emoji, Set<String> heartNames) {
 Map<String, List<EmojiEntry>> emojiPickerDisplayCategories(
   Map<String, List<EmojiEntry>> categories,
 ) {
-  final Set<String> heartNames = kEmojiPickerSymbolHeartNames.toSet();
+  if (identical(categories, _memoInput)) {
+    return _memoOutput;
+  }
+  final Map<String, List<EmojiEntry>> result = _remap(categories);
+  _memoInput = categories;
+  _memoOutput = result;
+  return result;
+}
+
+Map<String, List<EmojiEntry>> _remap(Map<String, List<EmojiEntry>> categories) {
   final Map<String, EmojiEntry> hearts = <String, EmojiEntry>{};
   final Map<String, List<EmojiEntry>> remapped = <String, List<EmojiEntry>>{};
 
@@ -53,7 +68,7 @@ Map<String, List<EmojiEntry>> emojiPickerDisplayCategories(
     final List<EmojiEntry> kept = <EmojiEntry>[];
     var removed = false;
     for (final EmojiEntry emoji in entry.value) {
-      final String? heartName = _pickerSymbolHeartName(emoji, heartNames);
+      final String? heartName = _pickerSymbolHeartName(emoji);
       if (heartName != null) {
         hearts[heartName] = emoji;
         removed = true;
@@ -72,9 +87,6 @@ Map<String, List<EmojiEntry>> emojiPickerDisplayCategories(
     for (final String name in kEmojiPickerSymbolHeartNames)
       if (hearts[name] case final EmojiEntry emoji) emoji,
   ];
-  remapped['symbols'] = <EmojiEntry>[
-    ...orderedHearts,
-    ...?remapped['symbols'],
-  ];
+  remapped['symbols'] = <EmojiEntry>[...orderedHearts, ...?remapped['symbols']];
   return remapped;
 }
