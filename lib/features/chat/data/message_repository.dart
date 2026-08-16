@@ -796,7 +796,9 @@ class MessageRepository {
   ///
   /// Uses Dio directly instead of the generated SDK edit call, which always
   /// includes `embeds` and `message_snapshots` as null and can make attachment-
-  /// only messages fail with CANNOT_SEND_EMPTY_MESSAGE.
+  /// only messages fail with CANNOT_SEND_EMPTY_MESSAGE. Sent as plain JSON:
+  /// the API's multipart parser only reads `payload_json` and file fields, so
+  /// a bare multipart `attachments` field is silently dropped (issue #625).
   Future<Message> editMessageAttachments({
     required String channelId,
     required String messageId,
@@ -806,13 +808,10 @@ class MessageRepository {
       final List<Map<String, dynamic>> attachments = attachmentUpdates
           .map((MessageAttachmentUpdate update) => update.toJson())
           .toList();
-      final FormData formData = FormData();
-      formData.fields.add(MapEntry('attachments', jsonEncode(attachments)));
       final Response<Map<String, dynamic>> response = await _dio
           .patch<Map<String, dynamic>>(
             '/channels/$channelId/messages/$messageId',
-            data: formData,
-            options: Options(contentType: 'multipart/form-data'),
+            data: <String, dynamic>{'attachments': attachments},
           );
       final Map<String, dynamic>? data = response.data;
       if (data == null) {
