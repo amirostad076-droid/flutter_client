@@ -4669,6 +4669,7 @@ class ChatViewModel extends _$ChatViewModel {
             messageFlags: messageFlags,
             tts: tts,
           );
+      unawaited(_recordSlowmodeSendOnSuccess(channelId));
       if (state.channelId != channelId) {
         return;
       }
@@ -4686,7 +4687,6 @@ class ChatViewModel extends _$ChatViewModel {
       state = state.copyWith(
         write: (messages: nextMessages, origin: MessagesOrigin.localMutation),
       );
-      unawaited(_recordSlowmodeSendOnSuccess(channelId));
     } on Object catch (error, st) {
       talker.error(
         '[ChatViewModel] send api_error channelId=$channelId',
@@ -4740,6 +4740,7 @@ class ChatViewModel extends _$ChatViewModel {
             tts: tts,
           );
       uploadNotifier.removeMessageUpload(clientNonce);
+      unawaited(_recordSlowmodeSendOnSuccess(channelId));
       if (state.channelId != channelId) {
         return;
       }
@@ -4760,7 +4761,6 @@ class ChatViewModel extends _$ChatViewModel {
       state = state.copyWith(
         write: (messages: nextMessages, origin: MessagesOrigin.localMutation),
       );
-      unawaited(_recordSlowmodeSendOnSuccess(channelId));
     } on MessageUploadSendCancelledException {
       return;
     } on Object catch (error, st) {
