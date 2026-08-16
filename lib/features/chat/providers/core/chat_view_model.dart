@@ -1874,13 +1874,15 @@ class ChatViewModel extends _$ChatViewModel {
         ref
             .read(messageReferencesProvider.notifier)
             .clearChannel(previousChannelId);
-        unawaited(
-          _persistComposerDraftForChannel(
-            channelId: previousChannelId,
-            content: previousText,
-            reply: previousReply,
-          ),
-        );
+        if (state.editingMessage == null) {
+          unawaited(
+            _persistComposerDraftForChannel(
+              channelId: previousChannelId,
+              content: previousText,
+              reply: previousReply,
+            ),
+          );
+        }
       }
       final draft = await _loadComposerDraft(channelId);
       if (!isCurrentSwitch()) {
@@ -5725,6 +5727,7 @@ class ChatViewModel extends _$ChatViewModel {
   }
 
   void startEdit(Message message) {
+    unawaited(_flushComposerDraftSave());
     state = state.copyWith(
       editingMessage: message,
       replyingTo: null,

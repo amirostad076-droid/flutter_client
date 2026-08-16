@@ -326,6 +326,32 @@ void main() {
   );
 
   test(
+    'switching channels mid-edit abandons the edit and keeps the draft',
+    () async {
+      final (container, _, _) = await setUpChannel();
+      final db = container.read(fluxerDatabaseProvider);
+      await db.channelDao.upsertChannel(
+        ChannelsCompanion.insert(id: 'channel-2', guildId: '', name: 'dm2'),
+      );
+      final notifier = container.read(chatViewModelProvider.notifier)
+        ..updateMessageText('typed draft')
+        ..startEdit(_msg(id: 'm-edit', authorId: 'me', content: 'old content'));
+      await _flushAsync();
+
+      await notifier.switchChannel('channel-2');
+      await _flushAsync();
+      expect(container.read(chatViewModelProvider).messageText, isEmpty);
+
+      await notifier.switchChannel('channel-1');
+      await _flushAsync();
+
+      final ChatViewState state = container.read(chatViewModelProvider);
+      expect(state.editingMessage, isNull);
+      expect(state.messageText, 'typed draft');
+    },
+  );
+
+  test(
     'send failure with DM restriction adds Fluxerbot system message',
     () async {
       final FluxerLocalizations l10n = lookupFluxerLocalizations(
