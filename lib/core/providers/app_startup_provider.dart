@@ -70,7 +70,8 @@ class AppStartup extends _$AppStartup {
   }
 
   Future<void> retry() async {
-    await _validateAndRestore();
+    state = const AsyncLoading<void>();
+    state = await AsyncValue.guard<void>(_validateAndRestore);
   }
 
   Future<void> _validateAndRestore() async {
