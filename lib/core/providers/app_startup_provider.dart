@@ -84,7 +84,9 @@ class AppStartup extends _$AppStartup {
     if (activeSnapshot != null) {
       ref.read(activeInstanceProvider.notifier).applySnapshot(activeSnapshot);
     }
-    await EmojiRegistry.preload();
+    // Emoji decode overlaps token migration and session validation below;
+    // the awaits before each return keep the loaded-before-AsyncData contract.
+    final Future<void> emojiPreload = EmojiRegistry.preload();
     unawaited(FluxerHaptics.warmSend());
     unawaited(ref.read(wellKnownProvider.future));
     unawaited(EmojiSpriteSheet.preload());
@@ -98,6 +100,7 @@ class AppStartup extends _$AppStartup {
     debugPrint('[AppStartup] Session: ${session != null ? 'found' : 'none'}');
 
     if (session == null) {
+      await emojiPreload;
       return;
     }
 
@@ -144,6 +147,7 @@ class AppStartup extends _$AppStartup {
 
     if (session == null) {
       ref.read(fluxerAuthTokenProvider.notifier).setToken(null);
+      await emojiPreload;
       return;
     }
 
@@ -224,6 +228,8 @@ class AppStartup extends _$AppStartup {
     if (PushProviderGuard.isUnifiedPush) {
       ref.read(unifiedPushMobileDeviceRegistrationProvider);
     }
+
+    await emojiPreload;
 
     debugPrint(
       '[AppStartup] Session restored '
