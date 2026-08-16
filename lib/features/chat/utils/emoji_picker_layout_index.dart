@@ -1,4 +1,5 @@
 import 'package:fluxer_app/features/chat/providers/pickers/emoji_picker_provider.dart';
+import 'package:fluxer_app/features/chat/utils/emoji_picker_display_categories.dart';
 import 'package:fluxer_app/features/chat/utils/emoji_picker_rendering_policy.dart';
 import 'package:fluxer_app/shared/utils/emoji_registry.dart';
 
@@ -369,6 +370,8 @@ EmojiPickerLayoutIndex buildEmojiPickerLayoutIndex({
   required int columns,
   required bool includeUpsell,
 }) {
+  final Map<String, List<EmojiEntry>> displayCategories =
+      emojiPickerDisplayCategories(unicodeCategories);
   final List<EmojiPickerLayoutEntry> entries = <EmojiPickerLayoutEntry>[
     const EmojiPickerTopPaddingEntry(),
   ];
@@ -400,7 +403,7 @@ EmojiPickerLayoutIndex buildEmojiPickerLayoutIndex({
     }
   }
   for (final String category in kEmojiCategoryOrder) {
-    final List<EmojiEntry>? emojis = unicodeCategories[category];
+    final List<EmojiEntry>? emojis = displayCategories[category];
     if (emojis == null || emojis.isEmpty) {
       continue;
     }

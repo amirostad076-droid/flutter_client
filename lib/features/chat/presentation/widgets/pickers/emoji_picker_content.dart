@@ -15,6 +15,7 @@ import 'package:fluxer_app/features/chat/presentation/widgets/plutonium_upsell_b
 import 'package:fluxer_app/features/chat/providers/channel/channel_message_permissions_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/emoji_picker_provider.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/expression_picker_preferences_provider.dart';
+import 'package:fluxer_app/features/chat/utils/emoji_picker_display_categories.dart';
 import 'package:fluxer_app/features/chat/utils/emoji_picker_layout_index.dart';
 import 'package:fluxer_app/features/chat/utils/emoji_picker_precache.dart';
 import 'package:fluxer_app/features/chat/utils/emoji_picker_rendering_policy.dart';
@@ -801,7 +802,7 @@ class _EmojiPickerContentState extends ConsumerState<EmojiPickerContent> {
       return 0;
     }
 
-    final categories = EmojiRegistry.categories;
+    final categories = emojiPickerDisplayCategories(EmojiRegistry.categories);
     final collapsedCategories =
         ref.read(collapsedEmojiPickerCategoriesProvider).value ??
         const <String>[];
