@@ -142,15 +142,18 @@ Future<void> _bootstrapFluxer(List<String> args) async {
     );
   }
 
-  await FluxerObservability.instance.traceAsync(
-    'app.startup.provider',
-    () async {
+  // First frame no longer waits for session validation: the router keeps the
+  // splash up until startup settles and the gateway delivers READY, and the
+  // splash surfaces startup errors as a retry. Engine warmup (shaders, fonts,
+  // first raster) overlaps the network round-trips instead of following them.
+  unawaited(
+    FluxerObservability.instance.traceAsync('app.startup.provider', () async {
       try {
         await container.read(appStartupProvider.future);
       } on Object {
-        // Startup failed; still launch so splash can show retry.
+        // Surfaced on the splash screen as a retry affordance.
       }
-    },
+    }),
   );
   FluxerObservability.instance.traceSync(
     'app.run',
