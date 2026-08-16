@@ -171,20 +171,8 @@ class AppStartup extends _$AppStartup {
       unawaited(ref.read(sensitiveContentProvider.notifier).hydrateFromLocal());
     }
     unawaited(ref.read(accountManagerProvider.notifier).loadAccounts());
-    await Future.wait<void>([
-      ref.read(themePreferenceProvider.notifier).load(session.userId),
-      ref.read(appearancePreferencesProvider.notifier).load(session.userId),
-      ref.read(chatPreferencesProvider.notifier).load(session.userId),
-      ref.read(advancedPreferencesProvider.notifier).load(session.userId),
-      ref.read(defaultAppsPreferencesProvider.notifier).load(session.userId),
-      ref.read(voiceSettingsProvider.notifier).load(session.userId),
-    ]);
-    unawaited(ref.read(matureContentAgreementsProvider.notifier).reload());
-
-    unawaited(
-      ref.read(serviceStatusMaintenanceReadProvider.notifier).refresh(),
-    );
-
+    // Attached before the awaits below so the gateway handshake overlaps the
+    // preference loads instead of queuing behind them.
     ref
       ..read(gatewayConnectBindingProvider)
       ..read(gatewayEventListenerProvider)
@@ -202,6 +190,19 @@ class AppStartup extends _$AppStartup {
       ..read(guildListSyncProvider)
       ..read(statusExpiryBindingProvider)
       ..read(premiumStateSyncBindingProvider);
+    await Future.wait<void>([
+      ref.read(themePreferenceProvider.notifier).load(session.userId),
+      ref.read(appearancePreferencesProvider.notifier).load(session.userId),
+      ref.read(chatPreferencesProvider.notifier).load(session.userId),
+      ref.read(advancedPreferencesProvider.notifier).load(session.userId),
+      ref.read(defaultAppsPreferencesProvider.notifier).load(session.userId),
+      ref.read(voiceSettingsProvider.notifier).load(session.userId),
+    ]);
+    unawaited(ref.read(matureContentAgreementsProvider.notifier).reload());
+
+    unawaited(
+      ref.read(serviceStatusMaintenanceReadProvider.notifier).refresh(),
+    );
 
     ref.read(deepLinkHandlerProvider.notifier).processPendingDeepLink();
     ref.read(pendingPushNotificationPathProvider.notifier).flushIfReady();

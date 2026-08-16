@@ -85,18 +85,25 @@ Future<void> _bootstrapFluxer(List<String> args) async {
       'app.bootstrap.media_kit',
       MediaKit.ensureInitialized,
     );
-    await FluxerObservability.instance.traceAsync(
-      'app.bootstrap.chat_attachment_audio',
-      bootstrapChatAttachmentAudio,
-    );
   }
 
   final ProviderContainer container = ProviderContainer();
-  await container.read(observabilityReportingProvider.notifier).load();
-  await FluxerObservability.instance.traceAsync(
-    'app.bootstrap.fcm',
-    bootstrapFcmIfNeeded,
-  );
+  // Chat-attachment audio is platform-channel bound and independent of the
+  // observability/FCM chain; observability consent stays ahead of Firebase.
+  await Future.wait<void>([
+    if (!kIsWeb)
+      FluxerObservability.instance.traceAsync(
+        'app.bootstrap.chat_attachment_audio',
+        bootstrapChatAttachmentAudio,
+      ),
+    () async {
+      await container.read(observabilityReportingProvider.notifier).load();
+      await FluxerObservability.instance.traceAsync(
+        'app.bootstrap.fcm',
+        bootstrapFcmIfNeeded,
+      );
+    }(),
+  ]);
   FluxerObservability.instance.traceSync(
     'app.bootstrap.image_picker',
     _configureImagePicker,
