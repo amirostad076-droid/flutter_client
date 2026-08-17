@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/api/dio_error_message.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/core/gateway/message_mention_context_cache.dart';
 import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/utils/message_mention_resolver.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
@@ -117,10 +118,17 @@ class MessageRepository {
   final Dio _dio;
   final db.FluxerDatabase _db;
   final String? _currentUserId;
+  final MessageMentionContextCache? _mentionContextCache;
   final Map<String, Future<MessageListLoadResult>> _inFlightPages =
       <String, Future<MessageListLoadResult>>{};
 
-  MessageRepository(this._client, this._dio, this._db, this._currentUserId);
+  MessageRepository(
+    this._client,
+    this._dio,
+    this._db,
+    this._currentUserId, {
+    this._mentionContextCache,
+  });
 
   Stream<List<Message>> watchMessages(String channelId) {
     return _db.messageDao
@@ -257,11 +265,16 @@ class MessageRepository {
         }
       }
 
-      final mentionCtx = await buildMessageMentionContext(
-        _db,
-        currentUserId: _currentUserId,
-        channelId: channelId,
-      );
+      final mentionCtx =
+          await _mentionContextCache?.contextFor(
+            currentUserId: _currentUserId,
+            channelId: channelId,
+          ) ??
+          await buildMessageMentionContext(
+            _db,
+            currentUserId: _currentUserId,
+            channelId: channelId,
+          );
       mark('ctx');
       final List<Message> messages = data
           .map(

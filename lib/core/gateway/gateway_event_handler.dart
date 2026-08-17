@@ -1370,13 +1370,9 @@ class GatewayEventHandler {
     late final MessageMentionContext mentionCtx;
     late final ChannelResolution channelResolution;
     if (mentionCache != null) {
-      mentionCtx = await mentionCache.resolve(
+      mentionCtx = await mentionCache.contextFor(
         currentUserId: currentUserId,
         channelId: channelId,
-        authorId: event.message.author.id,
-        mentionedUserIds: event.message.mentions.map((u) => u.id).toList(),
-        mentionEveryone: event.message.mentionEveryone,
-        mentionRoleIds: event.message.mentionRoles,
       );
       channelResolution = await mentionCache.resolveChannel(channelId);
     } else {
