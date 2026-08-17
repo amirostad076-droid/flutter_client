@@ -92,8 +92,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   void dispose() {
     _cancelSplashTimers();
     _pulseController.dispose();
-    if (!_exitRevealStarted) {
-      _revealComplete?.complete();
+    final SplashRevealComplete? revealComplete = _revealComplete;
+    // dispose runs while the element tree is being finalized, when Riverpod
+    // rejects provider writes, so release the gate on the next frame.
+    if (!_exitRevealStarted && revealComplete != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        revealComplete.complete();
+      });
     }
     super.dispose();
   }
