@@ -657,6 +657,31 @@ class GatewayEventHandler {
     var readstatesMs = 0;
     var settingsMs = 0;
 
+    final userSettings = event.userSettings;
+    final guildPositions = <String, int>{};
+    if (userSettings != null) {
+      var pos = 0;
+      for (final folder in userSettings.guildFolders) {
+        for (final guildId in folder.guildIds) {
+          guildPositions[guildId] = pos;
+          pos++;
+        }
+      }
+    }
+
+    // Parsed on an isolate before BEGIN: the parse takes over a second on
+    // large accounts and must not extend the write lock, which starves every
+    // reader that the first channel switch depends on.
+    List<ParsedReadyGuild> processedGuilds = const <ParsedReadyGuild>[];
+    if (event.rawGuilds.isNotEmpty) {
+      final Stopwatch parsePhase = Stopwatch()..start();
+      processedGuilds = await parseReadyGuilds(
+        rawGuilds: event.rawGuilds,
+        guildPositions: guildPositions,
+      );
+      guildsMs = parsePhase.elapsedMilliseconds;
+    }
+
     await database.transaction(() async {
       final Stopwatch phase = Stopwatch()..start();
       if (shouldFullWipe) {
@@ -726,28 +751,7 @@ class GatewayEventHandler {
         );
       }
 
-      final guildPositions = <String, int>{};
-      final userSettings = event.userSettings;
-      if (userSettings != null) {
-        var pos = 0;
-        for (final folder in userSettings.guildFolders) {
-          for (final guildId in folder.guildIds) {
-            guildPositions[guildId] = pos;
-            pos++;
-          }
-        }
-      }
-
       if (event.rawGuilds.isNotEmpty) {
-        phase
-          ..reset()
-          ..start();
-        final List<ParsedReadyGuild> processedGuilds = await parseReadyGuilds(
-          rawGuilds: event.rawGuilds,
-          guildPositions: guildPositions,
-        );
-        guildsMs = phase.elapsedMilliseconds;
-
         phase
           ..reset()
           ..start();
