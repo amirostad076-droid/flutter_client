@@ -669,9 +669,8 @@ class GatewayEventHandler {
       }
     }
 
-    // Parsed on an isolate before BEGIN: the parse takes over a second on
-    // large accounts and must not extend the write lock, which starves every
-    // reader that the first channel switch depends on.
+    // Parsed on an isolate before BEGIN so the multi-second parse on large
+    // accounts does not extend the write lock.
     List<ParsedReadyGuild> processedGuilds = const <ParsedReadyGuild>[];
     if (event.rawGuilds.isNotEmpty) {
       final Stopwatch parsePhase = Stopwatch()..start();
@@ -2050,14 +2049,16 @@ class GatewayEventHandler {
       database.transaction(() async {
         await database.guildDao.upsertServer(guildFromSdk(event.guild.guild));
 
+        // One statement batch per table, mirroring the READY fanout; per-row
+        // writes here starve the channel switch reads racing this transaction.
+        final channelCompanions = <db.ChannelsCompanion>[];
         for (final channel in event.guild.channels) {
           final channelGuildId = channel.guildId;
           if (channelGuildId != null) {
-            await database.channelDao.upsertChannel(
-              channelFromSdk(channel, channelGuildId),
-            );
+            channelCompanions.add(channelFromSdk(channel, channelGuildId));
           }
         }
+        await database.channelDao.upsertChannelsMerged(channelCompanions);
 
         if (event.guild.roles.isNotEmpty) {
           await database.roleDao.upsertRoles(
@@ -2065,8 +2066,15 @@ class GatewayEventHandler {
           );
         }
 
-        for (final member in event.guild.members) {
-          _handleMemberUpsert(guildId, member);
+        if (event.guild.members.isNotEmpty) {
+          await database.userDao.upsertUsers([
+            for (final member in event.guild.members)
+              userFromPartialSdk(member.user),
+          ]);
+          await database.memberDao.upsertMembers([
+            for (final member in event.guild.members)
+              memberCompanionFromSdk(member, guildId: guildId),
+          ]);
         }
 
         if (event.guild.emojis.isNotEmpty) {
