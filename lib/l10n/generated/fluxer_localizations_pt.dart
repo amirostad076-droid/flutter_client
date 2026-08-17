@@ -13522,6 +13522,10 @@ class FluxerLocalizationsPt extends FluxerLocalizations {
 
   @override
   String get keybindActionZoomReset => 'Reset zoom';
+
+  @override
+  String get clipboardPasteFailed =>
+      'Couldn\'t paste. The clipboard was empty or blocked for this app.';
 }
 
 /// The translations for Portuguese, as used in Brazil (`pt_BR`).

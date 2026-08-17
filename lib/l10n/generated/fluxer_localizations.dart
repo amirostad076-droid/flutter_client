@@ -22598,6 +22598,12 @@ abstract class FluxerLocalizations {
   /// In en, this message translates to:
   /// **'Reset zoom'**
   String get keybindActionZoomReset;
+
+  /// Shown when a context-menu paste finds no readable clipboard text.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t paste. The clipboard was empty or blocked for this app.'**
+  String get clipboardPasteFailed;
 }
 
 class _FluxerLocalizationsDelegate
