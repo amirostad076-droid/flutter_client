@@ -19,7 +19,6 @@ import 'package:fluxer_app/core/talker.dart';
 import 'package:fluxer_app/core/utils/message_mention_resolver.dart';
 import 'package:fluxer_app/features/channels/data/read_state_repository.dart';
 import 'package:fluxer_app/features/channels/data/read_state_utils.dart';
-import 'package:fluxer_app/features/channels/data/unread_permission_utils.dart';
 import 'package:fluxer_app/features/channels/data/unread_settings_resolver.dart';
 import 'package:fluxer_app/features/channels/providers/ack_batcher_provider.dart';
 import 'package:fluxer_app/features/channels/providers/read_state_repository_provider.dart';
@@ -1822,9 +1821,7 @@ class ChatViewModel extends _$ChatViewModel {
       'target=$targetMessageId load=$loadMessages',
     );
     final Stopwatch switchStopwatch = Stopwatch()..start();
-    // Cumulative marks (ms since switch start) after each awaited phase, so
-    // device logs attribute the local cost: draft/cached/unread are DB reads,
-    // net covers _refreshMessagesFromNetwork (HTTP + persist + reconcile).
+    // Cumulative ms marks after each awaited phase, for device-log attribution.
     final List<String> phaseMarks = <String>[];
     void mark(String name) {
       phaseMarks.add('$name@${switchStopwatch.elapsedMilliseconds}');
@@ -2012,19 +2009,18 @@ class ChatViewModel extends _$ChatViewModel {
       final repo = ref.read(messageRepositoryProvider);
       final int cacheOrdinal = _beginPageFetch();
       cacheFetchOrdinal = cacheOrdinal;
+      final (List<Message> cachedRows, bool hasUnread) = await (
+        repo.getCachedMessages(channelId, limit: _kInitialPageSize),
+        _channelHasNewUnreadMessages(channelId),
+      ).wait;
+      if (!isCurrentSwitch()) {
+        return;
+      }
+      mark('reads');
       final cached = mergeMentionHighlightFlags(
-        await repo.getCachedMessages(channelId, limit: _kInitialPageSize),
+        cachedRows,
         currentUserId: currentUserId,
       );
-      if (!isCurrentSwitch()) {
-        return;
-      }
-      mark('cached');
-      final hasUnread = await _channelHasNewUnreadMessages(channelId);
-      if (!isCurrentSwitch()) {
-        return;
-      }
-      mark('unread');
       if (cached.isNotEmpty && !hasUnread) {
         final bool incompleteCache = cached.length < _kPageSize;
         final bool willRefresh =
@@ -2673,9 +2669,10 @@ class ChatViewModel extends _$ChatViewModel {
 
   Future<bool> _channelHasNewUnreadMessages(String channelId) async {
     final database = ref.read(fluxerDatabaseProvider);
-    final currentUserId = ref.read(currentUserIdProvider);
-    final channel = await database.channelDao.getChannelById(channelId);
-    final readState = await database.readStateDao.getReadState(channelId);
+    final (db.Channel? channel, db.ReadState? readState) = await (
+      database.channelDao.getChannelById(channelId),
+      database.readStateDao.getReadState(channelId),
+    ).wait;
     if (readState?.manual ?? false) {
       return true;
     }
@@ -2683,24 +2680,20 @@ class ChatViewModel extends _$ChatViewModel {
     if (stickyUnreadId != null && stickyUnreadId.isNotEmpty) {
       return true;
     }
+    if ((readState?.mentionCount ?? 0) > 0) {
+      return true;
+    }
     final latestMessageId = await resolveLatestMessageIdForUnreadDisplay(
       database,
       channelId,
       channelLastMessageId: channel?.lastMessageId,
       ackLastMessageId: readState?.lastMessageId,
-      mentionCount: readState?.mentionCount ?? 0,
     );
-    final rawMentionCount = readState?.mentionCount ?? 0;
-    if (rawMentionCount > 0) {
-      return true;
-    }
-    final fallbackAckMs = channel == null
+    // A guild channel without an ack returns false before the fallback is
+    // read, so the member-join fallback read is skipped.
+    final int fallbackAckMs = channel == null
         ? snowflakeTimestampMs(channelId)
-        : await guildChannelFallbackAckMs(
-            database: database,
-            channel: channel,
-            currentUserId: currentUserId,
-          );
+        : 0;
     final hasUnreadMessage = hasUnreadByReadState(
       channelLastMessageId: latestMessageId,
       ackLastMessageId: readState?.lastMessageId,
