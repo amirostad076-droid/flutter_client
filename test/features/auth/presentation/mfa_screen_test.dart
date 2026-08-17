@@ -67,6 +67,38 @@ void main() {
     },
   );
 
+  testWidgets('TOTP field uses a numeric keyboard', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: _app(
+          MfaScreen(challenge: _challenge, onBack: () {}, onAuthorized: () {}),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final TextField field = tester.widget(find.byType(TextField));
+    expect(field.keyboardType, TextInputType.number);
+  });
+
+  testWidgets('TOTP field accepts an alphanumeric backup code', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        child: _app(
+          MfaScreen(challenge: _challenge, onBack: () {}, onAuthorized: () {}),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(MfaScreen)),
+    );
+    await tester.enterText(find.byType(TextFormField), 'ab12-cd34');
+    await tester.pump();
+
+    expect(container.read(mfaViewModelProvider(_challenge)).code, 'ab12-cd34');
+  });
 
   testWidgets('context menu paste fills the TOTP field', (tester) async {
     await tester.pumpWidget(
