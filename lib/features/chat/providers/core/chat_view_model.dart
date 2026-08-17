@@ -1822,6 +1822,14 @@ class ChatViewModel extends _$ChatViewModel {
       'target=$targetMessageId load=$loadMessages',
     );
     final Stopwatch switchStopwatch = Stopwatch()..start();
+    // Cumulative marks (ms since switch start) after each awaited phase, so
+    // device logs attribute the local cost: draft/cached/unread are DB reads,
+    // net covers _refreshMessagesFromNetwork (HTTP + persist + reconcile).
+    final List<String> phaseMarks = <String>[];
+    void mark(String name) {
+      phaseMarks.add('$name@${switchStopwatch.elapsedMilliseconds}');
+    }
+
     if (state.channelId == channelId &&
         targetMessageId != null &&
         state.isLoading) {
@@ -1888,6 +1896,7 @@ class ChatViewModel extends _$ChatViewModel {
       if (!isCurrentSwitch()) {
         return;
       }
+      mark('draft');
       final bool replyMentioning;
       if (draft.reply == null) {
         replyMentioning = false;
@@ -1900,6 +1909,7 @@ class ChatViewModel extends _$ChatViewModel {
           return;
         }
       }
+      mark('mention');
       if (!loadMessages) {
         state = _switchedChannelState(
           channelId: channelId,
@@ -2009,10 +2019,12 @@ class ChatViewModel extends _$ChatViewModel {
       if (!isCurrentSwitch()) {
         return;
       }
+      mark('cached');
       final hasUnread = await _channelHasNewUnreadMessages(channelId);
       if (!isCurrentSwitch()) {
         return;
       }
+      mark('unread');
       if (cached.isNotEmpty && !hasUnread) {
         final bool incompleteCache = cached.length < _kPageSize;
         final bool willRefresh =
@@ -2073,6 +2085,7 @@ class ChatViewModel extends _$ChatViewModel {
           aroundUnreadId = ack;
         }
       }
+      mark('ack');
       await _refreshMessagesFromNetwork(
         channelId,
         showLoadingSpinner: true,
@@ -2080,13 +2093,15 @@ class ChatViewModel extends _$ChatViewModel {
         isDirectLatestLoad: aroundUnreadId == null,
         shouldApplyResult: isCurrentSwitch,
       );
+      mark('net');
     } finally {
       if (cacheFetchOrdinal != null) {
         _endPageFetch(cacheFetchOrdinal);
       }
       debugPrint(
         '[ChatViewModel] switchChannel($channelId) completed in '
-        '${switchStopwatch.elapsedMilliseconds}ms',
+        '${switchStopwatch.elapsedMilliseconds}ms'
+        '${phaseMarks.isEmpty ? '' : ' [${phaseMarks.join(' ')}]'}',
       );
     }
   }
