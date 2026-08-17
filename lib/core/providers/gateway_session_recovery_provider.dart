@@ -16,6 +16,12 @@ class GatewaySessionRecovery extends _$GatewaySessionRecovery {
   }
 }
 
+/// Delay between a full recovery and the REST consistency sweeps keyed to it.
+///
+/// The sweeps prune rows READY may have omitted and carry nothing the UI
+/// waits on; running them at READY put their cost under the first channel open.
+const Duration kFullRecoverySweepDelay = Duration(seconds: 10);
+
 /// Incremented only after a fresh READY (full identify), never on RESUMED.
 ///
 /// RESUMED replays buffered events on the same session; eager REST re-syncs

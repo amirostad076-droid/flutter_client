@@ -1,3 +1,4 @@
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/core/providers/gateway_session_recovery_provider.dart';
@@ -20,47 +21,75 @@ class _RecordingFriendRepository implements FriendRepository {
 }
 
 void main() {
-  test('syncs relationships after a full gateway recovery', () async {
-    final repo = _RecordingFriendRepository();
-    final container = ProviderContainer(
-      overrides: [friendRepositoryProvider.overrideWithValue(repo)],
-    );
-    addTearDown(container.dispose);
+  test('syncs relationships after the post-READY sweep delay', () {
+    fakeAsync((async) {
+      final repo = _RecordingFriendRepository();
+      final container =
+          ProviderContainer(
+              overrides: [friendRepositoryProvider.overrideWithValue(repo)],
+            )
+            ..read(friendRelationshipsSyncProvider)
+            ..read(gatewayFullRecoveryProvider.notifier).bump();
+      async.elapse(kFullRecoverySweepDelay - const Duration(seconds: 1));
+      expect(
+        repo.syncCallCount,
+        0,
+        reason: 'the sweep must wait out the first channel open after READY',
+      );
 
-    container.read(friendRelationshipsSyncProvider);
-    expect(repo.syncCallCount, 0);
-
-    container.read(gatewayFullRecoveryProvider.notifier).bump();
-    await Future<void>.delayed(Duration.zero);
-
-    expect(repo.syncCallCount, 1);
+      async.elapse(const Duration(seconds: 1));
+      expect(repo.syncCallCount, 1);
+      container.dispose();
+    });
   });
 
-  test('does not sync on a light resume recovery', () async {
-    final repo = _RecordingFriendRepository();
-    final container = ProviderContainer(
-      overrides: [friendRepositoryProvider.overrideWithValue(repo)],
-    );
-    addTearDown(container.dispose);
+  test('bumps during a pending sweep collapse into one sync', () {
+    fakeAsync((async) {
+      final repo = _RecordingFriendRepository();
+      final container =
+          ProviderContainer(
+              overrides: [friendRepositoryProvider.overrideWithValue(repo)],
+            )
+            ..read(friendRelationshipsSyncProvider)
+            ..read(gatewayFullRecoveryProvider.notifier).bump();
+      async.elapse(const Duration(seconds: 1));
+      container.read(gatewayFullRecoveryProvider.notifier).bump();
+      async.elapse(kFullRecoverySweepDelay * 2);
 
-    container.read(friendRelationshipsSyncProvider);
-    container.read(gatewaySessionRecoveryProvider.notifier).bump();
-    await Future<void>.delayed(Duration.zero);
-
-    expect(repo.syncCallCount, 0);
+      expect(repo.syncCallCount, 1);
+      container.dispose();
+    });
   });
 
-  test('syncs immediately when session already recovered', () async {
-    final repo = _RecordingFriendRepository();
-    final container = ProviderContainer(
-      overrides: [friendRepositoryProvider.overrideWithValue(repo)],
-    );
-    addTearDown(container.dispose);
+  test('does not sync on a light resume recovery', () {
+    fakeAsync((async) {
+      final repo = _RecordingFriendRepository();
+      final container =
+          ProviderContainer(
+              overrides: [friendRepositoryProvider.overrideWithValue(repo)],
+            )
+            ..read(friendRelationshipsSyncProvider)
+            ..read(gatewaySessionRecoveryProvider.notifier).bump();
+      async.elapse(kFullRecoverySweepDelay * 2);
 
-    container.read(gatewayFullRecoveryProvider.notifier).bump();
-    container.read(friendRelationshipsSyncProvider);
-    await Future<void>.delayed(Duration.zero);
+      expect(repo.syncCallCount, 0);
+      container.dispose();
+    });
+  });
 
-    expect(repo.syncCallCount, 1);
+  test('schedules the sweep when session already recovered', () {
+    fakeAsync((async) {
+      final repo = _RecordingFriendRepository();
+      final container = ProviderContainer(
+        overrides: [friendRepositoryProvider.overrideWithValue(repo)],
+      );
+
+      container.read(gatewayFullRecoveryProvider.notifier).bump();
+      container.read(friendRelationshipsSyncProvider);
+      async.elapse(kFullRecoverySweepDelay);
+
+      expect(repo.syncCallCount, 1);
+      container.dispose();
+    });
   });
 }
