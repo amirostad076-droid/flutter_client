@@ -76,6 +76,7 @@ import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/shared/utils/emoji_registry.dart';
 import 'package:fluxer_app/shared/utils/guild_member_prefetch.dart';
 import 'package:fluxer_dart/export.dart';
+import 'package:fluxer_markdown/fluxer_markdown.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'chat_view_model.g.dart';
@@ -265,7 +266,7 @@ class ChatViewState {
     return auth.origin;
   }
 
-  bool get canSend => messageText.trim().isNotEmpty;
+  bool get canSend => hasVisibleContent(messageText);
 
   /// The `write` parameter is the ONLY way to change [messages], and it is
   /// indivisible from its [MessagesOrigin]: an untagged messages write is
@@ -1627,7 +1628,8 @@ class ChatViewModel extends _$ChatViewModel {
     }
     final String sanitizedContent = stripPrivateUseCharacters(content);
     final String? replyId = reply?.id;
-    final bool hasDraft = sanitizedContent.isNotEmpty || replyId != null;
+    final bool hasDraft =
+        hasVisibleContent(sanitizedContent) || replyId != null;
     final dao = ref.read(fluxerDatabaseProvider).composerDraftDao;
     if (!hasDraft) {
       await dao.deleteDraft(channelId);
@@ -4291,8 +4293,9 @@ class ChatViewModel extends _$ChatViewModel {
 
   ({String content, int flags}) _normalizeOutgoing(String text) {
     final ({String content, int flags}) silent = stripSilentPrefix(text);
+    final String sanitized = _maybeSanitizeOutgoing(silent.content);
     return (
-      content: _maybeSanitizeOutgoing(silent.content),
+      content: hasVisibleContent(sanitized) ? sanitized : '',
       flags: silent.flags,
     );
   }
@@ -4488,7 +4491,7 @@ class ChatViewModel extends _$ChatViewModel {
     final List<PendingAttachment> pendingAttachments = ref
         .read(cloudUploadControllerProvider(channelId))
         .items;
-    if (text.isEmpty &&
+    if (!hasVisibleContent(text) &&
         stickerIds.isEmpty &&
         favoriteMemeId == null &&
         pendingAttachments.isEmpty) {
@@ -5754,9 +5757,10 @@ class ChatViewModel extends _$ChatViewModel {
     if (editingMessage == null) {
       return;
     }
-    final String editedContent = _maybeSanitizeOutgoing(
+    final String sanitized = _maybeSanitizeOutgoing(
       (text ?? state.messageText).trim(),
     );
+    final String editedContent = hasVisibleContent(sanitized) ? sanitized : '';
     if (editedContent.isEmpty || editedContent == editingMessage.content) {
       talker.debug(
         '[ChatViewModel] edit save noop messageId=${editingMessage.id}',

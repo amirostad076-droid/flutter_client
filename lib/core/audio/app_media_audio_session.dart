@@ -5,9 +5,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 
 final AudioContext kAppMediaAudioContext = AudioContext(
-  android: const AudioContextAndroid(
-    audioFocus: AndroidAudioFocus.none,
-  ),
+  android: const AudioContextAndroid(audioFocus: AndroidAudioFocus.none),
   iOS: AudioContextIOS(
     options: const <AVAudioSessionOptions>{AVAudioSessionOptions.mixWithOthers},
   ),

@@ -3,6 +3,7 @@ import 'package:fluxer_markdown/src/contexts/fluxer_markdown_features.dart';
 import 'package:fluxer_markdown/src/parsing/fenced_code_block_utils.dart';
 import 'package:fluxer_markdown/src/parsing/markdown_parse_cache.dart';
 import 'package:fluxer_markdown/src/parsing/markdown_preprocessor.dart';
+import 'package:fluxer_markdown/src/utils/visible_content.dart';
 
 sealed class MessageContentSegment {}
 
@@ -131,7 +132,7 @@ List<MessageContentSegment> _parseMessageContentStructureUncached(
       if (endIndex != null) {
         _flushTextFlow(textFlowBuffer, segments);
         final String body = parseBlockSpoilerBody(lines, i, endIndex);
-        if (_hasVisibleSpoilerContent(body)) {
+        if (hasVisibleContent(body)) {
           segments.add(MessageBlockSpoilerSegment(body));
         } else {
           segments.add(
@@ -315,19 +316,6 @@ bool _isBlockquoteStart(String trimmedLeft, FluxerMarkdownFeatures features) {
   return (features.allowMultilineBlockquotes &&
           trimmedLeft.startsWith('>>> ')) ||
       (features.allowBlockquotes && trimmedLeft.startsWith('> '));
-}
-
-bool _hasVisibleSpoilerContent(String value) {
-  for (final int codeUnit in value.runes) {
-    if (codeUnit != 0x20 &&
-        codeUnit != 0x09 &&
-        codeUnit != 0x0A &&
-        codeUnit != 0x0D &&
-        codeUnit != 0x200E) {
-      return true;
-    }
-  }
-  return false;
 }
 
 int _findBlockEnd(
