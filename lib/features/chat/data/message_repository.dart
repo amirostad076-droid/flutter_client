@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:cross_file/cross_file.dart';
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:fluxer_app/core/api/dio_error_message.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/talker.dart';
@@ -225,6 +226,13 @@ class MessageRepository {
     String? after,
     String? around,
   }) async {
+    final Stopwatch pageStopwatch = Stopwatch()..start();
+    // Cumulative ms marks after each awaited phase, for device-log attribution.
+    final List<String> pageMarks = <String>[];
+    void mark(String name) {
+      pageMarks.add('$name@${pageStopwatch.elapsedMilliseconds}');
+    }
+
     try {
       final List<MessageResponseSchema> data = await _client.channels
           .listMessages(
@@ -234,6 +242,7 @@ class MessageRepository {
             after: after,
             around: around,
           );
+      mark('http');
 
       final List<Message> embeddedReplyParents = <Message>[];
       for (final sdk in data) {
@@ -253,6 +262,7 @@ class MessageRepository {
         currentUserId: _currentUserId,
         channelId: channelId,
       );
+      mark('ctx');
       final List<Message> messages = data
           .map(
             (sdk) =>
@@ -287,10 +297,12 @@ class MessageRepository {
       if (pageUsersById.isNotEmpty) {
         await upsertUsersCompanions(_db, pageUsersById.values);
       }
+      mark('users');
       final List<Message> persisted = await _upsertKeepingTranslations(
         messages,
       );
       await _pruneStaleMessagesForNetworkPage(channelId, persisted);
+      mark('persist');
 
       if (persisted.isNotEmpty) {
         final last = persisted.last;
@@ -302,6 +314,7 @@ class MessageRepository {
           last.timestamp,
         );
       }
+      mark('tail');
 
       if (persisted.any((m) => m.isMentioned)) {
         await ReadStateRepository(_client, _db).recomputeMentionsAfterBackfill(
@@ -309,7 +322,12 @@ class MessageRepository {
           currentUserId: _currentUserId,
           allowDecrease: true,
         );
+        mark('mentions');
       }
+      debugPrint(
+        '[MessageRepo] page ch=$channelId n=${persisted.length} '
+        '[${pageMarks.join(' ')}]',
+      );
 
       return MessageListLoadResult(
         messages: persisted,
