@@ -175,7 +175,7 @@ class GatewayEventHandler {
   final MessageDeleteCallback? onMessageDelete;
   final MessageDeleteBulkCallback? onMessageDeleteBulk;
   final MessageReactionChangeCallback? onMessageReactionChange;
-  final void Function(String channelId)? onOwnMessageCreated;
+  final void Function(String channelId, String messageId)? onOwnMessageCreated;
   final void Function(String channelId, {required bool manual})? onMessageAcked;
   final void Function(String? idHash)? onAuthSessionIdHashChanged;
   final ConnectionsUpdateCallback? onConnectionsUpdate;
@@ -1597,7 +1597,7 @@ class GatewayEventHandler {
           clearSticky: true,
           markDmRead: true,
         );
-        onOwnMessageCreated?.call(msg.channelId);
+        onOwnMessageCreated?.call(msg.channelId, msg.id);
         return;
       case ReadStateIncomingMessageKind.ackAutomaticMessage:
       case ReadStateIncomingMessageKind.ackBlockedMessage:
