@@ -23,6 +23,7 @@ import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/providers/messages/message_realtime_events.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/guilds/data/guild_local_cleanup.dart';
+import 'package:fluxer_app/features/guilds/utils/guild_notification_resolution.dart';
 import 'package:fluxer_app/features/notifications/data/mention_feed_write_batcher.dart';
 import 'package:fluxer_app/features/profile/domain/custom_status_utils.dart';
 import 'package:fluxer_app/shared/utils/sdk_converters.dart';
@@ -1466,11 +1467,20 @@ class GatewayEventHandler {
     final UserGuildSettingsResponse? guildSettings =
         await _guildSettingsForStorage(channelResolution.guildStorageId);
     final DateTime now = DateTime.now();
+    final GuildNotificationContext? guildContext =
+        channelResolution.isGuild && channelResolution.guildChannel != null
+        ? GuildNotificationContext.fromServer(
+            await database.guildDao.getServerById(
+              channelResolution.guildChannel!.guildId,
+            ),
+          )
+        : null;
     final UserNotificationSettings notificationLevel =
         channelResolution.isGuild && channelResolution.guildChannel != null
         ? resolveMessageNotifications(
             channel: channelResolution.guildChannel!,
             guildSettings: guildSettings,
+            guildContext: guildContext,
           )
         : resolvePrivateMessageNotifications(
             guildSettings: guildSettings,
