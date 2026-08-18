@@ -31,39 +31,42 @@ void main() {
     );
   });
 
-  test('completed playback releases the media session without republishing', () async {
-    await binding.claim(
-      mediaItem: const MediaItem(id: 'audio', title: 'audio.mp3'),
-      playing: true,
-      position: Duration.zero,
-      bufferedPosition: const Duration(seconds: 30),
-      speed: 1,
-    );
+  test(
+    'completed playback releases the media session without republishing',
+    () async {
+      await binding.claim(
+        mediaItem: const MediaItem(id: 'audio', title: 'audio.mp3'),
+        playing: true,
+        position: Duration.zero,
+        bufferedPosition: const Duration(seconds: 30),
+        speed: 1,
+      );
 
-    syncChatAttachmentAudioSession(
-      binding: binding,
-      attachment: attachment,
-      title: attachment.filename,
-      playing: false,
-      position: const Duration(seconds: 30),
-      totalDuration: const Duration(seconds: 30),
-      playbackRate: 1,
-      completed: true,
-    );
+      syncChatAttachmentAudioSession(
+        binding: binding,
+        attachment: attachment,
+        title: attachment.filename,
+        playing: false,
+        position: const Duration(seconds: 30),
+        totalDuration: const Duration(seconds: 30),
+        playbackRate: 1,
+        completed: true,
+      );
 
-    expect(session.isActiveHost(attachment.url), isFalse);
-    expect(handler.mediaItem.value, isNull);
-    expect(
-      handler.playbackState.value.processingState,
-      AudioProcessingState.idle,
-    );
+      expect(session.isActiveHost(attachment.url), isFalse);
+      expect(handler.mediaItem.value, isNull);
+      expect(
+        handler.playbackState.value.processingState,
+        AudioProcessingState.idle,
+      );
 
-    await pumpEventQueue();
+      await pumpEventQueue();
 
-    expect(handler.mediaItem.value, isNull);
-    expect(
-      handler.playbackState.value.processingState,
-      AudioProcessingState.idle,
-    );
-  });
+      expect(handler.mediaItem.value, isNull);
+      expect(
+        handler.playbackState.value.processingState,
+        AudioProcessingState.idle,
+      );
+    },
+  );
 }

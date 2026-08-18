@@ -242,7 +242,7 @@ class ChatAttachmentAudioSession {
     }
     handler
       ..publishMediaItem(null)
-      ..publishPlaybackState(const PlaybackState());
+      ..publishPlaybackState(PlaybackState());
   }
 
   PlaybackState _buildPlaybackState({
