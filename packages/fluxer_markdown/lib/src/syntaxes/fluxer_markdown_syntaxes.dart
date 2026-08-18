@@ -457,22 +457,9 @@ class FluxerLocalhostAutolinkSyntax extends md.InlineSyntax {
     if (startMatch == null) {
       return false;
     }
-    if (parser.pos > 0) {
-      final String precededBy = String.fromCharCode(
-        parser.charAt(parser.pos - 1),
-      );
-      const Set<String> validPrecedingChars = {
-        '\n',
-        ' ',
-        '*',
-        '_',
-        '~',
-        '(',
-        '>',
-      };
-      if (!validPrecedingChars.contains(precededBy)) {
-        return false;
-      }
+    if (parser.pos > 0 &&
+        !isAutolinkBoundaryCodePoint(parser.charAt(parser.pos - 1))) {
+      return false;
     }
     parser.writeText();
     return onMatch(parser, startMatch);
@@ -548,22 +535,9 @@ class FluxerAutolinkExtensionSyntax extends md.InlineSyntax {
     if (startMatch == null) {
       return false;
     }
-    if (parser.pos > 0) {
-      final String precededBy = String.fromCharCode(
-        parser.charAt(parser.pos - 1),
-      );
-      const Set<String> validPrecedingChars = {
-        '\n',
-        ' ',
-        '*',
-        '_',
-        '~',
-        '(',
-        '>',
-      };
-      if (!validPrecedingChars.contains(precededBy)) {
-        return false;
-      }
+    if (parser.pos > 0 &&
+        !isAutolinkBoundaryCodePoint(parser.charAt(parser.pos - 1))) {
+      return false;
     }
     parser.writeText();
     return onMatch(parser, startMatch);
