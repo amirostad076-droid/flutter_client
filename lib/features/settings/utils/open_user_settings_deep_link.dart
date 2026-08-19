@@ -43,10 +43,10 @@ UserSettingsDeepLinkPresentation buildUserSettingsDeepLinkPresentation({
   final IconData tabIcon = target.section == null
       ? PhosphorIconsFill.gear
       : iconForUserSettingsSection(
-            target.section!,
-            showBilling: showBilling,
-            isTouchPrimary: isTouchPrimary,
-          ) ??
+              target.section!,
+              showBilling: showBilling,
+              isTouchPrimary: isTouchPrimary,
+            ) ??
             PhosphorIconsFill.gear;
 
   return UserSettingsDeepLinkPresentation(

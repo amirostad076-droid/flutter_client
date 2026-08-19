@@ -161,9 +161,9 @@ void main() {
     test('hides billing sections when billing nav is off', () {
       final Set<UserSettingsSection> visible =
           visibleUserSettingsSearchSections(
-        showBilling: false,
-        isTouchPrimary: true,
-      );
+            showBilling: false,
+            isTouchPrimary: true,
+          );
       expect(visible, isNot(contains(UserSettingsSection.fluxerPlutonium)));
       expect(visible, contains(UserSettingsSection.lookAndFeel));
     });
@@ -171,16 +171,16 @@ void main() {
     test('hides shortcuts section on touch-primary devices', () {
       final Set<UserSettingsSection> touchVisible =
           visibleUserSettingsSearchSections(
-        showBilling: false,
-        isTouchPrimary: true,
-      );
+            showBilling: false,
+            isTouchPrimary: true,
+          );
       expect(touchVisible, isNot(contains(UserSettingsSection.shortcuts)));
 
       final Set<UserSettingsSection> pointerVisible =
           visibleUserSettingsSearchSections(
-        showBilling: false,
-        isTouchPrimary: false,
-      );
+            showBilling: false,
+            isTouchPrimary: false,
+          );
       expect(pointerVisible, contains(UserSettingsSection.shortcuts));
     });
   });

@@ -36,7 +36,10 @@ void main() {
   group('buildUserSettingsDesktopNav', () {
     test('includes billing entries only when showBilling is true', () {
       final List<UserSettingsDesktopNavEntry> withoutBilling =
-          buildUserSettingsDesktopNav(showBilling: false, isTouchPrimary: false);
+          buildUserSettingsDesktopNav(
+            showBilling: false,
+            isTouchPrimary: false,
+          );
       final List<UserSettingsDesktopNavEntry> withBilling =
           buildUserSettingsDesktopNav(showBilling: true, isTouchPrimary: false);
 

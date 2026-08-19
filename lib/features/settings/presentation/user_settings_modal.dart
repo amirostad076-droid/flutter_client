@@ -220,9 +220,9 @@ class _UserSettingsModalState extends ConsumerState<UserSettingsModal>
     final bool isTouchPrimary = isTouchPrimaryInput(ref);
     final List<UserSettingsDesktopNavEntry> desktopNav =
         buildUserSettingsDesktopNav(
-      showBilling: showBilling,
-      isTouchPrimary: isTouchPrimary,
-    );
+          showBilling: showBilling,
+          isTouchPrimary: isTouchPrimary,
+        );
 
     return WideSettingsModalFrame(
       includeOuterPadding: false,
