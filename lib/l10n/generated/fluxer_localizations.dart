@@ -4456,6 +4456,12 @@ abstract class FluxerLocalizations {
   /// **'An error occurred'**
   String get genericError;
 
+  /// Generic message shown when a network request fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get networkErrorMessage;
+
   /// Error message when a verification code is invalid.
   ///
   /// In en, this message translates to:

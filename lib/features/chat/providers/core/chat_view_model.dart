@@ -6053,7 +6053,7 @@ class ChatViewModel extends _$ChatViewModel {
         messageId,
         previousReactions,
         errorMessage: e is DioException
-            ? dioExceptionMessage(e, fallback)
+            ? userFacingErrorMessage(e, fallback)
             : fallback,
       );
     }

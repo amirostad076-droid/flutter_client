@@ -2432,6 +2432,9 @@ class FluxerLocalizationsJa extends FluxerLocalizations {
   String get genericError => 'エラーが発生しました';
 
   @override
+  String get networkErrorMessage => 'Something went wrong. Please try again.';
+
+  @override
   String get invalidCode => 'コードが無効です';
 
   @override

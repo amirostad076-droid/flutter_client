@@ -781,7 +781,7 @@ class MessageRepository {
         }
       }
     } on DioException catch (e) {
-      throw Exception(dioExceptionMessage(e, 'Failed to forward message'));
+      throw Exception(userFacingErrorMessage(e, 'Failed to forward message'));
     }
   }
 
@@ -798,7 +798,7 @@ class MessageRepository {
       );
       return await _persistSdkMessage(channelId: channelId, schema: schema);
     } on DioException catch (e) {
-      throw Exception(dioExceptionMessage(e, 'Failed to edit message'));
+      throw Exception(userFacingErrorMessage(e, 'Failed to edit message'));
     }
   }
 
@@ -814,7 +814,7 @@ class MessageRepository {
         attachmentId: attachmentId,
       );
     } on DioException catch (e) {
-      throw Exception(dioExceptionMessage(e, 'Failed to delete attachment'));
+      throw Exception(userFacingErrorMessage(e, 'Failed to delete attachment'));
     }
   }
 
@@ -851,7 +851,7 @@ class MessageRepository {
       final MessageResponseSchema schema = MessageResponseSchema.fromJson(data);
       return await _persistSdkMessage(channelId: channelId, schema: schema);
     } on DioException catch (e) {
-      throw Exception(dioExceptionMessage(e, 'Failed to edit attachments'));
+      throw Exception(userFacingErrorMessage(e, 'Failed to edit attachments'));
     }
   }
 

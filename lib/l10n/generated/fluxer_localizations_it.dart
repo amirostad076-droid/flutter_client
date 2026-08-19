@@ -2520,6 +2520,9 @@ class FluxerLocalizationsIt extends FluxerLocalizations {
   String get genericError => 'Si è verificato un errore';
 
   @override
+  String get networkErrorMessage => 'Something went wrong. Please try again.';
+
+  @override
   String get invalidCode => 'Codice non valido';
 
   @override

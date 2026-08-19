@@ -2518,6 +2518,9 @@ class FluxerLocalizationsTr extends FluxerLocalizations {
   String get genericError => 'Bir hata oluştu';
 
   @override
+  String get networkErrorMessage => 'Something went wrong. Please try again.';
+
+  @override
   String get invalidCode => 'Geçersiz kod';
 
   @override

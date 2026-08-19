@@ -2679,6 +2679,10 @@
     "@genericError": {
         "description": "Generic fallback error message."
     },
+    "networkErrorMessage": "Something went wrong. Please try again.",
+    "@networkErrorMessage": {
+        "description": "Generic message shown when a network request fails."
+    },
     "invalidCode": "Invalid code",
     "@invalidCode": {
         "description": "Error message when a verification code is invalid."

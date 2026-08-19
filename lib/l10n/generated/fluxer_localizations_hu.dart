@@ -2534,6 +2534,9 @@ class FluxerLocalizationsHu extends FluxerLocalizations {
   String get genericError => 'Hiba történt';
 
   @override
+  String get networkErrorMessage => 'Something went wrong. Please try again.';
+
+  @override
   String get invalidCode => 'Érvénytelen kód';
 
   @override

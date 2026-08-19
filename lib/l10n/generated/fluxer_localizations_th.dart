@@ -2501,6 +2501,9 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
   String get genericError => 'เกิดข้อผิดพลาดขึ้น';
 
   @override
+  String get networkErrorMessage => 'Something went wrong. Please try again.';
+
+  @override
   String get invalidCode => 'รหัสไม่ถูกต้อง';
 
   @override

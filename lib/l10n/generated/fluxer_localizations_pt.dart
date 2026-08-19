@@ -2518,6 +2518,9 @@ class FluxerLocalizationsPt extends FluxerLocalizations {
   String get genericError => 'Ocorreu um erro';
 
   @override
+  String get networkErrorMessage => 'Something went wrong. Please try again.';
+
+  @override
   String get invalidCode => 'Código inválido';
 
   @override

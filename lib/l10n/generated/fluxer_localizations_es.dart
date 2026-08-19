@@ -2537,6 +2537,9 @@ class FluxerLocalizationsEs extends FluxerLocalizations {
   String get genericError => 'Ha ocurrido un error';
 
   @override
+  String get networkErrorMessage => 'Something went wrong. Please try again.';
+
+  @override
   String get invalidCode => 'Código no válido';
 
   @override

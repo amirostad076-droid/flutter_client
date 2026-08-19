@@ -2512,6 +2512,9 @@ class FluxerLocalizationsNb extends FluxerLocalizations {
   String get genericError => 'En feil oppstod';
 
   @override
+  String get networkErrorMessage => 'Something went wrong. Please try again.';
+
+  @override
   String get invalidCode => 'Ugyldig kode';
 
   @override

@@ -2502,6 +2502,9 @@ class FluxerLocalizationsAr extends FluxerLocalizations {
   String get genericError => 'حدث خطأ';
 
   @override
+  String get networkErrorMessage => 'Something went wrong. Please try again.';
+
+  @override
   String get invalidCode => 'رمز غير صالح';
 
   @override

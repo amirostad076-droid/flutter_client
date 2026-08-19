@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/api/dio_error_message.dart';
 import 'package:fluxer_app/core/constants/external_urls.dart';
 import 'package:fluxer_app/core/providers/active_instance_provider.dart';
 import 'package:fluxer_app/core/providers/app_startup_provider.dart';
@@ -238,7 +239,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         ? startup
         : null;
     final String statusText = strings.splashStartupFailed(
-      startupError?.error.toString() ?? '',
+      startupError?.error == null
+          ? ''
+          : userFacingErrorMessage(
+              startupError!.error,
+              strings.networkErrorMessage,
+            ),
     );
     final bool isStartupComplete = startup is AsyncData<void>;
     final bool isGatewayReady = ref.watch(gatewayReadyProvider);

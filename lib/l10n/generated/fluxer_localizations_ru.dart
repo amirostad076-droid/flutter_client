@@ -2528,6 +2528,9 @@ class FluxerLocalizationsRu extends FluxerLocalizations {
   String get genericError => 'Произошла ошибка';
 
   @override
+  String get networkErrorMessage => 'Something went wrong. Please try again.';
+
+  @override
   String get invalidCode => 'Неверный код';
 
   @override

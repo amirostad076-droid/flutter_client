@@ -2503,6 +2503,9 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
   String get genericError => 'An error occurred';
 
   @override
+  String get networkErrorMessage => 'Something went wrong. Please try again.';
+
+  @override
   String get invalidCode => 'Invalid code';
 
   @override
@@ -22683,6 +22686,9 @@ class FluxerLocalizationsEnUs extends FluxerLocalizationsEn {
 
   @override
   String get genericError => 'An error occurred';
+
+  @override
+  String get networkErrorMessage => 'Something went wrong. Please try again.';
 
   @override
   String get invalidCode => 'Invalid code';

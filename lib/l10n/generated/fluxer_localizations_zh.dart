@@ -2399,6 +2399,9 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get genericError => '发生错误';
 
   @override
+  String get networkErrorMessage => 'Something went wrong. Please try again.';
+
+  @override
   String get invalidCode => '验证码无效';
 
   @override

@@ -2519,6 +2519,9 @@ class FluxerLocalizationsFi extends FluxerLocalizations {
   String get genericError => 'Tapahtui virhe';
 
   @override
+  String get networkErrorMessage => 'Something went wrong. Please try again.';
+
+  @override
   String get invalidCode => 'Virheellinen koodi';
 
   @override

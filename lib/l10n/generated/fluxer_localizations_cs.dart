@@ -2513,6 +2513,9 @@ class FluxerLocalizationsCs extends FluxerLocalizations {
   String get genericError => 'Došlo k chybě';
 
   @override
+  String get networkErrorMessage => 'Something went wrong. Please try again.';
+
+  @override
   String get invalidCode => 'Neplatný kód';
 
   @override
