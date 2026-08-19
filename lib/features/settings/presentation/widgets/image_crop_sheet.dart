@@ -18,13 +18,18 @@ Future<Uint8List?> showImageCropSheet(
   required double aspectRatio,
   required String title,
   CropMaskShape maskShape = CropMaskShape.rectangle,
-}) {
+}) async {
+  final imageSize = await imageCropDecodeImageSize(imageBytes);
+  if (!context.mounted) {
+    return null;
+  }
   return FluxerBottomSheet.show<Uint8List?>(
     context,
     title: title,
     enableDrag: false,
     builder: (sheetContext, _) => _ImageCropContent(
       imageBytes: imageBytes,
+      imageSize: imageSize,
       aspectRatio: aspectRatio,
       maskShape: maskShape,
     ),
@@ -34,11 +39,13 @@ Future<Uint8List?> showImageCropSheet(
 class _ImageCropContent extends ConsumerStatefulWidget {
   const _ImageCropContent({
     required this.imageBytes,
+    required this.imageSize,
     required this.aspectRatio,
     required this.maskShape,
   });
 
   final Uint8List imageBytes;
+  final Size? imageSize;
   final double aspectRatio;
   final CropMaskShape maskShape;
 
@@ -50,7 +57,7 @@ class _ImageCropContentState extends ConsumerState<_ImageCropContent> {
   final _cropController = CropController();
   var _isCropping = false;
   late final bool _isTouchMode;
-  double? _coverZoomScale;
+  Size? _viewportSize;
 
   @override
   void initState() {
@@ -67,82 +74,87 @@ class _ImageCropContentState extends ConsumerState<_ImageCropContent> {
     final frameBorderColor = colors.textPrimary.withValues(alpha: 0.9);
     final frameGuideColor = colors.textPrimary.withValues(alpha: 0.18);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Expanded(
-          child: Crop(
-            controller: _cropController,
-            image: widget.imageBytes,
-            aspectRatio: widget.aspectRatio,
-            withCircleUi: isCircle,
-            interactive: _isTouchMode,
-            fixCropRect: _isTouchMode,
-            baseColor: colors.backgroundPrimary,
-            maskColor: colors.backgroundPrimary.withValues(alpha: 0.7),
-            clipBehavior: Clip.none,
-            initialRectBuilder: InitialRectBuilder.withBuilder(
-              (viewportRect, _) =>
-                  computeInitialCropRect(viewportRect, widget.aspectRatio),
-            ),
-            overlayBuilder: (_, _) => CustomPaint(
-              painter: ImageCropFramePainter(
-                isCircle: isCircle,
-                borderColor: frameBorderColor,
-                guideColor: frameGuideColor,
-              ),
-            ),
-            cornerDotBuilder: _isTouchMode
-                ? (_, _) => const SizedBox.shrink()
-                : (size, alignment) => ImageCropCornerHandle(
-                    packageDotSize: size,
-                    alignment: alignment,
-                    color: colors.textPrimary,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        _viewportSize = constraints.biggest;
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Expanded(
+              child: Crop(
+                controller: _cropController,
+                image: widget.imageBytes,
+                aspectRatio: widget.aspectRatio,
+                withCircleUi: isCircle,
+                interactive: _isTouchMode,
+                fixCropRect: _isTouchMode,
+                baseColor: colors.backgroundPrimary,
+                maskColor: colors.backgroundPrimary.withValues(alpha: 0.7),
+                clipBehavior: Clip.none,
+                initialRectBuilder: InitialRectBuilder.withBuilder(
+                  (viewportRect, _) =>
+                      computeInitialCropRect(viewportRect, widget.aspectRatio),
+                ),
+                overlayBuilder: (_, _) => CustomPaint(
+                  painter: ImageCropFramePainter(
+                    isCircle: isCircle,
+                    borderColor: frameBorderColor,
+                    guideColor: frameGuideColor,
                   ),
-            willUpdateScale: _isTouchMode ? _willUpdateScale : null,
-            progressIndicator: Center(
-              child: CircularProgressIndicator(color: colors.brandPrimary),
+                ),
+                cornerDotBuilder: _isTouchMode
+                    ? (_, _) => const SizedBox.shrink()
+                    : (size, alignment) => ImageCropCornerHandle(
+                        packageDotSize: size,
+                        alignment: alignment,
+                        color: colors.textPrimary,
+                      ),
+                willUpdateScale: _isTouchMode ? _willUpdateScale : null,
+                progressIndicator: Center(
+                  child: CircularProgressIndicator(color: colors.brandPrimary),
+                ),
+                onCropped: _handleCropped,
+              ),
             ),
-            onCropped: _handleCropped,
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.fromLTRB(layout.s4, layout.s3, layout.s4, 0),
-          child: Text(
-            _isTouchMode ? l10n.cropTouchHint : l10n.cropMouseHint,
-            textAlign: TextAlign.center,
-            style: context.textStyles.smallText.copyWith(
-              color: colors.textSecondary,
-            ),
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.fromLTRB(
-            layout.s4,
-            layout.s4,
-            layout.s4,
-            layout.s2,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: FluxerButton.secondary(
-                  onPressed: _isCropping ? null : _skip,
-                  label: l10n.skip,
+            Padding(
+              padding: EdgeInsets.fromLTRB(layout.s4, layout.s3, layout.s4, 0),
+              child: Text(
+                _isTouchMode ? l10n.cropTouchHint : l10n.cropMouseHint,
+                textAlign: TextAlign.center,
+                style: context.textStyles.smallText.copyWith(
+                  color: colors.textSecondary,
                 ),
               ),
-              SizedBox(width: layout.s3),
-              Expanded(
-                child: FluxerButton.primary(
-                  onPressed: _isCropping ? null : _confirmCrop,
-                  label: l10n.crop,
-                  isLoading: _isCropping,
-                ),
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                layout.s4,
+                layout.s4,
+                layout.s4,
+                layout.s2,
               ),
-            ],
-          ),
-        ),
-      ],
+              child: Row(
+                children: [
+                  Expanded(
+                    child: FluxerButton.secondary(
+                      onPressed: _isCropping ? null : _skip,
+                      label: l10n.skip,
+                    ),
+                  ),
+                  SizedBox(width: layout.s3),
+                  Expanded(
+                    child: FluxerButton.primary(
+                      onPressed: _isCropping ? null : _confirmCrop,
+                      label: l10n.crop,
+                      isLoading: _isCropping,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -162,7 +174,10 @@ class _ImageCropContentState extends ConsumerState<_ImageCropContent> {
   }
 
   bool _willUpdateScale(double nextScale) {
-    _coverZoomScale ??= nextScale;
-    return nextScale >= _coverZoomScale! && nextScale <= imageCropMaxZoomScale;
+    if (widget.imageSize == null || _viewportSize == null) {
+      return true;
+    }
+    final maxScale = imageCropMaxScaleFor(widget.imageSize!, _viewportSize!);
+    return imageCropScaleAllowed(nextScale, maxScale);
   }
 }
