@@ -86,7 +86,7 @@ List<MessageContentSegment> _parseMessageContentStructureUncached(
   if (text.isEmpty) {
     return const [];
   }
-  final lines = text.split('\n');
+  final lines = text.split('\n').map(_stripTrailingCarriageReturn).toList();
   final segments = <MessageContentSegment>[];
   final textFlowBuffer = StringBuffer();
   var previousWasHeading = false;
@@ -175,7 +175,9 @@ List<MessageContentSegment> _parseMessageContentStructureUncached(
       _flushTextFlow(textFlowBuffer, segments);
       final tableEnd = _findTableEnd(lines, i);
       segments.add(
-        MessageBlockMarkdownSegment(lines.sublist(i, tableEnd).join('\n')),
+        MessageBlockMarkdownSegment(
+          lines.sublist(i, tableEnd).map(_trimTableLine).join('\n'),
+        ),
       );
       previousWasHeading = false;
       i = tableEnd;
@@ -414,7 +416,7 @@ int _findListEnd(
 int _findTableEnd(List<String> lines, int startIndex) {
   var index = startIndex + 2;
   while (index < lines.length) {
-    final trimmed = lines[index].trimLeft();
+    final trimmed = _trimTableLine(lines[index]);
     if (!trimmed.contains('|') || _isTableBlockBreak(trimmed)) {
       break;
     }
@@ -431,8 +433,8 @@ bool _isTableBlockStart(
   if (!features.allowTables || index + 2 >= lines.length) {
     return false;
   }
-  final String header = lines[index].trimLeft();
-  final String separator = lines[index + 1].trimLeft();
+  final String header = _trimTableLine(lines[index]);
+  final String separator = _trimTableLine(lines[index + 1]);
   if (!header.contains('|') || !separator.contains('|')) {
     return false;
   }
@@ -445,7 +447,19 @@ bool _isTableBlockStart(
   if (alignments == null || headerCells.length != alignments.length) {
     return false;
   }
-  return _findTableEnd(lines, index) > index + 1;
+  final String body = _trimTableLine(lines[index + 2]);
+  return body.contains('|') && !_isTableBlockBreak(body);
+}
+
+String _trimTableLine(String line) {
+  return line.trim();
+}
+
+String _stripTrailingCarriageReturn(String line) {
+  if (line.endsWith('\r')) {
+    return line.substring(0, line.length - 1);
+  }
+  return line;
 }
 
 List<String> _splitTableCells(String line) {
