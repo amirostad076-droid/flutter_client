@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:fluxer_app/core/audio/app_media_audio_session.dart';
+import 'package:fluxer_app/core/audio/chat_attachment/chat_attachment_audio_session.dart';
 import 'package:fluxer_app/core/audio/enums/fluxer_sfx_clip.dart';
 
 const double _kDefaultSfxVolume = 0.4;
@@ -50,8 +51,7 @@ AudioContext audioContextForSfxClip(
 }
 
 bool shouldRestoreAppMediaAudioAfterSfxContext(AudioContext context) {
-  return context == kNotificationSfxContext ||
-      context == kIncomingRingLoopContext;
+  return context == kIncomingRingLoopContext;
 }
 
 class FluxerSFX {
@@ -92,6 +92,8 @@ class FluxerSFX {
       await _oneShotPlayer.play(AssetSource(_relativeAssetPath(clip.assetKey)));
       if (shouldRestoreAppMediaAudioAfterSfxContext(context)) {
         unawaited(_restoreAppMediaAfterOneShot(generation));
+      } else if (context == kNotificationSfxContext) {
+        unawaited(_reactivateChatAttachmentAudioAfterNotification(generation));
       }
     } on Object {}
   }
@@ -146,13 +148,29 @@ class FluxerSFX {
   }
 
   Future<void> _restoreAppMediaAfterOneShot(int generation) async {
+    if (!await _waitForOneShotCompletion(generation)) {
+      return;
+    }
+    await _restoreAppMediaAudio();
+  }
+
+  Future<void> _reactivateChatAttachmentAudioAfterNotification(
+    int generation,
+  ) async {
+    if (!await _waitForOneShotCompletion(generation)) {
+      return;
+    }
+    await ChatAttachmentAudioSession.instance.reactivateAudioSessionIfActive();
+  }
+
+  Future<bool> _waitForOneShotCompletion(int generation) async {
     try {
       await _oneShotPlayer.onPlayerComplete.first;
     } on Object {}
     if (generation != _oneShotGeneration || _loopPlaybackActive) {
-      return;
+      return false;
     }
-    await _restoreAppMediaAudio();
+    return true;
   }
 
   Future<void> _restoreAppMediaAudio() async {

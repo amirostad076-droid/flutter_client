@@ -43,7 +43,16 @@ class ChatAttachmentAudioSession {
 
   bool get isAvailable => _handler != null;
 
+  bool get hasActivePlayback => _activeCallbacks != null;
+
   bool isActiveHost(String hostId) => _activeHostId == hostId;
+
+  Future<void> reactivateAudioSessionIfActive() async {
+    if (!hasActivePlayback) {
+      return;
+    }
+    await activateChatAttachmentAudioSession();
+  }
 
   void registerPublisher(ChatAttachmentAudioPublisher handler) {
     _handler = handler;

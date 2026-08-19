@@ -71,6 +71,23 @@ void main() {
     });
   });
 
+  group('shouldRestoreAppMediaAudioAfterSfxContext', () {
+    test('only incoming ring restores app media audio', () {
+      expect(
+        shouldRestoreAppMediaAudioAfterSfxContext(kNotificationSfxContext),
+        isFalse,
+      );
+      expect(
+        shouldRestoreAppMediaAudioAfterSfxContext(kIncomingRingLoopContext),
+        isTrue,
+      );
+      expect(
+        shouldRestoreAppMediaAudioAfterSfxContext(kSessionFeedbackSfxContext),
+        isFalse,
+      );
+    });
+  });
+
   group('playOneShot', () {
     test('uses notification context for message sounds', () async {
       when(mockOneShotPlayer.setAudioContext(any)).thenAnswer((_) async {});
