@@ -23,17 +23,61 @@ Future<Uint8List?> showImageCropSheet(
   if (!context.mounted) {
     return null;
   }
-  return FluxerBottomSheet.show<Uint8List?>(
-    context,
-    title: title,
-    enableDrag: false,
-    builder: (sheetContext, _) => _ImageCropContent(
-      imageBytes: imageBytes,
-      imageSize: imageSize,
-      aspectRatio: aspectRatio,
-      maskShape: maskShape,
-    ),
+  return showGeneralDialog<Uint8List?>(
+    context: context,
+    barrierLabel: title,
+    barrierColor: Colors.transparent,
+    pageBuilder: (dialogContext, _, _) {
+      return _ImageCropDialog(
+        imageBytes: imageBytes,
+        imageSize: imageSize,
+        aspectRatio: aspectRatio,
+        maskShape: maskShape,
+        title: title,
+      );
+    },
+    transitionBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(opacity: animation, child: child);
+    },
   );
+}
+
+class _ImageCropDialog extends StatelessWidget {
+  const _ImageCropDialog({
+    required this.imageBytes,
+    required this.imageSize,
+    required this.aspectRatio,
+    required this.maskShape,
+    required this.title,
+  });
+
+  final Uint8List imageBytes;
+  final Size? imageSize;
+  final double aspectRatio;
+  final CropMaskShape maskShape;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Scaffold(
+      backgroundColor: colors.backgroundPrimary,
+      appBar: AppBar(
+        backgroundColor: colors.backgroundPrimary,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        leading: const CloseButton(),
+        title: Text(title),
+      ),
+      body: _ImageCropContent(
+        imageBytes: imageBytes,
+        imageSize: imageSize,
+        aspectRatio: aspectRatio,
+        maskShape: maskShape,
+      ),
+    );
+  }
 }
 
 class _ImageCropContent extends ConsumerStatefulWidget {
