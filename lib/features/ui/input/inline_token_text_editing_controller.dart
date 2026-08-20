@@ -149,9 +149,8 @@ class InlineTokenTextEditingController extends TextEditingController {
     var base = value.selection.baseOffset;
     var extent = value.selection.extentOffset;
     for (final int rune in value.text.runes) {
-      if (rune >= 0xE000 &&
-          rune <= 0xF8FF &&
-          !_tokens.containsKey(String.fromCharCode(rune))) {
+      final String char = String.fromCharCode(rune);
+      if (rune >= 0xE000 && rune <= 0xF8FF && !_tokens.containsKey(char)) {
         if (value.selection.isValid) {
           if (base > inIndex) {
             base -= 1;
@@ -163,8 +162,8 @@ class InlineTokenTextEditingController extends TextEditingController {
         inIndex += 1;
         continue;
       }
-      buffer.writeCharCode(rune);
-      inIndex += 1;
+      buffer.write(char);
+      inIndex += char.length;
     }
     final String sanitized = buffer.toString();
     if (!value.selection.isValid) {
@@ -322,7 +321,7 @@ class InlineTokenTextEditingController extends TextEditingController {
     for (final int rune in runes) {
       final String char = String.fromCharCode(rune);
       final InlineToken? token = _tokens[char];
-      length += token != null ? token.wireText.length : 1;
+      length += token != null ? token.wireText.length : char.length;
     }
     return length;
   }
