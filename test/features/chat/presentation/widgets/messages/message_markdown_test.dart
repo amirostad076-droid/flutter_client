@@ -12,6 +12,8 @@ import 'package:fluxer_app/material_ui.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../../helpers/rendered_text_test_helpers.dart';
+
 Widget _app({
   required Locale locale,
   required Widget child,
@@ -38,10 +40,8 @@ Widget _app({
   );
 }
 
-List<String> _renderedTexts(WidgetTester tester) => tester
-    .widgetList<RichText>(find.byType(RichText))
-    .map((RichText richText) => richText.text.toPlainText())
-    .toList();
+List<String> _renderedTexts(WidgetTester tester) =>
+    renderedTextContents(tester);
 
 void main() {
   setUpAll(() async {

@@ -14,13 +14,11 @@ import 'package:fluxer_app/material_ui.dart';
 import 'package:fluxer_app/shared/utils/user_date_formatting.dart';
 import 'package:fluxer_dart/export.dart';
 
+import '../../../../../helpers/rendered_text_test_helpers.dart';
 import '../../../../../helpers/test_l10n.dart';
 
-List<String> _renderedTexts(WidgetTester tester) => tester
-    .widgetList<RichText>(find.byType(RichText))
-    .map((RichText richText) => richText.text.toPlainText())
-    .where((String text) => text.trim().isNotEmpty)
-    .toList();
+List<String> _renderedTexts(WidgetTester tester) =>
+    renderedTextContents(tester);
 
 Message _message() {
   final DateTime timestamp = DateTime(2026, 1, 1, 12);
@@ -182,16 +180,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final Finder groupStartText = find.byWidgetPredicate(
-        (Widget widget) =>
-            widget is RichText &&
-            widget.text.toPlainText().contains('hello world'),
-      );
-      final Finder groupedText = find.byWidgetPredicate(
-        (Widget widget) =>
-            widget is RichText &&
-            widget.text.toPlainText().contains('follow up'),
-      );
+      final Finder groupStartText = findRenderedTextContaining('hello world');
+      final Finder groupedText = findRenderedTextContaining('follow up');
       expect(groupStartText, findsOneWidget);
       expect(groupedText, findsOneWidget);
       expect(
