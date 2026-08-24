@@ -1362,6 +1362,7 @@ class GatewayEventHandler {
   }
 
   Future<void> _handleFavoriteMemeDelete(FavoriteMemeDeleteEvent event) async {
+    if (event.id.isEmpty) return;
     await database.favoriteMemesDao.deleteMeme(event.id);
   }
 
