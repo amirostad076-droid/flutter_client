@@ -1345,8 +1345,12 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
   String get addFriendClaimToSend => 'สมัครให้เสร็จสิ้นเพื่อส่งคำขอเป็นเพื่อน';
 
   @override
-  String get addFriendSendFailedGeneric =>
-      'ไม่สามารถส่งคำขอเป็นเพื่อนได้ ลองอีกครั้ง';
+  String get addFriendVerifyToSend =>
+      'Verify your email before sending friend requests.';
+
+  @override
+  String get addFriendFriendsListFull =>
+      'Your friends list is full, or theirs is. Remove someone and try again.';
 
   @override
   String get userTagBot => 'BOT';

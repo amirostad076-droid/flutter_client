@@ -1313,7 +1313,12 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
   String get addFriendClaimToSend => '친구 요청을 보내려면 가입을 완료하세요.';
 
   @override
-  String get addFriendSendFailedGeneric => '친구 요청을 보낼 수 없습니다. 다시 시도하세요.';
+  String get addFriendVerifyToSend =>
+      'Verify your email before sending friend requests.';
+
+  @override
+  String get addFriendFriendsListFull =>
+      'Your friends list is full, or theirs is. Remove someone and try again.';
 
   @override
   String get userTagBot => 'BOT';

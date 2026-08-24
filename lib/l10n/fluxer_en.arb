@@ -1780,9 +1780,13 @@
     "@addFriendClaimToSend": {
         "description": "Error when an unclaimed account tries to send a friend request."
     },
-    "addFriendSendFailedGeneric": "Couldn't send the friend request. Try again.",
-    "@addFriendSendFailedGeneric": {
-        "description": "Generic error when sending a friend request fails."
+    "addFriendVerifyToSend": "Verify your email before sending friend requests.",
+    "@addFriendVerifyToSend": {
+        "description": "Error when an unverified account tries to send a friend request."
+    },
+    "addFriendFriendsListFull": "Your friends list is full, or theirs is. Remove someone and try again.",
+    "@addFriendFriendsListFull": {
+        "description": "Error when either user's friends list is at the limit."
     },
     "userTagBot": "BOT",
     "@userTagBot": {

@@ -1356,8 +1356,12 @@ class FluxerLocalizationsNb extends FluxerLocalizations {
       'Fullfør registreringen for å sende venneforespørsler.';
 
   @override
-  String get addFriendSendFailedGeneric =>
-      'Kunne ikke sende venneforespørselen. Prøv igjen.';
+  String get addFriendVerifyToSend =>
+      'Verify your email before sending friend requests.';
+
+  @override
+  String get addFriendFriendsListFull =>
+      'Your friends list is full, or theirs is. Remove someone and try again.';
 
   @override
   String get userTagBot => 'BOT';

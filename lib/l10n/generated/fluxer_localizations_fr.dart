@@ -1371,8 +1371,12 @@ class FluxerLocalizationsFr extends FluxerLocalizations {
       'Terminez votre inscription pour envoyer des demandes d\'ami.';
 
   @override
-  String get addFriendSendFailedGeneric =>
-      'Impossible d\'envoyer la demande d\'ami. Réessayez.';
+  String get addFriendVerifyToSend =>
+      'Verify your email before sending friend requests.';
+
+  @override
+  String get addFriendFriendsListFull =>
+      'Your friends list is full, or theirs is. Remove someone and try again.';
 
   @override
   String get userTagBot => 'BOT';

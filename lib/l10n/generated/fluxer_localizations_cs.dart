@@ -1355,8 +1355,12 @@ class FluxerLocalizationsCs extends FluxerLocalizations {
       'Dokončete registraci a odešlete žádosti o přátelství.';
 
   @override
-  String get addFriendSendFailedGeneric =>
-      'Žádost o přátelství se nepodařilo odeslat. Zkuste to znovu.';
+  String get addFriendVerifyToSend =>
+      'Verify your email before sending friend requests.';
+
+  @override
+  String get addFriendFriendsListFull =>
+      'Your friends list is full, or theirs is. Remove someone and try again.';
 
   @override
   String get userTagBot => 'BOT';

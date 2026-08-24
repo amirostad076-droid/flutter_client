@@ -1357,8 +1357,12 @@ class FluxerLocalizationsFi extends FluxerLocalizations {
       'Viimeistele rekisteröityminen lähettääksesi ystäväpyyntöjä.';
 
   @override
-  String get addFriendSendFailedGeneric =>
-      'Ystäväpyynnön lähettäminen epäonnistui. Yritä uudelleen.';
+  String get addFriendVerifyToSend =>
+      'Verify your email before sending friend requests.';
+
+  @override
+  String get addFriendFriendsListFull =>
+      'Your friends list is full, or theirs is. Remove someone and try again.';
 
   @override
   String get userTagBot => 'BOT';

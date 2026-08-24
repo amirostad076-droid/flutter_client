@@ -1351,8 +1351,12 @@ class FluxerLocalizationsEn extends FluxerLocalizations {
       'Finish signing up to send friend requests.';
 
   @override
-  String get addFriendSendFailedGeneric =>
-      'Couldn\'t send the friend request. Try again.';
+  String get addFriendVerifyToSend =>
+      'Verify your email before sending friend requests.';
+
+  @override
+  String get addFriendFriendsListFull =>
+      'Your friends list is full, or theirs is. Remove someone and try again.';
 
   @override
   String get userTagBot => 'BOT';
@@ -14649,10 +14653,6 @@ class FluxerLocalizationsEnGb extends FluxerLocalizationsEn {
       'Finish signing up to send friend requests.';
 
   @override
-  String get addFriendSendFailedGeneric =>
-      'Couldn\'t send the friend request. Try again.';
-
-  @override
   String get userTagBot => 'BOT';
 
   @override
@@ -21759,10 +21759,6 @@ class FluxerLocalizationsEnUs extends FluxerLocalizationsEn {
   @override
   String get addFriendClaimToSend =>
       'Finish signing up to send friend requests.';
-
-  @override
-  String get addFriendSendFailedGeneric =>
-      'Couldn\'t send the friend request. Try again.';
 
   @override
   String get userTagBot => 'BOT';

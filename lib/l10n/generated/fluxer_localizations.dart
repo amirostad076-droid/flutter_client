@@ -2476,11 +2476,17 @@ abstract class FluxerLocalizations {
   /// **'Finish signing up to send friend requests.'**
   String get addFriendClaimToSend;
 
-  /// Generic error when sending a friend request fails.
+  /// Error when an unverified account tries to send a friend request.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t send the friend request. Try again.'**
-  String get addFriendSendFailedGeneric;
+  /// **'Verify your email before sending friend requests.'**
+  String get addFriendVerifyToSend;
+
+  /// Error when either user's friends list is at the limit.
+  ///
+  /// In en, this message translates to:
+  /// **'Your friends list is full, or theirs is. Remove someone and try again.'**
+  String get addFriendFriendsListFull;
 
   /// Tag label shown next to bot user names.
   ///

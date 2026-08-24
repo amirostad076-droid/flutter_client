@@ -1319,7 +1319,12 @@ class FluxerLocalizationsJa extends FluxerLocalizations {
   String get addFriendClaimToSend => '友達リクエストを送信するには、サインアップを完了してください。';
 
   @override
-  String get addFriendSendFailedGeneric => '友達リクエストを送信できませんでした。もう一度お試しください。';
+  String get addFriendVerifyToSend =>
+      'Verify your email before sending friend requests.';
+
+  @override
+  String get addFriendFriendsListFull =>
+      'Your friends list is full, or theirs is. Remove someone and try again.';
 
   @override
   String get userTagBot => 'BOT';

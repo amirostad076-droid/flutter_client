@@ -1362,8 +1362,12 @@ class FluxerLocalizationsEl extends FluxerLocalizations {
       'Ολοκλήρωσε την εγγραφή σου για να στείλεις αιτήματα φιλίας.';
 
   @override
-  String get addFriendSendFailedGeneric =>
-      'Δεν ήταν δυνατή η αποστολή του αιτήματος φιλίας. Δοκίμασε ξανά.';
+  String get addFriendVerifyToSend =>
+      'Verify your email before sending friend requests.';
+
+  @override
+  String get addFriendFriendsListFull =>
+      'Your friends list is full, or theirs is. Remove someone and try again.';
 
   @override
   String get userTagBot => 'BOT';

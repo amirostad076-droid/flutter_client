@@ -1359,8 +1359,12 @@ class FluxerLocalizationsRu extends FluxerLocalizations {
       'Завершите регистрацию, чтобы отправлять запросы в друзья.';
 
   @override
-  String get addFriendSendFailedGeneric =>
-      'Не удалось отправить запрос в друзья. Попробуйте снова.';
+  String get addFriendVerifyToSend =>
+      'Verify your email before sending friend requests.';
+
+  @override
+  String get addFriendFriendsListFull =>
+      'Your friends list is full, or theirs is. Remove someone and try again.';
 
   @override
   String get userTagBot => 'BOT';

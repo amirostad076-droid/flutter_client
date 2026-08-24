@@ -1359,8 +1359,12 @@ class FluxerLocalizationsPl extends FluxerLocalizations {
       'Zakończ rejestrację, aby wysyłać prośby o dodanie do znajomych.';
 
   @override
-  String get addFriendSendFailedGeneric =>
-      'Nie udało się wysłać prośby o dodanie do znajomych. Spróbuj ponownie.';
+  String get addFriendVerifyToSend =>
+      'Verify your email before sending friend requests.';
+
+  @override
+  String get addFriendFriendsListFull =>
+      'Your friends list is full, or theirs is. Remove someone and try again.';
 
   @override
   String get userTagBot => 'BOT';

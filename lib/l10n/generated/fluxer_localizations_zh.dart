@@ -1302,7 +1302,12 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get addFriendClaimToSend => '完成注册即可发送好友请求。';
 
   @override
-  String get addFriendSendFailedGeneric => '无法发送好友请求。请重试。';
+  String get addFriendVerifyToSend =>
+      'Verify your email before sending friend requests.';
+
+  @override
+  String get addFriendFriendsListFull =>
+      'Your friends list is full, or theirs is. Remove someone and try again.';
 
   @override
   String get userTagBot => 'BOT';
@@ -14211,9 +14216,6 @@ class FluxerLocalizationsZhHant extends FluxerLocalizationsZh {
 
   @override
   String get addFriendClaimToSend => '完成註冊即可傳送好友要求。';
-
-  @override
-  String get addFriendSendFailedGeneric => '無法傳送好友要求。請再試一次。';
 
   @override
   String get userTagBot => 'BOT';

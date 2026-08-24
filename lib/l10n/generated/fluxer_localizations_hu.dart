@@ -1362,8 +1362,12 @@ class FluxerLocalizationsHu extends FluxerLocalizations {
       'Fejezd be a regisztrációt a barátfelkérések küldéséhez.';
 
   @override
-  String get addFriendSendFailedGeneric =>
-      'Nem sikerült elküldeni a barátfelkérést. Próbáld újra.';
+  String get addFriendVerifyToSend =>
+      'Verify your email before sending friend requests.';
+
+  @override
+  String get addFriendFriendsListFull =>
+      'Your friends list is full, or theirs is. Remove someone and try again.';
 
   @override
   String get userTagBot => 'BOT';

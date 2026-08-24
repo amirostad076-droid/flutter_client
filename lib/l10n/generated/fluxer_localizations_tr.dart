@@ -1355,8 +1355,12 @@ class FluxerLocalizationsTr extends FluxerLocalizations {
       'Arkadaşlık isteği göndermek için kaydınızı tamamlayın.';
 
   @override
-  String get addFriendSendFailedGeneric =>
-      'Arkadaşlık isteği gönderilemedi. Lütfen tekrar deneyin.';
+  String get addFriendVerifyToSend =>
+      'Verify your email before sending friend requests.';
+
+  @override
+  String get addFriendFriendsListFull =>
+      'Your friends list is full, or theirs is. Remove someone and try again.';
 
   @override
   String get userTagBot => 'BOT';

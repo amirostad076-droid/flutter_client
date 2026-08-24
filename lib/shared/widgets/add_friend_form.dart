@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluxer_app/core/api/dio_error_message.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/friends/domain/friend_request_exception.dart';
 import 'package:fluxer_app/features/friends/providers/friend_providers.dart';
@@ -83,14 +84,14 @@ class _AddFriendFormState extends ConsumerState<AddFriendForm> {
         _resultStatus = _FormResultStatus.error;
         _errorMessage = getSendFriendRequestErrorFromException(l10n, e);
       });
-    } on Exception catch (_) {
+    } on Exception catch (e) {
       if (!mounted) {
         return;
       }
       setState(() {
         _isLoading = false;
         _resultStatus = _FormResultStatus.error;
-        _errorMessage = l10n.addFriendSendFailedGeneric;
+        _errorMessage = userFacingErrorMessage(e, '');
       });
     }
   }
