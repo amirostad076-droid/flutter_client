@@ -36,11 +36,11 @@ import 'package:fluxer_app/features/guilds/services/guild_verification.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/user_settings_view_model.dart';
+import 'package:fluxer_app/material_ui.dart';
 import 'package:fluxer_app/shared/services/guild_member_hydration_service.dart';
 import 'package:fluxer_app/shared/utils/snowflake_time.dart';
 import 'package:fluxer_dart/export.dart';
 import 'package:fluxer_dart/gateway.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:riverpod/src/framework.dart' show Override;
 
 import '../../../../../helpers/message_realtime_test_helpers.dart';

@@ -17,8 +17,8 @@ import 'package:fluxer_app/features/members/providers/member_list_viewport_provi
 import 'package:fluxer_app/features/members/providers/member_providers.dart';
 import 'package:fluxer_app/features/members/utils/member_list_access.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
+import 'package:fluxer_app/material_ui.dart';
 import 'package:fluxer_dart/gateway.dart';
-import 'package:material_ui/material_ui.dart';
 
 class GuildMembersTabContent extends ConsumerStatefulWidget {
   const GuildMembersTabContent({

@@ -19,8 +19,8 @@ import 'package:fluxer_app/features/members/providers/member_list_subscription_p
 import 'package:fluxer_app/features/members/providers/member_list_viewport_provider.dart';
 import 'package:fluxer_app/features/members/providers/member_providers.dart';
 import 'package:fluxer_app/features/members/utils/member_list_access.dart';
+import 'package:fluxer_app/material_ui.dart';
 import 'package:fluxer_dart/gateway.dart';
-import 'package:material_ui/material_ui.dart';
 
 const double _kPanelWidth = 264;
 

@@ -15,7 +15,7 @@ import 'package:fluxer_app/features/settings/providers/user_settings_view_model.
 import 'package:fluxer_app/features/settings/providers/voice_settings_provider.dart';
 import 'package:fluxer_app/features/settings/utils/platform_desktop_utils.dart';
 import 'package:fluxer_app/features/voice/domain/voice_settings_state.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:fluxer_app/material_ui.dart';
 import 'package:riverpod/src/framework.dart';
 
 import '../../helpers/test_l10n.dart';

@@ -17,8 +17,8 @@ import 'package:fluxer_app/features/ui/tappable/fluxer_gesture_detector.dart';
 import 'package:fluxer_app/features/ui/text_link/fluxer_text_link.dart';
 import 'package:fluxer_app/features/ui/warning_alert/fluxer_warning_alert.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/material_ui.dart';
 import 'package:intl/intl.dart';
-import 'package:material_ui/material_ui.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({required this.onBack, super.key});

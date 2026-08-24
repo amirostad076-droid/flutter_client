@@ -31,12 +31,12 @@ import 'package:fluxer_app/features/voice/utils/voice_grid_layout/voice_hangout_
 import 'package:fluxer_app/features/voice/utils/voice_grid_speaking_order.dart';
 import 'package:fluxer_app/features/voice/utils/voice_participant_track_resolver.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/material_ui.dart';
 import 'package:fluxer_app/shared/providers/guild_user_display_provider.dart';
 import 'package:fluxer_app/shared/providers/input_modality_provider.dart';
 import 'package:fluxer_app/shared/utils/guild_user_display.dart';
 import 'package:fluxer_dart/gateway.dart';
 import 'package:livekit_client/livekit_client.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const Duration _kTileMoveDuration = Duration(milliseconds: 260);

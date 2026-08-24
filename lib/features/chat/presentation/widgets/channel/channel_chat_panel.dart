@@ -27,7 +27,7 @@ import 'package:fluxer_app/features/settings/providers/appearance_preferences_pr
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/shell/utils/mobile_scaffold_resize_policy.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:fluxer_app/material_ui.dart';
 
 const double _kChannelChatNekoBottom = 0;
 const double _kChannelChatNekoBottomAboveSlowmode =

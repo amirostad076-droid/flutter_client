@@ -5,7 +5,7 @@ import 'package:fluxer_app/features/chat/domain/message.dart';
 import 'package:fluxer_app/features/chat/presentation/sheets/forward_message_sheet.dart';
 import 'package:fluxer_app/features/chat/utils/embed_animated_image_url.dart';
 import 'package:fluxer_app/features/ui/media_viewer/attachment_media_viewer.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:fluxer_app/material_ui.dart';
 
 String embedMediaEffectiveUrl(EmbedMedia media) {
   return media.proxyUrl ?? media.url;

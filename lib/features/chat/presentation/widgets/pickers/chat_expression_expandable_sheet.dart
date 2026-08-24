@@ -17,9 +17,9 @@ import 'package:fluxer_app/features/chat/utils/bottom_input_slot_layout.dart';
 import 'package:fluxer_app/features/chat/utils/inline_expression_panel_layout.dart';
 import 'package:fluxer_app/features/chat/utils/inline_expression_panel_scroll_physics.dart';
 import 'package:fluxer_app/features/ui/bottom_sheet/fluxer_bottom_sheet.dart';
+import 'package:fluxer_app/material_ui.dart';
 import 'package:fluxer_app/shared/gestures/expandable_sheet_gestures.dart';
 import 'package:fluxer_app/shared/gestures/nested_horizontal_scrollable.dart';
-import 'package:material_ui/material_ui.dart';
 
 const Key kChatExpressionSheetKey = kExpressionPanelShellGestureBlockKey;
 const Key kChatExpressionSheetDragHandleKey = Key(

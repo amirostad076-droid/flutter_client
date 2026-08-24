@@ -10,8 +10,8 @@ import 'package:fluxer_app/features/voice/providers/voice_call_display_preferenc
 import 'package:fluxer_app/features/voice/providers/voice_channel_text_chat_provider.dart';
 import 'package:fluxer_app/features/voice/providers/voice_noise_filter_provider.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/material_ui.dart';
 import 'package:livekit_client/livekit_client.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const Key kVoiceControlPanelSettingsKey = Key('voice-control-panel-settings');

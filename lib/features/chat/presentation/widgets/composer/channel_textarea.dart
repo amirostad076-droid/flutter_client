@@ -85,11 +85,12 @@ import 'package:fluxer_app/features/ui/input/fluxer_clipboard_scope.dart';
 import 'package:fluxer_app/features/ui/input/inline_token_clipboard.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/material_ui.dart';
 import 'package:fluxer_app/shared/providers/input_modality_provider.dart';
 import 'package:fluxer_app/shared/utils/chat_context_utils.dart';
 import 'package:fluxer_app/shared/utils/fluxer_haptics.dart';
 import 'package:fluxer_app/shared/utils/keyboard_focus_restore.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:fluxer_markdown/fluxer_markdown.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const double _kComposerDisabledOpacity = 0.6;
@@ -704,52 +705,58 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
                       child: Semantics(
                         label: _resolveHintText(),
                         textField: true,
-                        child: TextField(
-                          controller: _controller,
-                          focusNode: focusNode,
-                          scrollController: _composerScrollController,
-                          enabled: perms.isComposerEnabled,
-                          style: context.textStyles.inputText,
-                          minLines: minLines,
+                        child: wrapBoundedTextClip(
                           maxLines: maxLines,
-                          selectionWidthStyle: BoxWidthStyle.tight,
-                          decoration: effectiveDecoration,
-                          textAlignVertical: textAlignVertical,
-                          textCapitalization: TextCapitalization.sentences,
-                          contextMenuBuilder: clipboardScope.buildContextMenu,
-                          contentInsertionConfiguration: perms.isAttachEnabled
-                              ? ContentInsertionConfiguration(
-                                  onContentInserted:
-                                      (KeyboardInsertedContent content) {
-                                        unawaited(() async {
-                                          final FileUploadValidationResult?
-                                          result =
-                                              await handleComposerContentInserted(
-                                                ref: ref,
-                                                channelId: channelId,
-                                                content: content,
-                                                isAttachEnabled:
-                                                    perms.isAttachEnabled,
-                                              );
-                                          if (result != null) {
-                                            _toastUploadValidation(result);
-                                          }
-                                        }());
-                                      },
-                                )
-                              : null,
-                          onTap: () {
-                            if (isComposerPanelOpen(
-                              expressionPanelOpen: ref.read(
-                                expressionPanelProvider,
-                              ),
-                              attachmentPanelOpen: ref.read(
-                                attachmentPanelProvider,
-                              ),
-                            )) {
-                              _closeComposerPanelsAndFocusComposer();
-                            }
-                          },
+                          child: TextField(
+                            controller: _controller,
+                            focusNode: focusNode,
+                            scrollController: _composerScrollController,
+                            enabled: perms.isComposerEnabled,
+                            style: context.textStyles.inputText,
+                            strutStyle: boundedStrutFor(
+                              context.textStyles.inputText,
+                            ),
+                            minLines: minLines,
+                            maxLines: maxLines,
+                            selectionWidthStyle: BoxWidthStyle.tight,
+                            decoration: effectiveDecoration,
+                            textAlignVertical: textAlignVertical,
+                            textCapitalization: TextCapitalization.sentences,
+                            contextMenuBuilder: clipboardScope.buildContextMenu,
+                            contentInsertionConfiguration: perms.isAttachEnabled
+                                ? ContentInsertionConfiguration(
+                                    onContentInserted:
+                                        (KeyboardInsertedContent content) {
+                                          unawaited(() async {
+                                            final FileUploadValidationResult?
+                                            result =
+                                                await handleComposerContentInserted(
+                                                  ref: ref,
+                                                  channelId: channelId,
+                                                  content: content,
+                                                  isAttachEnabled:
+                                                      perms.isAttachEnabled,
+                                                );
+                                            if (result != null) {
+                                              _toastUploadValidation(result);
+                                            }
+                                          }());
+                                        },
+                                  )
+                                : null,
+                            onTap: () {
+                              if (isComposerPanelOpen(
+                                expressionPanelOpen: ref.read(
+                                  expressionPanelProvider,
+                                ),
+                                attachmentPanelOpen: ref.read(
+                                  attachmentPanelProvider,
+                                ),
+                              )) {
+                                _closeComposerPanelsAndFocusComposer();
+                              }
+                            },
+                          ),
                         ),
                       ),
                     ),

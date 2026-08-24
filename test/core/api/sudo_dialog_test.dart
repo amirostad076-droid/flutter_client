@@ -12,8 +12,8 @@ import 'package:fluxer_app/core/theme/fluxer_theme.dart';
 import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/ui/input/fluxer_input.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/material_ui.dart';
 import 'package:fluxer_app/shared/utils/keyboard_focus_restore.dart';
-import 'package:material_ui/material_ui.dart';
 
 class _MfaMethodsAdapter implements HttpClientAdapter {
   const _MfaMethodsAdapter({

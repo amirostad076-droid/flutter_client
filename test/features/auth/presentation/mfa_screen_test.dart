@@ -8,8 +8,8 @@ import 'package:fluxer_app/core/theme/themes/dark.dart';
 import 'package:fluxer_app/features/auth/domain/mfa_challenge.dart';
 import 'package:fluxer_app/features/auth/presentation/mfa_screen.dart';
 import 'package:fluxer_app/features/auth/providers/mfa_view_model.dart';
+import 'package:fluxer_app/material_ui.dart';
 import 'package:fluxer_app/shared/utils/keyboard_focus_restore.dart';
-import 'package:material_ui/material_ui.dart';
 
 import '../../../helpers/test_l10n.dart';
 

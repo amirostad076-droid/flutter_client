@@ -14,6 +14,7 @@ import 'package:fluxer_markdown/src/parsing/inline_parse_chunks.dart';
 import 'package:fluxer_markdown/src/parsing/markdown_parse_cache.dart';
 import 'package:fluxer_markdown/src/syntaxes/fluxer_markdown_syntaxes.dart';
 import 'package:fluxer_markdown/src/utils/ansi_text_parser.dart';
+import 'package:fluxer_markdown/src/utils/bounded_text.dart';
 import 'package:fluxer_markdown/src/utils/code_block_highlight.dart';
 import 'package:fluxer_markdown/src/utils/highlight_languages.dart';
 import 'package:fluxer_markdown/src/utils/jumbo_emoji.dart';
@@ -278,15 +279,15 @@ Widget buildFluxerMarkdownTextFlow({
     return const SizedBox.shrink();
   }
   if (text.replaceAll('\n', '').isEmpty) {
-    final RichText richText = RichText(
-      text: TextSpan(text: text, style: baseStyle),
-      textScaler: MediaQuery.textScalerOf(context),
-      maxLines: maxLines,
-      overflow: overflow ?? TextOverflow.clip,
-      textWidthBasis: TextWidthBasis.longestLine,
-    );
     return wrapFluxerMarkdownSelectable(
-      body: richText,
+      body: buildFluxerBoundedRichText(
+        text: TextSpan(text: text, style: baseStyle),
+        baseStyle: baseStyle,
+        textScaler: MediaQuery.textScalerOf(context),
+        maxLines: maxLines,
+        overflow: overflow,
+        textWidthBasis: TextWidthBasis.longestLine,
+      ),
       selectable: selectable,
       config: config,
     );
@@ -343,11 +344,12 @@ Widget buildFluxerMarkdownTextFlow({
     if (trailingInlineWidget != null) {
       appendTrailingInlineWidget(spans, baseStyle, trailingInlineWidget);
     }
-    final RichText richText = RichText(
+    final Widget richText = buildFluxerBoundedRichText(
       text: TextSpan(style: baseStyle, children: spans),
+      baseStyle: baseStyle,
       textScaler: MediaQuery.textScalerOf(buildContext),
       maxLines: maxLines,
-      overflow: overflow ?? TextOverflow.clip,
+      overflow: overflow,
       textWidthBasis: trailingInlineWidget != null || maxLines != null
           ? TextWidthBasis.parent
           : TextWidthBasis.longestLine,
@@ -473,11 +475,12 @@ class _MarkdownBlockRenderer {
     if (spans.isEmpty) {
       return const SizedBox.shrink();
     }
-    return RichText(
+    return buildFluxerBoundedRichText(
       text: TextSpan(style: baseStyle, children: spans),
+      baseStyle: baseStyle,
       textScaler: MediaQuery.textScalerOf(context),
       maxLines: maxLines,
-      overflow: overflow ?? TextOverflow.clip,
+      overflow: overflow,
     );
   }
 
@@ -661,24 +664,26 @@ class _MarkdownBlockRenderer {
     ).build(nodes);
 
     if (spans.isEmpty) {
-      return RichText(
+      return buildFluxerBoundedRichText(
         text: TextSpan(text: '\n', style: effectiveStyle),
+        baseStyle: effectiveStyle,
         textAlign: textAlign ?? TextAlign.start,
         textScaler: MediaQuery.textScalerOf(context),
         maxLines: maxLines,
-        overflow: overflow ?? TextOverflow.clip,
+        overflow: overflow,
         textWidthBasis: maxLines != null
             ? TextWidthBasis.parent
             : TextWidthBasis.longestLine,
       );
     }
 
-    return RichText(
+    return buildFluxerBoundedRichText(
       text: TextSpan(style: effectiveStyle, children: spans),
+      baseStyle: effectiveStyle,
       textAlign: textAlign ?? TextAlign.start,
       textScaler: MediaQuery.textScalerOf(context),
       maxLines: maxLines,
-      overflow: overflow ?? TextOverflow.clip,
+      overflow: overflow,
       textWidthBasis: maxLines != null
           ? TextWidthBasis.parent
           : TextWidthBasis.longestLine,
@@ -903,11 +908,13 @@ class _MarkdownBlockRenderer {
       children: [
         SizedBox(
           width: markerColumnWidth,
-          child: RichText(
+          child: buildFluxerBoundedRichText(
             text: TextSpan(text: marker, style: baseStyle),
+            baseStyle: baseStyle,
             textAlign: markerTextAlign,
             textScaler: textScaler,
             maxLines: 1,
+            overflow: TextOverflow.clip,
             softWrap: false,
           ),
         ),
@@ -1475,11 +1482,12 @@ class _MarkdownInlineRenderer {
           spoilerBackgroundColor: config.spoilerBackgroundColor,
           spoilerSyncController: config.spoilerSyncController,
           syncKeys: syncKeys,
-          child: RichText(
+          child: buildFluxerBoundedRichText(
             text: TextSpan(style: effectiveStyle, children: spoilerChildren),
+            baseStyle: effectiveStyle,
             textScaler: MediaQuery.textScalerOf(context),
             maxLines: maxLines,
-            overflow: overflow ?? TextOverflow.clip,
+            overflow: overflow,
           ),
         ),
       );
@@ -2218,11 +2226,12 @@ class FluxerCodeBlockWidget extends StatelessWidget {
           width: double.infinity,
           decoration: BoxDecoration(color: bgColor, borderRadius: _kRadius),
           padding: _kPadding,
-          child: RichText(
+          child: buildFluxerBoundedRichText(
             text: TextSpan(
               style: monoStyle,
               children: parseAnsiTextSpans(code, monoStyle),
             ),
+            baseStyle: monoStyle,
           ),
         ),
       );

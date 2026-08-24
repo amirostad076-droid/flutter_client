@@ -9,7 +9,7 @@ import 'package:fluxer_app/features/channels/presentation/widgets/channel_icon.d
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/channels/guild_channel_drop_indicator.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/channels/guild_channel_settings_draggable.dart';
 import 'package:fluxer_app/features/settings/presentation/widgets/guild/channels/guild_channel_settings_entries.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:fluxer_app/material_ui.dart';
 
 typedef GuildChannelDropHoverCallback =
     void Function(

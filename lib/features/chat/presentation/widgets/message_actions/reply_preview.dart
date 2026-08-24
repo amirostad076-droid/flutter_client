@@ -16,13 +16,13 @@ import 'package:fluxer_app/features/chat/utils/channel_message_stream.dart';
 import 'package:fluxer_app/features/chat/utils/mention_reply_preference_utils.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/material_ui.dart';
 import 'package:fluxer_app/shared/providers/guild_user_display_provider.dart';
 import 'package:fluxer_app/shared/providers/member_role_color.dart';
 import 'package:fluxer_app/shared/utils/guild_user_display.dart'
     show GuildUserDisplay, messagePrefersPersistedAuthorDisplay;
 import 'package:fluxer_dart/models/mention_reply_preferences.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const double _kReplyPreviewFontSize = 14;

@@ -4,7 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/scheduler.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:fluxer_app/material_ui.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
 Offset _parallaxDeltaFromSensor({

@@ -8,9 +8,9 @@ import 'package:fluxer_app/features/chat/service/composer_mention_controller.dar
 import 'package:fluxer_app/features/ui/input/emoji_inline_token.dart';
 import 'package:fluxer_app/features/ui/input/inline_token_text_editing_controller.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/material_ui.dart';
 import 'package:fluxer_app/shared/utils/emoji_registry.dart';
 import 'package:fluxer_app/shared/utils/emoji_sprite_sheet.dart';
-import 'package:material_ui/material_ui.dart';
 
 /// Substitutes [raw] through a scratch controller and returns the wire
 /// round-trip of the display text.

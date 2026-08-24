@@ -16,9 +16,9 @@ import 'package:fluxer_app/features/mature_content/presentation/widgets/mature_m
 import 'package:fluxer_app/features/settings/providers/advanced_preferences_provider.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
+import 'package:fluxer_app/material_ui.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
 import 'package:intl/intl.dart';
-import 'package:material_ui/material_ui.dart';
 
 class AttachmentRenderer extends ConsumerWidget {
   const AttachmentRenderer({

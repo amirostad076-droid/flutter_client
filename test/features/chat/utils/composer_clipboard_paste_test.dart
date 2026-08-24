@@ -9,7 +9,7 @@ import 'package:fluxer_app/features/chat/service/composer_mention_controller.dar
 import 'package:fluxer_app/features/chat/utils/composer_clipboard_paste.dart';
 import 'package:fluxer_app/features/ui/input/inline_token_clipboard.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:fluxer_app/material_ui.dart';
 
 Future<ComposerMentionController> _pumpMentionController(
   WidgetTester tester,

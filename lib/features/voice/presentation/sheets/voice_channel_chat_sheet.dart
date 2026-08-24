@@ -10,7 +10,7 @@ import 'package:fluxer_app/features/chat/providers/pickers/attachment_panel_prov
 import 'package:fluxer_app/features/chat/providers/pickers/expression_panel_provider.dart';
 import 'package:fluxer_app/features/shell/navigation/drawer_navigation_coordinator.dart';
 import 'package:fluxer_app/features/ui/ui.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:fluxer_app/material_ui.dart';
 
 const double _kChatSheetMaxHeight = 0.92;
 

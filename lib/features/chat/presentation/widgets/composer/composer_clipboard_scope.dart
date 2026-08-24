@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/features/chat/utils/composer_clipboard_paste.dart';
 import 'package:fluxer_app/features/chat/utils/file_upload_validator.dart';
 import 'package:fluxer_app/features/ui/input/fluxer_clipboard_scope.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:fluxer_app/material_ui.dart';
 
 class ComposerClipboardScope extends ConsumerStatefulWidget {
   const ComposerClipboardScope({

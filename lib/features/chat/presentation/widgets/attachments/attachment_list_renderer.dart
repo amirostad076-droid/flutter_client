@@ -4,8 +4,8 @@ import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attach
 import 'package:fluxer_app/features/chat/presentation/widgets/attachments/attachment_renderer.dart';
 import 'package:fluxer_app/features/chat/utils/spoiler_utils.dart';
 import 'package:fluxer_app/features/settings/providers/chat_preferences_provider.dart';
+import 'package:fluxer_app/material_ui.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
-import 'package:material_ui/material_ui.dart';
 
 class AttachmentListRenderer extends StatelessWidget {
   const AttachmentListRenderer({
