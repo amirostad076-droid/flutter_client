@@ -1652,35 +1652,44 @@ class _MessageItemState extends ConsumerState<MessageItem> {
           children: [
             _wrapMessageSendingDim(
               dim: dimMessagePartsExceptAttachments,
-              child: Wrap(
-                spacing: 6,
-                runSpacing: 2,
-                crossAxisAlignment: WrapCrossAlignment.center,
+              child: Row(
                 children: [
-                  FluxerGestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: _canOpenAuthorProfile(msg)
-                        ? () => _openAuthorProfile(context, msg)
-                        : null,
-                    child: Text(
-                      authorDisplay.displayName,
-                      style: context.textStyles.username.copyWith(
-                        color: roleColor ?? context.colors.textChat,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
+                  Flexible(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: FluxerGestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: _canOpenAuthorProfile(msg)
+                                ? () => _openAuthorProfile(context, msg)
+                                : null,
+                            child: Text(
+                              authorDisplay.displayName,
+                              style: context.textStyles.username.copyWith(
+                                color: roleColor ?? context.colors.textChat,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                        ),
+                        if (messageAuthorShowsUserTag(
+                          authorIsBot: msg.authorIsBot,
+                          authorIsSystem: msg.authorIsSystem,
+                        )) ...[
+                          const SizedBox(width: 6),
+                          FluxerUserTag(
+                            isSystem: messageAuthorUserTagIsSystem(
+                              authorIsSystem: msg.authorIsSystem,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                  if (messageAuthorShowsUserTag(
-                    authorIsBot: msg.authorIsBot,
-                    authorIsSystem: msg.authorIsSystem,
-                  ))
-                    FluxerUserTag(
-                      isSystem: messageAuthorUserTagIsSystem(
-                        authorIsSystem: msg.authorIsSystem,
-                      ),
-                    ),
+                  const SizedBox(width: 6),
                   Text(
                     formatMessageTimestamp(
                       msg.timestamp.toLocal(),
@@ -1690,8 +1699,10 @@ class _MessageItemState extends ConsumerState<MessageItem> {
                     ),
                     style: context.textStyles.timestamp,
                   ),
-                  if ((msg.flags & messageFlagSuppressNotifications) != 0)
+                  if ((msg.flags & messageFlagSuppressNotifications) != 0) ...[
+                    const SizedBox(width: 6),
                     _buildSilentIndicator(context),
+                  ],
                 ],
               ),
             ),

@@ -103,6 +103,40 @@ void main() {
       expect(find.text('Alice'), findsNothing);
     });
 
+    testWidgets('long author names truncate instead of wrapping timestamp', (
+      tester,
+    ) async {
+      const String longName = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+      final DateTime now = DateTime.now();
+      final DateTime timestamp = DateTime(now.year, now.month, now.day, 12);
+      await tester.binding.setSurfaceSize(const Size(320, 640));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        _app(
+          MessageItem(
+            message: _message().copyWith(
+              authorName: longName,
+              timestamp: timestamp,
+            ),
+            renderSettings: _cozySettings,
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final Finder nameFinder = find.textContaining('AAAA');
+      final Finder timestampFinder = find.textContaining('12:00');
+      expect(nameFinder, findsOneWidget);
+      expect(timestampFinder, findsOneWidget);
+      expect(
+        (tester.getTopLeft(timestampFinder).dy -
+                tester.getTopLeft(nameFinder).dy)
+            .abs(),
+        lessThan(10),
+      );
+    });
+
     testWidgets('dense mode does not use the cozy avatar layout', (
       tester,
     ) async {
