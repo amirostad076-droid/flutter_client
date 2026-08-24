@@ -82,17 +82,18 @@ class Text extends material.StatelessWidget {
 
   @override
   material.Widget build(material.BuildContext context) {
-    final material.TextStyle effectiveStyle =
-        material.DefaultTextStyle.of(context).style.merge(style);
+    final material.TextStyle effectiveStyle = material.DefaultTextStyle.of(
+      context,
+    ).style.merge(style);
     final bool bounded = shouldApplyBoundedTextMetrics(maxLines: maxLines);
     final material.TextHeightBehavior? effectiveHeightBehavior =
         textHeightBehavior ??
         (bounded
             ? (material.DefaultTextHeightBehavior.maybeOf(context) ??
-                fluxerBoundedTextHeightBehavior)
+                  fluxerBoundedTextHeightBehavior)
             : material.DefaultTextHeightBehavior.maybeOf(context));
-    final material.StrutStyle? effectiveStrut = strutStyle ??
-        (bounded ? boundedStrutFor(effectiveStyle) : null);
+    final material.StrutStyle? effectiveStrut =
+        strutStyle ?? (bounded ? boundedStrutFor(effectiveStyle) : null);
 
     final material.Widget text = data != null
         ? material.Text(
@@ -177,17 +178,18 @@ class RichText extends material.StatelessWidget {
 
   @override
   material.Widget build(material.BuildContext context) {
-    final material.TextStyle effectiveStyle =
-        material.DefaultTextStyle.of(context).style.merge(style);
+    final material.TextStyle effectiveStyle = material.DefaultTextStyle.of(
+      context,
+    ).style.merge(style);
     final bool bounded = shouldApplyBoundedTextMetrics(maxLines: maxLines);
     final material.TextHeightBehavior? effectiveHeightBehavior =
         textHeightBehavior ??
         (bounded
             ? (material.DefaultTextHeightBehavior.maybeOf(context) ??
-                fluxerBoundedTextHeightBehavior)
+                  fluxerBoundedTextHeightBehavior)
             : material.DefaultTextHeightBehavior.maybeOf(context));
-    final material.StrutStyle? effectiveStrut = strutStyle ??
-        (bounded ? boundedStrutFor(effectiveStyle) : null);
+    final material.StrutStyle? effectiveStrut =
+        strutStyle ?? (bounded ? boundedStrutFor(effectiveStyle) : null);
 
     final material.Widget richText = material.RichText(
       text: text,
@@ -197,8 +199,8 @@ class RichText extends material.StatelessWidget {
       locale: locale,
       softWrap: softWrap,
       overflow: overflow,
-      textScaler: textScaler ??
-          material.TextScaler.linear(textScaleFactor ?? 1.0),
+      textScaler:
+          textScaler ?? material.TextScaler.linear(textScaleFactor ?? 1.0),
       maxLines: maxLines,
       textWidthBasis: textWidthBasis,
       textHeightBehavior: effectiveHeightBehavior,
@@ -316,17 +318,18 @@ class SelectableText extends material.StatelessWidget {
 
   @override
   material.Widget build(material.BuildContext context) {
-    final material.TextStyle effectiveStyle =
-        material.DefaultTextStyle.of(context).style.merge(style);
+    final material.TextStyle effectiveStyle = material.DefaultTextStyle.of(
+      context,
+    ).style.merge(style);
     final bool bounded = shouldApplyBoundedTextMetrics(maxLines: maxLines);
     final material.TextHeightBehavior? effectiveHeightBehavior =
         textHeightBehavior ??
         (bounded
             ? (material.DefaultTextHeightBehavior.maybeOf(context) ??
-                fluxerBoundedTextHeightBehavior)
+                  fluxerBoundedTextHeightBehavior)
             : material.DefaultTextHeightBehavior.maybeOf(context));
-    final material.StrutStyle? effectiveStrut = strutStyle ??
-        (bounded ? boundedStrutFor(effectiveStyle) : null);
+    final material.StrutStyle? effectiveStrut =
+        strutStyle ?? (bounded ? boundedStrutFor(effectiveStyle) : null);
 
     final material.Widget text = data != null
         ? material.SelectableText(

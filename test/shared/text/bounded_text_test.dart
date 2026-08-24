@@ -2,7 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fluxer_app/material_ui.dart';
 import 'package:fluxer_markdown/fluxer_markdown.dart';
 
-const String kZalgoSample = 'Z\u0300\u0301\u0302\u0303\u0304\u0305\u0306\u0307'
+const String kZalgoSample =
+    'Z\u0300\u0301\u0302\u0303\u0304\u0305\u0306\u0307'
     'a\u0300\u0301\u0302\u0303\u0304\u0305\u0306\u0307'
     'l\u0300\u0301\u0302\u0303\u0304\u0305\u0306\u0307'
     'g\u0300\u0301\u0302\u0303\u0304\u0305\u0306\u0307'
@@ -19,9 +20,7 @@ void main() {
             height: 24,
             width: 200,
             child: DecoratedBox(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.red),
-              ),
+              decoration: BoxDecoration(border: Border.all(color: Colors.red)),
               child: const Text(
                 kZalgoSample,
                 maxLines: 1,
