@@ -1184,6 +1184,20 @@ class _MessageListState extends ConsumerState<MessageList> {
     if (next.any((Message m) => m.id == anchor)) {
       return;
     }
+    // An acked own send renames the anchor's id instead of removing the row,
+    // and nonces reach every recipient, so only the sender's row may claim it.
+    final String? currentUserId = ref.read(currentUserIdProvider);
+    if (currentUserId != null && currentUserId.isNotEmpty) {
+      for (final Message message in next.reversed) {
+        if (message.clientNonce == anchor &&
+            message.authorId == currentUserId) {
+          setState(() {
+            _anchorId = message.id;
+          });
+          return;
+        }
+      }
+    }
     String? nearestOlder;
     for (final Message message in next.reversed) {
       if (compareSnowflakeIds(message.id, anchor) < 0) {
