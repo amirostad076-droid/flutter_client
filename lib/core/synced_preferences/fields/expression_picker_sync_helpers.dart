@@ -26,10 +26,10 @@ List<String> mergeExpressionPickerStringLists({
   required List<String> local,
   int maxItems = kMaxSyncedFavoriteExpressionKeys,
 }) {
-  return normalizeExpressionPickerStringList(
-    [...remote, ...local],
-    maxItems: maxItems,
-  );
+  return normalizeExpressionPickerStringList([
+    ...remote,
+    ...local,
+  ], maxItems: maxItems);
 }
 
 bool expressionPickerStringListsEqual(List<String> a, List<String> b) {

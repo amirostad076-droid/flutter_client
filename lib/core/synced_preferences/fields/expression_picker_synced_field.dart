@@ -27,9 +27,8 @@ class ExpressionPickerSyncedLocalState {
   );
 }
 
-typedef ExpressionPickerFavoriteKeyNormalizer = List<String> Function(
-  Iterable<String> keys,
-);
+typedef ExpressionPickerFavoriteKeyNormalizer =
+    List<String> Function(Iterable<String> keys);
 
 class _ExpressionPickerPersistence {
   const _ExpressionPickerPersistence({
@@ -139,7 +138,9 @@ class _ExpressionPickerSyncedField
   }
 
   @override
-  ExpressionPickerSyncedLocalState? readFromProto(pb.SyncedPreferences message) {
+  ExpressionPickerSyncedLocalState? readFromProto(
+    pb.SyncedPreferences message,
+  ) {
     if (!_wireCodec.hasField(message)) {
       return null;
     }
@@ -179,9 +180,9 @@ class _ExpressionPickerSyncedField
     final left = _normalize(a);
     final right = _normalize(b);
     return expressionPickerStringListsEqual(
-      left.favoriteKeys,
-      right.favoriteKeys,
-    ) &&
+          left.favoriteKeys,
+          right.favoriteKeys,
+        ) &&
         expressionPickerStringListsEqual(
           left.collapsedCategoryIds,
           right.collapsedCategoryIds,
@@ -238,9 +239,9 @@ class _ExpressionPickerSyncedField
     final normalizedLocal = _normalize(local);
     final normalizedRemote = _normalize(remote);
     return _hasRemoteListAdditions(
-      normalizedLocal.favoriteKeys,
-      normalizedRemote.favoriteKeys,
-    ) ||
+          normalizedLocal.favoriteKeys,
+          normalizedRemote.favoriteKeys,
+        ) ||
         _hasRemoteListAdditions(
           normalizedLocal.collapsedCategoryIds,
           normalizedRemote.collapsedCategoryIds,
@@ -265,7 +266,9 @@ class _ExpressionPickerSyncedField
     return _normalize(
       ExpressionPickerSyncedLocalState(
         favoriteKeys: _wireCodec.readFavoriteKeys(wireSubMessage),
-        collapsedCategoryIds: _wireCodec.readCollapsedCategories(wireSubMessage),
+        collapsedCategoryIds: _wireCodec.readCollapsedCategories(
+          wireSubMessage,
+        ),
       ),
     );
   }
@@ -354,13 +357,14 @@ final _emojiWireCodec = _ExpressionPickerWireCodec(
       (proto as pickers_pb.EmojiPickerState).favoriteEmojiIds,
   readCollapsedCategories: (proto) =>
       (proto as pickers_pb.EmojiPickerState).collapsedCategoryIds,
-  toProtoForPush: ({
-    required ExpressionPickerSyncedLocalState local,
-    $pb.GeneratedMessage? wireBase,
-  }) => _toEmojiProtoForPush(
-    local: local,
-    wireBase: wireBase as pickers_pb.EmojiPickerState?,
-  ),
+  toProtoForPush:
+      ({
+        required ExpressionPickerSyncedLocalState local,
+        $pb.GeneratedMessage? wireBase,
+      }) => _toEmojiProtoForPush(
+        local: local,
+        wireBase: wireBase as pickers_pb.EmojiPickerState?,
+      ),
 );
 
 final _stickerWireCodec = _ExpressionPickerWireCodec(
@@ -371,13 +375,14 @@ final _stickerWireCodec = _ExpressionPickerWireCodec(
       (proto as pickers_pb.StickerPickerState).favoriteStickerIds,
   readCollapsedCategories: (proto) =>
       (proto as pickers_pb.StickerPickerState).collapsedCategoryIds,
-  toProtoForPush: ({
-    required ExpressionPickerSyncedLocalState local,
-    $pb.GeneratedMessage? wireBase,
-  }) => _toStickerProtoForPush(
-    local: local,
-    wireBase: wireBase as pickers_pb.StickerPickerState?,
-  ),
+  toProtoForPush:
+      ({
+        required ExpressionPickerSyncedLocalState local,
+        $pb.GeneratedMessage? wireBase,
+      }) => _toStickerProtoForPush(
+        local: local,
+        wireBase: wireBase as pickers_pb.StickerPickerState?,
+      ),
 );
 
 pickers_pb.EmojiPickerState _toEmojiProtoForPush({
