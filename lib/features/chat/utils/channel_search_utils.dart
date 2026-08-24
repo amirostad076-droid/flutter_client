@@ -210,9 +210,17 @@ String formatChannelSearchDate(DateTime date) {
       '${date.day.toString().padLeft(2, '0')}';
 }
 
+String? visibleUserDiscriminator(String? discriminator) {
+  final String trimmed = (discriminator ?? '').trim();
+  if (trimmed.isEmpty || trimmed == '0') {
+    return null;
+  }
+  return trimmed;
+}
+
 String formatChannelSearchUserTag(String username, String? discriminator) {
-  final String disc = (discriminator ?? '').trim();
-  if (disc.isEmpty || disc == '0') {
+  final String? disc = visibleUserDiscriminator(discriminator);
+  if (disc == null) {
     return username;
   }
   return '$username#$disc';

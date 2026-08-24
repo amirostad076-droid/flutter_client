@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:cupertino_ui/cupertino_ui.dart'
     hide RichText, SelectableText, Text;
@@ -46,6 +45,7 @@ import 'package:fluxer_app/features/chat/utils/channel_search_utils.dart';
 import 'package:fluxer_app/features/chat/utils/composer_mention_query.dart';
 import 'package:fluxer_app/features/chat/utils/delete_my_messages_in_channel_action.dart';
 import 'package:fluxer_app/features/chat/utils/message_link.dart';
+import 'package:fluxer_app/features/dm/data/dm_conversation_mapper.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/dm/domain/dm_conversation.dart';
 import 'package:fluxer_app/features/dm/domain/group_dm_utils.dart';
@@ -1695,20 +1695,14 @@ class _PickerUser {
     if (username.isEmpty) {
       return '@$id';
     }
-    final String? visibleDiscriminator = _visibleDiscriminator(discriminator);
+    final String? visibleDiscriminator = visibleUserDiscriminator(
+      discriminator,
+    );
     if (visibleDiscriminator == null) {
       return '@$username';
     }
     return '@$username#$visibleDiscriminator';
   }
-}
-
-String? _visibleDiscriminator(String discriminator) {
-  final String trimmed = discriminator.trim();
-  if (trimmed.isEmpty || trimmed == '0') {
-    return null;
-  }
-  return trimmed;
 }
 
 const Duration _kUserFilterSearchDebounce = Duration(milliseconds: 300);
@@ -1743,39 +1737,27 @@ class _DmUserFilterSheetLoaderState
 
   Future<List<_PickerUser>> _loadDmCandidates() async {
     final db.FluxerDatabase database = ref.read(fluxerDatabaseProvider);
+    final String? currentUserId = ref.read(currentUserIdProvider);
     final db.DmChannel? dmRow = await database.dmChannelDao.getDmChannelById(
       widget.channelId,
     );
-    final Set<String> ids = <String>{};
-    if (dmRow != null) {
-      try {
-        final Object? raw = jsonDecode(dmRow.recipientIds);
-        if (raw is List<dynamic>) {
-          for (final Object? entry in raw) {
-            if (entry is String && entry.isNotEmpty) {
-              ids.add(entry);
-            }
-          }
-        }
-      } on FormatException {
-        // Ignore malformed cache; falls back to recipientId only.
-      }
-      if (dmRow.recipientId.isNotEmpty) {
-        ids.add(dmRow.recipientId);
-      }
-    }
+
+    final Set<String> ids = <String>{
+      if (dmRow != null)
+        ...buildDmRemoteRecipientIds(
+          parseDmChannelRecipientIds(dmRow.recipientIds),
+          dmRow.recipientId,
+        ),
+      if (currentUserId != null && currentUserId.isNotEmpty) currentUserId,
+    };
+
     final List<db.User> users = await database.userDao.getUsersByIds(
       ids.toList(),
     );
-    final List<_PickerUser> pickers =
-        <_PickerUser>[
-          for (final db.User user in users) _PickerUser.fromUserRow(user),
-        ]..sort(
-          (a, b) => a.displayName.toLowerCase().compareTo(
-            b.displayName.toLowerCase(),
-          ),
-        );
-    return pickers;
+    return users.map(_PickerUser.fromUserRow).toList()..sort(
+      (a, b) =>
+          a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()),
+    );
   }
 
   @override
@@ -1905,9 +1887,7 @@ class _GuildUserSearchFilterSheetState
             (Member member) => _PickerUser.fromMember(
               member,
               discriminator:
-                  _visibleDiscriminator(
-                    discriminatorByUserId[member.id] ?? '',
-                  ) ??
+                  visibleUserDiscriminator(discriminatorByUserId[member.id]) ??
                   '',
             ),
           )
