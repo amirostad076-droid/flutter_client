@@ -71,8 +71,10 @@ import 'package:fluxer_app/features/guilds/providers/guild_read_state_provider.d
 import 'package:fluxer_app/features/guilds/providers/guild_read_state_ready_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_voice_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/organized_guild_list_provider.dart';
+import 'package:fluxer_app/features/guilds/providers/visible_unavailable_guild_count_provider.dart';
 import 'package:fluxer_app/features/guilds/utils/guild_folder_icon.dart';
 import 'package:fluxer_app/features/guilds/utils/guild_folder_menu_actions.dart';
+import 'package:fluxer_app/features/guilds/utils/guild_outage_availability.dart';
 import 'package:fluxer_app/features/guilds/utils/guild_settings_actions.dart';
 import 'package:fluxer_app/features/guilds/utils/leave_guild_action.dart';
 import 'package:fluxer_app/features/moderation/iar/iar_report_guild.dart';
@@ -324,8 +326,13 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       guildListViewModelProvider.select((s) => s.guilds),
     );
     final activeGuildId = ref.watch(activeGuildIdProvider);
-    final unavailableCount = guilds.where((g) => g.isUnavailable).length;
-    final pendingUnavailableCount = ref.watch(guildAvailabilityProvider).length;
+    final unavailableCount = unavailableGuildCount(
+      trackedUnavailableGuildIds: ref.watch(guildAvailabilityProvider),
+      guilds: guilds,
+    );
+    final pendingUnavailableCount = ref.watch(
+      visibleUnavailableGuildCountProvider,
+    );
 
     final dmFolderState = ref.watch(dmFolderProvider);
     ref.watch(unreadDmChannelsProvider.select(dmNavbarMembershipToken));
@@ -486,16 +493,16 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
                     )
                     as GlobalKey<_GuildListItemState>;
             final bool hasUnread =
-                !guild.isUnavailable && (unread?.hasUnread ?? false);
+                !guild.unavailable && (unread?.hasUnread ?? false);
             return GuildDragWrapper(
               key: ValueKey<String>('guild-${guild.id}'),
               itemId: guild.id,
               isFolder: false,
-              enabled: !guild.isUnavailable,
+              enabled: !guild.unavailable,
               dragFeedback: GuildDragFeedback(
                 label: guild.name,
                 iconUrl: guild.iconUrl,
-                isUnavailable: guild.isUnavailable,
+                isUnavailable: guild.unavailable,
               ),
               peekMenu: buildGuildPeekMenuConfig(
                 context,
@@ -727,14 +734,14 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
           permissions: permissions,
           isOwner: guild.ownerId == currentUserId,
           iconUrl: guild.iconUrl,
-          isUnavailable: guild.isUnavailable,
+          isUnavailable: guild.unavailable,
           unavailableCount: unavailableCount,
           isMuted: muteState?.isMuted ?? false,
           muteEndTime: muteState?.muteEndTime,
           hideMutedChannels: muteState?.hideMutedChannels ?? false,
           voiceActivity: voiceActivity,
-          hasUnread: !guild.isUnavailable && (unread?.hasUnread ?? false),
-          mentionCount: guild.isUnavailable ? 0 : unread?.mentionCount ?? 0,
+          hasUnread: !guild.unavailable && (unread?.hasUnread ?? false),
+          mentionCount: guild.unavailable ? 0 : unread?.mentionCount ?? 0,
           guildUnreadReady: guildUnreadReady,
           invitesPaused: invitesPaused,
           developerMode: developerMode,
@@ -1009,11 +1016,11 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget> {
         guildReadStateProvider.select((s) => s[guild.id]),
       );
       if (guildUnreadReady &&
-          !guild.isUnavailable &&
+          !guild.unavailable &&
           (unread?.hasUnread ?? false)) {
         anyUnread = true;
       }
-      if (guildUnreadReady && !guild.isUnavailable) {
+      if (guildUnreadReady && !guild.unavailable) {
         totalMentions += unread?.mentionCount ?? 0;
       }
       final voiceActivity = ref.watch(guildVoiceActivityProvider(guild.id));
@@ -1341,7 +1348,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget> {
         final GlobalKey<_GuildListItemState> itemKey = widget
             .resolveGuildItemKey(guild.id);
         final bool hasUnread =
-            !guild.isUnavailable && (unread?.hasUnread ?? false);
+            !guild.unavailable && (unread?.hasUnread ?? false);
         return GuildDragWrapper(
           itemId: guild.id,
           isFolder: false,
@@ -1349,7 +1356,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget> {
           dragFeedback: GuildDragFeedback(
             label: guild.name,
             iconUrl: guild.iconUrl,
-            isUnavailable: guild.isUnavailable,
+            isUnavailable: guild.unavailable,
           ),
           peekMenu: buildGuildPeekMenuConfig(
             context,
@@ -1371,14 +1378,14 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget> {
             permissions: permissions,
             isOwner: guild.ownerId == currentUserId,
             iconUrl: guild.iconUrl,
-            isUnavailable: guild.isUnavailable,
+            isUnavailable: guild.unavailable,
             unavailableCount: widget.unavailableCount,
             isMuted: muteState?.isMuted ?? false,
             muteEndTime: muteState?.muteEndTime,
             hideMutedChannels: muteState?.hideMutedChannels ?? false,
             voiceActivity: voiceActivity,
-            hasUnread: !guild.isUnavailable && (unread?.hasUnread ?? false),
-            mentionCount: guild.isUnavailable ? 0 : unread?.mentionCount ?? 0,
+            hasUnread: !guild.unavailable && (unread?.hasUnread ?? false),
+            mentionCount: guild.unavailable ? 0 : unread?.mentionCount ?? 0,
             guildUnreadReady: guildUnreadReady,
             invitesPaused: invitesPaused,
             developerMode: developerMode,
@@ -1622,7 +1629,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget> {
       return false;
     }
     for (final Guild guild in widget.folder.guilds) {
-      if (guild.isUnavailable) {
+      if (guild.unavailable) {
         continue;
       }
       final unread = ref.read(guildReadStateProvider)[guild.id];
@@ -1759,7 +1766,7 @@ Future<void> presentGuildMenuSheet(
   final GuildAction? action = await showGuildBottomSheet(
     context,
     guild: sheetGuild,
-    hasUnread: !sheetGuild.isUnavailable && (unread?.hasUnread ?? false),
+    hasUnread: !sheetGuild.unavailable && (unread?.hasUnread ?? false),
     isMuted: muteState?.isMuted ?? false,
     isOwner: sheetGuild.ownerId == currentUserId,
     permissions: permissions,
@@ -1833,7 +1840,7 @@ Widget _buildGuildMenuActionItem({
     isMuted: muteState?.isMuted ?? false,
     muteEndTime: muteState?.muteEndTime,
     hideMutedChannels: muteState?.hideMutedChannels ?? false,
-    hasUnread: !guild.isUnavailable && (unread?.hasUnread ?? false),
+    hasUnread: !guild.unavailable && (unread?.hasUnread ?? false),
     developerMode: developerMode,
     onTap: () {},
     onMenuOpened: () {
@@ -2278,6 +2285,9 @@ class _GuildListItemState extends State<_GuildListItem>
 
   String _guildSemanticLabel(FluxerLocalizations l10n) {
     final StringBuffer label = StringBuffer(widget.label);
+    if (widget.isUnavailable) {
+      label.write(', ${l10n.guildNavbarTemporarilyUnavailable}');
+    }
     if (widget.isSelected) {
       label.write(', ${l10n.guildNavbarGuildSelected}');
     }
@@ -4172,53 +4182,75 @@ class _RightTooltipState extends State<_RightTooltip>
   );
 }
 
-class _UnavailableGuildsIndicator extends StatelessWidget {
+class _UnavailableGuildsIndicator extends ConsumerWidget {
   final int count;
 
   const _UnavailableGuildsIndicator({required this.count});
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = FluxerLocalizations.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        children: [
-          const SizedBox(width: 12),
-          _RightTooltip(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final FluxerLocalizations l10n = FluxerLocalizations.of(context);
+    final String message = l10n.guildUnavailableOutageTooltip(count);
+    final Widget badge = _GuildOutageIndicatorBadge();
+    final Widget tooltipContent = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Text(
+        message,
+        textAlign: TextAlign.center,
+        style: context.textStyles.label,
+      ),
+    );
+    final Widget indicator = isTouchPrimaryInput(ref)
+        ? FluxerGestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              ref
+                  .read(toastProvider.notifier)
+                  .show(
+                    FluxerToast(
+                      message: message,
+                      variant: FluxerToastVariant.warning,
+                    ),
+                  );
+            },
+            child: badge,
+          )
+        : _RightTooltip(
             backgroundColor: context.colors.statusDanger,
             borderColor: context.colors.statusDanger,
-            content: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: Text(
-                l10n.guildUnavailableOutageTooltip(count),
-                textAlign: TextAlign.center,
-                style: context.textStyles.label,
-              ),
-            ),
-            child: SizedBox(
-              width: 48,
-              height: 48,
-              child: Center(
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: context.colors.statusDanger,
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: Center(
-                    child: PhosphorIcon(
-                      PhosphorIconsBold.exclamationMark,
-                      color: context.colors.textOnBrandPrimary,
-                      size: 32,
-                    ),
-                  ),
-                ),
-              ),
+            content: tooltipContent,
+            child: badge,
+          );
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(children: [const SizedBox(width: 12), indicator]),
+    );
+  }
+}
+
+class _GuildOutageIndicatorBadge extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: Center(
+        child: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            border: Border.all(color: context.colors.statusDanger, width: 2),
+            borderRadius: BorderRadius.circular(22),
+          ),
+          child: Center(
+            child: PhosphorIcon(
+              PhosphorIconsRegular.exclamationMark,
+              color: context.colors.textPrimary,
+              size: 32,
             ),
           ),
-        ],
+        ),
       ),
     );
   }

@@ -4447,6 +4447,33 @@ class FluxerLocalizationsLt extends FluxerLocalizations {
   }
 
   @override
+  String get communityTemporarilyUnavailable =>
+      'Community temporarily unavailable';
+
+  @override
+  String get guildUnavailableDescription =>
+      'Something went wrong. We\'re working on it.';
+
+  @override
+  String get guildNotFoundTitle =>
+      'This is not the community you\'re looking for.';
+
+  @override
+  String get guildNotFoundDescription =>
+      'The community you\'re looking for may have been deleted or you may not have access to it.';
+
+  @override
+  String guildStaffOnlyAccessibleNagbar(
+    String communityName,
+    String productName,
+  ) {
+    return '$communityName is currently only accessible to $productName staff members';
+  }
+
+  @override
+  String get guildNavbarTemporarilyUnavailable => 'temporarily unavailable';
+
+  @override
   String get lookAndFeelCollapseDMsLabel => 'Suskleisti DM į aplanką';
 
   @override
