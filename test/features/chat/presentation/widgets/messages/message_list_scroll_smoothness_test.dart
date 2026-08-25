@@ -106,7 +106,10 @@ void main() {
         moreOrLessEquals(pixelsBefore, epsilon: 1),
         reason: 'cache expansion must not move the reader',
       );
-      expect(chatViewModel.testState.messages, hasLength(kTrimmedMessageWindowSize));
+      expect(
+        chatViewModel.testState.messages,
+        hasLength(kTrimmedMessageWindowSize),
+      );
       await disposeMessageList(tester);
     });
 
@@ -207,7 +210,12 @@ void main() {
       List<Message> window = chatViewModel.testState.messages;
 
       for (int frame = 0; frame < 8; frame += 1) {
-        injectLiveCreates(chatViewModel, window, count: 10, label: 'burst$frame');
+        injectLiveCreates(
+          chatViewModel,
+          window,
+          count: 10,
+          label: 'burst$frame',
+        );
         window = chatViewModel.testState.messages;
         await tester.pump();
       }
@@ -220,38 +228,39 @@ void main() {
       await disposeMessageList(tester);
     });
 
-    testWidgets('burst past the soft cap trims without yanking the pinned tail', (
-      WidgetTester tester,
-    ) async {
-      final InstrumentedChatViewModel chatViewModel = await pumpBottomList(
-        tester,
-        hasMoreNewer: false,
-        count: kMaxLoadedMessages - 10,
-        enableTrimToNewestWindow: true,
-      );
-      final ScrollPosition position = messageListScrollPosition(tester);
-      final List<Message> old = chatViewModel.testState.messages;
+    testWidgets(
+      'burst past the soft cap trims without yanking the pinned tail',
+      (WidgetTester tester) async {
+        final InstrumentedChatViewModel chatViewModel = await pumpBottomList(
+          tester,
+          hasMoreNewer: false,
+          count: kMaxLoadedMessages - 10,
+          enableTrimToNewestWindow: true,
+        );
+        final ScrollPosition position = messageListScrollPosition(tester);
+        final List<Message> old = chatViewModel.testState.messages;
 
-      injectLiveCreates(chatViewModel, old, count: 20);
-      await tester.pump();
-      await tester.pump();
-      await tester.pump();
+        injectLiveCreates(chatViewModel, old, count: 20);
+        await tester.pump();
+        await tester.pump();
+        await tester.pump();
 
-      chatViewModel.trimToNewestWindow();
-      await tester.pump();
-      await tester.pump();
+        chatViewModel.trimToNewestWindow();
+        await tester.pump();
+        await tester.pump();
 
-      expect(
-        chatViewModel.testState.messages.length,
-        lessThanOrEqualTo(kMaxLoadedMessages),
-      );
-      expect(
-        position.pixels,
-        moreOrLessEquals(position.maxScrollExtent, epsilon: 2),
-        reason: 'trim must not detach a pinned reader from the live tail',
-      );
-      await disposeMessageList(tester);
-    });
+        expect(
+          chatViewModel.testState.messages.length,
+          lessThanOrEqualTo(kMaxLoadedMessages),
+        );
+        expect(
+          position.pixels,
+          moreOrLessEquals(position.maxScrollExtent, epsilon: 2),
+          reason: 'trim must not detach a pinned reader from the live tail',
+        );
+        await disposeMessageList(tester);
+      },
+    );
 
     testWidgets('history reader survives a 40-message burst', (
       WidgetTester tester,
@@ -311,7 +320,9 @@ void main() {
         tester,
         centerVisibleMessageItemId(tester),
       );
-      final List<Message> old = List<Message>.of(chatViewModel.testState.messages);
+      final List<Message> old = List<Message>.of(
+        chatViewModel.testState.messages,
+      );
       final Message newest = old.last;
       final Message editedNewest = newest.copyWith(
         content: '${newest.content}\n${'extra line\n' * 12}',
@@ -322,10 +333,7 @@ void main() {
         ...newerRows(old, count: 20, label: 'mixed'),
       ];
       chatViewModel.testState = chatViewModel.testState.copyWith(
-        write: (
-          messages: withEdit,
-          origin: MessagesOrigin.realtimeEvent,
-        ),
+        write: (messages: withEdit, origin: MessagesOrigin.realtimeEvent),
       );
       await tester.pump();
       await tester.pump();
@@ -345,7 +353,9 @@ void main() {
         tester,
         hasMoreNewer: false,
       );
-      final List<Message> old = List<Message>.of(chatViewModel.testState.messages);
+      final List<Message> old = List<Message>.of(
+        chatViewModel.testState.messages,
+      );
       for (int i = 0; i < 3; i += 1) {
         final int index = old.length - 3 + i;
         old[index] = old[index].copyWith(

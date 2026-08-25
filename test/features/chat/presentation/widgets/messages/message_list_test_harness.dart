@@ -179,7 +179,9 @@ class AroundAckMessageListHarness {
     String authorId = messageListAuthorId,
     MessagesOrigin origin = MessagesOrigin.newerPage,
   }) {
-    final List<Message> next = List<Message>.of(chatViewModel.testState.messages);
+    final List<Message> next = List<Message>.of(
+      chatViewModel.testState.messages,
+    );
     final DateTime lastTimestamp = next.last.timestamp;
     for (int index = 0; index < count; index += 1) {
       final DateTime timestamp = lastTimestamp.add(
@@ -200,7 +202,9 @@ class AroundAckMessageListHarness {
   }
 
   String appendRealtimeMessage({required bool acknowledgedByGateway}) {
-    final List<Message> next = List<Message>.of(chatViewModel.testState.messages);
+    final List<Message> next = List<Message>.of(
+      chatViewModel.testState.messages,
+    );
     final DateTime timestamp = next.last.timestamp.add(
       const Duration(minutes: 1),
     );
@@ -216,7 +220,9 @@ class AroundAckMessageListHarness {
   }
 
   String appendTallNewerMessage({int lines = 18}) {
-    final List<Message> next = List<Message>.of(chatViewModel.testState.messages);
+    final List<Message> next = List<Message>.of(
+      chatViewModel.testState.messages,
+    );
     final DateTime timestamp = next.last.timestamp.add(
       const Duration(minutes: 1),
     );
@@ -233,7 +239,9 @@ class AroundAckMessageListHarness {
   }
 
   void prependOlderMessages({required int count}) {
-    final List<Message> next = List<Message>.of(chatViewModel.testState.messages);
+    final List<Message> next = List<Message>.of(
+      chatViewModel.testState.messages,
+    );
     final DateTime firstTimestamp = next.first.timestamp;
     final List<Message> older = List<Message>.generate(count, (int index) {
       final DateTime timestamp = firstTimestamp.subtract(
@@ -730,10 +738,7 @@ Future<InstrumentedChatViewModel> pumpBottomList(
     enableTrimToNewestWindow: enableTrimToNewestWindow,
   );
   await tester.pumpWidget(
-    messageListApp(
-      database: openTestDatabase(),
-      chatViewModel: chatViewModel,
-    ),
+    messageListApp(database: openTestDatabase(), chatViewModel: chatViewModel),
   );
   await pumpFluxerFrames(tester);
   for (int i = 0; i < 4; i += 1) {
