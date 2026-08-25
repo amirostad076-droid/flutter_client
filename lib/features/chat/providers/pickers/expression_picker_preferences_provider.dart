@@ -1,7 +1,7 @@
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/synced_preferences/engine/synced_preference_field.dart';
-import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_store.dart';
+import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_dirty.dart';
 import 'package:fluxer_app/core/synced_preferences/fields/expression_picker_sync_helpers.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -134,7 +134,7 @@ class CollapsedStickerPickerCategories
 }
 
 void _markPickerDirty(Ref ref, SyncedPreferenceField field) {
-  ref.read(syncedPreferencesStoreProvider).markDirty(field);
+  ref.markSyncedDirty(field);
 }
 
 List<String> _currentKeys(AsyncValue<List<String>> state) => switch (state) {

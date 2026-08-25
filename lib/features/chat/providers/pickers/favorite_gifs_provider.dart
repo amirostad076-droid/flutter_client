@@ -1,5 +1,5 @@
 import 'package:fluxer_app/core/synced_preferences/engine/synced_preference_field.dart';
-import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_store.dart';
+import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_dirty.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_gif_entry.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -59,8 +59,6 @@ class FavoriteGifs extends _$FavoriteGifs {
   }
 
   void _markDirty() {
-    ref
-        .read(syncedPreferencesStoreProvider)
-        .markDirty(SyncedPreferenceField.favoriteGifs);
+    ref.markSyncedDirty(SyncedPreferenceField.favoriteGifs);
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/daos/user_preferences_dao.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
+import 'package:fluxer_app/core/synced_preferences/engine/proto_synced_field_adapter.dart';
 import 'package:fluxer_app/core/synced_preferences/engine/synced_field_adapter.dart';
 import 'package:fluxer_app/core/synced_preferences/engine/synced_preference_field.dart';
 import 'package:fluxer_app/core/synced_preferences/fields/expression_picker_sync_helpers.dart';
@@ -99,7 +100,7 @@ class _ExpressionPickerSyncedField
 
   @override
   ExpressionPickerSyncedLocalState readLocal() {
-    return ExpressionPickerSyncedLocalState.empty;
+    throw UnsupportedError('Use readLocalValue for expression pickers');
   }
 
   @override
@@ -389,9 +390,7 @@ pickers_pb.EmojiPickerState _toEmojiProtoForPush({
   required ExpressionPickerSyncedLocalState local,
   pickers_pb.EmojiPickerState? wireBase,
 }) {
-  final proto = wireBase != null
-      ? (pickers_pb.EmojiPickerState()..mergeFromMessage(wireBase))
-      : pickers_pb.EmojiPickerState();
+  final proto = mergeOrCreate(wireBase, pickers_pb.EmojiPickerState.new);
   proto.favoriteEmojiIds
     ..clear()
     ..addAll(local.favoriteKeys);
@@ -405,9 +404,7 @@ pickers_pb.StickerPickerState _toStickerProtoForPush({
   required ExpressionPickerSyncedLocalState local,
   pickers_pb.StickerPickerState? wireBase,
 }) {
-  final proto = wireBase != null
-      ? (pickers_pb.StickerPickerState()..mergeFromMessage(wireBase))
-      : pickers_pb.StickerPickerState();
+  final proto = mergeOrCreate(wireBase, pickers_pb.StickerPickerState.new);
   proto.favoriteStickerIds
     ..clear()
     ..addAll(local.favoriteKeys);

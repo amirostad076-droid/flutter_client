@@ -4,7 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
 import 'package:fluxer_app/core/synced_preferences/engine/synced_preference_field.dart';
-import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_store.dart';
+import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_dirty.dart';
 import 'package:fluxer_app/features/settings/domain/search_provider_engine.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -378,9 +378,7 @@ class AdvancedPreferences extends _$AdvancedPreferences {
   Future<void> setSaveGifFavoritesAsSavedMedia({required bool value}) async {
     state = state.copyWith(saveGifFavoritesAsSavedMedia: value);
     await _persist();
-    ref
-        .read(syncedPreferencesStoreProvider)
-        .markDirty(SyncedPreferenceField.favoriteGifs);
+    ref.markSyncedDirty(SyncedPreferenceField.favoriteGifs);
   }
 
   Future<void> applySyncedSaveGifFavoritesAsSavedMedia({
@@ -498,27 +496,21 @@ class AdvancedPreferences extends _$AdvancedPreferences {
     if (_isApplyingRemote) {
       return;
     }
-    ref
-        .read(syncedPreferencesStoreProvider)
-        .markDirty(SyncedPreferenceField.accessibility);
+    ref.markSyncedDirty(SyncedPreferenceField.accessibility);
   }
 
   void _markPrivacyDirty() {
     if (_isApplyingRemote) {
       return;
     }
-    ref
-        .read(syncedPreferencesStoreProvider)
-        .markDirty(SyncedPreferenceField.privacy);
+    ref.markSyncedDirty(SyncedPreferenceField.privacy);
   }
 
   void _markSearchEnginesDirty() {
     if (_isApplyingRemote) {
       return;
     }
-    ref
-        .read(syncedPreferencesStoreProvider)
-        .markDirty(SyncedPreferenceField.searchEngines);
+    ref.markSyncedDirty(SyncedPreferenceField.searchEngines);
   }
 
   Future<void> _persist() async {
@@ -641,4 +633,15 @@ class AdvancedPrivacyLocalState {
 
   final bool preuploadMessageAttachments;
   final bool disableStreamPreviews;
+
+  @override
+  bool operator ==(Object other) {
+    return other is AdvancedPrivacyLocalState &&
+        other.preuploadMessageAttachments == preuploadMessageAttachments &&
+        other.disableStreamPreviews == disableStreamPreviews;
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(preuploadMessageAttachments, disableStreamPreviews);
 }
