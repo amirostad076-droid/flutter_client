@@ -315,6 +315,7 @@ GuildUserDisplay resolveGuildUserDisplayFromProfile({
           type: GuildMemberMediaType.banner,
           hash: guildBanner,
           size: MediaProxySizes.profileBannerModal,
+          animated: true,
         )
       : FluxerMediaUrl.userBanner(
           userId: user.id,

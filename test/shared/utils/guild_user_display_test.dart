@@ -118,7 +118,9 @@ void main() {
       );
       expect(
         actual.bannerUrl,
-        contains('/guilds/10/users/1/banners/guild_banner.webp?size='),
+        contains(
+          '/guilds/10/users/1/banners/a_guild_banner.gif?animated=true&size=',
+        ),
       );
     });
 
