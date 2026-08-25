@@ -107,7 +107,7 @@ Future<void> _bootstrapFluxer(List<String> args) async {
     if (!kIsWeb && (Platform.isIOS || Platform.isAndroid))
       FluxerObservability.instance.traceAsync(
         'app.bootstrap.app_media_audio_session',
-        activateAppMediaAudioSession,
+        prepareAppMediaAudioSession,
       ),
   ]);
   FluxerObservability.instance.traceSync(

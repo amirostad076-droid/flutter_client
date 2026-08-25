@@ -80,6 +80,23 @@ void main() {
     });
   });
 
+  group('shouldRestorePreferredAudioAfterOneShot', () {
+    test('only incoming ring restores preferred audio session', () {
+      expect(
+        shouldRestorePreferredAudioAfterOneShot(kNotificationSfxContext),
+        isFalse,
+      );
+      expect(
+        shouldRestorePreferredAudioAfterOneShot(kIncomingRingLoopContext),
+        isTrue,
+      );
+      expect(
+        shouldRestorePreferredAudioAfterOneShot(kSessionFeedbackSfxContext),
+        isFalse,
+      );
+    });
+  });
+
   group('playOneShot', () {
     test('uses notification context for message sounds', () async {
       when(mockOneShotPlayer.setAudioContext(any)).thenAnswer((_) async {});

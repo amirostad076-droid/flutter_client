@@ -104,7 +104,7 @@ class _AppUiLifecycleObserverState extends ConsumerState<AppUiLifecycleObserver>
         (Platform.isIOS || Platform.isAndroid) &&
         isForeground &&
         !wasForeground) {
-      unawaited(activateAppMediaAudioSession());
+      unawaited(prepareAppMediaAudioSession());
     }
   }
 
