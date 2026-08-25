@@ -378,6 +378,21 @@ class AdvancedPreferences extends _$AdvancedPreferences {
   Future<void> setSaveGifFavoritesAsSavedMedia({required bool value}) async {
     state = state.copyWith(saveGifFavoritesAsSavedMedia: value);
     await _persist();
+    ref
+        .read(syncedPreferencesStoreProvider)
+        .markDirty(SyncedPreferenceField.favoriteGifs);
+  }
+
+  Future<void> applySyncedSaveGifFavoritesAsSavedMedia({
+    required bool value,
+  }) async {
+    _isApplyingRemote = true;
+    try {
+      state = state.copyWith(saveGifFavoritesAsSavedMedia: value);
+      await _persist();
+    } finally {
+      _isApplyingRemote = false;
+    }
   }
 
   Future<void> _updateSearchEngines(SearchEnginesState searchEngines) async {

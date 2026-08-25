@@ -10,6 +10,7 @@ import 'package:fluxer_app/core/synced_preferences/engine/synced_preferences_wir
 import 'package:fluxer_app/core/synced_preferences/fields/accessibility_overrides_synced_field.dart';
 import 'package:fluxer_app/core/synced_preferences/fields/accessibility_synced_field.dart';
 import 'package:fluxer_app/core/synced_preferences/fields/expression_picker_synced_field.dart';
+import 'package:fluxer_app/core/synced_preferences/fields/favorite_gifs_synced_field.dart';
 import 'package:fluxer_app/core/synced_preferences/fields/favorites_synced_field.dart';
 import 'package:fluxer_app/core/synced_preferences/fields/guild_folders_synced_field.dart';
 import 'package:fluxer_app/core/synced_preferences/fields/local_spam_overrides_synced_field.dart';
@@ -87,6 +88,7 @@ class SyncedPreferencesStore {
     registerAdapter(TextualPreviewSyncedField(_ref));
     registerAdapter(EmojiPickerSyncedField(_ref));
     registerAdapter(StickerPickerSyncedField(_ref));
+    registerAdapter(FavoriteGifsSyncedField(_ref));
   }
 
   void registerAdapter<T>(SyncedFieldAdapter<T> adapter) {
