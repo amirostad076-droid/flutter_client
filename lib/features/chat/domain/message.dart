@@ -107,6 +107,7 @@ class EmbedMedia {
   final String? contentType;
   final String? placeholder;
   final int flags;
+  final String? contentHash;
 
   const EmbedMedia({
     required this.url,
@@ -116,6 +117,7 @@ class EmbedMedia {
     this.contentType,
     this.placeholder,
     this.flags = 0,
+    this.contentHash,
   });
 
   bool get isAnimated =>
@@ -130,6 +132,7 @@ class EmbedMedia {
     contentType: sdk.contentType,
     placeholder: sdk.placeholder,
     flags: sdk.flags,
+    contentHash: sdk.contentHash,
   );
 
   factory EmbedMedia.fromJson(Map<String, dynamic> json) => EmbedMedia(
@@ -140,6 +143,8 @@ class EmbedMedia {
     contentType: (json['contentType'] ?? json['content_type']) as String?,
     placeholder: json['placeholder'] as String?,
     flags: json['flags'] as int? ?? 0,
+    contentHash:
+        (json['content_hash'] as String?) ?? (json['contentHash'] as String?),
   );
 
   Map<String, dynamic> toJson() => {
@@ -150,6 +155,7 @@ class EmbedMedia {
     'contentType': contentType,
     'placeholder': placeholder,
     'flags': flags,
+    if (contentHash != null) 'content_hash': contentHash,
   };
 }
 
@@ -318,6 +324,7 @@ class Attachment {
   final DateTime? expiresAt;
   final int? duration;
   final String? waveform;
+  final String? contentHash;
 
   const Attachment({
     required this.id,
@@ -337,6 +344,7 @@ class Attachment {
     this.flags = 0,
     this.duration,
     this.waveform,
+    this.contentHash,
   });
 
   factory Attachment.fromSdk(MessageAttachmentResponse sdk) {
@@ -358,6 +366,7 @@ class Attachment {
       expiresAt: DateTime.tryParse(sdk.expiresAt ?? ''),
       duration: sdk.duration,
       waveform: sdk.waveform,
+      contentHash: sdk.contentHash,
     );
   }
 
@@ -380,6 +389,8 @@ class Attachment {
       expiresAt: DateTime.tryParse((json['expires_at'] as String?) ?? ''),
       duration: json['duration'] as int?,
       waveform: json['waveform'] as String?,
+      contentHash:
+          (json['content_hash'] as String?) ?? (json['contentHash'] as String?),
     );
   }
 
@@ -401,6 +412,7 @@ class Attachment {
     'expires_at': expiresAt?.toIso8601String(),
     if (duration != null) 'duration': duration,
     if (waveform != null) 'waveform': waveform,
+    if (contentHash != null) 'content_hash': contentHash,
   };
 
   Attachment copyWithDescription(String? description) {
@@ -422,6 +434,7 @@ class Attachment {
       expiresAt: expiresAt,
       duration: duration,
       waveform: waveform,
+      contentHash: contentHash,
     );
   }
 
@@ -455,6 +468,7 @@ class Attachment {
   }
 
   bool get isPreviewMedia => isImage || isVideo;
+  bool get isSavableMedia => isImage || isVideo || isAudio;
   bool get isSpoiler => (flags & attachmentFlagIsSpoiler) != 0;
   bool get isMatureMedia =>
       (nsfw ?? false) || (flags & attachmentFlagContainsExplicitMedia) != 0;

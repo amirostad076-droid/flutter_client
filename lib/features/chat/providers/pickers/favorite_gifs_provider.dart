@@ -58,6 +58,41 @@ class FavoriteGifs extends _$FavoriteGifs {
     _markDirty();
   }
 
+  void addFromMessageMedia({
+    required String url,
+    required String proxyUrl,
+    int width = 0,
+    int height = 0,
+  }) {
+    if (hasUrl(url)) {
+      return;
+    }
+    state = FavoriteGifsState(
+      entries: [
+        ...state.entries,
+        FavoriteGifEntry(
+          url: url,
+          proxyUrl: proxyUrl,
+          width: width,
+          height: height,
+        ),
+      ],
+      seenFirstTimePrompt: state.seenFirstTimePrompt,
+    );
+    _markDirty();
+  }
+
+  void markFirstTimePromptSeen() {
+    if (state.seenFirstTimePrompt) {
+      return;
+    }
+    state = FavoriteGifsState(
+      entries: state.entries,
+      seenFirstTimePrompt: true,
+    );
+    _markDirty();
+  }
+
   void _markDirty() {
     ref.markSyncedDirty(SyncedPreferenceField.favoriteGifs);
   }

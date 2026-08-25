@@ -5785,6 +5785,86 @@
     "@favoritesAddToFavorites": {
         "description": "Action to add a channel to favorites."
     },
+    "favoritesAddToSavedMedia": "Add to saved media",
+    "@favoritesAddToSavedMedia": {
+        "description": "Action that adds the selected media to saved media."
+    },
+    "favoritesRemoveFromSavedMedia": "Remove from saved media",
+    "@favoritesRemoveFromSavedMedia": {
+        "description": "Action that removes the selected media from saved media."
+    },
+    "favoritesAddToUrlOnlyGifFavorites": "Add to URL-only GIF favorites",
+    "@favoritesAddToUrlOnlyGifFavorites": {
+        "description": "Media context menu action that saves a GIF favorite by URL without uploading it."
+    },
+    "favoritesRemoveFromUrlOnlyGifFavorites": "Remove from URL-only GIF favorites",
+    "@favoritesRemoveFromUrlOnlyGifFavorites": {
+        "description": "Media context menu action that removes a GIF favorite saved by URL."
+    },
+    "savedMediaAddTitle": "Add to saved media",
+    "@savedMediaAddTitle": {
+        "description": "Title for the add saved media form."
+    },
+    "savedMediaFormNameLabel": "Name",
+    "@savedMediaFormNameLabel": {
+        "description": "Form field label for saved media name."
+    },
+    "savedMediaFormNameHint": "My awesome media",
+    "@savedMediaFormNameHint": {
+        "description": "Placeholder for saved media name input."
+    },
+    "savedMediaFormAltTextLabel": "Alt text",
+    "@savedMediaFormAltTextLabel": {
+        "description": "Form field label for saved media alt text."
+    },
+    "savedMediaFormAltTextHint": "Describe the media",
+    "@savedMediaFormAltTextHint": {
+        "description": "Placeholder for saved media alt text input."
+    },
+    "savedMediaFormTagsLabel": "Tags",
+    "@savedMediaFormTagsLabel": {
+        "description": "Form field label for saved media tags."
+    },
+    "savedMediaFormTagsHint": "funny, reaction, work",
+    "@savedMediaFormTagsHint": {
+        "description": "Placeholder for saved media tags input."
+    },
+    "savedMediaSaveError": "Could not update saved media.",
+    "@savedMediaSaveError": {
+        "description": "Error shown when saving saved media fails."
+    },
+    "savedMediaNameRequired": "Name is required.",
+    "@savedMediaNameRequired": {
+        "description": "Validation error when saved media name is empty."
+    },
+    "gifFavoriteFirstTimeTitle": "How should we save your GIF favorites?",
+    "@gifFavoriteFirstTimeTitle": {
+        "description": "Title for the first-time GIF favorite storage prompt."
+    },
+    "gifFavoriteFirstTimeDescription": "You can store starred GIFs as URL-only favorites or upload them to your saved media. Pick the one that fits how you use them. You can change it any time in Settings > Advanced > Media.",
+    "@gifFavoriteFirstTimeDescription": {
+        "description": "Description for the first-time GIF favorite storage prompt."
+    },
+    "gifFavoriteFirstTimeUrlOnlyDetails": "URL-only favorites (default): synced across your devices, no upload, doesn't count against saved media. The original media may disappear if its host removes it.",
+    "@gifFavoriteFirstTimeUrlOnlyDetails": {
+        "description": "Details for URL-only GIF favorite storage option."
+    },
+    "gifFavoriteFirstTimeSavedMediaDetails": "Saved media: uploaded, taggable, searchable, and persistent, but counts against your saved media limit.",
+    "@gifFavoriteFirstTimeSavedMediaDetails": {
+        "description": "Details for saved media GIF favorite storage option."
+    },
+    "gifFavoriteFirstTimeHint": "We'll only ask once.",
+    "@gifFavoriteFirstTimeHint": {
+        "description": "Hint shown on the first-time GIF favorite storage prompt."
+    },
+    "gifFavoriteFirstTimeUseUrlOnly": "Use URL-only (recommended)",
+    "@gifFavoriteFirstTimeUseUrlOnly": {
+        "description": "Primary action on the first-time GIF favorite storage prompt."
+    },
+    "gifFavoriteFirstTimeUseSavedMedia": "Use saved media",
+    "@gifFavoriteFirstTimeUseSavedMedia": {
+        "description": "Secondary action on the first-time GIF favorite storage prompt."
+    },
     "favoritesHideConfirmTitle": "Hide favorites",
     "@favoritesHideConfirmTitle": {
         "description": "Title for hide favorites confirmation."

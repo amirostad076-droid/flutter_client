@@ -12,6 +12,8 @@ import 'package:fluxer_app/features/chat/presentation/widgets/media/chat_youtube
 import 'package:fluxer_app/features/chat/utils/attachment_display_utils.dart';
 import 'package:fluxer_app/features/chat/utils/chat_video_hdr_player_config.dart';
 import 'package:fluxer_app/features/chat/utils/chat_video_playback_utils.dart';
+import 'package:fluxer_app/features/chat/utils/favorite_media_utils.dart';
+import 'package:fluxer_app/features/chat/utils/save_message_media_favorite.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
 import 'package:fluxer_app/features/shell/providers/shell_manual_gesture_block_provider.dart';
 import 'package:fluxer_app/features/ui/media_viewer/media_viewer_dismiss.dart';
@@ -89,6 +91,29 @@ class _ChatMobileFullscreenVideoPageState
   double _dismissProgress = 0;
 
   ChatVideoSource get _source => widget.launchContext.source;
+
+  Widget? _buildFavoriteButton() {
+    final MessageMediaActionScope? actionScope =
+        widget.launchContext.actionScope;
+    final Attachment? attachment = widget.launchContext.attachment;
+    final MessageMediaFavoriteTarget? target = favoriteTargetForMessageMedia(
+      actionScope: actionScope,
+      attachmentId: attachment?.id,
+      embedIndex: widget.launchContext.embedIndex,
+      filename: attachment?.filename,
+      fallbackContentHash: attachment?.contentHash,
+      attachment: attachment,
+      forMediaViewerToolbar: true,
+    );
+    if (target == null || actionScope == null) {
+      return null;
+    }
+    return SavedMediaFavoriteToolbarButton(
+      message: actionScope.message,
+      target: target,
+      useHudStyle: true,
+    );
+  }
 
   @override
   void initState() {
@@ -453,6 +478,7 @@ class _ChatMobileFullscreenVideoPageState
                       l10n: l10n,
                       onClose: _executeClose,
                       onOpenOptions: showOptionsButton ? _openOptions : null,
+                      favoriteButton: _buildFavoriteButton(),
                       isMuted: _isMuted,
                       onMute: _toggleMute,
                       isPlaying: _isPlaying,
@@ -498,6 +524,25 @@ class _ChatMobileFullscreenYouTubePageState
   ChatFullscreenVideoLaunchContext get _launchContext => widget.launchContext;
 
   Embed get _embed => _launchContext.youtubeEmbed!;
+
+  Widget? _buildFavoriteButton() {
+    final MessageMediaActionScope? actionScope = _launchContext.actionScope;
+    final MessageMediaFavoriteTarget? target = favoriteTargetForMessageMedia(
+      actionScope: actionScope,
+      embedIndex: _launchContext.embedIndex,
+      filename: _embed.title,
+      attachment: _launchContext.attachment,
+      forMediaViewerToolbar: true,
+    );
+    if (target == null || actionScope == null) {
+      return null;
+    }
+    return SavedMediaFavoriteToolbarButton(
+      message: actionScope.message,
+      target: target,
+      useHudStyle: true,
+    );
+  }
 
   void _executeClose() {
     Navigator.of(context).pop();
@@ -609,6 +654,7 @@ class _ChatMobileFullscreenYouTubePageState
                               ),
                             ),
                             const Spacer(),
+                            ?_buildFavoriteButton(),
                             if (showOptionsButton)
                               IconButton(
                                 onPressed: _openOptions,
@@ -652,11 +698,13 @@ class _MobileVideoHud extends StatelessWidget {
     required this.duration,
     required this.onSeekFromGlobalDx,
     this.onOpenOptions,
+    this.favoriteButton,
   });
 
   final FluxerLocalizations l10n;
   final VoidCallback onClose;
   final VoidCallback? onOpenOptions;
+  final Widget? favoriteButton;
   final bool isMuted;
   final Future<void> Function() onMute;
   final bool isPlaying;
@@ -698,6 +746,7 @@ class _MobileVideoHud extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
+                  ?favoriteButton,
                   if (onOpenOptions != null)
                     IconButton(
                       onPressed: onOpenOptions,

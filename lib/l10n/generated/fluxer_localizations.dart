@@ -7588,6 +7588,126 @@ abstract class FluxerLocalizations {
   /// **'Add to Favorites'**
   String get favoritesAddToFavorites;
 
+  /// Action that adds the selected media to saved media.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to saved media'**
+  String get favoritesAddToSavedMedia;
+
+  /// Action that removes the selected media from saved media.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from saved media'**
+  String get favoritesRemoveFromSavedMedia;
+
+  /// Media context menu action that saves a GIF favorite by URL without uploading it.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to URL-only GIF favorites'**
+  String get favoritesAddToUrlOnlyGifFavorites;
+
+  /// Media context menu action that removes a GIF favorite saved by URL.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from URL-only GIF favorites'**
+  String get favoritesRemoveFromUrlOnlyGifFavorites;
+
+  /// Title for the add saved media form.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to saved media'**
+  String get savedMediaAddTitle;
+
+  /// Form field label for saved media name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get savedMediaFormNameLabel;
+
+  /// Placeholder for saved media name input.
+  ///
+  /// In en, this message translates to:
+  /// **'My awesome media'**
+  String get savedMediaFormNameHint;
+
+  /// Form field label for saved media alt text.
+  ///
+  /// In en, this message translates to:
+  /// **'Alt text'**
+  String get savedMediaFormAltTextLabel;
+
+  /// Placeholder for saved media alt text input.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the media'**
+  String get savedMediaFormAltTextHint;
+
+  /// Form field label for saved media tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get savedMediaFormTagsLabel;
+
+  /// Placeholder for saved media tags input.
+  ///
+  /// In en, this message translates to:
+  /// **'funny, reaction, work'**
+  String get savedMediaFormTagsHint;
+
+  /// Error shown when saving saved media fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update saved media.'**
+  String get savedMediaSaveError;
+
+  /// Validation error when saved media name is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Name is required.'**
+  String get savedMediaNameRequired;
+
+  /// Title for the first-time GIF favorite storage prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'How should we save your GIF favorites?'**
+  String get gifFavoriteFirstTimeTitle;
+
+  /// Description for the first-time GIF favorite storage prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'You can store starred GIFs as URL-only favorites or upload them to your saved media. Pick the one that fits how you use them. You can change it any time in Settings > Advanced > Media.'**
+  String get gifFavoriteFirstTimeDescription;
+
+  /// Details for URL-only GIF favorite storage option.
+  ///
+  /// In en, this message translates to:
+  /// **'URL-only favorites (default): synced across your devices, no upload, doesn\'t count against saved media. The original media may disappear if its host removes it.'**
+  String get gifFavoriteFirstTimeUrlOnlyDetails;
+
+  /// Details for saved media GIF favorite storage option.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved media: uploaded, taggable, searchable, and persistent, but counts against your saved media limit.'**
+  String get gifFavoriteFirstTimeSavedMediaDetails;
+
+  /// Hint shown on the first-time GIF favorite storage prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll only ask once.'**
+  String get gifFavoriteFirstTimeHint;
+
+  /// Primary action on the first-time GIF favorite storage prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Use URL-only (recommended)'**
+  String get gifFavoriteFirstTimeUseUrlOnly;
+
+  /// Secondary action on the first-time GIF favorite storage prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Use saved media'**
+  String get gifFavoriteFirstTimeUseSavedMedia;
+
   /// Title for hide favorites confirmation.
   ///
   /// In en, this message translates to:

@@ -361,6 +361,7 @@ class AttachmentMediaGrid extends ConsumerWidget {
                 proxyUrl: item.proxyUrl,
                 contentType: item.contentType,
                 isExpired: item.expired ?? false,
+                contentHash: item.contentHash,
               ),
             )
             .toList(),

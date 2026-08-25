@@ -7,6 +7,7 @@ import 'package:fluxer_app/features/chat/data/favorite_media_repository.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_gif_entry.dart';
 import 'package:fluxer_app/features/chat/domain/favorite_meme.dart';
 import 'package:fluxer_app/features/chat/domain/gif_selection.dart';
+import 'package:fluxer_app/features/chat/presentation/sheets/favorite_gif_first_time_prompt_sheet.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/media/fluxer_animated_image.dart';
 import 'package:fluxer_app/features/chat/presentation/widgets/pickers/picker_search_input.dart';
 import 'package:fluxer_app/features/chat/providers/pickers/favorite_gifs_provider.dart';
@@ -476,7 +477,21 @@ class _GifPickerContentState extends ConsumerState<GifPickerContent> {
       if (favoriteLookup.isFavorite(gif)) {
         notifier.removeByUrl(url);
       } else {
-        notifier.addFromGif(gif);
+        final bool seenPrompt = ref
+            .read(favoriteGifsProvider)
+            .seenFirstTimePrompt;
+        Future<void> addFavorite() async {
+          notifier.addFromGif(gif);
+        }
+
+        if (!seenPrompt && mounted) {
+          await showFavoriteGifFirstTimePrompt(
+            context: context,
+            onConfirm: addFavorite,
+          );
+          return;
+        }
+        await addFavorite();
       }
     } on Object {
       ref

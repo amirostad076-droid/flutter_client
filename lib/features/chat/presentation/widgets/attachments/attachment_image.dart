@@ -223,6 +223,7 @@ class AttachmentImage extends ConsumerWidget {
       proxyUrl: value.proxyUrl,
       contentType: value.contentType,
       isExpired: value.expired ?? false,
+      contentHash: value.contentHash,
     );
   }
 }
