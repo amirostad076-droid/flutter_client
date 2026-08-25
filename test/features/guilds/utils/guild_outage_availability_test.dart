@@ -83,7 +83,10 @@ void main() {
       expect(
         unavailableGuildCount(
           trackedUnavailableGuildIds: {'g1'},
-          guilds: [_guild(id: 'g2', unavailable: true), _guild(id: 'g3')],
+          guilds: [
+            _guild(id: 'g2', unavailable: true),
+            _guild(id: 'g3'),
+          ],
         ),
         2,
       );
@@ -109,10 +112,7 @@ void main() {
         isFalse,
       );
       expect(
-        isGuildMissingForRoute(
-          guildId: 'g2',
-          trackedUnavailableGuildIds: {},
-        ),
+        isGuildMissingForRoute(guildId: 'g2', trackedUnavailableGuildIds: {}),
         isTrue,
       );
     });

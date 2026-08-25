@@ -30,10 +30,10 @@ bool isGuildMissingForRoute({
   Guild? guild,
 }) {
   return !isGuildOutageUnavailable(
-    guildId: guildId,
-    trackedUnavailableGuildIds: trackedUnavailableGuildIds,
-    guild: guild,
-  ) &&
+        guildId: guildId,
+        trackedUnavailableGuildIds: trackedUnavailableGuildIds,
+        guild: guild,
+      ) &&
       guild == null;
 }
 

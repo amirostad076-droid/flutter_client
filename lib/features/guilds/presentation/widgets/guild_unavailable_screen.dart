@@ -144,10 +144,7 @@ class GuildUnavailableRouteShell extends ConsumerWidget {
 }
 
 class _GuildUnavailableMobileHeader extends ConsumerWidget {
-  const _GuildUnavailableMobileHeader({
-    required this.title,
-    this.channelId,
-  });
+  const _GuildUnavailableMobileHeader({required this.title, this.channelId});
 
   final String title;
   final String? channelId;
