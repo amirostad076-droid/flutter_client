@@ -22,19 +22,29 @@ Future<bool?> showDeleteMessageConfirmSheet(
   String? guildId,
 }) {
   final l10n = FluxerLocalizations.of(context);
-  return FluxerConfirmSheet.show(
-    context,
-    title: l10n.chatMessageDeleteConfirmTitle,
-    description: l10n.chatMessageDeleteConfirmDescription,
-    body: _DeleteMessagePreview(message: message, guildId: guildId),
-    confirmLabel: l10n.chatMessageDelete,
-    isDanger: true,
-    onConfirm: () {
-      unawaited(
-        ref.read(chatViewModelProvider.notifier).deleteMessage(message.id),
-      );
-    },
-  );
+  final completer = Completer<bool?>();
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    if (!context.mounted) {
+      completer.complete(null);
+      return;
+    }
+    completer.complete(
+      await FluxerConfirmSheet.show(
+        context,
+        title: l10n.chatMessageDeleteConfirmTitle,
+        description: l10n.chatMessageDeleteConfirmDescription,
+        body: _DeleteMessagePreview(message: message, guildId: guildId),
+        confirmLabel: l10n.chatMessageDelete,
+        isDanger: true,
+        onConfirm: () {
+          unawaited(
+            ref.read(chatViewModelProvider.notifier).deleteMessage(message.id),
+          );
+        },
+      ),
+    );
+  });
+  return completer.future;
 }
 
 class _DeleteMessagePreview extends ConsumerWidget {
