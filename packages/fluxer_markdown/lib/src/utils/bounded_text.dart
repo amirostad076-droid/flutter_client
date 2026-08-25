@@ -6,10 +6,10 @@ const TextHeightBehavior fluxerBoundedTextHeightBehavior = TextHeightBehavior(
 
 const double kFluxerBoundedTextDefaultHeight = 1.25;
 
-StrutStyle boundedStrutFor(TextStyle style) {
+StrutStyle boundedStrutFor(TextStyle style, {bool forceHeight = true}) {
   return StrutStyle.fromTextStyle(
     style,
-    forceStrutHeight: true,
+    forceStrutHeight: forceHeight,
     height: style.height ?? kFluxerBoundedTextDefaultHeight,
   );
 }
@@ -45,10 +45,11 @@ Widget buildFluxerBoundedRichText({
   TextDirection? textDirection,
   bool softWrap = true,
 }) {
+  final bool forceLineHeight = maxLines != null;
   return FluxerBoundedTextClip(
     child: RichText(
       text: text,
-      strutStyle: boundedStrutFor(baseStyle),
+      strutStyle: boundedStrutFor(baseStyle, forceHeight: forceLineHeight),
       textHeightBehavior: fluxerBoundedTextHeightBehavior,
       textScaler: textScaler ?? TextScaler.noScaling,
       maxLines: maxLines,

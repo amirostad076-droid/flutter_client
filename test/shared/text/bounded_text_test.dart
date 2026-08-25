@@ -60,12 +60,20 @@ void main() {
     expect(find.text('Hello from the message list'), findsOneWidget);
   });
 
-  test('boundedStrutFor forces strut height from text style', () {
+  test('boundedStrutFor forces strut height for single-line text', () {
     final StrutStyle strut = boundedStrutFor(
       const TextStyle(fontSize: 16, height: 1.375),
     );
     expect(strut.forceStrutHeight, isTrue);
     expect(strut.height, 1.375);
+  });
+
+  test('boundedStrutFor can leave line height flexible for inline widgets', () {
+    final StrutStyle strut = boundedStrutFor(
+      const TextStyle(fontSize: 16, height: 1.375),
+      forceHeight: false,
+    );
+    expect(strut.forceStrutHeight, isFalse);
   });
 
   testWidgets('buildFluxerBoundedRichText always clips', (

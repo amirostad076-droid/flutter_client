@@ -715,6 +715,7 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
                             style: context.textStyles.inputText,
                             strutStyle: boundedStrutFor(
                               context.textStyles.inputText,
+                              forceHeight: false,
                             ),
                             minLines: minLines,
                             maxLines: maxLines,
