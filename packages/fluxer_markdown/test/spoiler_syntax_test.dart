@@ -221,6 +221,33 @@ void main() {
       expect(find.byType(FluxerEmojiWidget), findsOneWidget);
     });
 
+    testWidgets(
+      'hidden spoiler keeps the same layout metrics as surrounding text',
+      (tester) async {
+        await pumpMarkdown(tester, 'before ||spoiler|| after');
+        final RenderParagraph paragraph = tester.renderObject<RenderParagraph>(
+          find.byType(RichText),
+        );
+        final String plainText = tester
+            .widget<RichText>(find.byType(RichText))
+            .text
+            .toPlainText();
+        double measureHeight(String char) {
+          final int idx = plainText.indexOf(char);
+          return paragraph
+              .getBoxesForSelection(
+                TextSelection(baseOffset: idx, extentOffset: idx + 1),
+              )
+              .first
+              .toRect()
+              .height;
+        }
+
+        expect(measureHeight('b'), measureHeight('s'));
+        expect(measureHeight('a'), measureHeight('s'));
+      },
+    );
+
     testWidgets('does not blur hidden spoiler content', (tester) async {
       await pumpMarkdown(tester, _customEmojiInput);
       expect(find.byType(ImageFiltered), findsNothing);
@@ -234,7 +261,9 @@ void main() {
       final RichText richText = tester.widget<RichText>(find.byType(RichText));
       final TextSpan rootSpan = richText.text as TextSpan;
       final TextSpan spoilerSpan = rootSpan.children!.single as TextSpan;
-      expect(spoilerSpan.style?.color, spoilerSpan.style?.backgroundColor);
+      final TextSpan leafSpan = spoilerSpan.children!.single as TextSpan;
+      expect(leafSpan.style?.color, const Color(0x00000000));
+      expect(leafSpan.style?.background?.color, isNotNull);
     });
 
     testWidgets('conceals formatted text inside hidden spoiler', (
@@ -245,7 +274,8 @@ void main() {
       final TextSpan rootSpan = richText.text as TextSpan;
       final TextSpan spoilerSpan = rootSpan.children!.single as TextSpan;
       final TextSpan boldSpan = spoilerSpan.children!.single as TextSpan;
-      expect(boldSpan.style?.color, boldSpan.style?.backgroundColor);
+      expect(boldSpan.style?.color, const Color(0x00000000));
+      expect(boldSpan.style?.background?.color, isNotNull);
       expect(boldSpan.style?.fontWeight, FontWeight.w700);
     });
 
@@ -275,10 +305,13 @@ void main() {
           tester.widget<RichText>(find.byType(RichText)).text as TextSpan;
       final TextSpan firstSpoiler = rootSpan.children![0] as TextSpan;
       final TextSpan secondSpoiler = rootSpan.children![2] as TextSpan;
-      expect(firstSpoiler.style?.backgroundColor, isNull);
-      expect(secondSpoiler.style?.backgroundColor, isNotNull);
+      expect(firstSpoiler.style?.background, isNull);
+      final TextSpan firstLeaf = firstSpoiler.children!.single as TextSpan;
+      expect(firstLeaf.style?.color, isNot(const Color(0x00000000)));
+      expect(secondSpoiler.style?.background, isNotNull);
       final TextSpan secondLeaf = secondSpoiler.children!.single as TextSpan;
-      expect(secondLeaf.style?.color, secondLeaf.style?.backgroundColor);
+      expect(secondLeaf.style?.color, const Color(0x00000000));
+      expect(secondLeaf.style?.background?.color, isNotNull);
     });
 
     testWidgets('flattens revealed spoiler for single-line ellipsis', (

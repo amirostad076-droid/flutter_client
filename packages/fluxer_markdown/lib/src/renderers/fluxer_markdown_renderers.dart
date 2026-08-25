@@ -1853,10 +1853,14 @@ Color _spoilerHiddenBackground(
       Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.2);
 }
 
+const Color _kHiddenSpoilerTextColor = Color(0x00000000);
+
+Paint _spoilerBackgroundPaint(Color color) => Paint()..color = color;
+
 TextStyle _hiddenSpoilerTextStyle(TextStyle base, Color hiddenBackground) {
   return base.copyWith(
-    backgroundColor: hiddenBackground,
-    color: hiddenBackground,
+    color: _kHiddenSpoilerTextColor,
+    background: _spoilerBackgroundPaint(hiddenBackground),
     decoration: TextDecoration.none,
   );
 }
@@ -1892,10 +1896,12 @@ double _concealedWidgetSpanSize(WidgetSpan span, TextStyle baseStyle) {
       (baseStyle.height ?? 1.2);
 }
 
-TextStyle _concealedSpoilerTextStyle(TextStyle? style, TextStyle hiddenStyle) {
-  return (style ?? const TextStyle())
-      .merge(hiddenStyle)
-      .copyWith(decoration: TextDecoration.none);
+TextStyle _concealedSpoilerTextStyle(TextStyle? style, Color hiddenBackground) {
+  return (style ?? const TextStyle()).copyWith(
+    color: _kHiddenSpoilerTextColor,
+    background: _spoilerBackgroundPaint(hiddenBackground),
+    decoration: TextDecoration.none,
+  );
 }
 
 List<InlineSpan> _concealSpoilerInlineSpans(
@@ -1934,7 +1940,7 @@ InlineSpan _concealSpoilerInlineSpan(
     final List<InlineSpan>? children = span.children;
     if (children != null && children.isNotEmpty) {
       return TextSpan(
-        style: _concealedSpoilerTextStyle(span.style, hiddenStyle),
+        style: _concealedSpoilerTextStyle(span.style, hiddenBackground),
         children: _concealSpoilerInlineSpans(
           children,
           hiddenStyle: hiddenStyle,
@@ -1947,7 +1953,7 @@ InlineSpan _concealSpoilerInlineSpan(
     }
     return TextSpan(
       text: span.text,
-      style: _concealedSpoilerTextStyle(span.style, hiddenStyle),
+      style: _concealedSpoilerTextStyle(span.style, hiddenBackground),
       mouseCursor: onTap == null ? null : SystemMouseCursors.click,
       recognizer: onTap == null ? null : obtainTapRecognizer(onTap),
     );
@@ -2000,9 +2006,14 @@ InlineSpan _applySpoilerRevealOpacityToSpan(
     final Color? targetColor = style?.color ?? baseStyle.color;
     final Color? fadedColor = targetColor == null
         ? null
-        : Color.lerp(hiddenBackground, targetColor, opacity);
+        : Color.lerp(_kHiddenSpoilerTextColor, targetColor, opacity);
     final TextStyle fadedStyle = (style ?? baseStyle).copyWith(
       color: fadedColor,
+      background: opacity < 1.0
+          ? _spoilerBackgroundPaint(
+              Color.lerp(hiddenBackground, const Color(0x00000000), opacity)!,
+            )
+          : null,
     );
     final List<InlineSpan>? children = span.children;
     if (children != null && children.isNotEmpty) {
