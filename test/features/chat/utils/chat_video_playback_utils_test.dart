@@ -36,6 +36,49 @@ void main() {
     });
   });
 
+  group('resolveInlineVideoOffscreenAction', () {
+    test('pauses a playing video that left the viewport', () {
+      expect(
+        resolveInlineVideoOffscreenAction(
+          visible: false,
+          isPlaying: true,
+          pausedOffscreen: false,
+        ),
+        ChatInlineVideoOffscreenAction.pause,
+      );
+    });
+
+    test('does not pause a user-paused video that left the viewport', () {
+      expect(
+        resolveInlineVideoOffscreenAction(
+          visible: false,
+          isPlaying: false,
+          pausedOffscreen: false,
+        ),
+        ChatInlineVideoOffscreenAction.none,
+      );
+    });
+
+    test('resumes only if this helper paused it offscreen', () {
+      expect(
+        resolveInlineVideoOffscreenAction(
+          visible: true,
+          isPlaying: false,
+          pausedOffscreen: true,
+        ),
+        ChatInlineVideoOffscreenAction.resume,
+      );
+      expect(
+        resolveInlineVideoOffscreenAction(
+          visible: true,
+          isPlaying: false,
+          pausedOffscreen: false,
+        ),
+        ChatInlineVideoOffscreenAction.none,
+      );
+    });
+  });
+
   group('ChatVideoSource.fromEmbed', () {
     test('maps video, thumbnail, and page URL fields', () {
       const Embed embed = Embed(

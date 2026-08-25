@@ -222,7 +222,11 @@ class EmbedRich extends StatelessWidget {
                     imageUrl: embed.thumbnail!.proxyUrl ?? embed.thumbnail!.url,
                     width: 72,
                     height: 72,
+                    memCacheWidth: (72 * MediaQuery.devicePixelRatioOf(context))
+                        .round(),
                     fit: BoxFit.cover,
+                    fadeInDuration: Duration.zero,
+                    fadeOutDuration: Duration.zero,
                     errorBuilder: (_, e, s) => const SizedBox.shrink(),
                   ),
                 ),
@@ -366,8 +370,16 @@ class _EmbedMediaImage extends StatelessWidget {
       width: media.width,
       height: media.height,
     );
+    final double dpr = MediaQuery.devicePixelRatioOf(context);
     final Widget image;
     if (displaySize != null) {
+      final ({int? width, int? height}) cache = coverDecodeCacheSize(
+        cellWidth: displaySize.width,
+        cellHeight: displaySize.height,
+        devicePixelRatio: dpr,
+        sourceWidth: media.width,
+        sourceHeight: media.height,
+      );
       image = ClipRRect(
         borderRadius: BorderRadius.circular(4),
         child: SizedBox(
@@ -377,12 +389,23 @@ class _EmbedMediaImage extends StatelessWidget {
             imageUrl: media.proxyUrl ?? media.url,
             width: displaySize.width,
             height: displaySize.height,
+            memCacheWidth: cache.width,
+            memCacheHeight: cache.height,
             fit: BoxFit.cover,
+            fadeInDuration: Duration.zero,
+            fadeOutDuration: Duration.zero,
             errorBuilder: (_, e, s) => const SizedBox.shrink(),
           ),
         ),
       );
     } else {
+      final ({int? width, int? height}) cache = containDecodeCacheSize(
+        cellWidth: dimensions.maxWidth,
+        cellHeight: kEmbedMediaFallbackHeight,
+        devicePixelRatio: dpr,
+        sourceWidth: media.width,
+        sourceHeight: media.height,
+      );
       image = ClipRRect(
         borderRadius: BorderRadius.circular(4),
         child: SizedBox(
@@ -391,6 +414,10 @@ class _EmbedMediaImage extends StatelessWidget {
           child: CachedNetworkImage(
             imageUrl: media.proxyUrl ?? media.url,
             fit: BoxFit.contain,
+            memCacheWidth: cache.width,
+            memCacheHeight: cache.height,
+            fadeInDuration: Duration.zero,
+            fadeOutDuration: Duration.zero,
             errorBuilder: (_, e, s) => const SizedBox.shrink(),
           ),
         ),

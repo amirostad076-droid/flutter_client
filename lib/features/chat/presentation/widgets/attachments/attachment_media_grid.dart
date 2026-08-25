@@ -316,6 +316,8 @@ class AttachmentMediaGrid extends ConsumerWidget {
                     memCacheWidth: cache.width,
                     memCacheHeight: cache.height,
                     fit: BoxFit.cover,
+                    fadeInDuration: Duration.zero,
+                    fadeOutDuration: Duration.zero,
                     errorBuilder: (_, _, _) =>
                         const ColoredBox(color: Colors.black),
                   ),

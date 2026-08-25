@@ -275,6 +275,8 @@ class _AttachmentStaticImage extends StatelessWidget {
           memCacheWidth: memCacheWidth,
           memCacheHeight: memCacheHeight,
           fit: BoxFit.contain,
+          fadeInDuration: Duration.zero,
+          fadeOutDuration: Duration.zero,
           placeholder: (BuildContext _, String _) => placeholder,
         );
       },
