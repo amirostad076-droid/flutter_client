@@ -228,7 +228,11 @@ Future<void> toggleMediaFavoriteToolbar({
         state.useUrlOnlyGifFlow || state.hasUrlOnlyGifFavorite;
     if (useUrlFlow) {
       if (state.hasUrlOnlyGifFavorite) {
-        await _removeUrlOnlyGifFavorite(ref: ref, context: context, state: state);
+        await _removeUrlOnlyGifFavorite(
+          ref: ref,
+          context: context,
+          state: state,
+        );
       } else {
         await _addUrlOnlyGifFavorite(
           ref: ref,
@@ -270,11 +274,7 @@ Future<void> handleMediaFavoriteMenuAction({
 
   switch (action) {
     case MediaFavoriteMenuAction.addUrlOnlyGifFavorite:
-      await _addUrlOnlyGifFavorite(
-        ref: ref,
-        context: context,
-        state: state,
-      );
+      await _addUrlOnlyGifFavorite(ref: ref, context: context, state: state);
     case MediaFavoriteMenuAction.removeUrlOnlyGifFavorite:
       await _removeUrlOnlyGifFavorite(ref: ref, context: context, state: state);
     case MediaFavoriteMenuAction.addSavedMediaFavorite:
@@ -313,12 +313,14 @@ Future<void> _addUrlOnlyGifFavorite({
   }
 
   Future<void> addFavorite() async {
-    ref.read(favoriteGifsProvider.notifier).addFromMessageMedia(
-      url: gifInfo.url,
-      proxyUrl: gifInfo.proxyUrl,
-      width: gifInfo.width,
-      height: gifInfo.height,
-    );
+    ref
+        .read(favoriteGifsProvider.notifier)
+        .addFromMessageMedia(
+          url: gifInfo.url,
+          proxyUrl: gifInfo.proxyUrl,
+          width: gifInfo.width,
+          height: gifInfo.height,
+        );
     if (!context.mounted) {
       return;
     }
@@ -387,16 +389,18 @@ Future<void> _removeSavedMediaFavorite({
 }
 
 void _showSuccessToast(WidgetRef ref, BuildContext context, String message) {
-  ref.read(toastProvider.notifier).show(
-    FluxerToast(message: message, variant: FluxerToastVariant.success),
-  );
+  ref
+      .read(toastProvider.notifier)
+      .show(FluxerToast(message: message, variant: FluxerToastVariant.success));
 }
 
 void _showErrorToast(WidgetRef ref, BuildContext context) {
-  ref.read(toastProvider.notifier).show(
-    FluxerToast(
-      message: FluxerLocalizations.of(context).savedMediaSaveError,
-      variant: FluxerToastVariant.danger,
-    ),
-  );
+  ref
+      .read(toastProvider.notifier)
+      .show(
+        FluxerToast(
+          message: FluxerLocalizations.of(context).savedMediaSaveError,
+          variant: FluxerToastVariant.danger,
+        ),
+      );
 }

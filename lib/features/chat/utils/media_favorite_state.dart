@@ -64,7 +64,8 @@ MediaFavoriteState resolveMediaFavoriteState({
   final bool hasSavedMediaFavorite = savedMediaFavorite != null;
   final MessageMediaGifInfo? gifInfo = target.gifInfo;
   final bool isGifFavoriteMedia = gifInfo != null;
-  final bool hasUrlOnlyGifFavorite = isGifFavoriteMedia &&
+  final bool hasUrlOnlyGifFavorite =
+      isGifFavoriteMedia &&
       urlFavorites.any((FavoriteGifEntry entry) => entry.url == gifInfo.url);
   final bool isToolbarFavorited = isGifFavoriteMedia
       ? isGifFavoriteActive(

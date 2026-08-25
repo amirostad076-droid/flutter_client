@@ -29,7 +29,11 @@ void main() {
     ];
 
     expect(
-      findFavoritedMedia(savedMedia, contentHash: 'hash-a', attachmentId: 'other'),
+      findFavoritedMedia(
+        savedMedia,
+        contentHash: 'hash-a',
+        attachmentId: 'other',
+      ),
       savedMedia.first,
     );
   });
@@ -61,42 +65,45 @@ void main() {
     );
   });
 
-  test('canSaveMessageMediaToFavorites requires message scope and media target', () {
-    final scope = MessageMediaActionScope(
-      message: _messageForFavoriteScopeTest,
-      permissions: const MessageActionPermissions(
-        isOwnMessage: true,
-        isDmChannel: false,
-        canDelete: false,
-        canReport: false,
-        canAddReactions: false,
-        canPinMessage: false,
-        canManageMessages: false,
-        canSendMessages: true,
-        developerMode: false,
-      ),
-      callbacks: const MessageActionCallbacks(),
-    );
+  test(
+    'canSaveMessageMediaToFavorites requires message scope and media target',
+    () {
+      final scope = MessageMediaActionScope(
+        message: _messageForFavoriteScopeTest,
+        permissions: const MessageActionPermissions(
+          isOwnMessage: true,
+          isDmChannel: false,
+          canDelete: false,
+          canReport: false,
+          canAddReactions: false,
+          canPinMessage: false,
+          canManageMessages: false,
+          canSendMessages: true,
+          developerMode: false,
+        ),
+        callbacks: const MessageActionCallbacks(),
+      );
 
-    expect(
-      canSaveMessageMediaToFavorites(
-        actionScope: scope,
-        attachmentId: 'attachment',
-        embedIndex: null,
-        attachment: _messageForFavoriteScopeTest.attachments.first,
-      ),
-      isFalse,
-    );
+      expect(
+        canSaveMessageMediaToFavorites(
+          actionScope: scope,
+          attachmentId: 'attachment',
+          embedIndex: null,
+          attachment: _messageForFavoriteScopeTest.attachments.first,
+        ),
+        isFalse,
+      );
 
-    expect(
-      canSaveMessageMediaToFavorites(
-        actionScope: scope,
-        attachmentId: null,
-        embedIndex: 0,
-      ),
-      isTrue,
-    );
-  });
+      expect(
+        canSaveMessageMediaToFavorites(
+          actionScope: scope,
+          attachmentId: null,
+          embedIndex: 0,
+        ),
+        isTrue,
+      );
+    },
+  );
 }
 
 final Message _messageForFavoriteScopeTest = Message(

@@ -29,7 +29,8 @@ class SavedMediaFormContent extends StatefulWidget {
     required String name,
     required String altText,
     required List<String> tags,
-  }) onSave;
+  })
+  onSave;
   final String? errorText;
 
   @override
@@ -47,7 +48,9 @@ class _SavedMediaFormContentState extends State<SavedMediaFormContent> {
     super.initState();
     _nameController = TextEditingController(text: widget.initialName);
     _altTextController = TextEditingController(text: widget.initialAltText);
-    _tagsController = TextEditingController(text: widget.initialTags.join(', '));
+    _tagsController = TextEditingController(
+      text: widget.initialTags.join(', '),
+    );
     _canSave = widget.initialName.trim().isNotEmpty;
     _nameController.addListener(_handleNameChanged);
   }

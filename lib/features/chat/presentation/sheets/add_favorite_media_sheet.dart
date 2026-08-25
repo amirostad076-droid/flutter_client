@@ -76,7 +76,8 @@ class _AddFavoriteMediaBodyState extends ConsumerState<_AddFavoriteMediaBody> {
     final String trimmedName = name.trim();
     if (trimmedName.isEmpty) {
       setState(
-        () => _errorText = FluxerLocalizations.of(context).savedMediaNameRequired,
+        () =>
+            _errorText = FluxerLocalizations.of(context).savedMediaNameRequired,
       );
       return;
     }
@@ -99,17 +100,20 @@ class _AddFavoriteMediaBodyState extends ConsumerState<_AddFavoriteMediaBody> {
       if (!mounted) {
         return;
       }
-      ref.read(toastProvider.notifier).show(
-        FluxerToast(
-          message: FluxerLocalizations.of(context).favoritesAddedToast,
-          variant: FluxerToastVariant.success,
-        ),
-      );
+      ref
+          .read(toastProvider.notifier)
+          .show(
+            FluxerToast(
+              message: FluxerLocalizations.of(context).favoritesAddedToast,
+              variant: FluxerToastVariant.success,
+            ),
+          );
       widget.onClose();
     } on Object {
       if (mounted) {
         setState(
-          () => _errorText = FluxerLocalizations.of(context).savedMediaSaveError,
+          () =>
+              _errorText = FluxerLocalizations.of(context).savedMediaSaveError,
         );
       }
     }

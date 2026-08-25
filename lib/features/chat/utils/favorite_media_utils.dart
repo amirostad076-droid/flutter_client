@@ -57,9 +57,13 @@ class MessageMediaFavoriteTarget {
       message,
       attachmentId,
     );
-    final EmbedMedia? embedMedia = resolveMessageEmbedMedia(message, embedIndex);
+    final EmbedMedia? embedMedia = resolveMessageEmbedMedia(
+      message,
+      embedIndex,
+    );
 
-    final Embed? embed = embedIndex != null &&
+    final Embed? embed =
+        embedIndex != null &&
             embedIndex >= 0 &&
             embedIndex < message.embeds.length
         ? message.embeds[embedIndex]
@@ -281,7 +285,9 @@ Attachment? resolveMessageAttachment(Message message, String? attachmentId) {
 }
 
 EmbedMedia? resolveMessageEmbedMedia(Message message, int? embedIndex) {
-  if (embedIndex == null || embedIndex < 0 || embedIndex >= message.embeds.length) {
+  if (embedIndex == null ||
+      embedIndex < 0 ||
+      embedIndex >= message.embeds.length) {
     return null;
   }
   final Embed embed = message.embeds[embedIndex];
@@ -343,7 +349,8 @@ String _defaultNameForMessageMedia({
   if (embedMedia != null) {
     return deriveDefaultNameFromEmbedMedia(
       media: embedMedia,
-      title: embed?.title ??
+      title:
+          embed?.title ??
           (embedIndex != null && embedIndex < message.embeds.length
               ? message.embeds[embedIndex].title
               : null),
