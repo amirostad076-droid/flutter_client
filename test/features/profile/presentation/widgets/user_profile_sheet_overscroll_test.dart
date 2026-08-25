@@ -58,8 +58,10 @@ Widget _buildTestApp(Widget child) {
 
 Widget _sheetLauncher(void Function(BuildContext context) show) {
   return Builder(
-    builder: (context) =>
-        ElevatedButton(onPressed: () => show(context), child: const Text('Open')),
+    builder: (context) => ElevatedButton(
+      onPressed: () => show(context),
+      child: const Text('Open'),
+    ),
   );
 }
 
