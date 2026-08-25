@@ -62,6 +62,7 @@ import 'package:fluxer_app/features/guilds/presentation/'
     'widgets/guild_scroll_indicator.dart';
 import 'package:fluxer_app/features/guilds/providers/add_guild_enabled_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_availability_provider.dart';
+import 'package:fluxer_app/features/guilds/providers/guild_drag_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_list_view_model.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_mute_provider.dart';
 import 'package:fluxer_app/features/guilds/providers/guild_navbar_scroll_store_provider.dart';
@@ -990,6 +991,13 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget> {
     final isExpanded = ref.watch(
       folderExpandedStateProvider.select((s) => s.contains(folder.id)),
     );
+    final DragState dragState = ref.watch(guildDragProvider);
+    final bool useLongPressDrag = isTouchPrimaryInput(ref);
+    final bool collapseWhileDragging = dragState.shouldCollapseDragSource(
+      itemId: folder.id.toString(),
+      useLongPressDrag: useLongPressDrag,
+    );
+    final bool visuallyExpanded = isExpanded && !collapseWhileDragging;
 
     // Aggregate unread/mention/voice across all guilds in folder.
     var anyUnread = false;
@@ -1036,7 +1044,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget> {
         alignment: Alignment.topCenter,
         children: [
           // Background panel (behind everything, spans full height).
-          if (isExpanded)
+          if (visuallyExpanded)
             Positioned.fill(
               child: Center(
                 child: Container(
@@ -1076,7 +1084,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget> {
                   anyUnread: anyUnread,
                   totalMentions: totalMentions,
                   folderVoiceActivity: folderVoiceActivity,
-                  isExpanded: isExpanded,
+                  isExpanded: visuallyExpanded,
                   guildUnreadReady: guildUnreadReady,
                 ),
               ),
@@ -1085,7 +1093,7 @@ class _GuildFolderWidgetState extends ConsumerState<_GuildFolderWidget> {
                 duration: context.motion.panel,
                 curve: const Cubic(0.25, 0.1, 0.25, 1),
                 alignment: Alignment.topCenter,
-                child: isExpanded
+                child: visuallyExpanded
                     ? Padding(
                         padding: const EdgeInsets.only(bottom: 4),
                         child: Column(
