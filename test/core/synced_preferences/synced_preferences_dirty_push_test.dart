@@ -133,8 +133,9 @@ String _wireWithGuildFoldersAndSound({
   return SyncedPreferencesWireCodec.encodeFieldIntoWire(
     currentWire: foldersWire,
     fieldNumber: SyncedPreferenceField.sound.fieldNumber,
-    fieldMessageBytes: pickers_pb.SoundSettings(masterVolume: masterVolume)
-        .writeToBuffer(),
+    fieldMessageBytes: pickers_pb.SoundSettings(
+      masterVolume: masterVolume,
+    ).writeToBuffer(),
   );
 }
 
@@ -161,9 +162,7 @@ void main() {
       _testUserSettings(syncedPreferences: initialWire),
     );
 
-    await container
-        .read(soundPreferencesProvider.notifier)
-        .setMasterVolume(80);
+    await container.read(soundPreferencesProvider.notifier).setMasterVolume(80);
     await flushSyncedPreferencesDebounce(store);
 
     expect(usersApi.pushCount, 1);

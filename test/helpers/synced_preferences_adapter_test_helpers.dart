@@ -19,7 +19,8 @@ void expectPushPreservesWireBaseField({
   required $pb.GeneratedMessage Function({
     required $pb.GeneratedMessage local,
     $pb.GeneratedMessage? wireBase,
-  }) toProtoForPush,
+  })
+  toProtoForPush,
 }) {
   final pushed = toProtoForPush(local: localProto, wireBase: wireBaseProto);
   final fieldOnly = SyncedPreferencesWireCodec.encodeFieldIntoWire(
@@ -46,5 +47,8 @@ void expectPushPreservesWireBaseField({
     isTrue,
   );
   expect(fieldOnly, isNot(equals(wireBaseOnly)));
-  expect(SyncedPreferencesEngine.decodeLenient(merged).writeToBuffer(), isNotEmpty);
+  expect(
+    SyncedPreferencesEngine.decodeLenient(merged).writeToBuffer(),
+    isNotEmpty,
+  );
 }

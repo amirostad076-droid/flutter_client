@@ -48,17 +48,19 @@ void main() {
         ],
         saveAsSavedMedia: false,
       );
-      final wireEntry = pickers_pb.FavoriteGifEntry(
-        url: 'https://example.com/a.gif',
-        proxyUrl: 'https://proxy.example/a.gif',
-        width: 320,
-        height: 240,
-      )..media['large'] = pickers_pb.FavoriteGifMediaFormat(
-          src: 'https://example.com/large.gif',
-          proxySrc: 'https://proxy.example/large.gif',
-          width: 640,
-          height: 480,
-        );
+      final wireEntry =
+          pickers_pb.FavoriteGifEntry(
+              url: 'https://example.com/a.gif',
+              proxyUrl: 'https://proxy.example/a.gif',
+              width: 320,
+              height: 240,
+            )
+            ..media['large'] = pickers_pb.FavoriteGifMediaFormat(
+              src: 'https://example.com/large.gif',
+              proxySrc: 'https://proxy.example/large.gif',
+              width: 640,
+              height: 480,
+            );
       final wireBase = pickers_pb.FavoriteGifSettings(entries: [wireEntry]);
 
       final pushed = FavoriteGifsSyncedField.toProtoForPush(
