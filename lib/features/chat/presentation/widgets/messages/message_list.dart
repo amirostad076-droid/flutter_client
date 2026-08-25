@@ -1700,8 +1700,7 @@ class _MessageListState extends ConsumerState<MessageList> {
           (previousMessage?.isSystemMessage ?? false),
       spacing: renderSettings.messageGroupSpacing,
     );
-    final Object signature = (
-      message,
+    final Object layoutSignature = (
       isNewDay,
       isGrouped,
       isUnreadBoundary,
@@ -1720,7 +1719,7 @@ class _MessageListState extends ConsumerState<MessageList> {
       swipeToReplyEnabled,
       renderSettings.messageDisplayCompact,
     );
-    return _tileCache.resolve(message.id, signature, () {
+    return _tileCache.resolve(message.id, layoutSignature, () {
       if (message.isSystemMessage) {
         final bool canDelete = canDeleteMessage(
           message: message,
@@ -1814,6 +1813,7 @@ class _MessageListState extends ConsumerState<MessageList> {
         leadingGroupSpacing: leading,
         child: RepaintBoundary(
           child: MessageItem(
+            key: ValueKey<String>(message.id),
             message: message,
             isGrouped: isGrouped,
             renderSettings: renderSettings,
@@ -1895,7 +1895,7 @@ class _MessageListState extends ConsumerState<MessageList> {
           ),
         ),
       );
-    });
+    }, message: message);
   }
 
   Widget _buildStreamItem({
