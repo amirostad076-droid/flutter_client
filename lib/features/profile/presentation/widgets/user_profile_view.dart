@@ -350,6 +350,7 @@ class _UserProfileViewState extends ConsumerState<UserProfileView> {
       ),
       child: CustomScrollView(
         controller: widget.scrollController,
+        physics: const ClampingScrollPhysics(),
         slivers: <Widget>[
           SliverToBoxAdapter(
             child: SizedBox(
