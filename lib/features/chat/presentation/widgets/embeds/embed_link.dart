@@ -167,7 +167,7 @@ class EmbedLink extends StatelessWidget {
       sourceHeight: thumbnail.height,
     );
     final Widget image = CachedNetworkImage(
-      imageUrl: thumbnail.proxyUrl ?? thumbnail.url,
+      imageUrl: embedMediaEffectiveUrl(thumbnail),
       fit: BoxFit.cover,
       memCacheWidth: cache.width,
       memCacheHeight: cache.height,

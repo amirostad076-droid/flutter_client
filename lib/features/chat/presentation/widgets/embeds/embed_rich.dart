@@ -219,7 +219,7 @@ class EmbedRich extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(4),
                   child: CachedNetworkImage(
-                    imageUrl: embed.thumbnail!.proxyUrl ?? embed.thumbnail!.url,
+                    imageUrl: embedMediaEffectiveUrl(embed.thumbnail!),
                     width: 72,
                     height: 72,
                     memCacheWidth: (72 * MediaQuery.devicePixelRatioOf(context))
@@ -386,7 +386,7 @@ class _EmbedMediaImage extends StatelessWidget {
           width: displaySize.width,
           height: displaySize.height,
           child: CachedNetworkImage(
-            imageUrl: media.proxyUrl ?? media.url,
+            imageUrl: embedMediaEffectiveUrl(media),
             width: displaySize.width,
             height: displaySize.height,
             memCacheWidth: cache.width,
@@ -412,7 +412,7 @@ class _EmbedMediaImage extends StatelessWidget {
           width: dimensions.maxWidth,
           height: kEmbedMediaFallbackHeight,
           child: CachedNetworkImage(
-            imageUrl: media.proxyUrl ?? media.url,
+            imageUrl: embedMediaEffectiveUrl(media),
             fit: BoxFit.contain,
             memCacheWidth: cache.width,
             memCacheHeight: cache.height,

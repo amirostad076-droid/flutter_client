@@ -135,13 +135,13 @@ void main() {
         attachment,
         compactMediaDimensions,
       );
-      expect(source.directMediaUrl, 'https://cdn.example.com/clip.mp4');
+      expect(source.directMediaUrl, 'https://proxy.example.com/clip.mp4');
       expect(source.posterUrl, isNotNull);
       expect(source.posterUrl, contains('format=webp'));
       expect(source.placeholder, 'thumbhash');
       expect(source.width, 1920);
       expect(source.height, 1080);
-      expect(source.fallbackUrl, 'https://cdn.example.com/clip.mp4');
+      expect(source.fallbackUrl, 'https://proxy.example.com/clip.mp4');
       expect(source.hasPlayableContent, isTrue);
     });
 
