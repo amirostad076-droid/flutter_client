@@ -4609,6 +4609,16 @@ class FluxerLocalizationsZh extends FluxerLocalizations {
   String get messagesMediaGifsAutoSendLabel => '选择 GIF 后自动发送';
 
   @override
+  String get messagesMediaCameraUploadsSectionTitle => 'Camera uploads';
+
+  @override
+  String get messagesMediaCameraUploadsSectionDescription =>
+      'Choose whether photos and videos taken with the in-app camera are kept on your device';
+
+  @override
+  String get messagesMediaCameraUploadsSaveToDeviceLabel => 'Save to device';
+
+  @override
   String get messagesMediaAutocompleteSectionTitle => '表情自动补全（冒号补全）';
 
   @override

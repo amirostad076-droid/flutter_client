@@ -4802,6 +4802,16 @@ class FluxerLocalizationsAr extends FluxerLocalizations {
       'إرسال صور GIF تلقائيًا عند تحديدها';
 
   @override
+  String get messagesMediaCameraUploadsSectionTitle => 'Camera uploads';
+
+  @override
+  String get messagesMediaCameraUploadsSectionDescription =>
+      'Choose whether photos and videos taken with the in-app camera are kept on your device';
+
+  @override
+  String get messagesMediaCameraUploadsSaveToDeviceLabel => 'Save to device';
+
+  @override
   String get messagesMediaAutocompleteSectionTitle =>
       'الإكمال التلقائي للتعبيرات (الإكمال التلقائي للنقطتين)';
 

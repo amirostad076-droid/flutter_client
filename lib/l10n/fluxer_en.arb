@@ -6105,6 +6105,18 @@
     "@messagesMediaGifsAutoSendLabel": {
         "description": "Toggle label for auto-sending GIFs from picker."
     },
+    "messagesMediaCameraUploadsSectionTitle": "Camera uploads",
+    "@messagesMediaCameraUploadsSectionTitle": {
+        "description": "Section title for camera capture upload settings."
+    },
+    "messagesMediaCameraUploadsSectionDescription": "Choose whether photos and videos taken with the in-app camera are kept on your device",
+    "@messagesMediaCameraUploadsSectionDescription": {
+        "description": "Section description for camera capture upload settings."
+    },
+    "messagesMediaCameraUploadsSaveToDeviceLabel": "Save to device",
+    "@messagesMediaCameraUploadsSaveToDeviceLabel": {
+        "description": "Toggle label for saving camera captures to the device gallery."
+    },
     "messagesMediaAutocompleteSectionTitle": "Expression autocomplete (colon autocomplete)",
     "@messagesMediaAutocompleteSectionTitle": {
         "description": "Section title for expression autocomplete settings."

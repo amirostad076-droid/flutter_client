@@ -343,6 +343,13 @@ final List<_UserSettingsSearchOption> _userSettingsSearchOptions = [
     label: _l((l10n) => l10n.messagesMediaGifsAutoSendLabel),
   ),
   _UserSettingsSearchOption(
+    id: 'chat:camera-save-to-device',
+    section: UserSettingsSection.chat,
+    fieldId: 'media',
+    label: _l((l10n) => l10n.messagesMediaCameraUploadsSaveToDeviceLabel),
+    keywords: [_l((l10n) => l10n.messagesMediaCameraUploadsSectionTitle)],
+  ),
+  _UserSettingsSearchOption(
     id: 'chat:expression-autocomplete',
     section: UserSettingsSection.chat,
     fieldId: 'input',

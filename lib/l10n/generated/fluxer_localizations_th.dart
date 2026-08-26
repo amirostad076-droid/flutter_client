@@ -4801,6 +4801,16 @@ class FluxerLocalizationsTh extends FluxerLocalizations {
   String get messagesMediaGifsAutoSendLabel => 'ส่ง GIF โดยอัตโนมัติเมื่อเลือก';
 
   @override
+  String get messagesMediaCameraUploadsSectionTitle => 'Camera uploads';
+
+  @override
+  String get messagesMediaCameraUploadsSectionDescription =>
+      'Choose whether photos and videos taken with the in-app camera are kept on your device';
+
+  @override
+  String get messagesMediaCameraUploadsSaveToDeviceLabel => 'Save to device';
+
+  @override
   String get messagesMediaAutocompleteSectionTitle =>
       'การเติมข้อความอัตโนมัติ (การเติมข้อความด้วยเครื่องหมายทวิภาค)';
 

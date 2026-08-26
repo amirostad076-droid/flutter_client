@@ -4848,6 +4848,16 @@ class FluxerLocalizationsLt extends FluxerLocalizations {
       'Automatiškai siųsti GIF failus pasirinkus';
 
   @override
+  String get messagesMediaCameraUploadsSectionTitle => 'Camera uploads';
+
+  @override
+  String get messagesMediaCameraUploadsSectionDescription =>
+      'Choose whether photos and videos taken with the in-app camera are kept on your device';
+
+  @override
+  String get messagesMediaCameraUploadsSaveToDeviceLabel => 'Save to device';
+
+  @override
   String get messagesMediaAutocompleteSectionTitle =>
       'Išraiškos automatinis užbaigimas (dvitaškio automatinis užbaigimas)';
 

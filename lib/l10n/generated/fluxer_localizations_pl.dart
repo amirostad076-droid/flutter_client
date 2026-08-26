@@ -4850,6 +4850,16 @@ class FluxerLocalizationsPl extends FluxerLocalizations {
       'Automatycznie wysyłaj GIF-y po wybraniu';
 
   @override
+  String get messagesMediaCameraUploadsSectionTitle => 'Camera uploads';
+
+  @override
+  String get messagesMediaCameraUploadsSectionDescription =>
+      'Choose whether photos and videos taken with the in-app camera are kept on your device';
+
+  @override
+  String get messagesMediaCameraUploadsSaveToDeviceLabel => 'Save to device';
+
+  @override
   String get messagesMediaAutocompleteSectionTitle =>
       'Autouzupełnianie wyrażeń (autouzupełnianie dwukropkiem)';
 

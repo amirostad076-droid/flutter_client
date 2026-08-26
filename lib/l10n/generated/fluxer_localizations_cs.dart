@@ -4830,6 +4830,16 @@ class FluxerLocalizationsCs extends FluxerLocalizations {
       'Automaticky odeslat GIFy po výběru';
 
   @override
+  String get messagesMediaCameraUploadsSectionTitle => 'Camera uploads';
+
+  @override
+  String get messagesMediaCameraUploadsSectionDescription =>
+      'Choose whether photos and videos taken with the in-app camera are kept on your device';
+
+  @override
+  String get messagesMediaCameraUploadsSaveToDeviceLabel => 'Save to device';
+
+  @override
   String get messagesMediaAutocompleteSectionTitle =>
       'Automatické doplňování výrazů (doplňování pomocí dvojtečky)';
 

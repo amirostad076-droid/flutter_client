@@ -8047,6 +8047,24 @@ abstract class FluxerLocalizations {
   /// **'Automatically send GIFs when selected'**
   String get messagesMediaGifsAutoSendLabel;
 
+  /// Section title for camera capture upload settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera uploads'**
+  String get messagesMediaCameraUploadsSectionTitle;
+
+  /// Section description for camera capture upload settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose whether photos and videos taken with the in-app camera are kept on your device'**
+  String get messagesMediaCameraUploadsSectionDescription;
+
+  /// Toggle label for saving camera captures to the device gallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to device'**
+  String get messagesMediaCameraUploadsSaveToDeviceLabel;
+
   /// Section title for expression autocomplete settings.
   ///
   /// In en, this message translates to:

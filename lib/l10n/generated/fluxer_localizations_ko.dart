@@ -4677,6 +4677,16 @@ class FluxerLocalizationsKo extends FluxerLocalizations {
   String get messagesMediaGifsAutoSendLabel => '선택한 GIF 자동 보내기';
 
   @override
+  String get messagesMediaCameraUploadsSectionTitle => 'Camera uploads';
+
+  @override
+  String get messagesMediaCameraUploadsSectionDescription =>
+      'Choose whether photos and videos taken with the in-app camera are kept on your device';
+
+  @override
+  String get messagesMediaCameraUploadsSaveToDeviceLabel => 'Save to device';
+
+  @override
   String get messagesMediaAutocompleteSectionTitle => '표현 자동 완성 (콜론 자동 완성)';
 
   @override
