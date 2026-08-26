@@ -11897,6 +11897,14 @@
     "advancedSettingEnableTextSelectionDescription": "Allow selecting text in the app",
     "advancedSettingVideoSeekThumbnailsLabel": "Enable video seek thumbnails",
     "advancedSettingVideoSeekThumbnailsDescription": "Thumbnail or live frame while scrubbing video",
+    "advancedSettingHapticFeedbackLabel": "Haptic feedback",
+    "@advancedSettingHapticFeedbackLabel": {
+        "description": "Toggle label for enabling haptic feedback in advanced settings."
+    },
+    "advancedSettingHapticFeedbackDescription": "Vibration feedback for taps and actions. Won't sync across devices.",
+    "@advancedSettingHapticFeedbackDescription": {
+        "description": "Toggle description for the local-only haptic feedback setting."
+    },
     "advancedSettingShowNekoLabel": "Show Neko",
     "advancedSettingShowNekoDescription": "Neko cat that chases your cursor",
     "advancedSettingShowNekoDescriptionTouch": "Show Neko on your chat input",

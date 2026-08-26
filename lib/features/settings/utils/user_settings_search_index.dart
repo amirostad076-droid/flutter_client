@@ -606,6 +606,12 @@ final List<_UserSettingsSearchOption> _userSettingsSearchOptions = [
     label: _l((l10n) => l10n.advancedSettingVideoSeekThumbnailsLabel),
   ),
   _UserSettingsSearchOption(
+    id: 'advanced:haptic-feedback',
+    section: UserSettingsSection.advanced,
+    fieldId: 'advanced-settings-accessibility',
+    label: _l((l10n) => l10n.advancedSettingHapticFeedbackLabel),
+  ),
+  _UserSettingsSearchOption(
     id: 'advanced:auto-send-gifs',
     section: UserSettingsSection.advanced,
     fieldId: 'advanced-settings-chat',

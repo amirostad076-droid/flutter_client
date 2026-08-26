@@ -16153,6 +16153,18 @@ abstract class FluxerLocalizations {
   /// **'Thumbnail or live frame while scrubbing video'**
   String get advancedSettingVideoSeekThumbnailsDescription;
 
+  /// Toggle label for enabling haptic feedback in advanced settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Haptic feedback'**
+  String get advancedSettingHapticFeedbackLabel;
+
+  /// Toggle description for the local-only haptic feedback setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibration feedback for taps and actions. Won\'t sync across devices.'**
+  String get advancedSettingHapticFeedbackDescription;
+
   /// No description provided for @advancedSettingShowNekoLabel.
   ///
   /// In en, this message translates to:

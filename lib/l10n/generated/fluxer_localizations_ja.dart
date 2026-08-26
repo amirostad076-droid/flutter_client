@@ -9441,6 +9441,13 @@ class FluxerLocalizationsJa extends FluxerLocalizations {
       'Thumbnail or live frame while scrubbing video';
 
   @override
+  String get advancedSettingHapticFeedbackLabel => 'Haptic feedback';
+
+  @override
+  String get advancedSettingHapticFeedbackDescription =>
+      'Vibration feedback for taps and actions. Won\'t sync across devices.';
+
+  @override
   String get advancedSettingShowNekoLabel => 'Show Neko';
 
   @override
