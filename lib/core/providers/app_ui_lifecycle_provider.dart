@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/audio/app_media_audio_session.dart';
 import 'package:fluxer_app/core/bootstrap/image_cache_config.dart';
+import 'package:fluxer_app/features/chat/utils/media_kit_player_lifecycle.dart';
 import 'package:fluxer_app/l10n/app_locale_provider.dart';
 import 'package:fluxer_app/shared/external_links/external_url_launcher.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -90,6 +91,7 @@ class _AppUiLifecycleObserverState extends ConsumerState<AppUiLifecycleObserver>
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
       clearFluxerImageCache();
+      unawaited(MediaKitPlayerLifecycleCoordinator.instance.pauseAll());
     }
     final bool wasForeground = ref.read(appUiForegroundProvider);
     final bool isForeground = isAppUiForegroundLifecycle(state);
