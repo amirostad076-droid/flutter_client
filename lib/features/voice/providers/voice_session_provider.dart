@@ -104,6 +104,7 @@ class VoiceSession extends _$VoiceSession {
   bool _intentionalLiveKitTeardown = false;
   ChannelE2eeStatus? _lastLoggedE2eeChannelStatus;
   Future<void>? _connectLiveKitInFlight;
+  Future<void>? _leaveVoiceInFlight;
   Timer? _deferredServerDisconnectTimer;
   String? _pendingServerDisconnectConnectionId;
   int? _boundRoomAttemptId;
@@ -1201,6 +1202,25 @@ class VoiceSession extends _$VoiceSession {
   }
 
   Future<void> leaveVoice({bool endCall = true}) async {
+    if (_leaveVoiceInFlight != null) {
+      await _leaveVoiceInFlight;
+      return;
+    }
+    final Completer<void> leaveCompleter = Completer<void>();
+    _leaveVoiceInFlight = leaveCompleter.future;
+    try {
+      await _leaveVoiceImpl(endCall: endCall);
+    } finally {
+      if (!leaveCompleter.isCompleted) {
+        leaveCompleter.complete();
+      }
+      _leaveVoiceInFlight = null;
+      _intentionalLiveKitTeardown = false;
+    }
+  }
+
+  Future<void> _leaveVoiceImpl({required bool endCall}) async {
+    _intentionalLiveKitTeardown = true;
     _cancelConnectWatchdog();
     _cancelLiveKitConnectWatchdog();
     _cancelDeferredServerDisconnect();
@@ -1229,6 +1249,9 @@ class VoiceSession extends _$VoiceSession {
     _outboundRingRecipients = null;
     _lastLoggedE2eeChannelStatus = null;
     _resetPendingSelfAudioFlags();
+    while (_connectLiveKitInFlight != null) {
+      await _connectLiveKitInFlight;
+    }
     if (channelId != null) {
       _clearOutgoingCallInitiator(channelId);
     }
@@ -1271,6 +1294,7 @@ class VoiceSession extends _$VoiceSession {
   }
 
   Future<void> _disconnectAndDisposeRoom(Room room, {String? reason}) async {
+    final bool teardownAlreadyArmed = _intentionalLiveKitTeardown;
     _intentionalLiveKitTeardown = true;
     final String reasonSuffix = reason == null ? '' : ' after $reason';
     try {
@@ -1283,7 +1307,9 @@ class VoiceSession extends _$VoiceSession {
       } on Object catch (e) {
         talker.warning('[Voice] failed to dispose room$reasonSuffix: $e');
       }
-      _intentionalLiveKitTeardown = false;
+      if (!teardownAlreadyArmed) {
+        _intentionalLiveKitTeardown = false;
+      }
     }
   }
 
@@ -1302,13 +1328,15 @@ class VoiceSession extends _$VoiceSession {
     if (roomToDisconnect == null) {
       return;
     }
-    final LocalParticipant? localParticipant =
-        roomToDisconnect.localParticipant;
-    if (localParticipant != null) {
-      try {
-        await localParticipant.setMicrophoneEnabled(false);
-      } on Object catch (error) {
-        talker.debug('[Voice] failed to disable mic on disconnect: $error');
+    if (!_intentionalLiveKitTeardown) {
+      final LocalParticipant? localParticipant =
+          roomToDisconnect.localParticipant;
+      if (localParticipant != null) {
+        try {
+          await localParticipant.setMicrophoneEnabled(false);
+        } on Object catch (error) {
+          talker.debug('[Voice] failed to disable mic on disconnect: $error');
+        }
       }
     }
     if (!skipGatewayDisconnect) {
