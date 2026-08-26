@@ -8,6 +8,7 @@ import 'package:fluxer_app/core/audio/enums/fluxer_sfx_clip.dart';
 import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/platform/fluxer_platform.dart';
+import 'package:fluxer_app/core/providers/app_ui_lifecycle_provider.dart';
 import 'package:fluxer_app/core/providers/fluxer_sfx_provider.dart';
 import 'package:fluxer_app/core/providers/gateway_connection_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
@@ -2133,28 +2134,21 @@ class VoiceSession extends _$VoiceSession {
 
     _isRecoveringAudioRoute = true;
     try {
-      if (inputChanged) {
-        await _runAudioRouteRecoveryStep('setEngineAvailability', () {
-          // LiveKit CallKit audio ownership APIs are marked @experimental.
-          // ignore: experimental_member_use
-          return AudioManager.instance.setEngineAvailability(
-            // LiveKit experimental API.
-            // ignore: experimental_member_use
-            AudioEngineAvailability.defaultAvailability,
-          );
-        });
-      }
       await _runAudioRouteRecoveryStep(
         'applySpeakerOutput',
         () => applicator.applySpeakerOutput(settings: settings),
       );
-      if (inputChanged && _shouldPublishMicrophone()) {
+      if (inputChanged &&
+          shouldRefreshMicrophoneOnAudioRouteChange(
+            isIos: Platform.isIOS,
+            isForeground: ref.read(appUiForegroundProvider),
+          ) &&
+          _shouldPublishMicrophone()) {
         await _runAudioRouteRecoveryStep(
           'refreshMicrophone',
-          () => applicator.refreshMicrophone(
+          () => applicator.refreshMicrophoneAfterRouteChange(
             room: room!,
             settings: settings,
-            microphoneEnabled: true,
           ),
         );
       }
