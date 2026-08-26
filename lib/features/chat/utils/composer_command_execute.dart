@@ -14,11 +14,7 @@ import 'package:fluxer_app/shared/providers/guild_user_display_provider.dart';
 import 'package:fluxer_app/shared/utils/guild_user_display.dart';
 import 'package:fluxer_dart/export.dart';
 
-enum ComposerCommandDispatch {
-  sendChannel,
-  executed,
-  blocked,
-}
+enum ComposerCommandDispatch { sendChannel, executed, blocked }
 
 ComposerCommandDispatch composerCommandDispatchKind(ComposerCommand command) {
   return switch (command) {

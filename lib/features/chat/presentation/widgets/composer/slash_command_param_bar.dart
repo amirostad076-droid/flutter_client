@@ -106,7 +106,10 @@ class SlashCommandParamBar extends StatelessWidget {
                     return muted;
                   }),
                 ),
-                icon: const PhosphorIcon(PhosphorIconsRegular.xCircle, size: 16),
+                icon: const PhosphorIcon(
+                  PhosphorIconsRegular.xCircle,
+                  size: 16,
+                ),
               ),
             ),
           ],

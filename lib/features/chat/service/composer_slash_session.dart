@@ -297,8 +297,7 @@ class ComposerSlashSession extends ChangeNotifier {
       return;
     }
     final ComposerSlashSlotState slot = _slots[index];
-    final bool submitRequired =
-        slot.option.required && !slot.option.allowEmpty;
+    final bool submitRequired = slot.option.required && !slot.option.allowEmpty;
     final String raw = (slot.wire ?? slot.text).trim();
     if (raw.isEmpty) {
       slot.invalid = submitRequired && (slot.touched || _showRequiredError);
@@ -312,9 +311,7 @@ class ComposerSlashSession extends ChangeNotifier {
       rawText: raw,
       required: submitRequired,
       choices: slot.option.choices
-          .map(
-            (ComposerCommandChoice c) => (name: c.name, value: c.value),
-          )
+          .map((ComposerCommandChoice c) => (name: c.name, value: c.value))
           .toList(growable: false),
     );
     slot.invalid = !result.valid;

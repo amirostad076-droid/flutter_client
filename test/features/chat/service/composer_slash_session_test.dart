@@ -27,11 +27,7 @@ void main() {
     session.start(command);
     expect(session.slots.length, 1);
     expect(session.absentOptional.length, 1);
-    session.applySlotPayload(
-      index: 0,
-      display: 'Alice',
-      wire: '<@1>',
-    );
+    session.applySlotPayload(index: 0, display: 'Alice', wire: '<@1>');
     expect(session.toWireText(), '/kick <@1>');
     expect(session.isSubmitValid, isTrue);
     session.addOptionalOption('reason');

@@ -64,9 +64,7 @@ SlashSlotValidationResult validateSlashSlot({
       if (_bareIdRe.hasMatch(text)) {
         return SlashSlotValidationResult(valid: true, resolvedWire: '<@$text>');
       }
-      final String? resolved = resolveUser?.call(
-        _stripLeadingSigil(text, '@'),
-      );
+      final String? resolved = resolveUser?.call(_stripLeadingSigil(text, '@'));
       if (resolved != null) {
         return SlashSlotValidationResult(
           valid: true,
@@ -91,9 +89,7 @@ SlashSlotValidationResult validateSlashSlot({
           resolvedWire: '<@&$text>',
         );
       }
-      final String? resolved = resolveRole?.call(
-        _stripLeadingSigil(text, '@'),
-      );
+      final String? resolved = resolveRole?.call(_stripLeadingSigil(text, '@'));
       if (resolved != null) {
         return SlashSlotValidationResult(
           valid: true,

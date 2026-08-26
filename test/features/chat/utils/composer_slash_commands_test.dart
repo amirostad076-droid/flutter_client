@@ -58,10 +58,10 @@ void main() {
     });
 
     test('substring matches command name', () {
-      expect(
-        filterCommandsByQuery(commands, 'm').map((c) => c.name),
-        <String>['/me', '/msg'],
-      );
+      expect(filterCommandsByQuery(commands, 'm').map((c) => c.name), <String>[
+        '/me',
+        '/msg',
+      ]);
     });
   });
 

@@ -187,9 +187,9 @@ class _SlashCommandComposerState extends State<SlashCommandComposer> {
           GestureDetector(
             onTap: widget.session.focusOptionalHint,
             child: Text(
-              FluxerLocalizations.of(
-                context,
-              ).composerCommandOptionalMore(widget.session.absentOptional.length),
+              FluxerLocalizations.of(context).composerCommandOptionalMore(
+                widget.session.absentOptional.length,
+              ),
               style: widget.style.copyWith(
                 fontSize: (widget.style.fontSize ?? 16) * 0.8125,
                 fontWeight: FontWeight.w500,
