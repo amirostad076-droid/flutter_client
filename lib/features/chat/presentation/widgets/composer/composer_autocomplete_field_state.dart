@@ -994,16 +994,9 @@ class ComposerAutocompleteFieldState
     await EmojiRegistry.ensureLoaded();
     final bool hasChannel = _channelId.isNotEmpty;
     final String activeGuildId = ref.read(contextualGuildIdProvider) ?? '';
-    final bool hasPlutoniumEmojiAccess =
-        !hasChannel ||
-        composerHasDirectChatEmojiAccess(
-          channelId: _channelId,
-          dmConversations: ref.read(dmViewModelProvider).conversations,
-          currentUserId: ref.read(currentUserIdProvider),
-          hasGlobalExpressions: ref.read(
-            instanceFeatureEnabledProvider(LimitKeys.featureGlobalExpressions),
-          ),
-        );
+    final bool hasPlutoniumEmojiAccess = ref.read(
+      instanceFeatureEnabledProvider(LimitKeys.featureGlobalExpressions),
+    );
     final bool canUseExternal =
         !hasChannel ||
         readChannelMessagePermissionsForComposer(
