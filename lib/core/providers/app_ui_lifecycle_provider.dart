@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/audio/app_media_audio_session.dart';
 import 'package:fluxer_app/core/bootstrap/image_cache_config.dart';
+import 'package:fluxer_app/core/providers/well_known_provider.dart';
 import 'package:fluxer_app/features/chat/utils/media_kit_player_lifecycle.dart';
 import 'package:fluxer_app/l10n/app_locale_provider.dart';
 import 'package:fluxer_app/shared/external_links/external_url_launcher.dart';
@@ -102,6 +103,9 @@ class _AppUiLifecycleObserverState extends ConsumerState<AppUiLifecycleObserver>
       unawaited(closeInAppBrowserIfOpen());
     }
     ref.read(appUiForegroundProvider.notifier).setResumed(isForeground);
+    if (!wasForeground && isForeground) {
+      unawaited(ref.read(wellKnownProvider.notifier).refresh());
+    }
     if (!kIsWeb &&
         (Platform.isIOS || Platform.isAndroid) &&
         isForeground &&

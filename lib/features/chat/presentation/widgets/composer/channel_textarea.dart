@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
+import 'package:fluxer_app/core/instance/instance_runtime_config.dart';
 import 'package:fluxer_app/core/limits/instance_limit_provider.dart';
 import 'package:fluxer_app/core/limits/limit_key.dart';
 import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
@@ -14,6 +15,7 @@ import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/platform/fluxer_platform.dart';
 import 'package:fluxer_app/core/premium/should_show_premium_commerce_provider.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/providers/instance_runtime_config_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
@@ -897,6 +899,16 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
     if (dm != null && isSystemDmConversation(dm)) {
       return const SystemDmComposerBarrier();
     }
+    final bool directMessagesDisabled = ref.watch(
+      instanceRuntimeConfigProvider.select(
+        (InstanceRuntimeConfig config) => config.directMessagesDisabled,
+      ),
+    );
+    if (directMessagesDisabled && dm != null && !dm.isPersonalNotes) {
+      return SystemDmComposerBarrier(
+        message: FluxerLocalizations.of(context).channelNoSendPermissionHint,
+      );
+    }
     final Set<String> blockedUserIds = ref.watch(blockedUserIdsProvider);
     final bool isBlockedDmRecipient =
         dm != null &&
@@ -1274,13 +1286,20 @@ class _ChannelTextareaState extends ConsumerState<ChannelTextarea>
           showStickersButton: showStickersButton,
           showEmojiButton: showEmojiButton,
         );
+    final bool gifEnabled = ref.watch(
+      instanceRuntimeConfigProvider.select(
+        (InstanceRuntimeConfig config) => config.gifEnabled,
+      ),
+    );
     final List<ExpressionPickerTab> composerButtonTabs =
         composerInputButtonVisibleTabs(
           perms: perms,
           advanced: composerButtonPrefs,
+          gifEnabled: gifEnabled,
         );
     final List<ExpressionPickerTab> popoutTabs = expressionPanelVisibleTabs(
       perms,
+      gifEnabled: gifEnabled,
     );
     final FluxerLocalizations l10n = FluxerLocalizations.of(context);
     final bool touchInputStyle = isTouchPrimaryInput(ref);

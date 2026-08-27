@@ -1,8 +1,10 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as db;
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/channel_permission_cache_provider.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/providers/instance_runtime_config_provider.dart';
 import 'package:fluxer_app/features/channels/domain/channel.dart';
 import 'package:fluxer_app/features/dm/domain/dm_channel_types.dart';
 import 'package:fluxer_app/features/gateway/providers/gateway_event_providers.dart';
@@ -63,7 +65,11 @@ VoiceJoinEligibility resolveVoiceJoinEligibility({
   required bool isGuildOwner,
   required int userLimit,
   required int occupiedConnectionCount,
+  bool voiceEnabled = true,
 }) {
+  if (!voiceEnabled) {
+    return const VoiceJoinEligibility(canJoin: false);
+  }
   if (!channelExists) {
     return const VoiceJoinEligibility(canJoin: false);
   }
@@ -183,7 +189,10 @@ Future<VoiceJoinEligibility> voiceJoinEligibility(
     ..watch(channelPermissionCacheProvider)
     ..watch(guildListViewModelProvider)
     ..watch(currentUserMemberIdentityProvider(guildId))
-    ..watch(guildRolePermissionsIdentityProvider(guildId));
+    ..watch(guildRolePermissionsIdentityProvider(guildId))
+    ..watch(
+      instanceRuntimeConfigProvider.select((config) => config.voiceEnabled),
+    );
   if (guildId.isNotEmpty && userId.isNotEmpty) {
     ref.watch(memberRowByGuildProvider((userId, guildId)));
   }
@@ -267,5 +276,6 @@ Future<VoiceJoinEligibility> readVoiceJoinEligibility(
       voiceStates: voiceStates,
       currentConnectionId: null,
     ),
+    voiceEnabled: ref.read(instanceRuntimeConfigProvider).voiceEnabled,
   );
 }

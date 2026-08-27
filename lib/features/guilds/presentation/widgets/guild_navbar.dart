@@ -12,6 +12,7 @@ import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
 import 'package:fluxer_app/core/permissions/permission.dart';
 import 'package:fluxer_app/core/providers/database_provider.dart';
+import 'package:fluxer_app/core/providers/instance_runtime_config_provider.dart';
 import 'package:fluxer_app/core/providers/well_known_provider.dart';
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/router/route_names.dart';
@@ -232,23 +233,29 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
     required int pendingUnavailableCount,
     required List<GuildNavbarItem> organizedItems,
     required bool showAddCommunity,
+    required bool hideDirectMessages,
   }) {
-    final List<_NavbarListEntry> entries = <_NavbarListEntry>[
-      const _NavbarListEntry(kind: _NavbarListEntryKind.directMessages),
-    ];
+    final List<_NavbarListEntry> entries = <_NavbarListEntry>[];
+    if (!hideDirectMessages) {
+      entries.add(
+        const _NavbarListEntry(kind: _NavbarListEntryKind.directMessages),
+      );
+    }
     if (showFavorites) {
       entries.add(const _NavbarListEntry(kind: _NavbarListEntryKind.favorites));
     }
-    for (final DmChannel dm in allowlistedDms) {
-      entries.add(
-        _NavbarListEntry(kind: _NavbarListEntryKind.allowlistedDm, dm: dm),
-      );
-    }
-    if (dmItemsVisible) {
-      for (final DmChannel dm in regularDms) {
+    if (!hideDirectMessages) {
+      for (final DmChannel dm in allowlistedDms) {
         entries.add(
-          _NavbarListEntry(kind: _NavbarListEntryKind.regularDm, dm: dm),
+          _NavbarListEntry(kind: _NavbarListEntryKind.allowlistedDm, dm: dm),
         );
+      }
+      if (dmItemsVisible) {
+        for (final DmChannel dm in regularDms) {
+          entries.add(
+            _NavbarListEntry(kind: _NavbarListEntryKind.regularDm, dm: dm),
+          );
+        }
       }
     }
     entries.add(const _NavbarListEntry(kind: _NavbarListEntryKind.divider));
@@ -383,6 +390,11 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       });
 
     final bool showAddCommunity = ref.watch(addGuildEnabledProvider);
+    final bool hideDirectMessages = ref.watch(
+      instanceRuntimeConfigProvider.select(
+        (config) => config.directMessagesDisabled,
+      ),
+    );
     final double topPadding = max<double>(MediaQuery.paddingOf(context).top, 4);
     final List<_NavbarListEntry> navbarEntries = _buildNavbarEntries(
       showFavorites: showFavorites,
@@ -392,6 +404,7 @@ class _GuildNavbarState extends ConsumerState<GuildNavbar> {
       pendingUnavailableCount: pendingUnavailableCount,
       organizedItems: organizedItems,
       showAddCommunity: showAddCommunity,
+      hideDirectMessages: hideDirectMessages,
     );
     final guildListView = ListView.builder(
       scrollCacheExtent: const ScrollCacheExtent.pixels(600),
