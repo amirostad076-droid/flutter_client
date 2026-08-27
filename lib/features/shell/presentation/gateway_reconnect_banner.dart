@@ -254,80 +254,83 @@ class _GatewayReconnectBannerState
           liveRegion: true,
           label: connected ? connectedMessage : reconnectingMessage,
           child: ExcludeSemantics(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: pillRadius,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.28),
-                    blurRadius: 18,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: pillRadius,
-                child: Stack(
-                  children: [
-                    const Positioned.fill(
-                      child: RepaintBoundary(
-                        child: ClipRect(child: StarfieldBackground()),
+            child: Material(
+              type: MaterialType.transparency,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: pillRadius,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.28),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: pillRadius,
+                  child: Stack(
+                    children: [
+                      const Positioned.fill(
+                        child: RepaintBoundary(
+                          child: ClipRect(child: StarfieldBackground()),
+                        ),
                       ),
-                    ),
-                    const Positioned.fill(
-                      child: ColoredBox(color: _scrimColor),
-                    ),
-                    Positioned.fill(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          borderRadius: pillRadius,
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
+                      const Positioned.fill(
+                        child: ColoredBox(color: _scrimColor),
+                      ),
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: pillRadius,
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.1),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: layout.s4,
-                        vertical: layout.s2,
-                      ),
-                      child: AnimatedBuilder(
-                        animation: _labelController,
-                        builder: (BuildContext context, Widget? mark) {
-                          return Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ?mark,
-                              SizedBox(width: layout.s3),
-                              _PhaseLabel(
-                                progress: _labelController.value,
-                                reconnectingMessage: reconnectingMessage,
-                                connectedMessage: connectedMessage,
-                                reconnectingStyle: reconnectingStyle,
-                                connectedStyle: connectedStyle,
-                                reconnectingSize: _measureLabel(
-                                  context,
-                                  reconnectingMessage,
-                                  reconnectingStyle,
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: layout.s4,
+                          vertical: layout.s2,
+                        ),
+                        child: AnimatedBuilder(
+                          animation: _labelController,
+                          builder: (BuildContext context, Widget? mark) {
+                            return Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ?mark,
+                                SizedBox(width: layout.s3),
+                                _PhaseLabel(
+                                  progress: _labelController.value,
+                                  reconnectingMessage: reconnectingMessage,
+                                  connectedMessage: connectedMessage,
+                                  reconnectingStyle: reconnectingStyle,
+                                  connectedStyle: connectedStyle,
+                                  reconnectingSize: _measureLabel(
+                                    context,
+                                    reconnectingMessage,
+                                    reconnectingStyle,
+                                  ),
+                                  connectedSize: _measureLabel(
+                                    context,
+                                    connectedMessage,
+                                    connectedStyle,
+                                  ),
                                 ),
-                                connectedSize: _measureLabel(
-                                  context,
-                                  connectedMessage,
-                                  connectedStyle,
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                        child: _ReconnectBrandMark(
-                          size: _markSize,
-                          pulse: _pulseController,
-                          celebrate: _celebrateController,
+                              ],
+                            );
+                          },
+                          child: _ReconnectBrandMark(
+                            size: _markSize,
+                            pulse: _pulseController,
+                            celebrate: _celebrateController,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
