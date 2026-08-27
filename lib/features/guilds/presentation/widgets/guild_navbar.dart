@@ -2223,7 +2223,6 @@ class _GuildListItem extends StatefulWidget {
     this.hideMutedChannels = false,
     this.voiceActivity = VoiceActivityType.none,
     this.icon,
-    this.svgAsset,
     this.iconUrl,
     this.onMenuOpened,
     this.hasUnread = false,
@@ -2254,7 +2253,7 @@ class _GuildListItem extends StatefulWidget {
     this.enableLongPressMenu = true,
     this.opaqueHitTarget = false,
     this.resolveMenuPermissions,
-  });
+  }) : svgAsset = null;
 
   @override
   State<_GuildListItem> createState() => _GuildListItemState();

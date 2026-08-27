@@ -48,6 +48,7 @@ void main() {
 
     expect(find.text(testL10n.gatewayConnectedToast), findsOneWidget);
     expect(find.text(testL10n.gatewayReconnectingToast), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('renders reconnecting copy with reduced motion', (tester) async {
@@ -71,5 +72,6 @@ void main() {
     await tester.pump();
 
     expect(find.text(testL10n.gatewayReconnectingToast), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

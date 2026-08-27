@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'dart:ui' show lerpDouble;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,16 +17,12 @@ double _reconnectMarkBounce(double t) {
   return clamped < 1 ? (1 - clamped) * clamped * 4 : 0;
 }
 
-Size _measureLabel(
-  String text,
-  TextStyle style,
-  TextScaler textScaler,
-  TextDirection textDirection,
-) {
+Size _measureLabel(BuildContext context, String text, TextStyle style) {
+  final DefaultTextStyle defaults = DefaultTextStyle.of(context);
   final TextPainter painter = TextPainter(
-    text: TextSpan(text: text, style: style),
-    textDirection: textDirection,
-    textScaler: textScaler,
+    text: TextSpan(text: text, style: defaults.style.merge(style)),
+    textDirection: Directionality.of(context),
+    textScaler: MediaQuery.textScalerOf(context),
     maxLines: 1,
   )..layout();
   final Size size = painter.size;
@@ -250,8 +245,6 @@ class _GatewayReconnectBannerState
     final TextStyle connectedStyle = reconnectingStyle.copyWith(
       color: Color.lerp(_labelColor, colors.accentSuccess, 0.55),
     );
-    final TextScaler textScaler = MediaQuery.textScalerOf(context);
-    final TextDirection textDirection = Directionality.of(context);
 
     return SlideTransition(
       position: _slideAnimation,
@@ -276,7 +269,11 @@ class _GatewayReconnectBannerState
                 borderRadius: pillRadius,
                 child: Stack(
                   children: [
-                    const Positioned.fill(child: StarfieldBackground()),
+                    const Positioned.fill(
+                      child: RepaintBoundary(
+                        child: ClipRect(child: StarfieldBackground()),
+                      ),
+                    ),
                     const Positioned.fill(
                       child: ColoredBox(color: _scrimColor),
                     ),
@@ -310,16 +307,14 @@ class _GatewayReconnectBannerState
                                 reconnectingStyle: reconnectingStyle,
                                 connectedStyle: connectedStyle,
                                 reconnectingSize: _measureLabel(
+                                  context,
                                   reconnectingMessage,
                                   reconnectingStyle,
-                                  textScaler,
-                                  textDirection,
                                 ),
                                 connectedSize: _measureLabel(
+                                  context,
                                   connectedMessage,
                                   connectedStyle,
-                                  textScaler,
-                                  textDirection,
                                 ),
                               ),
                             ],
@@ -364,12 +359,17 @@ class _PhaseLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final DefaultTextStyle defaults = DefaultTextStyle.of(context);
+    final TextStyle reconnectingStyle = defaults.style.merge(
+      this.reconnectingStyle,
+    );
+    final TextStyle connectedStyle = defaults.style.merge(this.connectedStyle);
     final double t = Curves.easeInOutCubic.transform(progress);
     return SizedBox(
       width:
-          lerpDouble(reconnectingSize.width, connectedSize.width, t) ??
-          connectedSize.width,
-      height: math.max(reconnectingSize.height, connectedSize.height),
+          (lerpDouble(reconnectingSize.width, connectedSize.width, t) ??
+                  connectedSize.width)
+              .ceilToDouble(),
       child: ClipRect(
         child: Stack(
           alignment: Alignment.centerLeft,
@@ -381,7 +381,7 @@ class _PhaseLabel extends StatelessWidget {
                   reconnectingMessage,
                   style: reconnectingStyle,
                   maxLines: 1,
-                  softWrap: false,
+                  overflow: TextOverflow.clip,
                 ),
               ),
             if (t > 0)
@@ -391,7 +391,7 @@ class _PhaseLabel extends StatelessWidget {
                   connectedMessage,
                   style: connectedStyle,
                   maxLines: 1,
-                  softWrap: false,
+                  overflow: TextOverflow.clip,
                 ),
               ),
           ],
@@ -481,5 +481,3 @@ class _ReconnectBrandMark extends StatelessWidget {
     );
   }
 }
-
-
