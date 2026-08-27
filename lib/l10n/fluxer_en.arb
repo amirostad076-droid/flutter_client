@@ -10,11 +10,11 @@
     },
     "gatewayReconnectingToast": "Reconnecting…",
     "@gatewayReconnectingToast": {
-        "description": "Toast shown when the gateway connection is lost and reconnecting."
+        "description": "Banner shown when the gateway connection is lost and reconnecting."
     },
     "gatewayConnectedToast": "Connected",
     "@gatewayConnectedToast": {
-        "description": "Toast shown when the gateway connection is restored."
+        "description": "Banner shown when the gateway connection is restored."
     },
     "sessionExpiredToast": "Your session has expired. Please sign in again.",
     "@sessionExpiredToast": {

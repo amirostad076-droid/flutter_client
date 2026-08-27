@@ -10,6 +10,7 @@ import 'package:fluxer_app/core/theme/providers/theme_preference_provider.dart';
 import 'package:fluxer_app/features/accessibility/resolve_reduced_motion.dart';
 import 'package:fluxer_app/features/accessibility/text_scale.dart';
 import 'package:fluxer_app/features/settings/providers/appearance_preferences_provider.dart';
+import 'package:fluxer_app/features/shell/presentation/gateway_reconnect_banner.dart';
 import 'package:fluxer_app/features/shell/presentation/native_titlebar.dart';
 import 'package:fluxer_app/features/shell/presentation/widgets/required_action_gate.dart';
 import 'package:fluxer_app/features/ui/toast/fluxer_toast_overlay.dart';
@@ -100,12 +101,18 @@ class FluxerApp extends ConsumerWidget {
             ),
           ),
         );
+        Widget overlayStack(Widget child) {
+          return FluxerToastOverlay(
+            child: GatewayReconnectBannerOverlay(child: child),
+          );
+        }
+
         final Widget content;
         if (!isFluxerDesktopOs) {
-          content = BetaBanner(child: FluxerToastOverlay(child: layered));
+          content = BetaBanner(child: overlayStack(layered));
         } else {
-          content = FluxerToastOverlay(
-            child: DragToResizeArea(
+          content = overlayStack(
+            DragToResizeArea(
               child: Column(
                 children: [
                   const NativeTitlebar(),
