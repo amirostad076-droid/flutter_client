@@ -6,7 +6,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluxer_app/core/api/fluxer_client_provider.dart';
-import 'package:fluxer_app/core/constants/assets.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' hide Channel;
 import 'package:fluxer_app/core/media/fluxer_media_url.dart';
 import 'package:fluxer_app/core/permissions/channel_effective_permissions.dart';
@@ -3879,7 +3878,7 @@ class _HomeDmButton extends ConsumerWidget {
     return _GuildListItem(
       label: FluxerLocalizations.of(context).guildNavbarDirectMessages,
       isSelected: isDm,
-      svgAsset: Assets.fluxerSymbol,
+      icon: PhosphorIconsFill.chatCircle,
       mentionCount: pendingFriendCount + dmMentionCount,
       hasUnread: hasCollapsedDmUnread,
       opaqueHitTarget: true,
