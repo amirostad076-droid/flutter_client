@@ -39,6 +39,7 @@ class VoiceParticipantMediaTile extends StatelessWidget {
     this.fillContainer = false,
     this.user,
     this.mirrorCamera = false,
+    this.omitVideoTrack = false,
     super.key,
   });
 
@@ -59,6 +60,7 @@ class VoiceParticipantMediaTile extends StatelessWidget {
   final String? authToken;
   final database.User? user;
   final bool mirrorCamera;
+  final bool omitVideoTrack;
 
   @override
   Widget build(BuildContext context) {
@@ -133,6 +135,29 @@ class VoiceParticipantMediaTile extends StatelessWidget {
               : null;
         }
         if (track != null) {
+          if (omitVideoTrack) {
+            Widget hole = ColoredBox(color: backgroundColor);
+            if (isScreenShareTile &&
+                isActiveScreenShare &&
+                audioTrack != null) {
+              hole = Stack(
+                fit: StackFit.expand,
+                children: <Widget>[
+                  hole,
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: _ScreenShareAudioPlayback(
+                        streamKey: streamKey,
+                        audioTrack: audioTrack,
+                        isActiveScreenShare: isActiveScreenShare,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }
+            return hole;
+          }
           final bool isOwnCameraTile =
               tileSource == VoiceParticipantTileSource.camera &&
               currentUserId != null &&
