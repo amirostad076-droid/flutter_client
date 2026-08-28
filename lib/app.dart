@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_localizations/flutter_localizations.dart' as l10n;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/platform/fluxer_platform.dart';
@@ -16,6 +18,7 @@ import 'package:fluxer_app/features/shell/presentation/widgets/required_action_g
 import 'package:fluxer_app/features/ui/toast/fluxer_toast_overlay.dart';
 import 'package:fluxer_app/features/voice/presentation/widgets/incoming_voice_call_layer.dart';
 import 'package:fluxer_app/features/voice/presentation/widgets/pip/voice_pip_layer.dart';
+import 'package:fluxer_app/features/voice/providers/voice_media_devices_provider.dart';
 import 'package:fluxer_app/l10n/app_locale_provider.dart';
 import 'package:fluxer_app/l10n/generated/fluxer_localizations.dart';
 import 'package:fluxer_app/material_ui.dart';
@@ -23,11 +26,24 @@ import 'package:fluxer_app/shared/widgets/beta_banner.dart';
 import 'package:fluxer_app/shared/widgets/input_modality_listener.dart';
 import 'package:window_manager/window_manager.dart';
 
-class FluxerApp extends ConsumerWidget {
+class FluxerApp extends ConsumerStatefulWidget {
   const FluxerApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FluxerApp> createState() => _FluxerAppState();
+}
+
+class _FluxerAppState extends ConsumerState<FluxerApp> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(ref.read(voiceMediaDevicesProvider.notifier).refresh());
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(fluxerRouterProvider);
     final themePref = ref.watch(themePreferenceProvider);
     final Locale appLocale = ref.watch(effectiveAppLocaleProvider);

@@ -29,7 +29,8 @@ class VoicePipVideo extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final VoiceSessionState voice = ref.watch(voiceSessionProvider);
     final String? key = voiceSessionParticipantsKey(voice);
-    final parsed = parseVoiceParticipantTileId(tileId);
+    final ({String identity, VoiceParticipantTileSource source})? parsed =
+        parseVoiceParticipantTileId(tileId);
     if (key == null || parsed == null) {
       return const ColoredBox(color: Color(0xFF111111));
     }
@@ -90,7 +91,7 @@ class VoicePipVideo extends ConsumerWidget {
   }
 }
 
-class _PipTrackView extends StatelessWidget {
+class _PipTrackView extends StatefulWidget {
   const _PipTrackView({
     required this.participant,
     required this.source,
@@ -112,44 +113,111 @@ class _PipTrackView extends StatelessWidget {
   final Color background;
 
   @override
+  State<_PipTrackView> createState() => _PipTrackViewState();
+}
+
+class _PipTrackViewState extends State<_PipTrackView> {
+  bool _trackSyncScheduled = false;
+  String? _lastVideoSid;
+  String? _lastAudioSid;
+
+  @override
+  void didUpdateWidget(covariant _PipTrackView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _scheduleTrackSync();
+  }
+
+  void _scheduleTrackSync() {
+    if (_trackSyncScheduled) {
+      return;
+    }
+    _trackSyncScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _trackSyncScheduled = false;
+      if (!mounted) {
+        return;
+      }
+      _applyTrackSync();
+    });
+  }
+
+  void _applyTrackSync() {
+    final bool isScreen =
+        widget.source == VoiceParticipantTileSource.screenShare;
+    final TrackPublication? publication = isScreen
+        ? resolveScreenShareVideoPublication(
+            participant: widget.participant,
+            requireTrack: false,
+          )
+        : resolveCameraPublicationAllowingNoTrack(widget.participant);
+    _syncRemotePublication(
+      publication: publication,
+      lastSid: _lastVideoSid,
+      onSid: (String sid) => _lastVideoSid = sid,
+    );
+    if (!isScreen) {
+      return;
+    }
+    _syncRemotePublication(
+      publication: resolveScreenShareAudioPublication(
+        participant: widget.participant,
+        requireTrack: false,
+      ),
+      lastSid: _lastAudioSid,
+      onSid: (String sid) => _lastAudioSid = sid,
+    );
+  }
+
+  void _syncRemotePublication({
+    required TrackPublication? publication,
+    required String? lastSid,
+    required void Function(String sid) onSid,
+  }) {
+    if (publication is! RemoteTrackPublication) {
+      return;
+    }
+    if (publication.sid == lastSid && publication.subscribed) {
+      return;
+    }
+    onSid(publication.sid);
+    if (!publication.subscribed) {
+      unawaited(publication.subscribe());
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: participant,
+      listenable: widget.participant,
       builder: (BuildContext context, Widget? _) {
-        final bool isScreen = source == VoiceParticipantTileSource.screenShare;
+        _scheduleTrackSync();
+        final bool isScreen =
+            widget.source == VoiceParticipantTileSource.screenShare;
         final TrackPublication? publication = isScreen
             ? resolveScreenShareVideoPublication(
-                participant: participant,
+                participant: widget.participant,
                 requireTrack: false,
               )
-            : resolveCameraPublicationAllowingNoTrack(participant);
-        if (publication is RemoteTrackPublication && !publication.subscribed) {
-          unawaited(publication.subscribe());
-        }
+            : resolveCameraPublicationAllowingNoTrack(widget.participant);
         final Track? publicationTrack = publication?.track;
         final VideoTrack? track = publicationTrack is VideoTrack
             ? publicationTrack
             : null;
-        TrackPublication? audioPublication;
         AudioTrack? audioTrack;
         if (isScreen) {
-          audioPublication = resolveScreenShareAudioPublication(
-            participant: participant,
-            requireTrack: false,
-          );
-          if (audioPublication is RemoteTrackPublication &&
-              !audioPublication.subscribed) {
-            unawaited(audioPublication.subscribe());
-          }
-          final Track? audioPublicationTrack = audioPublication?.track;
+          final Track? audioPublicationTrack =
+              resolveScreenShareAudioPublication(
+                participant: widget.participant,
+                requireTrack: false,
+              )?.track;
           audioTrack = audioPublicationTrack is AudioTrack
               ? audioPublicationTrack
               : null;
         }
         final Widget fallback = _PipAvatarFallback(
-          user: user,
-          userId: userId,
-          background: background,
+          user: widget.user,
+          userId: widget.userId,
+          background: widget.background,
         );
         if (track == null) {
           if (audioTrack == null) {
@@ -161,7 +229,7 @@ class _PipTrackView extends StatelessWidget {
               fallback,
               _PipScreenShareAudio(
                 streamKey: buildViewerStreamKey(
-                  voice: voice,
+                  voice: widget.voice,
                   isScreenShareTile: true,
                 ),
                 audioTrack: audioTrack,
@@ -173,15 +241,15 @@ class _PipTrackView extends StatelessWidget {
             ? VideoViewFit.contain
             : VideoViewFit.cover;
         final VideoViewMirrorMode mirrorMode;
-        if (!isOwnCamera || isScreen) {
+        if (!widget.isOwnCamera || isScreen) {
           mirrorMode = VideoViewMirrorMode.off;
-        } else if (mirrorOwnCamera) {
+        } else if (widget.mirrorOwnCamera) {
           mirrorMode = VideoViewMirrorMode.mirror;
         } else {
           mirrorMode = VideoViewMirrorMode.off;
         }
         final Widget video = ColoredBox(
-          color: background,
+          color: widget.background,
           child: IgnorePointer(
             child: VideoTrackRenderer(track, fit: fit, mirrorMode: mirrorMode),
           ),
@@ -195,7 +263,7 @@ class _PipTrackView extends StatelessWidget {
             video,
             _PipScreenShareAudio(
               streamKey: buildViewerStreamKey(
-                voice: voice,
+                voice: widget.voice,
                 isScreenShareTile: true,
               ),
               audioTrack: audioTrack,
@@ -326,7 +394,15 @@ class _PipScreenShareAudioState extends ConsumerState<_PipScreenShareAudio> {
 
   @override
   Widget build(BuildContext context) {
-    ref.watch(voiceStreamAudioProvider);
+    ref
+      ..listen<VoiceStreamAudioPrefsState>(voiceStreamAudioProvider, (_, _) {
+        _syncPlayback();
+        unawaited(_applyVolume());
+      })
+      ..listen<VoiceSettingsState>(
+        voiceSettingsProvider,
+        (_, _) => unawaited(_applyVolume()),
+      );
     return const SizedBox.shrink();
   }
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/physics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/router/route_state_providers.dart';
+import 'package:fluxer_app/core/theme/fluxer_layout_theme.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/shell/presentation/responsive_layout.dart';
 import 'package:fluxer_app/features/ui/tappable/fluxer_gesture_detector.dart';
@@ -24,6 +25,7 @@ import 'package:fluxer_app/features/voice/utils/voice_pip_visibility.dart';
 import 'package:fluxer_app/features/voice/utils/voice_session_navigation.dart';
 import 'package:fluxer_app/material_ui.dart';
 import 'package:fluxer_app/shared/utils/fluxer_haptics.dart';
+import 'package:livekit_client/livekit_client.dart';
 
 const Key kVoiceInAppPipKey = Key('voice-in-app-pip');
 
@@ -64,6 +66,7 @@ class _VoicePipLayerState extends ConsumerState<VoicePipLayer>
   var _expandWaitFrames = 0;
   var _holdCollapseAtFullscreen = false;
   Size? _pipCardSize;
+  String? _lastPipSubscribeKey;
   final GlobalKey _featuredVideoKey = GlobalKey(
     debugLabel: 'voice-pip-featured-video',
   );
@@ -153,7 +156,7 @@ class _VoicePipLayerState extends ConsumerState<VoicePipLayer>
 
   EdgeInsets _safeInsets(BuildContext context) {
     final MediaQueryData mq = MediaQuery.of(context);
-    final layout = context.layout;
+    final FluxerLayoutTheme layout = context.layout;
     double bottom = mq.padding.bottom + mq.viewInsets.bottom;
     double left = mq.padding.left;
     final double top = mq.padding.top;
@@ -438,7 +441,8 @@ class _VoicePipLayerState extends ConsumerState<VoicePipLayer>
     required String tileId,
     required VoiceSessionState voice,
   }) {
-    final parsed = parseVoiceParticipantTileId(tileId);
+    final ({String identity, VoiceParticipantTileSource source})? parsed =
+        parseVoiceParticipantTileId(tileId);
     final bool isScreen =
         parsed?.source == VoiceParticipantTileSource.screenShare;
     final Size viewport = MediaQuery.sizeOf(context);
@@ -602,7 +606,8 @@ class _VoicePipLayerState extends ConsumerState<VoicePipLayer>
 
   Rect _currentPipRect({required String? featuredTileId}) {
     final Size viewport = MediaQuery.sizeOf(context);
-    final parsed = featuredTileId == null
+    final ({String identity, VoiceParticipantTileSource source})? parsed =
+        featuredTileId == null
         ? null
         : parseVoiceParticipantTileId(featuredTileId);
     final Size measured = voicePipCardSize(
@@ -715,12 +720,26 @@ class _VoicePipLayerState extends ConsumerState<VoicePipLayer>
     _showedPip = collapsed && featuredTileId != null;
 
     if (collapsed && voice.liveKitRoom != null) {
-      unawaited(
-        syncCollapsedVoiceVideoSubscriptions(
-          room: voice.liveKitRoom!,
-          featuredTileId: featuredTileId,
-        ),
-      );
+      final String subscribeKey =
+          '${identityHashCode(voice.liveKitRoom)}|$featuredTileId';
+      if (subscribeKey != _lastPipSubscribeKey) {
+        _lastPipSubscribeKey = subscribeKey;
+        final Room? liveKitRoom = voice.liveKitRoom;
+        final String? tileId = featuredTileId;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || liveKitRoom == null) {
+            return;
+          }
+          unawaited(
+            syncCollapsedVoiceVideoSubscriptions(
+              room: liveKitRoom,
+              featuredTileId: tileId,
+            ),
+          );
+        });
+      }
+    } else {
+      _lastPipSubscribeKey = null;
     }
 
     final bool showOverlay =

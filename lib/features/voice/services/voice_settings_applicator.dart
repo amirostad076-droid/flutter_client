@@ -21,7 +21,6 @@ class VoiceSettingsApplicator {
     );
     final String? audioDeviceId = _resolveDeviceId(settings.inputDeviceId);
     return RoomOptions(
-      adaptiveStream: true,
       dynacast: true,
       defaultAudioCaptureOptions: AudioCaptureOptions(
         deviceId: audioDeviceId,

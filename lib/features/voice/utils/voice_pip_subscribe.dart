@@ -29,6 +29,7 @@ Future<void> syncCollapsedVoiceVideoSubscriptions({
     ?room.localParticipant,
     ...room.remoteParticipants.values,
   ];
+  final List<Future<void>> pending = <Future<void>>[];
   for (final Participant participant in participants) {
     final bool isFeaturedParticipant =
         parsed != null &&
@@ -44,9 +45,9 @@ Future<void> syncCollapsedVoiceVideoSubscriptions({
               ? featuredSource == VoiceParticipantTileSource.screenShare
               : featuredSource == VoiceParticipantTileSource.camera);
       if (shouldSubscribe && !publication.subscribed) {
-        await publication.subscribe();
+        pending.add(publication.subscribe());
       } else if (!shouldSubscribe && publication.subscribed) {
-        await publication.unsubscribe();
+        pending.add(publication.unsubscribe());
       }
     }
     final bool subscribeScreenAudio =
@@ -59,9 +60,12 @@ Future<void> syncCollapsedVoiceVideoSubscriptions({
       continue;
     }
     if (subscribeScreenAudio && !audio.subscribed) {
-      await audio.subscribe();
+      pending.add(audio.subscribe());
     } else if (!subscribeScreenAudio && audio.subscribed) {
-      await audio.unsubscribe();
+      pending.add(audio.unsubscribe());
     }
+  }
+  if (pending.isNotEmpty) {
+    await Future.wait(pending);
   }
 }

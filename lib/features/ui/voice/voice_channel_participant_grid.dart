@@ -1294,6 +1294,9 @@ class _VoiceChannelParticipantGridState
     final bool featured = tile.tileId == featuredTileId;
     final bool hostFeatured = featured && voicePipHostsFeatured(pipPhase);
     final bool hideFeatured = featured && voicePipHidesFeaturedTile(pipPhase);
+    final bool isConnected = ref.watch(
+      voiceSessionProvider.select((VoiceSessionState s) => s.isConnected),
+    );
     final Widget card = _VoiceParticipantCard(
       data: tile.data,
       guildId: widget.guildId,
@@ -1322,7 +1325,7 @@ class _VoiceChannelParticipantGridState
           _showParticipantMenu(context, ref, tile, position: position),
       showOverlay: isOverlayVisible,
       l10n: l10n,
-      omitVideoTrack: hostFeatured,
+      omitVideoTrack: hostFeatured || !isConnected,
     );
     Widget wrapped = card;
     if (hideFeatured) {
