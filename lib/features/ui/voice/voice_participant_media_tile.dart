@@ -6,8 +6,8 @@ import 'package:fluxer_app/core/api/session_authorization_header.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as database;
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/settings/providers/voice_settings_provider.dart';
-import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
 import 'package:fluxer_app/features/ui/spinner/fluxer_loading_spinner.dart';
+import 'package:fluxer_app/features/ui/voice/voice_call_avatar.dart';
 import 'package:fluxer_app/features/voice/domain/voice_settings_state.dart';
 import 'package:fluxer_app/features/voice/providers/voice_stream_audio_provider.dart';
 import 'package:fluxer_app/features/voice/utils/voice_participant_track_resolver.dart';
@@ -298,38 +298,24 @@ class VoiceParticipantMediaTile extends StatelessWidget {
   }) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
-      child: ColoredBox(
-        color: backgroundColor,
-        child: Stack(
-          fit: StackFit.expand,
-          children: <Widget>[
-            if (user != null)
-              Center(
-                child: FluxerAvatar.fromUserRow(
-                  user!,
-                  size: 72,
-                  showStatus: false,
-                ),
-              )
-            else
-              Center(
-                child: FluxerAvatar.user(
-                  userId: userId,
-                  fallbackText: display,
-                  size: 72,
-                  showStatus: false,
-                ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          VoiceCallAvatar(
+            background: backgroundColor,
+            userId: userId,
+            user: user,
+            fallbackText: display,
+          ),
+          if (showVideoPending)
+            const Center(
+              child: SizedBox(
+                width: 32,
+                height: 32,
+                child: FluxerLoadingSpinner(),
               ),
-            if (showVideoPending)
-              const Center(
-                child: SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: FluxerLoadingSpinner(),
-                ),
-              ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }

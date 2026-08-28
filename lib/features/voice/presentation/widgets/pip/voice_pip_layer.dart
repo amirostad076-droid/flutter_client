@@ -62,6 +62,7 @@ class _VoicePipLayerState extends ConsumerState<VoicePipLayer>
   Rect? _frozenPipRect;
   var _expandWaitFrames = 0;
   var _holdCollapseAtFullscreen = false;
+  Size? _pipCardSize;
   final GlobalKey _featuredVideoKey = GlobalKey(
     debugLabel: 'voice-pip-featured-video',
   );
@@ -265,6 +266,7 @@ class _VoicePipLayerState extends ConsumerState<VoicePipLayer>
     }
     _stopMove();
     _frozenPipRect = pipRect;
+    _pipCardSize = pipRect.size;
     final Rect fromSlot =
         _lastSlotRect ?? _slotRect() ?? _expandTarget(pipSize: pipRect.size);
     _flight = VoicePipHeroFlight(begin: pipRect, end: fromSlot);
@@ -298,6 +300,7 @@ class _VoicePipLayerState extends ConsumerState<VoicePipLayer>
     _resetSettle();
     _stopMove();
     _frozenPipRect = pipRect;
+    _pipCardSize = pipRect.size;
     _expandWaitFrames = 0;
     _flight = VoicePipHeroFlight(begin: pipRect, end: pipRect);
     _setPhase(VoicePipOverlayPhase.expanding);
@@ -340,6 +343,7 @@ class _VoicePipLayerState extends ConsumerState<VoicePipLayer>
     final Rect? landed = _flight?.rectAt(0) ?? _frozenPipRect;
     if (landed != null) {
       _visualOrigin = landed.topLeft;
+      _pipCardSize = landed.size;
     }
     _flight = null;
     _frozenPipRect = null;
@@ -354,6 +358,7 @@ class _VoicePipLayerState extends ConsumerState<VoicePipLayer>
     takeVoicePipSkipPhoneEnter();
     _flight = null;
     _frozenPipRect = null;
+    _pipCardSize = null;
     _holdCollapseAtFullscreen = false;
     _setPhase(VoicePipOverlayPhase.hidden);
     setState(() {});
@@ -365,7 +370,6 @@ class _VoicePipLayerState extends ConsumerState<VoicePipLayer>
     required bool isScreen,
     required double t,
     bool dragging = false,
-    bool ignorePointers = true,
   }) {
     final double decoration = voicePipDecorationOpacity(t);
     final double radius = voicePipMorphRadius(t);
@@ -422,10 +426,7 @@ class _VoicePipLayerState extends ConsumerState<VoicePipLayer>
         ),
       ),
     );
-    if (ignorePointers) {
-      return IgnorePointer(child: scaled);
-    }
-    return scaled;
+    return IgnorePointer(child: scaled);
   }
 
   Widget _buildPip({
@@ -437,11 +438,14 @@ class _VoicePipLayerState extends ConsumerState<VoicePipLayer>
     final bool isScreen =
         parsed?.source == VoiceParticipantTileSource.screenShare;
     final Size viewport = MediaQuery.sizeOf(context);
-    final Size card = voicePipCardSize(
+    final Size measured = voicePipCardSize(
       viewport: viewport,
       isScreenShare: isScreen,
       hasVideo: ref.watch(voicePipFeaturedHasVideoProvider),
     );
+    final Size card = _phase == VoicePipOverlayPhase.pip && _pipCardSize != null
+        ? _pipCardSize!
+        : measured;
     final Rect safe = voicePipSafeRect(
       viewport: viewport,
       insets: _safeInsets(context),
@@ -510,80 +514,88 @@ class _VoicePipLayerState extends ConsumerState<VoicePipLayer>
     }
     return Positioned.fromRect(
       rect: pipRect,
-      child: FluxerGestureDetector(
-        key: kVoiceInAppPipKey,
-        behavior: HitTestBehavior.opaque,
-        onTap: () {
-          _beginExpand(pipRect: pipRect);
-          navigateToActiveVoiceSession(context, voice: voice);
-        },
-        onPanStart: (_) {
-          _stopMove();
-          _playedMoveHaptic = false;
-          setState(() {
-            _dragging = true;
-            _dragOrigin = _visualOrigin ?? origin;
-            _visualOrigin = _dragOrigin;
-          });
-        },
-        onPanUpdate: (DragUpdateDetails details) {
-          if (voicePipShouldPlayMoveHaptic(
-            alreadyPlayed: _playedMoveHaptic,
-            delta: details.delta,
-          )) {
-            _playedMoveHaptic = true;
-            FluxerHaptics.medium();
-          }
-          setState(() {
-            _dragOrigin = voicePipClampOrigin(
-              origin: (_dragOrigin ?? origin) + details.delta,
-              cardSize: card,
-              safeRect: safe,
-            );
-            _visualOrigin = _dragOrigin;
-          });
-        },
-        onPanEnd: (DragEndDetails details) {
-          _playedMoveHaptic = false;
-          final Offset from = _dragOrigin ?? origin;
-          final Offset release = voicePipOriginAfterRelease(
-            origin: from,
-            cardSize: card,
-            safeRect: safe,
-            velocity: details.velocity.pixelsPerSecond,
-          );
-          ref.read(voicePipPlacementProvider.notifier).setOffset(release);
-          setState(() {
-            _dragging = false;
-            _dragOrigin = null;
-            _visualOrigin = from;
-          });
-          _animateOriginTo(release, velocity: details.velocity.pixelsPerSecond);
-        },
-        onPanCancel: () {
-          _playedMoveHaptic = false;
-          final Offset from = _dragOrigin ?? _visualOrigin ?? origin;
-          final Offset release = voicePipSnapToNearestEdge(
-            origin: from,
-            cardSize: card,
-            safeRect: safe,
-          );
-          ref.read(voicePipPlacementProvider.notifier).setOffset(release);
-          setState(() {
-            _dragging = false;
-            _dragOrigin = null;
-            _visualOrigin = from;
-          });
-          _animateOriginTo(release);
-        },
-        child: _flightVideo(
-          tileId: tileId,
-          speaking: speaking,
-          isScreen: isScreen,
-          t: 0,
-          dragging: _dragging,
-          ignorePointers: false,
-        ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          _flightVideo(
+            tileId: tileId,
+            speaking: speaking,
+            isScreen: isScreen,
+            t: 0,
+            dragging: _dragging,
+          ),
+          FluxerGestureDetector(
+            key: kVoiceInAppPipKey,
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              _beginExpand(pipRect: pipRect);
+              navigateToActiveVoiceSession(context, voice: voice);
+            },
+            onPanStart: (_) {
+              _stopMove();
+              _playedMoveHaptic = false;
+              setState(() {
+                _dragging = true;
+                _dragOrigin = _visualOrigin ?? origin;
+                _visualOrigin = _dragOrigin;
+              });
+            },
+            onPanUpdate: (DragUpdateDetails details) {
+              if (voicePipShouldPlayMoveHaptic(
+                alreadyPlayed: _playedMoveHaptic,
+                delta: details.delta,
+              )) {
+                _playedMoveHaptic = true;
+                FluxerHaptics.medium();
+              }
+              setState(() {
+                _dragOrigin = voicePipClampOrigin(
+                  origin: (_dragOrigin ?? origin) + details.delta,
+                  cardSize: card,
+                  safeRect: safe,
+                );
+                _visualOrigin = _dragOrigin;
+              });
+            },
+            onPanEnd: (DragEndDetails details) {
+              _playedMoveHaptic = false;
+              final Offset from = _dragOrigin ?? origin;
+              final Offset release = voicePipOriginAfterRelease(
+                origin: from,
+                cardSize: card,
+                safeRect: safe,
+                velocity: details.velocity.pixelsPerSecond,
+              );
+              ref.read(voicePipPlacementProvider.notifier).setOffset(release);
+              setState(() {
+                _dragging = false;
+                _dragOrigin = null;
+                _visualOrigin = from;
+              });
+              _animateOriginTo(
+                release,
+                velocity: details.velocity.pixelsPerSecond,
+              );
+            },
+            onPanCancel: () {
+              _playedMoveHaptic = false;
+              final Offset from = _dragOrigin ?? _visualOrigin ?? origin;
+              final Offset release = voicePipSnapToNearestEdge(
+                origin: from,
+                cardSize: card,
+                safeRect: safe,
+              );
+              ref.read(voicePipPlacementProvider.notifier).setOffset(release);
+              setState(() {
+                _dragging = false;
+                _dragOrigin = null;
+                _visualOrigin = from;
+              });
+              _animateOriginTo(release);
+            },
+            child: const SizedBox.expand(),
+          ),
+        ],
       ),
     );
   }
@@ -593,11 +605,14 @@ class _VoicePipLayerState extends ConsumerState<VoicePipLayer>
     final parsed = featuredTileId == null
         ? null
         : parseVoiceParticipantTileId(featuredTileId);
-    final Size card = voicePipCardSize(
+    final Size measured = voicePipCardSize(
       viewport: viewport,
       isScreenShare: parsed?.source == VoiceParticipantTileSource.screenShare,
       hasVideo: ref.read(voicePipFeaturedHasVideoProvider),
     );
+    final Size card = _phase == VoicePipOverlayPhase.pip && _pipCardSize != null
+        ? _pipCardSize!
+        : measured;
     final Rect safe = voicePipSafeRect(
       viewport: viewport,
       insets: _safeInsets(context),

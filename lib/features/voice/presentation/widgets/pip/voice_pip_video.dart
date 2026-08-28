@@ -1,12 +1,11 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluxer_app/core/database/fluxer_database.dart' as database;
 import 'package:fluxer_app/core/router/fluxer_router.dart';
 import 'package:fluxer_app/core/theme/fluxer_theme_extension.dart';
 import 'package:fluxer_app/features/settings/providers/voice_settings_provider.dart';
-import 'package:fluxer_app/features/ui/avatar/fluxer_avatar.dart';
+import 'package:fluxer_app/features/ui/voice/voice_call_avatar.dart';
 import 'package:fluxer_app/features/ui/voice/voice_participant_media_tile.dart';
 import 'package:fluxer_app/features/voice/domain/voice_settings_state.dart';
 import 'package:fluxer_app/features/voice/providers/voice_channel_participants_provider.dart';
@@ -183,7 +182,9 @@ class _PipTrackView extends StatelessWidget {
         }
         final Widget video = ColoredBox(
           color: background,
-          child: VideoTrackRenderer(track, fit: fit, mirrorMode: mirrorMode),
+          child: IgnorePointer(
+            child: VideoTrackRenderer(track, fit: fit, mirrorMode: mirrorMode),
+          ),
         );
         if (audioTrack == null) {
           return video;
@@ -219,25 +220,7 @@ class _PipAvatarFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        final double size =
-            (math.min(constraints.maxWidth, constraints.maxHeight) * 0.56)
-                .clamp(32.0, 64.0);
-        return ColoredBox(
-          color: background,
-          child: Center(
-            child: user != null
-                ? FluxerAvatar.fromUserRow(user!, size: size, showStatus: false)
-                : FluxerAvatar.user(
-                    userId: userId,
-                    size: size,
-                    showStatus: false,
-                  ),
-          ),
-        );
-      },
-    );
+    return VoiceCallAvatar(background: background, userId: userId, user: user);
   }
 }
 

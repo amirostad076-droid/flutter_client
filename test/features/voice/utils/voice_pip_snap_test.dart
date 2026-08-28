@@ -119,5 +119,11 @@ void main() {
         kVoicePipCompactSize,
       );
     });
+
+    test('tile avatars scale with the card up to 72', () {
+      expect(voiceTileAvatarSize(100), closeTo(56, 0.01));
+      expect(voiceTileAvatarSize(220), kVoiceTileAvatarSize);
+      expect(voiceTileAvatarSize(40), 32);
+    });
   });
 }
