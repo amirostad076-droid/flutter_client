@@ -1015,12 +1015,14 @@ class ComposerAutocompleteFieldState
       return;
     }
 
+    final bool hasGlobalEmojiPickerAccess =
+        !hasChannel || (hasPlutoniumEmojiAccess && canUseExternal);
     final Map<Guild, List<GuildEmojiEntry>> grouped =
         guildEmojiEntriesForPicker(
           guilds: guilds,
           emojis: allCustom,
-          activeGuildId: activeGuildId,
-          isPremium: hasPlutoniumEmojiAccess,
+          activeGuildId: activeGuildId.isEmpty ? null : activeGuildId,
+          isPremium: hasGlobalEmojiPickerAccess,
           canUseExternalEmojis: canUseExternal,
         );
     final List<GuildEmojiEntry> customOrdered = <GuildEmojiEntry>[];
