@@ -1,0 +1,38 @@
+name: Build Carbon APK
+
+on:
+  push:
+    branches: [ canary, stable, main ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK (Carbon, stable flavor, UnifiedPush)
+        run: flutter build apk --release --flavor stableUnifiedpush -t lib/main.dart
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: carbon-apk
+          path: android/app/build/outputs/apk/**/*.apk

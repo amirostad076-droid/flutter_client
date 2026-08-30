@@ -32,7 +32,7 @@ if (hasKeystoreProperties) {
 }
 
 android {
-    namespace = "com.fluxer"
+    namespace = "com.carbon"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
     flavorDimensions += listOf("environment", "push")
@@ -57,13 +57,13 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.fluxer"
+        applicationId = "com.carbon"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         multiDexEnabled = true
-        manifestPlaceholders["appLabel"] = "Fluxer"
+        manifestPlaceholders["appLabel"] = "Carbon"
         manifestPlaceholders["buildEnvironment"] = "stable"
         manifestPlaceholders["pushProvider"] = "fcm"
     }
@@ -73,17 +73,17 @@ android {
             dimension = "environment"
             applicationIdSuffix = ".canary"
             versionNameSuffix = "-canary"
-            manifestPlaceholders["appLabel"] = "Fluxer Canary"
+            manifestPlaceholders["appLabel"] = "Carbon Canary"
             manifestPlaceholders["buildEnvironment"] = "canary"
         }
         create("stable") {
             dimension = "environment"
-            manifestPlaceholders["appLabel"] = "Fluxer"
+            manifestPlaceholders["appLabel"] = "Carbon"
             manifestPlaceholders["buildEnvironment"] = "stable"
         }
         create("beta") {
             dimension = "environment"
-            manifestPlaceholders["appLabel"] = "Fluxer Beta"
+            manifestPlaceholders["appLabel"] = "Carbon Beta"
             manifestPlaceholders["buildEnvironment"] = "beta"
         }
         create("fcm") {
