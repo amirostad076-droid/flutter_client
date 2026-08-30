@@ -35,7 +35,7 @@ jobs:
         run: flutter build apk --release --flavor stableUnifiedpush -t lib/main.dart
 
       - name: List APK output
-        run: find android/app/build/outputs -iname "*.apk"
+        run: find . -iname "*.apk" -not -path "./node_modules/*" 2>/dev/null
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
