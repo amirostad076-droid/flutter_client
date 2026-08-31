@@ -28,17 +28,26 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Generate app icons
+        run: dart run flutter_launcher_icons
+
+      - name: Remove duplicate webp launcher icons
+        run: find android/app/src/main/res -iname "ic_launcher*.webp" -delete || true
+
       - name: Run code generation
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Build APK (Carbon, stable flavor, UnifiedPush)
         run: flutter build apk --release --flavor stableUnifiedpush -t lib/main.dart
 
-      - name: List APK output
+      - name: List APK output (debug)
         run: find . -iname "*.apk" -not -path "./node_modules/*" 2>/dev/null
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: carbon-apk
-          path: android/app/build/outputs/apk/**/*.apk
+          path: |
+            build/app/outputs/**/*.apk
+            android/app/build/outputs/**/*.apk
+          if-no-files-found: error

@@ -192,3 +192,9 @@ flutter_launcher_icons:
   image_path: "assets/images/app_icon.png"
   min_sdk_android: 21
   remove_alpha_ios: true
+
+flutter_launcher_icons:
+  android: true
+  image_path: "assets/images/app_icon.png"
+  min_sdk_android: 21
+  remove_alpha_ios: true
